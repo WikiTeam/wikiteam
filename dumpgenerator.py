@@ -81,7 +81,7 @@ def getAllPageTitles(domain='', namespaces=[]):
         deep = 3 # 3 is the current deep of English Wikipedia for Special:Allpages, 3 levels
         c = 0
         checked_suballpages = []
-        rawacum = ''
+        rawacum = raw
         while re.search(r_suballpages, raw) and c < deep:
             #load sub-Allpages
             m = re.compile(r_suballpages).finditer(raw)
@@ -150,8 +150,8 @@ def cleanXML(xml=''):
     return xml
 
 if __name__ == '__main__':
-    domain = 'http://archiveteam.org/index.php' # 'http://en.wikipedia.org/w'
-    #domain = 'http://wikanda.cadizpedia.eu/w/index.php' # 'http://en.wikipedia.org/w'
+    #domain = 'http://archiveteam.org/index.php' # 'http://en.wikipedia.org/w'
+    domain = 'http://wikanda.cadizpedia.eu/w/index.php' # 'http://en.wikipedia.org/w'
     curonly = False
     namespaces = [0]
     
