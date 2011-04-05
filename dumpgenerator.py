@@ -28,6 +28,8 @@ import urllib2
 # usar api o parsear html si no está disponible
 # http://www.mediawiki.org/wiki/Manual:Parameters_to_Special:Export
 # threads para bajar más rápido? pedir varias páginas a la vez
+# images?
+# Special:Log? uploads, account creations, etc
 
 def cleanHTML(raw=''):
     if re.search('<!-- bodytext -->', raw): #<!-- bodytext --> <!-- /bodytext --> <!-- start content --> <!-- end content -->
@@ -117,6 +119,7 @@ def getHeader(domain=''):
 def getXML(domain='', title='', curonly=False):
     #http://www.mediawiki.org/wiki/Manual_talk:Parameters_to_Special:Export#Parameters_no_longer_in_use.3F
     limit = 1000
+    truncated = False
     title_ = re.sub(' ', '_', title)
     headers = {'User-Agent': 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.8.0.4) Gecko/20060508 Firefox/1.5.0.4'}
     params = {'title': 'Special:Export', 'pages': title, 'action': 'submit', }
@@ -135,13 +138,14 @@ def getXML(domain='', title='', curonly=False):
     r_timestamp = r'<timestamp>([^<]+)</timestamp>'
     if not curonly and re.search(r_timestamp, xml): # to avoid empty pages: Special:Allpages and the random one
         params['offset'] = re.findall(r_timestamp, xml)[-1]
-        while params['offset'] == re.findall(r_timestamp, xml)[-1]:
+        while not truncated and params['offset'] == re.findall(r_timestamp, xml)[-1]:
             data = urllib.urlencode(params)
             req2 = urllib2.Request(url=domain, data=data, headers=headers)
             f2 = urllib2.urlopen(req2)
             xml2 = f2.read()
             if re.findall(r_timestamp, xml2)[-1] == params['offset']:
                 print 'ATTENTION: This wiki does not allow some parameters in Special:Export, so, pages with large histories may be truncated'
+                truncated = True
                 break
             else:
                 xml = xml.split('</page>')[0]+xml2.split('<page>\n')[1]
