@@ -130,21 +130,22 @@ def getXML(domain='', title='', curonly=False):
     f = urllib2.urlopen(req)
     xml = f.read()
 
-    #if complete history, check if this page history has > 1000 edits, if so, retrieve all using offset
-    if not curonly:
-        xml2 = xml
-        while len(re.findall(r'<revision>', xml2)) == limit:
-            #try to retrieve more, although perhaps it is exact 1000 edits
-            params['offset'] = re.findall(r'<timestamp>([^<]+)</timestamp>', xml2)[-1]
+    #if complete history, check if this page history has > limit edits, if so, retrieve all using offset if available
+    #else, warning about Special:Export truncating large page histories
+    r_timestamp = r'<timestamp>([^<]+)</timestamp>'
+    if not curonly and re.search(r_timestamp, xml): # to avoid empty pages: Special:Allpages and the random one
+        params['offset'] = re.findall(r_timestamp, xml)[-1]
+        while params['offset'] == re.findall(r_timestamp, xml)[-1]:
             data = urllib.urlencode(params)
             req2 = urllib2.Request(url=domain, data=data, headers=headers)
             f2 = urllib2.urlopen(req2)
             xml2 = f2.read()
-            if re.findall(r'<timestamp>([^<]+)</timestamp>', xml2)[-1] == params['offset']:
-                print 'ATTENTION: This wiki does not allow some parameters in Special:Export, so, pages with large histories can be truncated'
+            if re.findall(r_timestamp, xml2)[-1] == params['offset']:
+                print 'ATTENTION: This wiki does not allow some parameters in Special:Export, so, pages with large histories may be truncated'
                 break
-            xml = xml.split('</page>')[0]+xml2.split('<page>\n')[1]
-            print title, len(xml2), re.findall('<timestamp>[^<]+</timestamp>', xml2)
+            else:
+                xml = xml.split('</page>')[0]+xml2.split('<page>\n')[1]
+            print title, len(xml2), re.findall(r_timestamp, xml2)
     return xml
 
 def cleanXML(xml=''):
