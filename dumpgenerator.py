@@ -117,8 +117,6 @@ def getXML(domain='', title='', curonly=False):
     #http://www.mediawiki.org/wiki/Manual_talk:Parameters_to_Special:Export#Parameters_no_longer_in_use.3F
     limit = 1
     title_ = re.sub(' ', '_', title)
-    tempfilename = 'tempxmlfile.xml'
-    tempfilename2 = 'tempxmlfile2.xml'
     headers = {'User-Agent': 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.8.0.4) Gecko/20060508 Firefox/1.5.0.4'}
     params = {'title': 'Special:Export', 'pages': title, 'action': 'submit', }
     if curonly:
