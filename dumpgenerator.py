@@ -27,6 +27,7 @@ import urllib2
 # curonly and all history (curonly si puede acumular varias peticiones en un solo GET, ara full history pedir cada pagina una a una)
 # usar api o parsear html si no está disponible
 # http://www.mediawiki.org/wiki/Manual:Parameters_to_Special:Export
+# threads para bajar más rápido? pedir varias páginas a la vez
 
 def cleanHTML(raw=''):
     if re.search('<!-- bodytext -->', raw): #<!-- bodytext --> <!-- /bodytext --> <!-- start content --> <!-- end content -->
@@ -115,17 +116,17 @@ def getHeader(domain=''):
 
 def getXML(domain='', title='', curonly=False):
     #http://www.mediawiki.org/wiki/Manual_talk:Parameters_to_Special:Export#Parameters_no_longer_in_use.3F
-    limit = 1
+    limit = 1000
     title_ = re.sub(' ', '_', title)
     headers = {'User-Agent': 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.8.0.4) Gecko/20060508 Firefox/1.5.0.4'}
     params = {'title': 'Special:Export', 'pages': title, 'action': 'submit', }
     if curonly:
         params['curonly'] = 1
     else:
-        params['offset'] = 1
+        params['offset'] = '1'
         params['limit'] = limit
-    params = urllib.urlencode(params)
-    req = urllib2.Request(url=domain, data=params, headers=headers)
+    data = urllib.urlencode(params)
+    req = urllib2.Request(url=domain, data=data, headers=headers)
     f = urllib2.urlopen(req)
     xml = f.read()
 
@@ -134,12 +135,16 @@ def getXML(domain='', title='', curonly=False):
         xml2 = xml
         while len(re.findall(r'<revision>', xml2)) == limit:
             #try to retrieve more, although perhaps it is exact 1000 edits
-            params['offset'] = re.findall(r'<timestamp>([^<]+)</timestamp>', xml2)[-1][0]
-            req2 = urllib2.Request(url=domain, data=params, headers=headers)
+            params['offset'] = re.findall(r'<timestamp>([^<]+)</timestamp>', xml2)[-1]
+            data = urllib.urlencode(params)
+            req2 = urllib2.Request(url=domain, data=data, headers=headers)
             f2 = urllib2.urlopen(req2)
             xml2 = f2.read()
+            if re.findall(r'<timestamp>([^<]+)</timestamp>', xml2)[-1] == params['offset']:
+                print 'ATTENTION: This wiki does not allow some parameters in Special:Export, so, pages with large histories can be truncated'
+                break
             xml = xml.split('</page>')[0]+xml2.split('<page>\n')[1]
-            print len(xml2), re.findall('<timestamp>[^<]+</timestamp>', xml2)
+            print title, len(xml2), re.findall('<timestamp>[^<]+</timestamp>', xml2)
     return xml
 
 def cleanXML(xml=''):
@@ -148,8 +153,8 @@ def cleanXML(xml=''):
     return xml
 
 if __name__ == '__main__':
-    #domain = 'http://archiveteam.org/index.php' # 'http://en.wikipedia.org/w'
-    domain = 'http://wikanda.cadizpedia.eu/w/index.php' # 'http://en.wikipedia.org/w'
+    domain = 'http://archiveteam.org/index.php' # 'http://en.wikipedia.org/w'
+    #domain = 'http://wikanda.cadizpedia.eu/w/index.php' # 'http://en.wikipedia.org/w'
     curonly = False
     namespaces = [0]
     
@@ -170,10 +175,13 @@ if __name__ == '__main__':
     xmlfilename = 'wikidump-%s.xml' % (str(datetime.datetime.now()))
     xmlfile = open(xmlfilename, 'w')
     xmlfile.write(header)
+    c = 1
     for title in titles:
+        if c % 10 == 0:
+            print '    Downloaded %d pages' % (c)
         xml = getXML(domain=domain, title=title, curonly=curonly)
         xml = cleanXML(xml=xml)
         xmlfile.write(xml)
-        break
+        c += 1
     xmlfile.write(footer)
     xmlfile.close()
