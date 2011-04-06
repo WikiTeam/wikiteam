@@ -121,6 +121,7 @@ def getXML(domain='', title='', curonly=False):
     limit = 1000
     truncated = False
     title_ = re.sub(' ', '_', title)
+    print title
     headers = {'User-Agent': 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.8.0.4) Gecko/20060508 Firefox/1.5.0.4'}
     params = {'title': 'Special:Export', 'pages': title, 'action': 'submit', }
     if curonly:
@@ -136,20 +137,25 @@ def getXML(domain='', title='', curonly=False):
     #if complete history, check if this page history has > limit edits, if so, retrieve all using offset if available
     #else, warning about Special:Export truncating large page histories
     r_timestamp = r'<timestamp>([^<]+)</timestamp>'
-    if not curonly and re.search(r_timestamp, xml): # to avoid empty pages: Special:Allpages and the random one
-        params['offset'] = re.findall(r_timestamp, xml)[-1]
-        while not truncated and params['offset'] == re.findall(r_timestamp, xml)[-1]:
+    if not curonly and re.search(r_timestamp, xml): # search for timestamps in xml to avoid analysing empty pages like Special:Allpages and the random one
+        while not truncated and params['offset']:
+            params['offset'] = re.findall(r_timestamp, xml)[-1] #get the last timestamp from the acum XML
             data = urllib.urlencode(params)
             req2 = urllib2.Request(url=domain, data=data, headers=headers)
             f2 = urllib2.urlopen(req2)
             xml2 = f2.read()
-            if re.findall(r_timestamp, xml2)[-1] == params['offset']:
-                print 'ATTENTION: This wiki does not allow some parameters in Special:Export, so, pages with large histories may be truncated'
-                truncated = True
-                break
+            if re.findall(r_timestamp, xml2): #are there more edits in this next XML chunk?
+                if re.findall(r_timestamp, xml2)[-1] == params['offset']:
+                    #again the same XML, this wiki does not support params in Special:Export, offer complete XML up to X edits (usually 1000)
+                    print 'ATTENTION: This wiki does not allow some parameters in Special:Export, so, pages with large histories may be truncated'
+                    truncated = True
+                    break
+                else:
+                    #offset is OK in this wiki, merge with the previous chunk of this page history and continue
+                    xml = xml.split('</page>')[0]+xml2.split('<page>\n')[1]
             else:
-                xml = xml.split('</page>')[0]+xml2.split('<page>\n')[1]
-            print title, len(xml2), re.findall(r_timestamp, xml2)
+                params['offset'] = '' #no more edits in this page history
+            print title, len(re.findall(r_timestamp, xml)), 'edits'
     return xml
 
 def cleanXML(xml=''):
@@ -158,8 +164,9 @@ def cleanXML(xml=''):
     return xml
 
 if __name__ == '__main__':
-    domain = 'http://archiveteam.org/index.php' # 'http://en.wikipedia.org/w'
-    #domain = 'http://wikanda.cadizpedia.eu/w/index.php' # 'http://en.wikipedia.org/w'
+    #domain = 'http://archiveteam.org/index.php'
+    #domain = 'http://wikanda.cadizpedia.eu/w/index.php'
+    domain = 'http://en.citizendium.org/index.php'
     curonly = False
     namespaces = [0]
     
@@ -169,14 +176,15 @@ if __name__ == '__main__':
     
     #get titles
     print 'Loading page titles from namespaces =', ','.join([str(i) for i in namespaces])
-    titles = getAllPageTitles(domain=domain, namespaces=namespaces)
+    #titles = getAllPageTitles(domain=domain, namespaces=namespaces)
+    titles = ['Life']
     #print '\n'.join(titles)
-    print '%d titles loaded' % (len(titles))
+    print '%d page titles loaded' % (len(titles))
     
     #get xml
-    print 'Retrieving the XML for every title'
+    print 'Retrieving the XML for every page'
     header = getHeader(domain=domain)
-    footer = '</mediawiki>'
+    footer = '</mediawiki>\n' #new line at the end
     xmlfilename = 'wikidump-%s.xml' % (str(datetime.datetime.now()))
     xmlfile = open(xmlfilename, 'w')
     xmlfile.write(header)
