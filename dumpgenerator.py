@@ -37,6 +37,7 @@ import urllib2
 # images?
 # Special:Log? uploads, account creations, etc
 # download Special:Version to save whch extension it used
+# que guarde el index.php (la portada) como index.html para que se vea la licencia del wiki abajo del todo
 
 def cleanHTML(raw=''):
     if re.search('<!-- bodytext -->', raw): #<!-- bodytext --> <!-- /bodytext --> <!-- start content --> <!-- end content -->
@@ -49,6 +50,8 @@ def cleanHTML(raw=''):
     return raw
 
 def getTitles(domain='', namespaces=[]):
+    #Get page titles parsing Special:Allpages or using API (fix)
+    #
     #http://en.wikipedia.org/wiki/Special:AllPages
     #http://archiveteam.org/index.php?title=Special:AllPages
     #http://www.wikanda.es/wiki/Especial:Todas
@@ -59,6 +62,7 @@ def getTitles(domain='', namespaces=[]):
     print 'Loading page titles from namespaces =', ','.join([str(i) for i in namespaces])
     
     #namespace checks and stuff
+    #fix get namespaces from a randome Special:Export page, it is better
     namespacenames = {0:''} # main is 0, no prefix
     if namespaces:
         raw = urllib.urlopen('%s?title=Special:Allpages' % (domain)).read()
@@ -223,7 +227,7 @@ def saveLogs():
 
 if __name__ == '__main__':
     #read sys.argv
-    
+    #options: --domain --images --logs --xml --titles --resume --threads=3
     #domain = 'http://archiveteam.org/index.php'
     #domain = 'http://bulbapedia.bulbagarden.net/w/index.php'
     #domain = 'http://wikanda.cadizpedia.eu/w/index.php'
