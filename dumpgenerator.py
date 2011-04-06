@@ -198,7 +198,28 @@ def saveTitles():
 
 def generateImageDump():
     #slurp all the images
+    #special:imagelist
+    #save in a .tar?
+    #tener en cuenta http://www.mediawiki.org/wiki/Manual:ImportImages.php
     pass
+
+def saveLogs():
+    #get all logs from Special:Log
+    """parse
+    <select name='type'>
+    <option value="block">Bloqueos de usuarios</option>
+    <option value="rights">Cambios de perfil de usuario</option>
+    <option value="protect" selected="selected">Protecciones de páginas</option>
+    <option value="delete">Registro de borrados</option>
+    <option value="newusers">Registro de creación de usuarios</option>
+    <option value="merge">Registro de fusiones</option>
+    <option value="import">Registro de importaciones</option>
+    <option value="patrol">Registro de revisiones</option>
+    <option value="move">Registro de traslados</option>
+    <option value="upload">Subidas de archivos</option>
+    <option value="">Todos los registros</option>
+    </select>
+    """
 
 if __name__ == '__main__':
     #read sys.argv
@@ -222,3 +243,4 @@ if __name__ == '__main__':
     saveTitles()
     generateXMLDump(domain=domain, titles=titles)
     generateImageDump()
+    saveLogs()
