@@ -24,12 +24,19 @@ import urllib
 import urllib2
 
 # todo:
+# 
+# resuming feature:
+# save all titles in a .txt, to resume when ctrl-c
+# re.findall('<title>([^<]+)</title>', xml) to see when it was aborted, and resume from there
+# 
+# other:
 # curonly and all history (curonly si puede acumular varias peticiones en un solo GET, ara full history pedir cada pagina una a una)
 # usar api o parsear html si no está disponible
 # http://www.mediawiki.org/wiki/Manual:Parameters_to_Special:Export
 # threads para bajar más rápido? pedir varias páginas a la vez
 # images?
 # Special:Log? uploads, account creations, etc
+# download Special:Version to save whch extension it used
 
 def cleanHTML(raw=''):
     if re.search('<!-- bodytext -->', raw): #<!-- bodytext --> <!-- /bodytext --> <!-- start content --> <!-- end content -->
@@ -41,13 +48,15 @@ def cleanHTML(raw=''):
         sys.exit()
     return raw
 
-def getAllPageTitles(domain='', namespaces=[]):
+def getTitles(domain='', namespaces=[]):
     #http://en.wikipedia.org/wiki/Special:AllPages
     #http://archiveteam.org/index.php?title=Special:AllPages
     #http://www.wikanda.es/wiki/Especial:Todas
     if not domain:
         print 'Please, use --domain parameter'
         sys.exit()
+    
+    print 'Loading page titles from namespaces =', ','.join([str(i) for i in namespaces])
     
     #namespace checks and stuff
     namespacenames = {0:''} # main is 0, no prefix
@@ -72,6 +81,8 @@ def getAllPageTitles(domain='', namespaces=[]):
     
     #retrieve all titles from Special:Allpages, if the wiki is big, perhaps there are sub-Allpages to explore
     namespaces = [i for i in set(namespaces)] #uniques
+    print '%d namespaces have been found' % (len(namespaces))
+    
     titles = []
     for namespace in namespaces:
         print '    Retrieving titles in the namespace', namespace
@@ -106,19 +117,20 @@ def getAllPageTitles(domain='', namespaces=[]):
             if not i.group('title').startswith('Special:'):
                 if not i.group('title') in titles:
                     titles.append(i.group('title'))
+    print '%d page titles loaded' % (len(titles))
     return titles
 
-def getHeader(domain=''):
+def getXMLHeader(domain=''):
     #get the header of a random page, to attach it in the complete XML backup
     #similar to: <mediawiki xmlns="http://www.mediawiki.org/xml/export-0.3/" xmlns:x....
     randomtitle = 'AMF5LKE43MNFGHKSDMRTJ'
-    xml = getXML(domain=domain, title=randomtitle)
+    xml = getXMLPage(domain=domain, title=randomtitle)
     header = xml.split('</mediawiki>')[0]
     return header
 
-def getXML(domain='', title='', curonly=False):
+def getXMLPage(domain='', title='', curonly=False):
     #http://www.mediawiki.org/wiki/Manual_talk:Parameters_to_Special:Export#Parameters_no_longer_in_use.3F
-    limit = 100
+    limit = 1000
     truncated = False
     title_ = re.sub(' ', '_', title)
     headers = {'User-Agent': 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.8.0.4) Gecko/20060508 Firefox/1.5.0.4'}
@@ -162,38 +174,51 @@ def cleanXML(xml=''):
     xml = xml.split('</mediawiki>')[0]
     return xml
 
-if __name__ == '__main__':
-    domain = 'http://archiveteam.org/index.php'
-    #domain = 'http://wikanda.cadizpedia.eu/w/index.php'
-    #domain = 'http://en.citizendium.org/index.php'
-    #domain = 'http://en.wikipedia.org/w/index.php'
-    curonly = False
-    namespaces = [0]
-    
-    if re.findall(r'(wikipedia|wikisource|wiktionary|wikibooks|wikiversity|wikimedia|wikispecies|wikiquote|wikinews)\.org', domain):
-        print 'DO NOT USE THIS SCRIPT TO DOWNLOAD WIKIMEDIA PROJECTS!\nDownload the dumps from http://download.wikimedia.org\nThanks!'
-        sys.exit()
-    
-    #get titles
-    print 'Loading page titles from namespaces =', ','.join([str(i) for i in namespaces])
-    titles = getAllPageTitles(domain=domain, namespaces=namespaces)
-    #print '\n'.join(titles)
-    print '%d page titles loaded' % (len(titles))
-    
-    #get xml
+def generateXMLDump(domain='', titles=[]):
     print 'Retrieving the XML for every page'
-    header = getHeader(domain=domain)
+    header = getXMLHeader(domain=domain)
     footer = '</mediawiki>\n' #new line at the end
-    xmlfilename = 'wikidump-%s.xml' % (str(datetime.datetime.now()))
+    xmlfilename = 'wikidump-%s-%s.xml' % (curonly and 'current' or 'history', str(datetime.datetime.now()))
     xmlfile = open(xmlfilename, 'w')
     xmlfile.write(header)
     c = 1
     for title in titles:
         if c % 10 == 0:
             print '    Downloaded %d pages' % (c)
-        xml = getXML(domain=domain, title=title, curonly=curonly)
+        xml = getXMLPage(domain=domain, title=title, curonly=curonly)
         xml = cleanXML(xml=xml)
         xmlfile.write(xml)
         c += 1
     xmlfile.write(footer)
     xmlfile.close()
+
+def saveTitles():
+    #save titles in a txt for resume if needed
+    pass
+
+def generateImageDump():
+    #slurp all the images
+    pass
+
+if __name__ == '__main__':
+    #read sys.argv
+    
+    #domain = 'http://archiveteam.org/index.php'
+    #domain = 'http://bulbapedia.bulbagarden.net/w/index.php'
+    #domain = 'http://wikanda.cadizpedia.eu/w/index.php'
+    #domain = 'http://en.citizendium.org/index.php'
+    #domain = 'http://en.wikipedia.org/w/index.php'
+    domain = 'http://www.editthis.info/CODE_WIKI/'
+    domain = 'http://www.editthis.info/bobobo_WIKI/'
+    domain = 'http://osl2.uca.es/wikira/index.php'
+    curonly = False
+    namespaces = ['all']
+    
+    if re.findall(r'(wikipedia|wikisource|wiktionary|wikibooks|wikiversity|wikimedia|wikispecies|wikiquote|wikinews)\.org', domain):
+        print 'DO NOT USE THIS SCRIPT TO DOWNLOAD WIKIMEDIA PROJECTS!\nDownload the dumps from http://download.wikimedia.org\nThanks!'
+        sys.exit()
+    
+    titles = getTitles(domain=domain, namespaces=namespaces)
+    saveTitles()
+    generateXMLDump(domain=domain, titles=titles)
+    generateImageDump()
