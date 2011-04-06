@@ -121,7 +121,6 @@ def getXML(domain='', title='', curonly=False):
     limit = 100
     truncated = False
     title_ = re.sub(' ', '_', title)
-    print title
     headers = {'User-Agent': 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.8.0.4) Gecko/20060508 Firefox/1.5.0.4'}
     params = {'title': 'Special:Export', 'pages': title_, 'action': 'submit', }
     if curonly:
@@ -153,7 +152,6 @@ def getXML(domain='', title='', curonly=False):
                 else:
                     #offset is OK in this wiki, merge with the previous chunk of this page history and continue
                     xml = xml.split('</page>')[0]+xml2.split('<page>\n')[1]
-                    print 'merging'
             else:
                 params['offset'] = '' #no more edits in this page history
             print title, len(re.findall(r_timestamp, xml)), 'edits'
@@ -165,21 +163,20 @@ def cleanXML(xml=''):
     return xml
 
 if __name__ == '__main__':
-    #domain = 'http://archiveteam.org/index.php'
+    domain = 'http://archiveteam.org/index.php'
     #domain = 'http://wikanda.cadizpedia.eu/w/index.php'
-    domain = 'http://en.citizendium.org/index.php'
-    domain = 'http://en.wikipedia.org/w/index.php'
+    #domain = 'http://en.citizendium.org/index.php'
+    #domain = 'http://en.wikipedia.org/w/index.php'
     curonly = False
     namespaces = [0]
     
     if re.findall(r'(wikipedia|wikisource|wiktionary|wikibooks|wikiversity|wikimedia|wikispecies|wikiquote|wikinews)\.org', domain):
         print 'DO NOT USE THIS SCRIPT TO DOWNLOAD WIKIMEDIA PROJECTS!\nDownload the dumps from http://download.wikimedia.org\nThanks!'
-        #sys.exit()
+        sys.exit()
     
     #get titles
     print 'Loading page titles from namespaces =', ','.join([str(i) for i in namespaces])
-    #titles = getAllPageTitles(domain=domain, namespaces=namespaces)
-    titles = ['Bay of Cádiz']
+    titles = getAllPageTitles(domain=domain, namespaces=namespaces)
     #print '\n'.join(titles)
     print '%d page titles loaded' % (len(titles))
     
