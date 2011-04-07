@@ -391,9 +391,9 @@ def getParameters():
         'images': False,
         'logs': False,
         'xml': False,
-        'namespaces': [0],
+        'namespaces': ['all'],
         'path': '',
-        'threads': 1,
+        'threads': 1, #fix not coded yet
         'delay': 0,
     }
     other = {
