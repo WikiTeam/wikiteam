@@ -151,7 +151,17 @@ def getXMLPage(config={}, title=''):
         params['limit'] = limit
     data = urllib.urlencode(params)
     req = urllib2.Request(url=config['domain'], data=data, headers=headers)
-    f = urllib2.urlopen(req)
+    try:
+        f = urllib2.urlopen(req)
+    except:
+        try:
+            print 'Sever is slow... Waiting some seconds and retrying...'
+            time.sleep(10)
+            f = urllib2.urlopen(req)
+        except:
+            print 'An error have occurred while retrieving', title
+            print 'Please, resume the dump, --resume'
+            sys.exit()
     xml = f.read()
 
     #if complete history, check if this page history has > limit edits, if so, retrieve all using offset if available
