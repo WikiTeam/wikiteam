@@ -21,6 +21,7 @@ import os
 import re
 import subprocess
 import sys
+import time
 import urllib
 import urllib2
 
@@ -186,6 +187,7 @@ def generateXMLDump(config={}, titles=[]):
     xmlfile.write(header)
     c = 1
     for title in titles:
+        time.sleep(config['delay'])
         if c % 10 == 0:
             print '    Downloaded %d pages' % (c)
         xml = getXMLPage(config={}, title=title)
@@ -207,9 +209,9 @@ def saveTitles(config={}, titles=[]):
 
 def generateImageDump(config={}):
     #slurp all the images
-    #special:imagelist
     #save in a .tar?
     #tener en cuenta http://www.mediawiki.org/wiki/Manual:ImportImages.php
+    #fix, download .desc ?
     print 'Retrieving image filenames'
     r_next = r'(?<!&amp;dir=prev)&amp;offset=(?P<offset>\d+)&amp;' # (?<! http://docs.python.org/library/re.html
     images = []
@@ -221,6 +223,8 @@ def generateImageDump(config={}):
         m = re.compile(r'<a href="(?P<url>[^>]+/./../[^>]+)">[^<]+</a>').finditer(raw)
         for i in m:
             url = i.group('url')
+            if url[0] == '/': #relative URL ZOMG!
+                url = '%s%s' % (config['domain'].split('/index.php')[0], url)
             filename = re.sub('_', ' ', url.split('/')[-1])
             filename_ = re.sub(' ', '_', url.split('/')[-1])
             images.append([filename, url])
@@ -240,6 +244,7 @@ def generateImageDump(config={}):
     
     c = 0
     for filename, url in images:
+        time.sleep(config['delay'])
         urllib.urlretrieve(url, '%s/%s' % (imagepath, filename))
         c += 1
         if c % 10 == 0:
@@ -311,13 +316,14 @@ def getParameters():
         'namespaces': [0],
         'path': '',
         'threads': 1,
+        'delay': 0,
     }
     other = {
         'resume': False,
     }
     #console params
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "", ["h", "help", "path=", "domain=", "images", "logs", "xml", "curonly", "threads=", "resume" ])
+        opts, args = getopt.getopt(sys.argv[1:], "", ["h", "help", "path=", "domain=", "images", "logs", "xml", "curonly", "threads=", "resume", "delay=" ])
     except getopt.GetoptError, err:
         # print help information and exit:
         print str(err) # will print something like "option -a not recognized"
@@ -352,6 +358,8 @@ def getParameters():
             config["threads"] = int(a)
         elif o in ("--resume"):
             other["resume"] = True
+        elif o in ("--delay"):
+            config["delay"] = int(a)
         else:
             assert False, "unhandled option"
 
@@ -385,6 +393,8 @@ def main():
     if re.findall(r'(wikipedia|wikisource|wiktionary|wikibooks|wikiversity|wikimedia|wikispecies|wikiquote|wikinews)\.org', config['domain']):
         print 'DO NOT USE THIS SCRIPT TO DOWNLOAD WIKIMEDIA PROJECTS!\nDownload the dumps from http://download.wikimedia.org\nThanks!'
         sys.exit()
+    
+    print 'Analysing %s' % (config['domain'])
     
     #creating path or resuming if desired
     c = 2
