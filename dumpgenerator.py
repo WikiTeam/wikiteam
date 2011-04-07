@@ -42,6 +42,10 @@ import urllib2
 # que guarde el index.php (la portada) como index.html para que se vea la licencia del wiki abajo del todo
 # fix use api when available
 
+def delay(config={}):
+    print 'Sleeping... %d seconds...' % (config['delay'])
+    time.sleep(config['delay'])
+
 def cleanHTML(raw=''):
     if re.search('<!-- bodytext -->', raw): #<!-- bodytext --> <!-- /bodytext --> <!-- start content --> <!-- end content -->
         raw = raw.split('<!-- bodytext -->')[1].split('<!-- /bodytext -->')[0]
@@ -187,7 +191,7 @@ def generateXMLDump(config={}, titles=[]):
     xmlfile.write(header)
     c = 1
     for title in titles:
-        time.sleep(config['delay'])
+        delay(config=config)
         if c % 10 == 0:
             print '    Downloaded %d pages' % (c)
         xml = getXMLPage(config={}, title=title)
@@ -238,13 +242,13 @@ def generateImageDump(config={}):
     
     imagepath = '%s/images' % (config['path'])
     if os.path.isdir(imagepath):
-        print 'It exists a images directory for this dump' #fix, resume?
+        print 'It exists an images directory for this dump' #fix, resume?
     else:
         os.makedirs(imagepath)
     
     c = 0
     for filename, url in images:
-        time.sleep(config['delay'])
+        delay(config=config)
         urllib.urlretrieve(url, '%s/%s' % (imagepath, filename))
         c += 1
         if c % 10 == 0:
@@ -268,6 +272,7 @@ def saveLogs(config={}):
     <option value="">Todos los registros</option>
     </select>
     """
+    delay(config=config)
 
 def domain2prefix(domain=''):
     domain = re.sub(r'(http://|www\.|/index\.php)', '', domain)
@@ -287,13 +292,15 @@ def saveConfig(config={}, configfilename=''):
     cPickle.dump(config, f)
     f.close()
     
-def welcome():
+def welcome(config={}):
     print "-"*75
-    print """Welcome to DumpGenerator by WikiTeam"""
+    print """Welcome to DumpGenerator 0.1 by WikiTeam (GPL v3)
+More info at: http://code.google.com/p/wikiteam/"""
     print "-"*75
 
-def bye():
-    print "Bye!"
+def bye(config={}):
+    print "Your dump is in %s" % (config['path'])
+    print "Good luck! Bye!"
 
 def usage():
     print "Write a complete help"
@@ -385,9 +392,9 @@ Write --help for help."""
     return config, other
 
 def main():
-    welcome()
     configfilename = 'config.txt'
     config, other = getParameters()
+    welcome(config=config)
     
     #notice about wikipedia dumps
     if re.findall(r'(wikipedia|wikisource|wiktionary|wikibooks|wikiversity|wikimedia|wikispecies|wikiquote|wikinews)\.org', config['domain']):
@@ -398,6 +405,7 @@ def main():
     
     #creating path or resuming if desired
     c = 2
+    originalpath = config['path'] # to avoid concat blabla-2, blabla-2-3, and so on...
     while os.path.isdir(config['path']):
         print '\nWarning!: "%s" path exists' % (config['path'])
         reply = raw_input('There is a dump in "%s", probably incomplete.\nIf you choose resume, to avoid conflicts, the parameters you have chosen in the current session will be ignored\nand the parameters available in "%s/%s" will be loaded.\nDo you want to resume ([yes, y], otherwise no)? ' % (config['path'], config['path'], configfilename))
@@ -415,7 +423,7 @@ def main():
         else:
             print 'You have selected NO'
             print 'Trying generating a new dump into a new directory...'
-        config['path'] = '%s-%d' % (config['path'], c)
+        config['path'] = '%s-%d' % (originalpath, c)
         print 'Trying "%s"...' % (config['path'])
         c += 1
 
@@ -469,7 +477,7 @@ def main():
         if config['logs']:
             saveLogs(config=config)
     
-    bye()
+    bye(config=config)
 
 if __name__ == "__main__":
     main()
