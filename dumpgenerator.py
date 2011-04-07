@@ -172,7 +172,17 @@ def getXMLPage(config={}, title=''):
             params['offset'] = re.findall(r_timestamp, xml)[-1] #get the last timestamp from the acum XML
             data = urllib.urlencode(params)
             req2 = urllib2.Request(url=config['domain'], data=data, headers=headers)
-            f2 = urllib2.urlopen(req2)
+            try:
+                f2 = urllib2.urlopen(req2)
+            except:
+                try:
+                    print 'Sever is slow... Waiting some seconds and retrying...'
+                    time.sleep(10)
+                    f2 = urllib2.urlopen(req2)
+                except:
+                    print 'An error have occurred while retrieving', title
+                    print 'Please, resume the dump, --resume'
+                    sys.exit()
             xml2 = f2.read()
             if re.findall(r_timestamp, xml2): #are there more edits in this next XML chunk?
                 if re.findall(r_timestamp, xml2)[-1] == params['offset']:
