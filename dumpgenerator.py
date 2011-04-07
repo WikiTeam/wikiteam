@@ -57,7 +57,7 @@ def cleanHTML(raw=''):
         sys.exit()
     return raw
 
-def getTitles(config={}):
+def getTitles(config={}, start='!'):
     #Get page titles parsing Special:Allpages or using API (fix)
     #
     #http://en.wikipedia.org/wiki/Special:AllPages
@@ -150,7 +150,7 @@ def getXMLPage(config={}, title=''):
         params['offset'] = '1'
         params['limit'] = limit
     data = urllib.urlencode(params)
-    req = urllib2.Request(url=domain, data=data, headers=headers)
+    req = urllib2.Request(url=config['domain'], data=data, headers=headers)
     f = urllib2.urlopen(req)
     xml = f.read()
 
@@ -161,7 +161,7 @@ def getXMLPage(config={}, title=''):
         while not truncated and params['offset']:
             params['offset'] = re.findall(r_timestamp, xml)[-1] #get the last timestamp from the acum XML
             data = urllib.urlencode(params)
-            req2 = urllib2.Request(url=domain, data=data, headers=headers)
+            req2 = urllib2.Request(url=config['domain'], data=data, headers=headers)
             f2 = urllib2.urlopen(req2)
             xml2 = f2.read()
             if re.findall(r_timestamp, xml2): #are there more edits in this next XML chunk?
@@ -183,19 +183,41 @@ def cleanXML(xml=''):
     xml = xml.split('</mediawiki>')[0]
     return xml
 
-def generateXMLDump(config={}, titles=[]):
-    print 'Retrieving the XML for every page'
-    header = getXMLHeader(domain=config['domain'])
+def generateXMLDump(config={}, titles=[], start=''):
+    print 'Retrieving the XML for every page from "%s"' % (start and start or 'start')
+    header = getXMLHeader(config=config)
     footer = '</mediawiki>\n' #new line at the end
-    xmlfilename = '%s/%s-%s-%s.xml' % (config['path'], domain2prefix(domain=domain), config['curonly'] and 'current' or 'history', datetime.datetime.now().strftime('%Y%m%d'))
-    xmlfile = open('%s/%s' (config['path'], xmlfilename), 'w')
-    xmlfile.write(header)
+    xmlfilename = '%s-%s-%s.xml' % (domain2prefix(domain=config['domain']), config['date'], config['curonly'] and 'current' or 'history')
+    xmlfile = ''
+    lock = True
+    if start:
+        #remove the last chunk of xml dump (it is probably incomplete)
+        xmlfile = open('%s/%s' % (config['path'], xmlfilename), 'r')
+        xml = xmlfile.read()
+        xmlfile.close()
+        xml = xml.split('<title>%s</title>' % (start))[0]
+        xml = '\n'.join(xml.split('\n')[:-2]) # [:-1] removing <page>\n tag
+        xmlfile = open('%s/%s' % (config['path'], xmlfilename), 'w')
+        xmlfile.write('%s\n' % (xml))
+        xmlfile.close()
+    else:
+        #requested complete xml dump
+        lock = False
+        xmlfile = open('%s/%s' % (config['path'], xmlfilename), 'w')
+        xmlfile.write(header)
+        xmlfile.close()
+    
+    xmlfile = open('%s/%s' % (config['path'], xmlfilename), 'a')
     c = 1
     for title in titles:
+        if title == start: #start downloading from start, included
+            lock = False
+        if lock:
+            continue
         delay(config=config)
         if c % 10 == 0:
             print '    Downloaded %d pages' % (c)
-        xml = getXMLPage(config={}, title=title)
+        xml = getXMLPage(config=config, title=title)
         xml = cleanXML(xml=xml)
         xmlfile.write(xml)
         c += 1
@@ -205,8 +227,8 @@ def generateXMLDump(config={}, titles=[]):
 
 def saveTitles(config={}, titles=[]):
     #save titles in a txt for resume if needed
-    titlesfilename = '%s/%s-titles-%s.txt' % (config['path'], domain2prefix(domain=domain), datetime.datetime.now().strftime('%Y%m%d'))
-    titlesfile = open(titlesfilename, 'w')
+    titlesfilename = '%s-%s-titles.txt' % (domain2prefix(domain=config['domain']), config['date'])
+    titlesfile = open('%s/%s' % (config['path'], titlesfilename), 'w')
     titles.append('--END--')
     titlesfile.write('\n'.join(titles))
     titlesfile.close()
@@ -324,6 +346,7 @@ def getParameters():
     domain = 'http://osl2.uca.es/wikira/index.php'
     config = {
         'curonly': False,
+        'date': datetime.datetime.now().strftime('%Y%m%d'),
         'domain': domain,
         'images': False,
         'logs': False,
@@ -394,8 +417,8 @@ Write --help for help."""
         sys.exit()
         #usage()
     
-    #calculating path
-    config['path'] = './%s-dump-%s' % (domain2prefix(domain=config['domain']), datetime.datetime.now().strftime('%Y%m%d'))
+    #calculating path, if not defined by user with --path=
+    config['path'] = './%s-%s-wikidump' % (domain2prefix(domain=config['domain']), config['date'])
     
     return config, other
 
@@ -414,28 +437,26 @@ def main():
     #creating path or resuming if desired
     c = 2
     originalpath = config['path'] # to avoid concat blabla-2, blabla-2-3, and so on...
-    while os.path.isdir(config['path']):
+    while not other['resume'] and os.path.isdir(config['path']): #do not enter if resume is request from begining
         print '\nWarning!: "%s" path exists' % (config['path'])
         reply = raw_input('There is a dump in "%s", probably incomplete.\nIf you choose resume, to avoid conflicts, the parameters you have chosen in the current session will be ignored\nand the parameters available in "%s/%s" will be loaded.\nDo you want to resume ([yes, y], otherwise no)? ' % (config['path'], config['path'], configfilename))
         if reply.lower() in ['yes', 'y']:
-            if os.path.isfile('%s/%s' % (config['path'], configfilename)):
-                print 'Loading config file...'
-                config = loadConfig(config=config, configfilename=configfilename)
-            else:
-                print 'No config file found. Aborting.'
+            if not os.path.isfile('%s/%s' % (config['path'], configfilename)):
+                print 'No config file found. I can\'t resume. Aborting.'
                 sys.exit()
             print 'You have selected YES'
-            print 'OK, resuming...'
             other['resume'] = True
             break
         else:
             print 'You have selected NO'
-            print 'Trying generating a new dump into a new directory...'
         config['path'] = '%s-%d' % (originalpath, c)
         print 'Trying "%s"...' % (config['path'])
         c += 1
 
-    if not other['resume']:
+    if other['resume']:
+        print 'Loading config file...'
+        config = loadConfig(config=config, configfilename=configfilename)
+    else:
         os.mkdir(config['path'])
         saveConfig(config=config, configfilename=configfilename)
     
@@ -443,42 +464,50 @@ def main():
     #fix, hacer que se pueda resumir la lista de títulos por donde iba (para wikis grandes)
     titles = []
     if other['resume']:
-        #load titles
-        #search last
-        last = 'lastline'
-        if last == '--END--':
-            #titles list is complete
-            pass
-            lastlinexml = 'aaa'
-            if lastlinexml == '</mediawiki>\n':
-                #xml dump is complete
-                pass
-                lastimage = 'pepito'
-                if lastimage == 'aaaa':
-                    #image dump complete
-                    pass
-                    lastlog = 'aaaa'
-                    if lastlog == 'loquesea':
-                        #log dump complete
-                        pass
-                    else:
-                        #resume log
-                        pass
-                else:
-                    #resume images
-                    pass
+        print 'Resuming previous dump process...'
+        if config['xml']:
+            #load titles
+            f = open('%s/%s-%s-titles.txt' % (config['path'], domain2prefix(domain=config['domain']), config['date']), 'r')
+            raw = f.read()
+            titles = raw.split('\n')
+            lasttitle = titles[-1]
+            f.close()
+            if lasttitle == '--END--':
+                #titles list is complete
+                print 'Titles list was completed in the previous session'
             else:
-                #resume xml dump
-                pass
-        else:
-            #start = last
-            #remove complete namespaces and then getTitles(config=config, start=start)
-            #titles += getTitles(config=config, start=last)
+                #start = last
+                #remove complete namespaces and then getTitles(config=config, start=start)
+                #titles += getTitles(config=config, start=last)
+                print 'Titles list is incomplete. Resuming...'
+                #search last
+                last = 'lastline'
+                titles += getTitles(config=config, start='!') #fix, try resume not reload entirely, change start='!' and develop the feature into getTitles()
+                saveTitles(config=config, titles=titles)
+            #checking xml dump
+            f = open('%s/%s-%s-%s.xml' % (config['path'], domain2prefix(domain=config['domain']), config['date'], config['curonly'] and 'current' or 'history'), 'r')
+            xml = f.read()
+            f.close()
+            if re.findall('</mediawiki>', xml):
+                #xml dump is complete
+                print 'XML dump was completed in the previous session'
+            else:
+                xmltitles = re.findall(r'<title>([^<]+)</title>', xml)
+                lastxmltitle = ''
+                if xmltitles:
+                    lastxmltitle = xmltitles[-1]
+                generateXMLDump(config=config, titles=titles, start=lastxmltitle)
+        
+        if config['images']:
+            pass
+        
+        if config['logs']:
             pass
     else:
-        #titles += getTitles(config=config, start='!')
-        #saveTitles(config=config, titles=titles)
+        print 'Trying generating a new dump into a new directory...'
         if config['xml']:
+            titles += getTitles(config=config, start='!')
+            saveTitles(config=config, titles=titles)
             generateXMLDump(config=config, titles=titles)
         if config['images']:
             generateImageDump(config=config)
