@@ -57,7 +57,7 @@ def cleanHTML(raw=''):
         sys.exit()
     return raw
 
-def getTitles(config={}, start='!'):
+def getPageTitles(config={}, start='!'):
     #Get page titles parsing Special:Allpages or using API (fix)
     #
     #http://en.wikipedia.org/wiki/Special:AllPages
@@ -254,11 +254,17 @@ def saveTitles(config={}, titles=[]):
     titlesfile.close()
     print 'Titles saved at...', titlesfilename
 
-def generateImageDump(config={}):
-    #slurp all the images
-    #save in a .tar?
-    #tener en cuenta http://www.mediawiki.org/wiki/Manual:ImportImages.php
-    #fix, download .desc ?
+def saveImageFilenamesURL(config={}, images=[]):
+    #save list of images and their urls
+    imagesfilename = '%s-%s-images.txt' % (domain2prefix(domain=config['domain']), config['date'])
+    imagesfile = open('%s/%s' % (config['path'], imagesfilename), 'w')
+    imagesfile.write('\n'.join(['%s\t%s' % (filename, url) for filename, url in images]))
+    imagesfile.write('\n--END--')
+    imagesfile.close()
+    print 'Image filenames and URLs saved at...', imagesfilename
+
+def getImageFilenamesURL(config={}, start='!'):
+    #fix start is only available if parsing from API, if not, reload all the list from special:imagelist is mandatory
     print 'Retrieving image filenames'
     r_next = r'(?<!&amp;dir=prev)&amp;offset=(?P<offset>\d+)&amp;' # (?<! http://docs.python.org/library/re.html
     images = []
@@ -280,7 +286,7 @@ def generateImageDump(config={}):
             filename = re.sub('_', ' ', i.group('filename'))
             filename_ = re.sub(' ', '_', i.group('filename'))
             images.append([filename, url])
-            print filename, url
+            #print filename, url
         
         if re.search(r_next, raw):
             offset = re.findall(r_next, raw)[0]
@@ -288,7 +294,15 @@ def generateImageDump(config={}):
             offset = ''
     
     print '    Found %d images' % (len(images))
-    
+    images.sort()
+    return images
+
+def generateImageDump(config={}, images=[], start=''):
+    #slurp all the images
+    #save in a .tar?
+    #tener en cuenta http://www.mediawiki.org/wiki/Manual:ImportImages.php
+    #fix, download .desc ?
+    print 'Retrieving images from "%s"' % (start and start or 'start')
     imagepath = '%s/images' % (config['path'])
     if os.path.isdir(imagepath):
         print 'It exists an images directory for this dump' #fix, resume?
@@ -296,7 +310,12 @@ def generateImageDump(config={}):
         os.makedirs(imagepath)
     
     c = 0
+    lock = True
     for filename, url in images:
+        if filename == start: #start downloading from start, included
+            lock = False
+        if lock:
+            continue
         delay(config=config)
         urllib.urlretrieve(url, '%s/%s' % (imagepath, filename))
         c += 1
@@ -481,26 +500,32 @@ def main():
         saveConfig(config=config, configfilename=configfilename)
     
     titles = []
+    images = []
     if other['resume']:
         print 'Resuming previous dump process...'
         if config['xml']:
             #load titles
-            f = open('%s/%s-%s-titles.txt' % (config['path'], domain2prefix(domain=config['domain']), config['date']), 'r')
-            raw = f.read()
-            titles = raw.split('\n')
-            lasttitle = titles[-1]
-            f.close()
+            lasttitle = ''
+            try:
+                f = open('%s/%s-%s-titles.txt' % (config['path'], domain2prefix(domain=config['domain']), config['date']), 'r')
+                raw = f.read()
+                titles = raw.split('\n')
+                lasttitle = titles[-1]
+                f.close()
+            except:
+                pass #probably file doesnot exists
             if lasttitle == '--END--':
                 #titles list is complete
-                print 'Titles list was completed in the previous session'
+                print 'Title list was completed in the previous session'
             else:
                 #start = last
-                #remove complete namespaces and then getTitles(config=config, start=start)
-                #titles += getTitles(config=config, start=last)
-                print 'Titles list is incomplete. Resuming...'
+                #remove complete namespaces and then getPageTitles(config=config, start=start)
+                #titles += getPageTitles(config=config, start=last)
+                print 'Title list is incomplete. Resuming...'
                 #search last
                 last = 'lastline'
-                titles += getTitles(config=config, start='!') #fix, try resume not reload entirely, change start='!' and develop the feature into getTitles()
+                titles = titles[:-1] #removing last one, next line append from start, and start is inclusive
+                titles += getPageTitles(config=config, start='!') #fix, try resume not reload entirely, change start='!' and develop the feature into getPageTitles()
                 saveTitles(config=config, titles=titles)
             #checking xml dump
             f = open('%s/%s-%s-%s.xml' % (config['path'], domain2prefix(domain=config['domain']), config['date'], config['curonly'] and 'current' or 'history'), 'r')
@@ -517,8 +542,48 @@ def main():
                 generateXMLDump(config=config, titles=titles, start=lastxmltitle)
         
         if config['images']:
-            #fix
-            pass
+            #load images
+            lastimage = ''
+            try:
+                f = open('%s/%s-%s-images.txt' % (config['path'], domain2prefix(domain=config['domain']), config['date']), 'r')
+                raw = f.read()
+                lines = raw.split('\n')
+                for l in lines:
+                    if re.search(r'\t', l):
+                        images.append(l.split('\t'))
+                lastimage = lines[-1]
+                f.close()
+            except:
+                pass #probably file doesnot exists
+            if lastimage == '--END--':
+                print 'Image list was completed in the previous session'
+            else:
+                print 'Image list is incomplete. Resuming...'
+                images = images[:-1] #removing last one, next line append from start, and start is inclusive
+                images += getImageFilenamesURL(config=config, start='!') #fix, develop start when using API, if using special:imagelist ignore start and reload all
+                saveImageFilenamesURL(config=config, images=images)
+            #checking images directory
+            listdir = []
+            try:
+                listdir = os.listdir('%s/images' % (config['path']))
+            except:
+                pass #probably directory does not exist
+            listdir.sort()
+            complete = True
+            lastfilename = ''
+            lastfilename2 = ''
+            for filename, url in images:
+                if filename not in listdir:
+                    complete = False
+                    lastfilename2 = lastfilename
+                    lastfilename = filename
+                    break
+            lastfilename2 = lastfilename # we resume from previous image, which may be corrupted by the previous session ctrl-c or abort
+            if complete:
+                #image dump is complete
+                print 'Image dump was completed in the previous session'
+            else:
+                generateImageDump(config=config, images=images, start=lastfilename)
         
         if config['logs']:
             #fix
@@ -526,11 +591,13 @@ def main():
     else:
         print 'Trying generating a new dump into a new directory...'
         if config['xml']:
-            titles += getTitles(config=config, start='!')
+            titles += getPageTitles(config=config, start='!')
             saveTitles(config=config, titles=titles)
             generateXMLDump(config=config, titles=titles)
         if config['images']:
-            generateImageDump(config=config)
+            images += getImageFilenamesURL(config=config) #fix add start like above
+            saveImageFilenamesURL(config=config, images=images)
+            generateImageDump(config=config, images=images)
         if config['logs']:
             saveLogs(config=config)
     
