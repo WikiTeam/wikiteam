@@ -301,7 +301,8 @@ def generateImageDump(config={}, images=[], start=''):
     #slurp all the images
     #save in a .tar?
     #tener en cuenta http://www.mediawiki.org/wiki/Manual:ImportImages.php
-    #fix, download .desc ?
+    #fix, download .desc ? YEP!
+    #fix download the upload log too, for uploaders info and date
     print 'Retrieving images from "%s"' % (start and start or 'start')
     imagepath = '%s/images' % (config['path'])
     if os.path.isdir(imagepath):
