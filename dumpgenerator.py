@@ -43,8 +43,9 @@ import urllib2
 # fix use api when available
 
 def delay(config={}):
-    print 'Sleeping... %d seconds...' % (config['delay'])
-    time.sleep(config['delay'])
+    if config['delay'] > 0:
+        print 'Sleeping... %d seconds...' % (config['delay'])
+        time.sleep(config['delay'])
 
 def cleanHTML(raw=''):
     if re.search('<!-- bodytext -->', raw): #<!-- bodytext --> <!-- /bodytext --> <!-- start content --> <!-- end content -->
@@ -224,14 +225,20 @@ def generateImageDump(config={}):
         url = '%s?title=Special:Imagelist&limit=5000&offset=%s' % (config['domain'], offset)
         raw = urllib.urlopen(url).read()
         raw = cleanHTML(raw)
-        m = re.compile(r'<a href="(?P<url>[^>]+/./../[^>]+)">[^<]+</a>').finditer(raw)
+        #<td class="TablePager_col_img_name"><a href="/index.php?title=File:Yahoovideo.jpg" title="File:Yahoovideo.jpg">Yahoovideo.jpg</a> (<a href="/images/2/2b/Yahoovideo.jpg">file</a>)</td>
+        m = re.compile(r'(?i)<td class="TablePager_col_img_name"><a href[^>]+title="[^:>]+:(?P<filename>[^>]+)">[^<]+</a>[^<]+<a href="(?P<url>[^>]+/[^>/]+)">[^<]+</a>[^<]+</td>').finditer(raw)
         for i in m:
             url = i.group('url')
-            if url[0] == '/': #relative URL ZOMG!
-                url = '%s%s' % (config['domain'].split('/index.php')[0], url)
-            filename = re.sub('_', ' ', url.split('/')[-1])
-            filename_ = re.sub(' ', '_', url.split('/')[-1])
+            if url[0] == '/': #relative URL
+                if re.search(r'\.\./', url): #../ weird paths (see wikanda)
+                    x = len(re.findall(r'\.\./', url)) + 1
+                    url = '%s/%s' % ('/'.join(config['domain'].split('/')[:-x]), url.split('../')[-1])
+                else:
+                    url = '%s%s' % (config['domain'].split('/index.php')[0], url)
+            filename = re.sub('_', ' ', i.group('filename'))
+            filename_ = re.sub(' ', '_', i.group('filename'))
             images.append([filename, url])
+            print filename, url
         
         if re.search(r_next, raw):
             offset = re.findall(r_next, raw)[0]
@@ -300,6 +307,7 @@ More info at: http://code.google.com/p/wikiteam/"""
 
 def bye(config={}):
     print "Your dump is in %s" % (config['path'])
+    print "If you found any bug, report a new issue here (Gmail account required): http://code.google.com/p/wikiteam/issues/list"
     print "Good luck! Bye!"
 
 def usage():
