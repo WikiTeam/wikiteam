@@ -1,4 +1,3 @@
-#!/usr/bin/env python2.5
 # -*- coding: utf-8 -*-
 
 # Copyright (C) 2011 emijrp
@@ -17,6 +16,7 @@
 
 import cPickle
 import datetime
+import getopt
 import os
 import re
 import subprocess
@@ -51,23 +51,20 @@ def cleanHTML(raw=''):
         sys.exit()
     return raw
 
-def getTitles(domain='', namespaces=[]):
+def getTitles(config={}):
     #Get page titles parsing Special:Allpages or using API (fix)
     #
     #http://en.wikipedia.org/wiki/Special:AllPages
     #http://archiveteam.org/index.php?title=Special:AllPages
     #http://www.wikanda.es/wiki/Especial:Todas
-    if not domain:
-        print 'Please, use --domain parameter'
-        sys.exit()
-    
-    print 'Loading page titles from namespaces =', ','.join([str(i) for i in namespaces])
+    print 'Loading page titles from namespaces =', ','.join([str(i) for i in config['namespaces']])
     
     #namespace checks and stuff
     #fix get namespaces from a randome Special:Export page, it is better
     namespacenames = {0:''} # main is 0, no prefix
+    namespaces = config['namespaces']
     if namespaces:
-        raw = urllib.urlopen('%s?title=Special:Allpages' % (domain)).read()
+        raw = urllib.urlopen('%s?title=Special:Allpages' % (config['domain'])).read()
         m = re.compile(r'<option [^>]*?value="(?P<namespaceid>\d+)"[^>]*?>(?P<namespacename>[^<]+)</option>').finditer(raw) # [^>]*? to include selected="selected"
         if 'all' in namespaces:
             namespaces = []
@@ -92,7 +89,7 @@ def getTitles(domain='', namespaces=[]):
     titles = []
     for namespace in namespaces:
         print '    Retrieving titles in the namespace', namespace
-        url = '%s?title=Special:Allpages&namespace=%s' % (domain, namespace)
+        url = '%s?title=Special:Allpages&namespace=%s' % (config['domain'], namespace)
         raw = urllib.urlopen(url).read()
         raw = cleanHTML(raw)
         
@@ -111,7 +108,7 @@ def getTitles(domain='', namespaces=[]):
                 name = '%s-%s' % (fr, to)
                 if not name in checked_suballpages:
                     checked_suballpages.append(name)
-                    url = '%s?title=Special:Allpages&namespace=%s&from=%s&to=%s' % (domain, namespace, fr, to) #do not put urllib.quote in fr or to
+                    url = '%s?title=Special:Allpages&namespace=%s&from=%s&to=%s' % (config['domain'], namespace, fr, to) #do not put urllib.quote in fr or to
                     raw2 = urllib.urlopen(url).read()
                     raw2 = cleanHTML(raw2)
                     rawacum += raw2 #merge it after removed junk
@@ -126,22 +123,22 @@ def getTitles(domain='', namespaces=[]):
     print '%d page titles loaded' % (len(titles))
     return titles
 
-def getXMLHeader(domain=''):
+def getXMLHeader(config={}):
     #get the header of a random page, to attach it in the complete XML backup
     #similar to: <mediawiki xmlns="http://www.mediawiki.org/xml/export-0.3/" xmlns:x....
     randomtitle = 'AMF5LKE43MNFGHKSDMRTJ'
-    xml = getXMLPage(domain=domain, title=randomtitle)
+    xml = getXMLPage(config=config, title=randomtitle)
     header = xml.split('</mediawiki>')[0]
     return header
 
-def getXMLPage(domain='', title='', curonly=False):
+def getXMLPage(config={}, title=''):
     #http://www.mediawiki.org/wiki/Manual_talk:Parameters_to_Special:Export#Parameters_no_longer_in_use.3F
     limit = 1000
     truncated = False
     title_ = re.sub(' ', '_', title)
     headers = {'User-Agent': 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.8.0.4) Gecko/20060508 Firefox/1.5.0.4'}
     params = {'title': 'Special:Export', 'pages': title_, 'action': 'submit', }
-    if curonly:
+    if config['curonly']:
         params['curonly'] = 1
     else:
         params['offset'] = '1'
@@ -154,7 +151,7 @@ def getXMLPage(domain='', title='', curonly=False):
     #if complete history, check if this page history has > limit edits, if so, retrieve all using offset if available
     #else, warning about Special:Export truncating large page histories
     r_timestamp = r'<timestamp>([^<]+)</timestamp>'
-    if not curonly and re.search(r_timestamp, xml): # search for timestamps in xml to avoid analysing empty pages like Special:Allpages and the random one
+    if not config['curonly'] and re.search(r_timestamp, xml): # search for timestamps in xml to avoid analysing empty pages like Special:Allpages and the random one
         while not truncated and params['offset']:
             params['offset'] = re.findall(r_timestamp, xml)[-1] #get the last timestamp from the acum XML
             data = urllib.urlencode(params)
@@ -180,18 +177,18 @@ def cleanXML(xml=''):
     xml = xml.split('</mediawiki>')[0]
     return xml
 
-def generateXMLDump(path='', domain='', titles=[], curonly=False):
+def generateXMLDump(config={}, titles=[]):
     print 'Retrieving the XML for every page'
-    header = getXMLHeader(domain=domain)
+    header = getXMLHeader(domain=config['domain'])
     footer = '</mediawiki>\n' #new line at the end
-    xmlfilename = '%s%s-%s-%s.xml' % (path and '%s/' % (path) or '', domain2prefix(domain=domain), curonly and 'current' or 'history', datetime.datetime.now().strftime('%Y%m%d'))
-    xmlfile = open(path and '%s/%s' (path, xmlfilename) or xmlfilename, 'w')
+    xmlfilename = '%s/%s-%s-%s.xml' % (config['path'], domain2prefix(domain=domain), config['curonly'] and 'current' or 'history', datetime.datetime.now().strftime('%Y%m%d'))
+    xmlfile = open('%s/%s' (config['path'], xmlfilename), 'w')
     xmlfile.write(header)
     c = 1
     for title in titles:
         if c % 10 == 0:
             print '    Downloaded %d pages' % (c)
-        xml = getXMLPage(domain=domain, title=title, curonly=curonly)
+        xml = getXMLPage(config={}, title=title)
         xml = cleanXML(xml=xml)
         xmlfile.write(xml)
         c += 1
@@ -199,16 +196,16 @@ def generateXMLDump(path='', domain='', titles=[], curonly=False):
     xmlfile.close()
     print 'XML dump saved at...', xmlfilename
 
-def saveTitles(path='', titles=[]):
+def saveTitles(config={}, titles=[]):
     #save titles in a txt for resume if needed
-    titlesfilename = '%s%s-titles-%s.txt' % (path and '%s/' % (path) or '', domain2prefix(domain=domain), datetime.datetime.now().strftime('%Y%m%d'))
+    titlesfilename = '%s/%s-titles-%s.txt' % (config['path'], domain2prefix(domain=domain), datetime.datetime.now().strftime('%Y%m%d'))
     titlesfile = open(titlesfilename, 'w')
     titles.append('--END--')
     titlesfile.write('\n'.join(titles))
     titlesfile.close()
     print 'Titles saved at...', titlesfilename
 
-def generateImageDump(path=''):
+def generateImageDump(config={}):
     #slurp all the images
     #special:imagelist
     #save in a .tar?
@@ -218,7 +215,7 @@ def generateImageDump(path=''):
     images = []
     offset = '29990101000000' #january 1, 2999
     while offset:
-        url = '%s?title=Special:Imagelist&limit=5000&offset=%s' % (domain, offset)
+        url = '%s?title=Special:Imagelist&limit=5000&offset=%s' % (config['domain'], offset)
         raw = urllib.urlopen(url).read()
         raw = cleanHTML(raw)
         m = re.compile(r'<a href="(?P<url>[^>]+/./../[^>]+)">[^<]+</a>').finditer(raw)
@@ -235,7 +232,7 @@ def generateImageDump(path=''):
     
     print '    Found %d images' % (len(images))
     
-    imagepath = path and '%s/images' % (path) or 'images'
+    imagepath = '%s/images' % (config['path'])
     if os.path.isdir(imagepath):
         print 'It exists a images directory for this dump' #fix, resume?
     else:
@@ -249,7 +246,7 @@ def generateImageDump(path=''):
             print '    Downloaded %d images' % (c)
     print 'Downloaded %d images' % (c)
     
-def saveLogs(path=''):
+def saveLogs(config={}):
     #get all logs from Special:Log
     """parse
     <select name='type'>
@@ -274,23 +271,29 @@ def domain2prefix(domain=''):
     domain = re.sub(r'[^A-Za-z0-9]', '_', domain)
     return domain
 
-def loadConfig(path='', configfilename=''):
-    config = {}
-    f = open('%s%s' % (path and '%s/' % (path) or '', configfilename), 'r')
+def loadConfig(config={}, configfilename=''):
+    f = open('%s/%s' % (config['path'], configfilename), 'r')
     config = cPickle.load(f)
     f.close()
     return config
 
-def saveConfig(path='', configfilename='', config={}):
-    f = open('%s%s' % (path and '%s/' % (path) or '', configfilename), 'w')
+def saveConfig(config={}, configfilename=''):
+    f = open('%s/%s' % (config['path'], configfilename), 'w')
     cPickle.dump(config, f)
     f.close()
-
-if __name__ == '__main__':
-    #read sys.argv
-    #options: --domain --images --logs --xml --resume --threads=3
     
-    #variables
+def welcome():
+    print "-"*75
+    print """Welcome to DumpGenerator by WikiTeam"""
+    print "-"*75
+
+def bye():
+    print "Bye!"
+
+def usage():
+    print "Write a complete help"
+
+def getParameters():
     #domain = 'http://archiveteam.org/index.php'
     #domain = 'http://bulbapedia.bulbagarden.net/w/index.php'
     #domain = 'http://wikanda.cadizpedia.eu/w/index.php'
@@ -299,54 +302,121 @@ if __name__ == '__main__':
     #domain = 'http://www.editthis.info/CODE_WIKI/'
     #domain = 'http://www.editthis.info/bobobo_WIKI/'
     domain = 'http://osl2.uca.es/wikira/index.php'
-    configfilename = 'config.txt'
     config = {
         'curonly': False,
         'domain': domain,
-        'images': True,
+        'images': False,
         'logs': False,
-        'namespaces': ['all'],
-        'resume': False,
+        'xml': False,
+        'namespaces': [0],
+        'path': '',
         'threads': 1,
     }
-    resume = False
+    other = {
+        'resume': False,
+    }
+    #console params
+    try:
+        opts, args = getopt.getopt(sys.argv[1:], "", ["h", "help", "path=", "domain=", "images", "logs", "xml", "curonly", "threads=", "resume" ])
+    except getopt.GetoptError, err:
+        # print help information and exit:
+        print str(err) # will print something like "option -a not recognized"
+        usage()
+        sys.exit(2)
+    for o, a in opts:
+        if o in ("-h","--help"):
+            usage()
+        elif o in ("--path"):
+            config["path"] = a
+            while len(config["path"])>0:
+                if config["path"][-1] == '/': #dará problemas con rutas windows?
+                    config["path"] = config["path"][:-1]
+                else:
+                    break
+            if not config["path"]:
+                config["path"] = '.'
+        elif o in ("--domain"):
+            config["domain"] = a
+        elif o in ("--images"):
+            config["images"] = True
+        elif o in ("--logs"):
+            config["logs"] = True
+        elif o in ("--xml"):
+            config["xml"] = True
+        elif o in ("--curonly"):
+            if not config["xml"]:
+                print "If you select --curonly, you must use --xml too"
+                sys.exit()
+            config["curonly"] = True
+        elif o in ("--threads"):
+            config["threads"] = int(a)
+        elif o in ("--resume"):
+            other["resume"] = True
+        else:
+            assert False, "unhandled option"
+
+    #missing mandatory params
+    if not config["domain"] or \
+       not (config["xml"] or config["images"] or config["logs"]):
+        print """Error. You forget mandatory parameters:
+    --domain: URL to index.php in the wiki (examples: http://en.wikipedia.org/w/index.php or http://archiveteam.org/index.php)
+    
+And one of these, or two or three:
+    --xml: it generates a XML dump. It retrieves full history of pages located in namespace = 0 (articles)
+           If you want more namespaces, use the parameter --namespaces=0,1,2,3... or --namespaces=all
+    --images: it generates an image dump
+    --logs: it generates a log dump
+    
+Write --help for help."""
+        sys.exit()
+        #usage()
+    
+    #calculating path
+    config['path'] = './%s-dump-%s' % (domain2prefix(domain=config['domain']), datetime.datetime.now().strftime('%Y%m%d'))
+    
+    return config, other
+
+def main():
+    welcome()
+    configfilename = 'config.txt'
+    config, other = getParameters()
     
     #notice about wikipedia dumps
     if re.findall(r'(wikipedia|wikisource|wiktionary|wikibooks|wikiversity|wikimedia|wikispecies|wikiquote|wikinews)\.org', config['domain']):
         print 'DO NOT USE THIS SCRIPT TO DOWNLOAD WIKIMEDIA PROJECTS!\nDownload the dumps from http://download.wikimedia.org\nThanks!'
         sys.exit()
     
-    #creating file path or resuming if desired
-    path = '%s-dump-%s' % (domain2prefix(domain=config['domain']), datetime.datetime.now().strftime('%Y%m%d')) #fix, rewrite path when resuming from other day when this feature is available
-    path2 = path
+    #creating path or resuming if desired
     c = 2
-    while os.path.isdir(path2):
-        print 'Warning!: "%s" directory exists' % (path2)
-        reply = raw_input('There is a dump in "%s", probably incomplete.\nIf you choose resume, to avoid conflicts, the parameters you have chosen in the current session will be ignored\nand the parameters available in "%s/%s" will be loaded.\nDo you want to resume ([yes, y], [no, n])? ' % (path2, path2, configfilename))
+    while os.path.isdir(config['path']):
+        print '\nWarning!: "%s" path exists' % (config['path'])
+        reply = raw_input('There is a dump in "%s", probably incomplete.\nIf you choose resume, to avoid conflicts, the parameters you have chosen in the current session will be ignored\nand the parameters available in "%s/%s" will be loaded.\nDo you want to resume ([yes, y], otherwise no)? ' % (config['path'], config['path'], configfilename))
         if reply.lower() in ['yes', 'y']:
-            if os.path.isfile('%s/%s' % (path2, configfilename)):
+            if os.path.isfile('%s/%s' % (config['path'], configfilename)):
                 print 'Loading config file...'
-                config = loadConfig(path=path2, configfilename=configfilename)
+                config = loadConfig(config=config, configfilename=configfilename)
             else:
                 print 'No config file found. Aborting.'
                 sys.exit()
+            print 'You have selected YES'
             print 'OK, resuming...'
-            resume = True
+            other['resume'] = True
             break
         else:
-            print 'OK, trying generating a new dump into a new directory...'
-        path2 = '%s-%d' % (path, c)
-        print 'Trying "%s"...' % (path2)
+            print 'You have selected NO'
+            print 'Trying generating a new dump into a new directory...'
+        config['path'] = '%s-%d' % (config['path'], c)
+        print 'Trying "%s"...' % (config['path'])
         c += 1
-    path = path2
-    if not resume:
-        os.mkdir(path)
-        saveConfig(path=path, configfilename=configfilename, config=config)
+
+    if not other['resume']:
+        os.mkdir(config['path'])
+        saveConfig(config=config, configfilename=configfilename)
     
     #ok, creating dump
     #fix, hacer que se pueda resumir la lista de títulos por donde iba (para wikis grandes)
     titles = []
-    if resume:
+    if other['resume']:
         #load titles
         #search last
         last = 'lastline'
@@ -376,14 +446,20 @@ if __name__ == '__main__':
                 pass
         else:
             #start = last
-            #remove complete namespaces and then getTitles(domainconfig['domain'], namespaces=namespacesmissing, start=start)
-            #titles += getTitles(domain=config['domain'], namespaces=config['namespaces'], start=last)
+            #remove complete namespaces and then getTitles(config=config, start=start)
+            #titles += getTitles(config=config, start=last)
             pass
     else:
-        #titles += getTitles(config['domain'], namespaces=config['namespaces'], start='!')
-        #saveTitles(path=path, titles=titles)
-        #generateXMLDump(path=path, domain=config['domain'], titles=titles, curonly=config['curonly'])
+        #titles += getTitles(config=config, start='!')
+        #saveTitles(config=config, titles=titles)
+        if config['xml']:
+            generateXMLDump(config=config, titles=titles)
         if config['images']:
-            generateImageDump(path=path, )
+            generateImageDump(config=config)
         if config['logs']:
-            saveLogs(path=path, )
+            saveLogs(config=config)
+    
+    bye()
+
+if __name__ == "__main__":
+    main()
