@@ -15,6 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import cPickle
 import datetime
 import os
 import re
@@ -38,6 +39,7 @@ import urllib2
 # Special:Log? uploads, account creations, etc
 # download Special:Version to save whch extension it used
 # que guarde el index.php (la portada) como index.html para que se vea la licencia del wiki abajo del todo
+# fix use api when available
 
 def cleanHTML(raw=''):
     if re.search('<!-- bodytext -->', raw): #<!-- bodytext --> <!-- /bodytext --> <!-- start content --> <!-- end content -->
@@ -178,12 +180,12 @@ def cleanXML(xml=''):
     xml = xml.split('</mediawiki>')[0]
     return xml
 
-def generateXMLDump(domain='', titles=[]):
+def generateXMLDump(path='', domain='', titles=[], curonly=False):
     print 'Retrieving the XML for every page'
     header = getXMLHeader(domain=domain)
     footer = '</mediawiki>\n' #new line at the end
-    xmlfilename = 'wikidump-%s-%s.xml' % (curonly and 'current' or 'history', str(datetime.datetime.now()))
-    xmlfile = open(xmlfilename, 'w')
+    xmlfilename = '%s%s-%s-%s.xml' % (path and '%s/' % (path) or '', domain2prefix(domain=domain), curonly and 'current' or 'history', datetime.datetime.now().strftime('%Y%m%d'))
+    xmlfile = open(path and '%s/%s' (path, xmlfilename) or xmlfilename, 'w')
     xmlfile.write(header)
     c = 1
     for title in titles:
@@ -195,19 +197,59 @@ def generateXMLDump(domain='', titles=[]):
         c += 1
     xmlfile.write(footer)
     xmlfile.close()
+    print 'XML dump saved at...', xmlfilename
 
-def saveTitles():
+def saveTitles(path='', titles=[]):
     #save titles in a txt for resume if needed
-    pass
+    titlesfilename = '%s%s-titles-%s.txt' % (path and '%s/' % (path) or '', domain2prefix(domain=domain), datetime.datetime.now().strftime('%Y%m%d'))
+    titlesfile = open(titlesfilename, 'w')
+    titles.append('--END--')
+    titlesfile.write('\n'.join(titles))
+    titlesfile.close()
+    print 'Titles saved at...', titlesfilename
 
-def generateImageDump():
+def generateImageDump(path=''):
     #slurp all the images
     #special:imagelist
     #save in a .tar?
     #tener en cuenta http://www.mediawiki.org/wiki/Manual:ImportImages.php
-    pass
-
-def saveLogs():
+    print 'Retrieving image filenames'
+    r_next = r'(?<!&amp;dir=prev)&amp;offset=(?P<offset>\d+)&amp;' # (?<! http://docs.python.org/library/re.html
+    images = []
+    offset = '29990101000000' #january 1, 2999
+    while offset:
+        url = '%s?title=Special:Imagelist&limit=5000&offset=%s' % (domain, offset)
+        raw = urllib.urlopen(url).read()
+        raw = cleanHTML(raw)
+        m = re.compile(r'<a href="(?P<url>[^>]+/./../[^>]+)">[^<]+</a>').finditer(raw)
+        for i in m:
+            url = i.group('url')
+            filename = re.sub('_', ' ', url.split('/')[-1])
+            filename_ = re.sub(' ', '_', url.split('/')[-1])
+            images.append([filename, url])
+        
+        if re.search(r_next, raw):
+            offset = re.findall(r_next, raw)[0]
+        else:
+            offset = ''
+    
+    print '    Found %d images' % (len(images))
+    
+    imagepath = path and '%s/images' % (path) or 'images'
+    if os.path.isdir(imagepath):
+        print 'It exists a images directory for this dump' #fix, resume?
+    else:
+        os.makedirs(imagepath)
+    
+    c = 0
+    for filename, url in images:
+        urllib.urlretrieve(url, '%s/%s' % (imagepath, filename))
+        c += 1
+        if c % 10 == 0:
+            print '    Downloaded %d images' % (c)
+    print 'Downloaded %d images' % (c)
+    
+def saveLogs(path=''):
     #get all logs from Special:Log
     """parse
     <select name='type'>
@@ -225,26 +267,123 @@ def saveLogs():
     </select>
     """
 
+def domain2prefix(domain=''):
+    domain = re.sub(r'(http://|www\.|/index\.php)', '', domain)
+    domain = re.sub(r'/', '_', domain)
+    domain = re.sub(r'\.', '', domain)
+    domain = re.sub(r'[^A-Za-z0-9]', '_', domain)
+    return domain
+
+def loadConfig(path='', configfilename=''):
+    config = {}
+    f = open('%s%s' % (path and '%s/' % (path) or '', configfilename), 'r')
+    config = cPickle.load(f)
+    f.close()
+    return config
+
+def saveConfig(path='', configfilename='', config={}):
+    f = open('%s%s' % (path and '%s/' % (path) or '', configfilename), 'w')
+    cPickle.dump(config, f)
+    f.close()
+
 if __name__ == '__main__':
     #read sys.argv
-    #options: --domain --images --logs --xml --titles --resume --threads=3
+    #options: --domain --images --logs --xml --resume --threads=3
+    
+    #variables
     #domain = 'http://archiveteam.org/index.php'
     #domain = 'http://bulbapedia.bulbagarden.net/w/index.php'
     #domain = 'http://wikanda.cadizpedia.eu/w/index.php'
     #domain = 'http://en.citizendium.org/index.php'
     #domain = 'http://en.wikipedia.org/w/index.php'
-    domain = 'http://www.editthis.info/CODE_WIKI/'
-    domain = 'http://www.editthis.info/bobobo_WIKI/'
+    #domain = 'http://www.editthis.info/CODE_WIKI/'
+    #domain = 'http://www.editthis.info/bobobo_WIKI/'
     domain = 'http://osl2.uca.es/wikira/index.php'
-    curonly = False
-    namespaces = ['all']
+    configfilename = 'config.txt'
+    config = {
+        'curonly': False,
+        'domain': domain,
+        'images': True,
+        'logs': False,
+        'namespaces': ['all'],
+        'resume': False,
+        'threads': 1,
+    }
+    resume = False
     
-    if re.findall(r'(wikipedia|wikisource|wiktionary|wikibooks|wikiversity|wikimedia|wikispecies|wikiquote|wikinews)\.org', domain):
+    #notice about wikipedia dumps
+    if re.findall(r'(wikipedia|wikisource|wiktionary|wikibooks|wikiversity|wikimedia|wikispecies|wikiquote|wikinews)\.org', config['domain']):
         print 'DO NOT USE THIS SCRIPT TO DOWNLOAD WIKIMEDIA PROJECTS!\nDownload the dumps from http://download.wikimedia.org\nThanks!'
         sys.exit()
     
-    titles = getTitles(domain=domain, namespaces=namespaces)
-    saveTitles()
-    generateXMLDump(domain=domain, titles=titles)
-    generateImageDump()
-    saveLogs()
+    #creating file path or resuming if desired
+    path = '%s-dump-%s' % (domain2prefix(domain=config['domain']), datetime.datetime.now().strftime('%Y%m%d')) #fix, rewrite path when resuming from other day when this feature is available
+    path2 = path
+    c = 2
+    while os.path.isdir(path2):
+        print 'Warning!: "%s" directory exists' % (path2)
+        reply = raw_input('There is a dump in "%s", probably incomplete.\nIf you choose resume, to avoid conflicts, the parameters you have chosen in the current session will be ignored\nand the parameters available in "%s/%s" will be loaded.\nDo you want to resume ([yes, y], [no, n])? ' % (path2, path2, configfilename))
+        if reply.lower() in ['yes', 'y']:
+            if os.path.isfile('%s/%s' % (path2, configfilename)):
+                print 'Loading config file...'
+                config = loadConfig(path=path2, configfilename=configfilename)
+            else:
+                print 'No config file found. Aborting.'
+                sys.exit()
+            print 'OK, resuming...'
+            resume = True
+            break
+        else:
+            print 'OK, trying generating a new dump into a new directory...'
+        path2 = '%s-%d' % (path, c)
+        print 'Trying "%s"...' % (path2)
+        c += 1
+    path = path2
+    if not resume:
+        os.mkdir(path)
+        saveConfig(path=path, configfilename=configfilename, config=config)
+    
+    #ok, creating dump
+    #fix, hacer que se pueda resumir la lista de títulos por donde iba (para wikis grandes)
+    titles = []
+    if resume:
+        #load titles
+        #search last
+        last = 'lastline'
+        if last == '--END--':
+            #titles list is complete
+            pass
+            lastlinexml = 'aaa'
+            if lastlinexml == '</mediawiki>\n':
+                #xml dump is complete
+                pass
+                lastimage = 'pepito'
+                if lastimage == 'aaaa':
+                    #image dump complete
+                    pass
+                    lastlog = 'aaaa'
+                    if lastlog == 'loquesea':
+                        #log dump complete
+                        pass
+                    else:
+                        #resume log
+                        pass
+                else:
+                    #resume images
+                    pass
+            else:
+                #resume xml dump
+                pass
+        else:
+            #start = last
+            #remove complete namespaces and then getTitles(domainconfig['domain'], namespaces=namespacesmissing, start=start)
+            #titles += getTitles(domain=config['domain'], namespaces=config['namespaces'], start=last)
+            pass
+    else:
+        #titles += getTitles(config['domain'], namespaces=config['namespaces'], start='!')
+        #saveTitles(path=path, titles=titles)
+        #generateXMLDump(path=path, domain=config['domain'], titles=titles, curonly=config['curonly'])
+        if config['images']:
+            generateImageDump(path=path, )
+        if config['logs']:
+            saveLogs(path=path, )
