@@ -312,6 +312,8 @@ def generateImageDump(config={}, images=[], start=''):
     
     c = 0
     lock = True
+    if not start:
+        lock = False
     for filename, url in images:
         if filename == start: #start downloading from start, included
             lock = False
