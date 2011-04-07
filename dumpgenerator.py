@@ -460,8 +460,6 @@ def main():
         os.mkdir(config['path'])
         saveConfig(config=config, configfilename=configfilename)
     
-    #ok, creating dump
-    #fix, hacer que se pueda resumir la lista de títulos por donde iba (para wikis grandes)
     titles = []
     if other['resume']:
         print 'Resuming previous dump process...'
@@ -499,9 +497,11 @@ def main():
                 generateXMLDump(config=config, titles=titles, start=lastxmltitle)
         
         if config['images']:
+            #fix
             pass
         
         if config['logs']:
+            #fix
             pass
     else:
         print 'Trying generating a new dump into a new directory...'
