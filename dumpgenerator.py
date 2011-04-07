@@ -572,12 +572,15 @@ def main():
             complete = True
             lastfilename = ''
             lastfilename2 = ''
+            c = 0
             for filename, url in images:
                 if filename not in listdir:
                     complete = False
                     lastfilename2 = lastfilename
                     lastfilename = filename
                     break
+                c +=1
+            print '%d images were found in the directory from a previous session' % (c)
             lastfilename2 = lastfilename # we resume from previous image, which may be corrupted by the previous session ctrl-c or abort
             if complete:
                 #image dump is complete
