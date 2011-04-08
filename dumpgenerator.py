@@ -302,7 +302,7 @@ def getImageFilenamesURL(config={}, start='!'):
     return images
 
 def undoHTMLEntities(text=''):
-    text = re.sub('&lt;', '<', text) # i guess only < > & need coversion http://www.w3schools.com/html/html_entities.asp
+    text = re.sub('&lt;', '<', text) # i guess only < > & " need conversion http://www.w3schools.com/html/html_entities.asp
     text = re.sub('&gt;', '>', text)
     text = re.sub('&amp;', '&', text)
     text = re.sub('&quot;', '"', text)
