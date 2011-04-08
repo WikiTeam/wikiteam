@@ -393,7 +393,7 @@ def getParameters():
     config = {
         'curonly': False,
         'date': datetime.datetime.now().strftime('%Y%m%d'),
-        'domain': domain,
+        'domain': '',
         'images': False,
         'logs': False,
         'xml': False,
