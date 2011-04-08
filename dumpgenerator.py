@@ -26,17 +26,10 @@ import urllib
 import urllib2
 
 # todo:
-# 
-# resuming feature:
-# save all titles in a .txt, to resume when ctrl-c
-# re.findall('<title>([^<]+)</title>', xml) to see when it was aborted, and resume from there
-# 
-# other:
 # curonly and all history (curonly si puede acumular varias peticiones en un solo GET, ara full history pedir cada pagina una a una)
 # usar api o parsear html si no está disponible
 # http://www.mediawiki.org/wiki/Manual:Parameters_to_Special:Export
 # threads para bajar más rápido? pedir varias páginas a la vez
-# images?
 # Special:Log? uploads, account creations, etc
 # download Special:Version to save whch extension it used
 # que guarde el index.php (la portada) como index.html para que se vea la licencia del wiki abajo del todo
