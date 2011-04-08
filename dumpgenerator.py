@@ -255,7 +255,7 @@ def saveImageFilenamesURL(config={}, images=[]):
     #save list of images and their urls
     imagesfilename = '%s-%s-images.txt' % (domain2prefix(domain=config['domain']), config['date'])
     imagesfile = open('%s/%s' % (config['path'], imagesfilename), 'w')
-    imagesfile.write('\n'.join(['%s\t%s' % (filename, url) for filename, url in images]))
+    imagesfile.write('\n'.join(['%s\t%s\t%s' % (filename, url, uploader) for filename, url, uploader in images]))
     imagesfile.write('\n--END--')
     imagesfile.close()
     print 'Image filenames and URLs saved at...', imagesfilename
@@ -270,8 +270,9 @@ def getImageFilenamesURL(config={}, start='!'):
         url = '%s?title=Special:Imagelist&limit=5000&offset=%s' % (config['domain'], offset)
         raw = urllib.urlopen(url).read()
         raw = cleanHTML(raw)
-        #<td class="TablePager_col_img_name"><a href="/index.php?title=File:Yahoovideo.jpg" title="File:Yahoovideo.jpg">Yahoovideo.jpg</a> (<a href="/images/2/2b/Yahoovideo.jpg">file</a>)</td>
-        m = re.compile(r'(?i)<td class="TablePager_col_img_name"><a href[^>]+title="[^:>]+:(?P<filename>[^>]+)">[^<]+</a>[^<]+<a href="(?P<url>[^>]+/[^>/]+)">[^<]+</a>[^<]+</td>').finditer(raw)
+        #archiveteam <td class="TablePager_col_img_name"><a href="/index.php?title=File:Yahoovideo.jpg" title="File:Yahoovideo.jpg">Yahoovideo.jpg</a> (<a href="/images/2/2b/Yahoovideo.jpg">file</a>)</td>
+        #wikanda <td class="TablePager_col_img_user_text"><a href="/w/index.php?title=Usuario:Fernandocg&amp;action=edit&amp;redlink=1" class="new" title="Usuario:Fernandocg (página no existe)">Fernandocg</a></td>
+        m = re.compile(r'(?im)<td class="TablePager_col_img_name"><a href[^>]+title="[^:>]+:(?P<filename>[^>]+)">[^<]+</a>[^<]+<a href="(?P<url>[^>]+/[^>/]+)">[^<]+</a>[^<]+</td>\s*<td class="TablePager_col_img_user_text"><a[^>]+>(?P<uploader>[^<]+)</a></td>').finditer(raw)
         for i in m:
             url = i.group('url')
             if url[0] == '/': #relative URL
@@ -282,7 +283,8 @@ def getImageFilenamesURL(config={}, start='!'):
                     url = '%s%s' % (config['domain'].split('/index.php')[0], url)
             filename = re.sub('_', ' ', i.group('filename'))
             filename_ = re.sub(' ', '_', i.group('filename'))
-            images.append([filename, url])
+            uploader = re.sub('_', ' ', i.group('uploader'))
+            images.append([filename, url, uploader])
             #print filename, url
         
         if re.search(r_next, raw):
@@ -311,7 +313,7 @@ def generateImageDump(config={}, images=[], start=''):
     lock = True
     if not start:
         lock = False
-    for filename, url in images:
+    for filename, url, uploader in images:
         if filename == start: #start downloading from start, included
             lock = False
         if lock:
@@ -589,7 +591,7 @@ def main():
             lastfilename = ''
             lastfilename2 = ''
             c = 0
-            for filename, url in images:
+            for filename, url, uploader in images:
                 if filename not in listdir:
                     complete = False
                     lastfilename2 = lastfilename
