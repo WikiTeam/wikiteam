@@ -130,6 +130,10 @@ def getXMLHeader(config={}):
     header = xml.split('</mediawiki>')[0]
     return header
 
+def getXMLFileDesc(config={}, title=''):
+    config['curonly'] = 1 #tricky to get only the most recent desc
+    return getXMLPage(config=config, title=title)
+
 def getXMLPage(config={}, title=''):
     #http://www.mediawiki.org/wiki/Manual_talk:Parameters_to_Special:Export#Parameters_no_longer_in_use.3F
     limit = 1000
@@ -313,7 +317,23 @@ def generateImageDump(config={}, images=[], start=''):
         if lock:
             continue
         delay(config=config)
-        urllib.urlretrieve(url, '%s/%s' % (imagepath, filename))
+        #saving file
+        urllib.urlretrieve(url, '%s/%s' % (imagepath, filename)) 
+        #saving description if any
+        xmlfiledesc = getXMLFileDesc(config=config, title='Image:%s' % (filename)) 
+        f = open('%s/%s.desc' % (imagepath, filename), 'w')
+        if re.search(r'<text xml:space="preserve"/>', xmlfiledesc):
+            #empty desc
+            xmlfiledesc = ''
+        elif re.search(r'<text xml:space="preserve">', xmlfiledesc):
+            xmlfiledesc = xmlfiledesc.split('<text xml:space="preserve">')[1].split('</text>')[0]
+            xmlfiledesc = re.sub('&lt;', '<', xmlfiledesc) # i guess only < > & need coversion http://www.w3schools.com/html/html_entities.asp
+            xmlfiledesc = re.sub('&gt;', '>', xmlfiledesc)
+            xmlfiledesc = re.sub('&amp;', '&', xmlfiledesc)
+        else: #failure when retrieving desc?
+            xmlfiledesc = ''
+        f.write(xmlfiledesc)
+        f.close()
         c += 1
         if c % 10 == 0:
             print '    Downloaded %d images' % (c)
