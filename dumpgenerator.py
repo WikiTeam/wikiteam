@@ -280,9 +280,15 @@ def getImageFilenamesURL(config={}, start='!'):
                     url = url[1:]
                 domainalone = config['domain'].split('http://')[1].split('/')[0]
                 url = 'http://%s/%s' % (domainalone, url)
+            url = undoHTMLEntities(text=url)
+            url = urllib.unquote(url)
+            url = re.sub(' ', '_', url)
             filename = re.sub('_', ' ', i.group('filename'))
-            filename_ = re.sub(' ', '_', i.group('filename'))
+            filename = undoHTMLEntities(text=filename)
+            filename = urllib.unquote(filename)
             uploader = re.sub('_', ' ', i.group('uploader'))
+            uploader = undoHTMLEntities(text=uploader)
+            uploader = urllib.unquote(uploader)
             images.append([filename, url, uploader])
             #print filename, url
         
@@ -294,6 +300,13 @@ def getImageFilenamesURL(config={}, start='!'):
     print '    Found %d images' % (len(images))
     images.sort()
     return images
+
+def undoHTMLEntities(text=''):
+    text = re.sub('&lt;', '<', text) # i guess only < > & need coversion http://www.w3schools.com/html/html_entities.asp
+    text = re.sub('&gt;', '>', text)
+    text = re.sub('&amp;', '&', text)
+    text = re.sub('&quot;', '"', text)
+    return text
 
 def generateImageDump(config={}, images=[], start=''):
     #slurp all the images
@@ -328,9 +341,7 @@ def generateImageDump(config={}, images=[], start=''):
             xmlfiledesc = ''
         elif re.search(r'<text xml:space="preserve">', xmlfiledesc):
             xmlfiledesc = xmlfiledesc.split('<text xml:space="preserve">')[1].split('</text>')[0]
-            xmlfiledesc = re.sub('&lt;', '<', xmlfiledesc) # i guess only < > & need coversion http://www.w3schools.com/html/html_entities.asp
-            xmlfiledesc = re.sub('&gt;', '>', xmlfiledesc)
-            xmlfiledesc = re.sub('&amp;', '&', xmlfiledesc)
+            xmlfiledesc = undoHTMLEntities(text=xmlfiledesc)
         else: #failure when retrieving desc?
             xmlfiledesc = ''
         f.write(xmlfiledesc)
