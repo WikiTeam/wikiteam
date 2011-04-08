@@ -275,9 +275,11 @@ def getImageFilenamesURL(config={}, start='!'):
         m = re.compile(r'(?im)<td class="TablePager_col_img_name"><a href[^>]+title="[^:>]+:(?P<filename>[^>]+)">[^<]+</a>[^<]+<a href="(?P<url>[^>]+/[^>/]+)">[^<]+</a>[^<]+</td>\s*<td class="TablePager_col_img_user_text"><a[^>]+>(?P<uploader>[^<]+)</a></td>').finditer(raw)
         for i in m:
             url = i.group('url')
-            if url[0] == '/': #relative URL
+            if url[0] == '/' or not url.startswith('http://'): #relative URL
+                if url[0] == '/': #it is added later
+                    url = url[1:]
                 domainalone = config['domain'].split('http://')[1].split('/')[0]
-                url = '%s/%s' % (domainalone, url)
+                url = 'http://%s/%s' % (domainalone, url)
             filename = re.sub('_', ' ', i.group('filename'))
             filename_ = re.sub(' ', '_', i.group('filename'))
             uploader = re.sub('_', ' ', i.group('uploader'))
