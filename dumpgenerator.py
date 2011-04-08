@@ -281,7 +281,7 @@ def getImageFilenamesURL(config={}, start='!'):
                 domainalone = config['domain'].split('http://')[1].split('/')[0]
                 url = 'http://%s/%s' % (domainalone, url)
             url = undoHTMLEntities(text=url)
-            url = urllib.unquote(url)
+            #url = urllib.unquote(url) #do not use unquote with url, it break some urls with odd chars
             url = re.sub(' ', '_', url)
             filename = re.sub('_', ' ', i.group('filename'))
             filename = undoHTMLEntities(text=filename)
@@ -543,14 +543,8 @@ def main():
                 #titles list is complete
                 print 'Title list was completed in the previous session'
             else:
-                #start = last
-                #remove complete namespaces and then getPageTitles(config=config, start=start)
-                #titles += getPageTitles(config=config, start=last)
-                print 'Title list is incomplete. Resuming...'
-                #search last
-                last = 'lastline'
-                titles = titles[:-1] #removing last one, next line append from start, and start is inclusive
-                titles += getPageTitles(config=config, start='!') #fix, try resume not reload entirely, change start='!' and develop the feature into getPageTitles()
+                print 'Title list is incomplete. Reloading..' #do not resume, reload, to avoid inconsistences, deleted pages or so
+                titles = getPageTitles(config=config)
                 saveTitles(config=config, titles=titles)
             #checking xml dump
             f = open('%s/%s-%s-%s.xml' % (config['path'], domain2prefix(domain=config['domain']), config['date'], config['curonly'] and 'current' or 'history'), 'r')
@@ -583,9 +577,8 @@ def main():
             if lastimage == '--END--':
                 print 'Image list was completed in the previous session'
             else:
-                print 'Image list is incomplete. Resuming...'
-                images = images[:-1] #removing last one, next line append from start, and start is inclusive
-                images += getImageFilenamesURL(config=config, start='!') #fix, develop start when using API, if using special:imagelist ignore start and reload all
+                print 'Image list is incomplete. Reloading...' #do not resume, reload, to avoid inconsistences, deleted images or so
+                images = getImageFilenamesURL(config=config)
                 saveImageFilenamesURL(config=config, images=images)
             #checking images directory
             listdir = []
