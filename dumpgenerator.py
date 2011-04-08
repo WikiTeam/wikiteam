@@ -93,25 +93,40 @@ def getPageTitles(config={}, start='!'):
         raw = cleanHTML(raw)
         
         r_title = r'title="(?P<title>[^>]+)">'
-        r_suballpages = r'&amp;from=(?P<from>[^>]+)&amp;to=(?P<to>[^>]+)">'
+        r_suballpages = ''
+        r_suballpages1 = r'&amp;from=(?P<from>[^>]+)&amp;to=(?P<to>[^>]+)">'
+        r_suballpages2 = r'Special:Allpages/(?P<from>[^>]+)">'
+        if re.search(r_suballpages1, raw):
+            r_suballpages = r_suballpages1
+        elif re.search(r_suballpages2, raw):
+            r_suballpages = r_suballpages2
+        else:
+            pass #perhaps no subpages
+        
         deep = 3 # 3 is the current deep of English Wikipedia for Special:Allpages, 3 levels
         c = 0
         checked_suballpages = []
         rawacum = raw
-        while re.search(r_suballpages, raw) and c < deep:
+        while r_suballpages and re.search(r_suballpages, raw) and c < deep:
             #load sub-Allpages
             m = re.compile(r_suballpages).finditer(raw)
             for i in m:
                 fr = i.group('from')
-                to = i.group('to')
-                name = '%s-%s' % (fr, to)
+                
+                if r_suballpages == r_suballpages1:
+                    to = i.group('to')
+                    name = '%s-%s' % (fr, to)
+                    url = '%s?title=Special:Allpages&namespace=%s&from=%s&to=%s' % (config['domain'], namespace, fr, to) #do not put urllib.quote in fr or to
+                elif r_suballpages == r_suballpages2:
+                    name = fr
+                    url = '%s?title=Special:Allpages/%s&namespace=%s' % (config['domain'], name, namespace)
+                
                 if not name in checked_suballpages:
                     checked_suballpages.append(name)
-                    url = '%s?title=Special:Allpages&namespace=%s&from=%s&to=%s' % (config['domain'], namespace, fr, to) #do not put urllib.quote in fr or to
                     raw2 = urllib.urlopen(url).read()
                     raw2 = cleanHTML(raw2)
                     rawacum += raw2 #merge it after removed junk
-                    print '    Detected sub-Allpages:', name, len(raw2), 'bytes', len(re.findall(r_title, raw2))
+                    print '    Reading', name, len(raw2), 'bytes', len(re.findall(r_suballpages, raw2)), 'subpages', len(re.findall(r_title, raw2)), 'pages'
             c += 1
         
         m = re.compile(r_title).finditer(rawacum)
