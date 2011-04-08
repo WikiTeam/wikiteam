@@ -631,6 +631,9 @@ def main():
         if config['logs']:
             saveLogs(config=config)
     
+    #save index.php as html, for license details at the bootom of the page
+    urllib.urlretrieve(config['domain'], filename='%s/index.html' % (config['path']))
+    
     bye(config=config)
 
 if __name__ == "__main__":
