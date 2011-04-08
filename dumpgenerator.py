@@ -393,14 +393,6 @@ def usage():
     print "Write a complete help"
 
 def getParameters():
-    #domain = 'http://archiveteam.org/index.php'
-    #domain = 'http://bulbapedia.bulbagarden.net/w/index.php'
-    #domain = 'http://wikanda.cadizpedia.eu/w/index.php'
-    #domain = 'http://en.citizendium.org/index.php'
-    #domain = 'http://en.wikipedia.org/w/index.php'
-    #domain = 'http://www.editthis.info/CODE_WIKI/'
-    #domain = 'http://www.editthis.info/bobobo_WIKI/'
-    domain = 'http://osl2.uca.es/wikira/index.php'
     config = {
         'curonly': False,
         'date': datetime.datetime.now().strftime('%Y%m%d'),
