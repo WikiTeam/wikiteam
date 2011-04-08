@@ -118,11 +118,12 @@ def getPageTitles(config={}, start='!'):
                     name = '%s-%s' % (fr, to)
                     url = '%s?title=Special:Allpages&namespace=%s&from=%s&to=%s' % (config['domain'], namespace, fr, to) #do not put urllib.quote in fr or to
                 elif r_suballpages == r_suballpages2:
+                    fr = fr.split('&amp;namespace=')[0] #clean &amp;namespace=\d, sometimes happens
                     name = fr
                     url = '%s?title=Special:Allpages/%s&namespace=%s' % (config['domain'], name, namespace)
                 
                 if not name in checked_suballpages:
-                    checked_suballpages.append(name)
+                    checked_suballpages.append(name) #to avoid reload dupe subpages links
                     raw2 = urllib.urlopen(url).read()
                     raw2 = cleanHTML(raw2)
                     rawacum += raw2 #merge it after removed junk
