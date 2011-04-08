@@ -276,11 +276,8 @@ def getImageFilenamesURL(config={}, start='!'):
         for i in m:
             url = i.group('url')
             if url[0] == '/': #relative URL
-                if re.search(r'\.\./', url): #../ weird paths (see wikanda)
-                    x = len(re.findall(r'\.\./', url)) + 1
-                    url = '%s/%s' % ('/'.join(config['domain'].split('/')[:-x]), url.split('../')[-1])
-                else:
-                    url = '%s%s' % (config['domain'].split('/index.php')[0], url)
+                domainalone = config['domain'].split('http://')[1].split('/')[0]
+                url = '%s/%s' % (domainalone, url)
             filename = re.sub('_', ' ', i.group('filename'))
             filename_ = re.sub(' ', '_', i.group('filename'))
             uploader = re.sub('_', ' ', i.group('uploader'))
@@ -452,6 +449,7 @@ def getParameters():
 
     #missing mandatory params
     if not config["domain"] or \
+       not re.search('/index\.php', config['domain']) or \
        not (config["xml"] or config["images"] or config["logs"]):
         print """Error. You forget mandatory parameters:
     --domain: URL to index.php in the wiki (examples: http://en.wikipedia.org/w/index.php or http://archiveteam.org/index.php)
@@ -465,6 +463,10 @@ And one of these, or two or three:
 Write --help for help."""
         sys.exit()
         #usage()
+    
+    #add http://
+    if not config['domain'].startswith('http://'):
+        config['domain'] = 'http://' + config['domain']
     
     #calculating path, if not defined by user with --path=
     config['path'] = './%s-%s-wikidump' % (domain2prefix(domain=config['domain']), config['date'])
