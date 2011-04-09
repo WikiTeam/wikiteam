@@ -589,6 +589,11 @@ Write --help for help."""
     
     return config, other
 
+def removeIP(raw=''):
+    raw = re.sub(r'\d+\.\d+\.\d+\.\d+', '0.0.0.0', raw)
+    raw = re.sub(r'(?i)[\da-f]:[\da-f]:[\da-f]:[\da-f]:[\da-f]:[\da-f]:[\da-f]:[\da-f]', '0:0:0:0:0:0:0:0', raw)
+    return raw
+
 def main():
     configfilename = 'config.txt'
     config, other = getParameters()
@@ -734,7 +739,20 @@ def main():
             saveLogs(config=config)
     
     #save index.php as html, for license details at the bootom of the page
-    urllib.urlretrieve(config['index'], filename='%s/index.html' % (config['path']))
+    f = urllib.urlopen(config['index'])
+    raw = f.read()
+    raw = removeIP(raw=raw)
+    f = open('%s/index.html' % (config['path']), 'w')
+    f.write(raw)
+    f.close()
+    
+    #save special:Version as html, for extensions details
+    f = urllib.urlopen('%s?title=Special:Version' % (config['index']))
+    raw = f.read()
+    raw = removeIP(raw=raw)
+    f = open('%s/Special:Version.html' % (config['path']), 'w')
+    f.write(raw)
+    f.close()
     
     bye(config=config)
 
