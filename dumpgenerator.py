@@ -473,28 +473,31 @@ def saveConfig(config={}, configfilename=''):
     cPickle.dump(config, f)
     f.close()
     
-def welcome(config={}):
-    print "-"*75
-    print """Welcome to DumpGenerator 0.1 by WikiTeam (GPL v3)
-More info at: http://code.google.com/p/wikiteam/"""
-    print "-"*75
-    print """ Copyright (C) 2011 WikiTeam
- This program is free software: you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation, either version 3 of the License, or
- (at your option) any later version.
- 
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
- 
- You should have received a copy of the GNU General Public License
- along with this program.  If not, see <http://www.gnu.org/licenses/>."""
-    print "-"*75
+def welcome():
+    print "#"*73
+    print """# Welcome to DumpGenerator 0.1 by WikiTeam (GPL v3)                     #
+# More info at: http://code.google.com/p/wikiteam/                      #"""
+    print "#"*73
+    print ''
+    print "#"*73
+    print """# Copyright (C) 2011 WikiTeam                                           #
+# This program is free software: you can redistribute it and/or modify  #
+# it under the terms of the GNU General Public License as published by  #
+# the Free Software Foundation, either version 3 of the License, or     #
+# (at your option) any later version.                                   #
+#                                                                       #
+# This program is distributed in the hope that it will be useful,       #
+# but WITHOUT ANY WARRANTY; without even the implied warranty of        #
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         #
+# GNU General Public License for more details.                          #
+#                                                                       #
+# You should have received a copy of the GNU General Public License     #
+# along with this program.  If not, see <http://www.gnu.org/licenses/>. #"""
+    print "#"*73
+    print ''
 
-def bye(config={}):
-    print "Your dump is in %s" % (config['path'])
+def bye():
+    print "Your dump is complete"
     print "If you found any bug, report a new issue here (Gmail account required): http://code.google.com/p/wikiteam/issues/list"
     print "Good luck! Bye!"
 
@@ -611,9 +614,9 @@ def removeIP(raw=''):
     return raw
 
 def main():
+    welcome()
     configfilename = 'config.txt'
     config, other = getParameters()
-    welcome(config=config)
     
     #notice about wikipedia dumps
     if re.findall(r'(wikipedia|wikisource|wiktionary|wikibooks|wikiversity|wikimedia|wikispecies|wikiquote|wikinews)\.org', config['api']+config['index']):
@@ -770,7 +773,7 @@ def main():
     f.write(raw)
     f.close()
     
-    bye(config=config)
+    bye()
 
 if __name__ == "__main__":
     main()
