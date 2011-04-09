@@ -50,20 +50,14 @@ def cleanHTML(raw=''):
         sys.exit()
     return raw
 
-def getPageTitles(config={}, start='!'):
-    #Get page titles parsing Special:Allpages or using API (fix)
-    #
-    #http://en.wikipedia.org/wiki/Special:AllPages
-    #http://archiveteam.org/index.php?title=Special:AllPages
-    #http://www.wikanda.es/wiki/Especial:Todas
-    print 'Loading page titles from namespaces =', ','.join([str(i) for i in config['namespaces']])
-    
+def getNamespaces(config={}):
     #namespace checks and stuff
-    #fix get namespaces from a randome Special:Export page, it is better
-    namespacenames = {0:''} # main is 0, no prefix
+    #fix get namespaces from a random Special:Export page, it is better
+    #too from API http://wikiindex.org/api.php?action=query&meta=siteinfo&siprop=general|namespaces
     namespaces = config['namespaces']
+    namespacenames = {0:''} # main is 0, no prefix
     if namespaces:
-        raw = urllib.urlopen('%s?title=Special:Allpages' % (config['domain'])).read()
+        raw = urllib.urlopen('%s?title=Special:Allpages' % (config['index'])).read()
         m = re.compile(r'<option [^>]*?value="(?P<namespaceid>\d+)"[^>]*?>(?P<namespacename>[^<]+)</option>').finditer(raw) # [^>]*? to include selected="selected"
         if 'all' in namespaces:
             namespaces = []
@@ -84,11 +78,50 @@ def getPageTitles(config={}, start='!'):
     #retrieve all titles from Special:Allpages, if the wiki is big, perhaps there are sub-Allpages to explore
     namespaces = [i for i in set(namespaces)] #uniques
     print '%d namespaces have been found' % (len(namespaces))
-    
+    return namespaces, namespacenames
+
+def getPageTitlesAPI(config={}):
     titles = []
+    namespaces, namespacenames = getNamespaces(config=config)
+    for namespace in namespaces:
+        c = 0
+        print '    Retrieving titles in the namespace', namespace
+        headers = {'User-Agent': getUserAgent()}
+        apfrom = '!'
+        while apfrom:
+            params = {'action': 'query', 'list': 'allpages', 'apfrom': apfrom, 'format': 'xml', 'aplimit': 500}
+            data = urllib.urlencode(params)
+            req = urllib2.Request(url=config['api'], data=data, headers=headers)
+            try:
+                f = urllib2.urlopen(req)
+            except:
+                try:
+                    print 'Server is slow... Waiting some seconds and retrying...'
+                    time.sleep(10)
+                    f = urllib2.urlopen(req)
+                except:
+                    print 'An error have occurred while retrieving page titles with API'
+                    print 'Please, resume the dump, --resume'
+                    sys.exit()
+            xml = f.read()
+            f.close()
+            m = re.findall(r'<allpages apfrom="([^>]+)" />', xml)
+            if m:
+                apfrom = undoHTMLEntities(text=m[0]) #&quot; = ", etc
+            else:
+                apfrom = ''
+            m = re.findall(r'title="([^>]+)" />', xml)
+            titles += m
+            c += len(m)
+        print '    %d titles retrieved in the namespace %d' % (c, namespace)
+    return titles
+
+def getPageTitlesScrapper(config={}):
+    titles = []
+    namespaces, namespacenames = getNamespaces(config=config)
     for namespace in namespaces:
         print '    Retrieving titles in the namespace', namespace
-        url = '%s?title=Special:Allpages&namespace=%s' % (config['domain'], namespace)
+        url = '%s?title=Special:Allpages&namespace=%s' % (config['index'], namespace)
         raw = urllib.urlopen(url).read()
         raw = cleanHTML(raw)
         
@@ -116,11 +149,11 @@ def getPageTitles(config={}, start='!'):
                 if r_suballpages == r_suballpages1:
                     to = i.group('to')
                     name = '%s-%s' % (fr, to)
-                    url = '%s?title=Special:Allpages&namespace=%s&from=%s&to=%s' % (config['domain'], namespace, fr, to) #do not put urllib.quote in fr or to
-                elif r_suballpages == r_suballpages2:
+                    url = '%s?title=Special:Allpages&namespace=%s&from=%s&to=%s' % (config['index'], namespace, fr, to) #do not put urllib.quote in fr or to
+                elif r_suballpages == r_suballpages2: #fix, esta regexp no carga bien todas? o falla el r_title en este tipo de subpag? (wikiindex)
                     fr = fr.split('&amp;namespace=')[0] #clean &amp;namespace=\d, sometimes happens
                     name = fr
-                    url = '%s?title=Special:Allpages/%s&namespace=%s' % (config['domain'], name, namespace)
+                    url = '%s?title=Special:Allpages/%s&namespace=%s' % (config['index'], name, namespace)
                 
                 if not name in checked_suballpages:
                     checked_suballpages.append(name) #to avoid reload dupe subpages links
@@ -138,6 +171,21 @@ def getPageTitles(config={}, start='!'):
                     titles.append(i.group('title'))
                     c += 1
         print '    %d titles retrieved in the namespace %d' % (c, namespace)
+    return titles
+
+def getPageTitles(config={}):
+    #Get page titles parsing Special:Allpages or using API (fix)
+    #http://en.wikipedia.org/wiki/Special:AllPages
+    #http://archiveteam.org/index.php?title=Special:AllPages
+    #http://www.wikanda.es/wiki/Especial:Todas
+    print 'Loading page titles from namespaces =', ','.join([str(i) for i in config['namespaces']])
+    
+    titles = []
+    if config['api']:
+        titles = getPageTitlesAPI(config=config)
+    elif config['index']:
+        titles = getPageTitlesScrapper(config=config)
+    
     print '%d page titles loaded' % (len(titles))
     return titles
 
@@ -170,7 +218,7 @@ def getXMLPage(config={}, title=''):
         params['offset'] = '1'
         params['limit'] = limit
     data = urllib.urlencode(params)
-    req = urllib2.Request(url=config['domain'], data=data, headers=headers)
+    req = urllib2.Request(url=config['index'], data=data, headers=headers)
     try:
         f = urllib2.urlopen(req)
     except:
@@ -191,7 +239,7 @@ def getXMLPage(config={}, title=''):
         while not truncated and params['offset']:
             params['offset'] = re.findall(r_timestamp, xml)[-1] #get the last timestamp from the acum XML
             data = urllib.urlencode(params)
-            req2 = urllib2.Request(url=config['domain'], data=data, headers=headers)
+            req2 = urllib2.Request(url=config['index'], data=data, headers=headers)
             try:
                 f2 = urllib2.urlopen(req2)
             except:
@@ -227,7 +275,7 @@ def generateXMLDump(config={}, titles=[], start=''):
     print 'Retrieving the XML for every page from "%s"' % (start and start or 'start')
     header = getXMLHeader(config=config)
     footer = '</mediawiki>\n' #new line at the end
-    xmlfilename = '%s-%s-%s.xml' % (domain2prefix(domain=config['domain']), config['date'], config['curonly'] and 'current' or 'history')
+    xmlfilename = '%s-%s-%s.xml' % (domain2prefix(config=config), config['date'], config['curonly'] and 'current' or 'history')
     xmlfile = ''
     lock = True
     if start:
@@ -267,7 +315,7 @@ def generateXMLDump(config={}, titles=[], start=''):
 
 def saveTitles(config={}, titles=[]):
     #save titles in a txt for resume if needed
-    titlesfilename = '%s-%s-titles.txt' % (domain2prefix(domain=config['domain']), config['date'])
+    titlesfilename = '%s-%s-titles.txt' % (domain2prefix(config=config), config['date'])
     titlesfile = open('%s/%s' % (config['path'], titlesfilename), 'w')
     titles.append('--END--')
     titlesfile.write('\n'.join(titles))
@@ -276,21 +324,21 @@ def saveTitles(config={}, titles=[]):
 
 def saveImageFilenamesURL(config={}, images=[]):
     #save list of images and their urls
-    imagesfilename = '%s-%s-images.txt' % (domain2prefix(domain=config['domain']), config['date'])
+    imagesfilename = '%s-%s-images.txt' % (domain2prefix(config=config), config['date'])
     imagesfile = open('%s/%s' % (config['path'], imagesfilename), 'w')
     imagesfile.write('\n'.join(['%s\t%s\t%s' % (filename, url, uploader) for filename, url, uploader in images]))
     imagesfile.write('\n--END--')
     imagesfile.close()
     print 'Image filenames and URLs saved at...', imagesfilename
 
-def getImageFilenamesURL(config={}, start='!'):
+def getImageFilenamesURL(config={}):
     #fix start is only available if parsing from API, if not, reload all the list from special:imagelist is mandatory
     print 'Retrieving image filenames'
     r_next = r'(?<!&amp;dir=prev)&amp;offset=(?P<offset>\d+)&amp;' # (?<! http://docs.python.org/library/re.html
     images = []
     offset = '29990101000000' #january 1, 2999
     while offset:
-        url = '%s?title=Special:Imagelist&limit=5000&offset=%s' % (config['domain'], offset)
+        url = '%s?title=Special:Imagelist&limit=5000&offset=%s' % (config['index'], offset)
         raw = urllib.urlopen(url).read()
         raw = cleanHTML(raw)
         #archiveteam <td class="TablePager_col_img_name"><a href="/index.php?title=File:Yahoovideo.jpg" title="File:Yahoovideo.jpg">Yahoovideo.jpg</a> (<a href="/images/2/2b/Yahoovideo.jpg">file</a>)</td>
@@ -310,7 +358,7 @@ def getImageFilenamesURL(config={}, start='!'):
             if url[0] == '/' or not url.startswith('http://'): #relative URL
                 if url[0] == '/': #it is added later
                     url = url[1:]
-                domainalone = config['domain'].split('http://')[1].split('/')[0]
+                domainalone = config['index'].split('http://')[1].split('/')[0]
                 url = 'http://%s/%s' % (domainalone, url)
             url = undoHTMLEntities(text=url)
             #url = urllib.unquote(url) #do not use unquote with url, it break some urls with odd chars
@@ -402,8 +450,13 @@ def saveLogs(config={}):
     """
     delay(config=config)
 
-def domain2prefix(domain=''):
-    domain = re.sub(r'(http://|www\.|/index\.php)', '', domain)
+def domain2prefix(config={}):
+    domain = ''
+    if config['api']:
+        domain = config['api']
+    elif config['index']:
+        domain = config['index']
+    domain = re.sub(r'(http://|www\.|/index\.php|/api\.php)', '', domain)
     domain = re.sub(r'/', '_', domain)
     domain = re.sub(r'\.', '', domain)
     domain = re.sub(r'[^A-Za-z0-9]', '_', domain)
@@ -438,7 +491,8 @@ def getParameters():
     config = {
         'curonly': False,
         'date': datetime.datetime.now().strftime('%Y%m%d'),
-        'domain': '',
+        'api': '',
+        'index': '',
         'images': False,
         'logs': False,
         'xml': False,
@@ -452,7 +506,7 @@ def getParameters():
     }
     #console params
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "", ["h", "help", "path=", "domain=", "images", "logs", "xml", "curonly", "threads=", "resume", "delay=" ])
+        opts, args = getopt.getopt(sys.argv[1:], "", ["h", "help", "path=", "api=", "index=", "images", "logs", "xml", "curonly", "threads=", "resume", "delay=" ])
     except getopt.GetoptError, err:
         # print help information and exit:
         print str(err) # will print something like "option -a not recognized"
@@ -470,8 +524,10 @@ def getParameters():
                     break
             if not config["path"]:
                 config["path"] = '.'
-        elif o in ("--domain"):
-            config["domain"] = a
+        elif o in ("--api"):
+            config['api'] = a
+        elif o in ("--index"):
+            config["index"] = a
         elif o in ("--images"):
             config["images"] = True
         elif o in ("--logs"):
@@ -493,11 +549,12 @@ def getParameters():
             assert False, "unhandled option"
 
     #missing mandatory params
-    if not config["domain"] or \
-       not re.search('/index\.php', config['domain']) or \
+    if (not config['api'] and not config['index']) or \
+       (config['api'] and not re.search('/api\.php', config['api'])) or \
+       (config['index'] and not re.search('/index\.php', config['index'])) or \
        not (config["xml"] or config["images"] or config["logs"]):
         print """Error. You forget mandatory parameters:
-    --domain: URL to index.php in the wiki (examples: http://en.wikipedia.org/w/index.php or http://archiveteam.org/index.php)
+    --api or --index: URL to api.php or to index.php, one of them. If wiki has api.php, please, use --api instead of --index. Examples: --api=http://archiveteam.org/api.php or --index=http://archiveteam.org/index.php
     
 And one of these, or two or three:
     --xml: it generates a XML dump. It retrieves full history of pages located in namespace = 0 (articles)
@@ -509,12 +566,23 @@ Write --help for help."""
         sys.exit()
         #usage()
     
-    #add http://
-    if not config['domain'].startswith('http://'):
-        config['domain'] = 'http://' + config['domain']
+    if config['api'].endswith('/'):
+        config['api'] = config['api'][:-1]
+    if config['index'].endswith('/'):
+        config['index'] = config['index'][:-1]
+    
+    #user chosen --api, --index it is neccesary for special:export, we generate it
+    config['index'] = config['api'].split('api.php')[0] + 'index.php'
+    
+    #adding http://
+    if not config['api'].startswith('http://'):
+        config['api'] = 'http://' + config['api']
+    if not config['index'].startswith('http://'):
+        config['index'] = 'http://' + config['index']
+    
     
     #calculating path, if not defined by user with --path=
-    config['path'] = './%s-%s-wikidump' % (domain2prefix(domain=config['domain']), config['date'])
+    config['path'] = './%s-%s-wikidump' % (domain2prefix(config=config), config['date'])
     
     return config, other
 
@@ -524,11 +592,11 @@ def main():
     welcome(config=config)
     
     #notice about wikipedia dumps
-    if re.findall(r'(wikipedia|wikisource|wiktionary|wikibooks|wikiversity|wikimedia|wikispecies|wikiquote|wikinews)\.org', config['domain']):
+    if re.findall(r'(wikipedia|wikisource|wiktionary|wikibooks|wikiversity|wikimedia|wikispecies|wikiquote|wikinews)\.org', config['api']+config['index']):
         print 'DO NOT USE THIS SCRIPT TO DOWNLOAD WIKIMEDIA PROJECTS!\nDownload the dumps from http://download.wikimedia.org\nThanks!'
         sys.exit()
     
-    print 'Analysing %s' % (config['domain'])
+    print 'Analysing %s' % (config['api'] and config['api'] or config['index'])
     
     #creating path or resuming if desired
     c = 2
@@ -564,7 +632,7 @@ def main():
             #load titles
             lasttitle = ''
             try:
-                f = open('%s/%s-%s-titles.txt' % (config['path'], domain2prefix(domain=config['domain']), config['date']), 'r')
+                f = open('%s/%s-%s-titles.txt' % (config['path'], domain2prefix(config=config), config['date']), 'r')
                 raw = f.read()
                 titles = raw.split('\n')
                 lasttitle = titles[-1]
@@ -575,11 +643,12 @@ def main():
                 #titles list is complete
                 print 'Title list was completed in the previous session'
             else:
-                print 'Title list is incomplete. Reloading..' #do not resume, reload, to avoid inconsistences, deleted pages or so
+                print 'Title list is incomplete. Reloading..'
+                #do not resume, reload, to avoid inconsistences, deleted pages or so
                 titles = getPageTitles(config=config)
                 saveTitles(config=config, titles=titles)
             #checking xml dump
-            f = open('%s/%s-%s-%s.xml' % (config['path'], domain2prefix(domain=config['domain']), config['date'], config['curonly'] and 'current' or 'history'), 'r')
+            f = open('%s/%s-%s-%s.xml' % (config['path'], domain2prefix(config=config), config['date'], config['curonly'] and 'current' or 'history'), 'r')
             xml = f.read()
             f.close()
             if re.findall('</mediawiki>', xml):
@@ -596,7 +665,7 @@ def main():
             #load images
             lastimage = ''
             try:
-                f = open('%s/%s-%s-images.txt' % (config['path'], domain2prefix(domain=config['domain']), config['date']), 'r')
+                f = open('%s/%s-%s-images.txt' % (config['path'], domain2prefix(config=config), config['date']), 'r')
                 raw = f.read()
                 lines = raw.split('\n')
                 for l in lines:
@@ -609,7 +678,8 @@ def main():
             if lastimage == '--END--':
                 print 'Image list was completed in the previous session'
             else:
-                print 'Image list is incomplete. Reloading...' #do not resume, reload, to avoid inconsistences, deleted images or so
+                print 'Image list is incomplete. Reloading...'
+                #do not resume, reload, to avoid inconsistences, deleted images or so
                 images = getImageFilenamesURL(config=config)
                 saveImageFilenamesURL(config=config, images=images)
             #checking images directory
@@ -644,7 +714,7 @@ def main():
     else:
         print 'Trying generating a new dump into a new directory...'
         if config['xml']:
-            titles += getPageTitles(config=config, start='!')
+            titles += getPageTitles(config=config)
             saveTitles(config=config, titles=titles)
             generateXMLDump(config=config, titles=titles)
         if config['images']:
@@ -655,7 +725,7 @@ def main():
             saveLogs(config=config)
     
     #save index.php as html, for license details at the bootom of the page
-    urllib.urlretrieve(config['domain'], filename='%s/index.html' % (config['path']))
+    urllib.urlretrieve(config['index'], filename='%s/index.html' % (config['path']))
     
     bye(config=config)
 
