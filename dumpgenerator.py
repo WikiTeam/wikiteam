@@ -111,7 +111,7 @@ def getPageTitlesAPI(config={}):
             else:
                 apfrom = ''
             m = re.findall(r'title="([^>]+)" />', xml)
-            titles += m
+            titles += [undoHTMLEntities(title) for title in m]
             c += len(m)
         print '    %d titles retrieved in the namespace %d' % (c, namespace)
     return titles
@@ -571,6 +571,10 @@ Write --help for help."""
     if config['index'].endswith('/'):
         config['index'] = config['index'][:-1]
     
+    if config['api']:
+        #fix add here api.php existence comprobation
+        pass
+    
     #user chosen --api, --index it is neccesary for special:export, we generate it
     config['index'] = config['api'].split('api.php')[0] + 'index.php'
     
@@ -579,7 +583,6 @@ Write --help for help."""
         config['api'] = 'http://' + config['api']
     if not config['index'].startswith('http://'):
         config['index'] = 'http://' + config['index']
-    
     
     #calculating path, if not defined by user with --path=
     config['path'] = './%s-%s-wikidump' % (domain2prefix(config=config), config['date'])
@@ -636,6 +639,8 @@ def main():
                 raw = f.read()
                 titles = raw.split('\n')
                 lasttitle = titles[-1]
+                if not lasttitle: #empty line at EOF ?
+                    lasttitle = titles[-2]
                 f.close()
             except:
                 pass #probably file doesnot exists
@@ -643,14 +648,18 @@ def main():
                 #titles list is complete
                 print 'Title list was completed in the previous session'
             else:
-                print 'Title list is incomplete. Reloading..'
+                print 'Title list is incomplete. Reloading...'
                 #do not resume, reload, to avoid inconsistences, deleted pages or so
                 titles = getPageTitles(config=config)
                 saveTitles(config=config, titles=titles)
             #checking xml dump
-            f = open('%s/%s-%s-%s.xml' % (config['path'], domain2prefix(config=config), config['date'], config['curonly'] and 'current' or 'history'), 'r')
-            xml = f.read()
-            f.close()
+            xml = ''
+            try:
+                f = open('%s/%s-%s-%s.xml' % (config['path'], domain2prefix(config=config), config['date'], config['curonly'] and 'current' or 'history'), 'r')
+                xml = f.read()
+                f.close()
+            except:
+                pass #probably file doesnot exists
             if re.findall('</mediawiki>', xml):
                 #xml dump is complete
                 print 'XML dump was completed in the previous session'
