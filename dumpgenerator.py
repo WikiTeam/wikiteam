@@ -130,11 +130,14 @@ def getPageTitles(config={}, start='!'):
                     print '    Reading', name, len(raw2), 'bytes', len(re.findall(r_suballpages, raw2)), 'subpages', len(re.findall(r_title, raw2)), 'pages'
             c += 1
         
+        c = 0
         m = re.compile(r_title).finditer(rawacum)
         for i in m:
             if not i.group('title').startswith('Special:'):
                 if not i.group('title') in titles:
                     titles.append(i.group('title'))
+                    c += 1
+        print '    %d titles retrieved in the namespace %d' % (c, namespace)
     print '%d page titles loaded' % (len(titles))
     return titles
 
@@ -150,12 +153,16 @@ def getXMLFileDesc(config={}, title=''):
     config['curonly'] = 1 #tricky to get only the most recent desc
     return getXMLPage(config=config, title=title)
 
+def getUserAgent():
+    useragents = ['Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.8.0.4) Gecko/20060508 Firefox/1.5.0.4']
+    return useragents[0]
+
 def getXMLPage(config={}, title=''):
     #http://www.mediawiki.org/wiki/Manual_talk:Parameters_to_Special:Export#Parameters_no_longer_in_use.3F
     limit = 1000
     truncated = False
     title_ = re.sub(' ', '_', title)
-    headers = {'User-Agent': 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.8.0.4) Gecko/20060508 Firefox/1.5.0.4'}
+    headers = {'User-Agent': getUserAgent()}
     params = {'title': 'Special:Export', 'pages': title_, 'action': 'submit', }
     if config['curonly']:
         params['curonly'] = 1
