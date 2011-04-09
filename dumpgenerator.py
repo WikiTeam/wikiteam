@@ -89,7 +89,7 @@ def getPageTitlesAPI(config={}):
         headers = {'User-Agent': getUserAgent()}
         apfrom = '!'
         while apfrom:
-            params = {'action': 'query', 'list': 'allpages', 'apfrom': apfrom, 'format': 'xml', 'aplimit': 500}
+            params = {'action': 'query', 'list': 'allpages', 'apnamespace': namespace, 'apfrom': apfrom, 'format': 'xml', 'aplimit': 500}
             data = urllib.urlencode(params)
             req = urllib2.Request(url=config['api'], data=data, headers=headers)
             try:
