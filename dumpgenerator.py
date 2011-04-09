@@ -227,7 +227,7 @@ def getXMLPage(config={}, title=''):
             time.sleep(10)
             f = urllib2.urlopen(req)
         except:
-            print 'An error have occurred while retrieving', title
+            print 'An error have occurred while retrieving "%s"' % (title)
             print 'Please, resume the dump, --resume'
             sys.exit()
     xml = f.read()
@@ -297,7 +297,6 @@ def generateXMLDump(config={}, titles=[], start=''):
     
     xmlfile = open('%s/%s' % (config['path'], xmlfilename), 'a')
     c = 1
-    total = len(titles)
     for title in titles:
         if title == start: #start downloading from start, included
             lock = False
@@ -305,7 +304,7 @@ def generateXMLDump(config={}, titles=[], start=''):
             continue
         delay(config=config)
         if c % 10 == 0:
-            print '    Downloaded %d pages of %d (%.1f%%)' % (c, total, c/(total/100))
+            print '    Downloaded %d pages' % (c)
         xml = getXMLPage(config=config, title=title)
         xml = cleanXML(xml=xml)
         xmlfile.write(xml)
