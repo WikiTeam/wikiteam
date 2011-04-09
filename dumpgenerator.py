@@ -175,7 +175,7 @@ def getXMLPage(config={}, title=''):
         f = urllib2.urlopen(req)
     except:
         try:
-            print 'Sever is slow... Waiting some seconds and retrying...'
+            print 'Server is slow... Waiting some seconds and retrying...'
             time.sleep(10)
             f = urllib2.urlopen(req)
         except:
