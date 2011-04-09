@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2011 emijrp
+# Copyright (C) 2011 WikiTeam
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
@@ -478,6 +478,20 @@ def welcome(config={}):
     print """Welcome to DumpGenerator 0.1 by WikiTeam (GPL v3)
 More info at: http://code.google.com/p/wikiteam/"""
     print "-"*75
+    print """ Copyright (C) 2011 WikiTeam
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+ 
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ 
+ You should have received a copy of the GNU General Public License
+ along with this program.  If not, see <http://www.gnu.org/licenses/>."""
+    print "-"*75
 
 def bye(config={}):
     print "Your dump is in %s" % (config['path'])
@@ -591,7 +605,9 @@ Write --help for help."""
 
 def removeIP(raw=''):
     raw = re.sub(r'\d+\.\d+\.\d+\.\d+', '0.0.0.0', raw)
-    raw = re.sub(r'(?i)[\da-f]:[\da-f]:[\da-f]:[\da-f]:[\da-f]:[\da-f]:[\da-f]:[\da-f]', '0:0:0:0:0:0:0:0', raw)
+    #http://www.juniper.net/techpubs/software/erx/erx50x/swconfig-routing-vol1/html/ipv6-config5.html
+    #weird cases as :: are not included
+    raw = re.sub(r'(?i)[\da-f]{0,4}:[\da-f]{0,4}:[\da-f]{0,4}:[\da-f]{0,4}:[\da-f]{0,4}:[\da-f]{0,4}:[\da-f]{0,4}:[\da-f]{0,4}', '0:0:0:0:0:0:0:0', raw)
     return raw
 
 def main():
