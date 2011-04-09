@@ -305,7 +305,6 @@ def generateXMLDump(config={}, titles=[], start=''):
         delay(config=config)
         if c % 10 == 0:
             print '    Downloaded %d pages' % (c)
-        print title
         xml = getXMLPage(config=config, title=title)
         xml = cleanXML(xml=xml)
         xmlfile.write(xml)
