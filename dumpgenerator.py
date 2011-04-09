@@ -305,6 +305,7 @@ def generateXMLDump(config={}, titles=[], start=''):
         delay(config=config)
         if c % 10 == 0:
             print '    Downloaded %d pages' % (c)
+        print title
         xml = getXMLPage(config=config, title=title)
         xml = cleanXML(xml=xml)
         xmlfile.write(xml)
@@ -317,8 +318,8 @@ def saveTitles(config={}, titles=[]):
     #save titles in a txt for resume if needed
     titlesfilename = '%s-%s-titles.txt' % (domain2prefix(config=config), config['date'])
     titlesfile = open('%s/%s' % (config['path'], titlesfilename), 'w')
-    titles.append('--END--')
     titlesfile.write('\n'.join(titles))
+    titlesfile.write('\n--END--')
     titlesfile.close()
     print 'Titles saved at...', titlesfilename
 
