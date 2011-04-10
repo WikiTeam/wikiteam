@@ -209,7 +209,9 @@ def getXMLPage(config={}, title=''):
     #http://www.mediawiki.org/wiki/Manual_talk:Parameters_to_Special:Export#Parameters_no_longer_in_use.3F
     limit = 1000
     truncated = False
-    title_ = re.sub(' ', '_', title)
+    title_ = title
+    title_ = re.sub(' ', '_', title_)
+    title_ = re.sub('&', '%26', title_) # titles with & need to be converted into %26
     headers = {'User-Agent': getUserAgent()}
     params = {'title': 'Special:Export', 'pages': title_, 'action': 'submit', }
     if config['curonly']:
@@ -267,6 +269,7 @@ def getXMLPage(config={}, title=''):
     return xml
 
 def cleanXML(xml=''):
+    #do not touch xml codification, as is
     xml = xml.split('</siteinfo>\n')[1]
     xml = xml.split('</mediawiki>')[0]
     return xml
