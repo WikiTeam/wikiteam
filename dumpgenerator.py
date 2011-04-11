@@ -36,8 +36,8 @@ import urllib2
 # que guarde el index.php (la portada) como index.html para que se vea la licencia del wiki abajo del todo
 # fix use api when available
 
-def truncateFilename(config={}, filename=''):
-    return filename[:config['filenamelimit']] + md5.new(filename).hexdigest() + '.' + filename.split('.')[-1]
+def truncateFilename(other={}, filename=''):
+    return filename[:other['filenamelimit']] + md5.new(filename).hexdigest() + '.' + filename.split('.')[-1]
 
 def delay(config={}):
     if config['delay'] > 0:
@@ -399,7 +399,7 @@ def undoHTMLEntities(text=''):
     text = re.sub('&quot;', '"', text)
     return text
 
-def generateImageDump(config={}, images=[], start=''):
+def generateImageDump(config={}, other={}, images=[], start=''):
     #slurp all the images
     #save in a .tar?
     #tener en cuenta http://www.mediawiki.org/wiki/Manual:ImportImages.php
@@ -425,9 +425,9 @@ def generateImageDump(config={}, images=[], start=''):
         #saving file
         #truncate filename if length > 100 (100 + 32 (md5) = 132 < 143 (crash limit). Later .desc is added to filename, so better 100 as max)
         filename2 = filename
-        if len(filename2) > config['filenamelimit']:
+        if len(filename2) > other['filenamelimit']:
             # split last . (extension) and then merge
-            filename2 = truncateFilename(config=config, filename=filename2)
+            filename2 = truncateFilename(other=other, filename=filename2)
             print 'Truncating filename, it is too long. Now it is called:', filename2
         urllib.urlretrieve(url, '%s/%s' % (imagepath, filename2)) 
         #saving description if any
@@ -534,10 +534,10 @@ def getParameters():
         'path': '',
         'threads': 1, #fix not coded yet
         'delay': 0,
-        'filenamelimit': 100, #do not change
     }
     other = {
         'resume': False,
+        'filenamelimit': 100, #do not change
     }
     #console params
     try:
@@ -585,7 +585,8 @@ def getParameters():
     if (not config['api'] and not config['index']) or \
        (config['api'] and not re.search('/api\.php', config['api'])) or \
        (config['index'] and not re.search('/index\.php', config['index'])) or \
-       not (config["xml"] or config["images"] or config["logs"]):
+       not (config["xml"] or config["images"] or config["logs"]) or \
+       (other['resume'] and not config['path']):
         print """Error. You forget mandatory parameters:
     --api or --index: URL to api.php or to index.php, one of them. If wiki has api.php, please, use --api instead of --index. Examples: --api=http://archiveteam.org/api.php or --index=http://archiveteam.org/index.php
     
@@ -594,6 +595,9 @@ And one of these, or two or three:
            If you want more namespaces, use the parameter --namespaces=0,1,2,3... or --namespaces=all
     --images: it generates an image dump
     --logs: it generates a log dump
+
+You can resume previous incomplete dumps:
+    --resume: it resumes previous incomplete dump. When using --resume, --path is mandatory (path to directory where incomplete dump is).
     
 Write --help for help."""
         sys.exit()
@@ -748,8 +752,8 @@ def main():
             c = 0
             for filename, url, uploader in images:
                 filename2 = filename
-                if len(filename2) > config['filenamelimit']:
-                    filename2 = truncateFilename(config=config, filename=filename2)
+                if len(filename2) > other['filenamelimit']:
+                    filename2 = truncateFilename(other=other, filename=filename2)
                 if filename2 not in listdir:
                     complete = False
                     lastfilename2 = lastfilename
@@ -762,7 +766,7 @@ def main():
                 #image dump is complete
                 print 'Image dump was completed in the previous session'
             else:
-                generateImageDump(config=config, images=images, start=lastfilename)
+                generateImageDump(config=config, other=other, images=images, start=lastfilename)
         
         if config['logs']:
             #fix
@@ -776,7 +780,7 @@ def main():
         if config['images']:
             images += getImageFilenamesURL(config=config) #fix add start like above
             saveImageFilenamesURL(config=config, images=images)
-            generateImageDump(config=config, images=images)
+            generateImageDump(config=config, other=other, images=images)
         if config['logs']:
             saveLogs(config=config)
     
