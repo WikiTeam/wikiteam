@@ -546,8 +546,6 @@ def getParameters():
                     config["path"] = config["path"][:-1]
                 else:
                     break
-            if not config["path"]:
-                config["path"] = '.'
         elif o in ("--api"):
             config['api'] = a
         elif o in ("--index"):
@@ -609,7 +607,8 @@ Write --help for help."""
         config['index'] = 'http://' + config['index']
     
     #calculating path, if not defined by user with --path=
-    config['path'] = './%s-%s-wikidump' % (domain2prefix(config=config), config['date'])
+    if not config['path']:
+        config['path'] = './%s-%s-wikidump' % (domain2prefix(config=config), config['date'])
     
     return config, other
 
@@ -637,7 +636,9 @@ def main():
     originalpath = config['path'] # to avoid concat blabla-2, blabla-2-3, and so on...
     while not other['resume'] and os.path.isdir(config['path']): #do not enter if resume is request from begining
         print '\nWarning!: "%s" path exists' % (config['path'])
-        reply = raw_input('There is a dump in "%s", probably incomplete.\nIf you choose resume, to avoid conflicts, the parameters you have chosen in the current session will be ignored\nand the parameters available in "%s/%s" will be loaded.\nDo you want to resume ([yes, y], otherwise no)? ' % (config['path'], config['path'], configfilename))
+        reply = ''
+        while reply not in ['yes', 'y', 'no', 'n']:
+            reply = raw_input('There is a dump in "%s", probably incomplete.\nIf you choose resume, to avoid conflicts, the parameters you have chosen in the current session will be ignored\nand the parameters available in "%s/%s" will be loaded.\nDo you want to resume ([yes, y], [no, n])? ' % (config['path'], config['path'], configfilename))
         if reply.lower() in ['yes', 'y']:
             if not os.path.isfile('%s/%s' % (config['path'], configfilename)):
                 print 'No config file found. I can\'t resume. Aborting.'
@@ -645,8 +646,9 @@ def main():
             print 'You have selected YES'
             other['resume'] = True
             break
-        else:
+        elif reply.lower() in ['no', 'n']:
             print 'You have selected NO'
+            other['resume'] = False
         config['path'] = '%s-%d' % (originalpath, c)
         print 'Trying "%s"...' % (config['path'])
         c += 1
