@@ -17,6 +17,7 @@
 import cPickle
 import datetime
 import getopt
+import md5
 import os
 import re
 import subprocess
@@ -34,6 +35,9 @@ import urllib2
 # download Special:Version to save whch extension it used
 # que guarde el index.php (la portada) como index.html para que se vea la licencia del wiki abajo del todo
 # fix use api when available
+
+def truncateFilename(config={}, filename=''):
+    return filename[:config['filenamelimit']] + md5.new(filename).hexdigest() + '.' + filename.split('.')[-1]
 
 def delay(config={}):
     if config['delay'] > 0:
@@ -419,10 +423,16 @@ def generateImageDump(config={}, images=[], start=''):
             continue
         delay(config=config)
         #saving file
-        urllib.urlretrieve(url, '%s/%s' % (imagepath, filename)) 
+        #truncate filename if length > 100 (100 + 32 (md5) = 132 < 143 (crash limit). Later .desc is added to filename, so better 100 as max)
+        filename2 = filename
+        if len(filename2) > config['filenamelimit']:
+            # split last . (extension) and then merge
+            filename2 = truncateFilename(config=config, filename=filename2)
+            print 'Truncating filename, it is too long. Now it is called:', filename2
+        urllib.urlretrieve(url, '%s/%s' % (imagepath, filename2)) 
         #saving description if any
         xmlfiledesc = getXMLFileDesc(config=config, title='Image:%s' % (filename)) 
-        f = open('%s/%s.desc' % (imagepath, filename), 'w')
+        f = open('%s/%s.desc' % (imagepath, filename2), 'w')
         if re.search(r'<text xml:space="preserve"/>', xmlfiledesc):
             #empty desc
             xmlfiledesc = ''
@@ -524,6 +534,7 @@ def getParameters():
         'path': '',
         'threads': 1, #fix not coded yet
         'delay': 0,
+        'filenamelimit': 100, #do not change
     }
     other = {
         'resume': False,
@@ -736,10 +747,13 @@ def main():
             lastfilename2 = ''
             c = 0
             for filename, url, uploader in images:
-                if filename not in listdir:
+                filename2 = filename
+                if len(filename2) > config['filenamelimit']:
+                    filename2 = truncateFilename(config=config, filename=filename2)
+                if filename2 not in listdir:
                     complete = False
                     lastfilename2 = lastfilename
-                    lastfilename = filename
+                    lastfilename = filename #return always the complete filename, not the truncated
                     break
                 c +=1
             print '%d images were found in the directory from a previous session' % (c)
