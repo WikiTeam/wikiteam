@@ -45,10 +45,15 @@ def delay(config={}):
         time.sleep(config['delay'])
 
 def cleanHTML(raw=''):
-    if re.search('<!-- bodytext -->', raw): #<!-- bodytext --> <!-- /bodytext --> <!-- start content --> <!-- end content -->
+    #<!-- bodytext --> <!-- /bodytext -->
+    #<!-- start content --> <!-- end content -->
+    #<!-- Begin Content Area --> <!-- End Content Area -->
+    if re.search('<!-- bodytext -->', raw):
         raw = raw.split('<!-- bodytext -->')[1].split('<!-- /bodytext -->')[0]
     elif re.search('<!-- start content -->', raw):
         raw = raw.split('<!-- start content -->')[1].split('<!-- end content -->')[0]
+    elif re.search('<!-- Begin Content Area -->', raw):
+        raw = raw.split('<!-- Begin Content Area -->')[1].split('<!-- End Content Area -->')[0]
     else:
         print 'This wiki doesn\'t use marks to split contain'
         sys.exit()
@@ -612,14 +617,15 @@ Write --help for help."""
         #fix add here api.php existence comprobation
         pass
     
-    #user chosen --api, --index it is neccesary for special:export, we generate it
-    config['index'] = config['api'].split('api.php')[0] + 'index.php'
-    
     #adding http://
-    if not config['api'].startswith('http://'):
+    if not config['index'] and not config['api'].startswith('http://'):
         config['api'] = 'http://' + config['api']
-    if not config['index'].startswith('http://'):
+    if not config['api'] and not config['index'].startswith('http://'):
         config['index'] = 'http://' + config['index']
+    
+    #user chosen --api, --index it is neccesary for special:export, we generate it
+    if config['api'] and not config['index']:
+        config['index'] = config['api'].split('api.php')[0] + 'index.php'
     
     #calculating path, if not defined by user with --path=
     if not config['path']:
