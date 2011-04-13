@@ -596,7 +596,7 @@ def getParameters():
                 sys.exit()
             a = re.sub(' ', '', a)
             if a.lower() == 'all':
-                config["namespaces"] = 'all'
+                config["namespaces"] = ['all']
             else:
                 config["namespaces"] = [int(i) for i in a.split(',')]
         elif o in ("--exnamespaces"):
