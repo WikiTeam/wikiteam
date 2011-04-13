@@ -587,9 +587,9 @@ def getParameters():
             assert False, "unhandled option"
 
     #missing mandatory params
+    #(config['index'] and not re.search('/index\.php', config['index'])) or \ # in EditThis there is no index.php, it is empty editthis.info/mywiki/?title=...
     if (not config['api'] and not config['index']) or \
        (config['api'] and not re.search('/api\.php', config['api'])) or \
-       (config['index'] and not re.search('/index\.php', config['index'])) or \
        not (config["xml"] or config["images"] or config["logs"]) or \
        (other['resume'] and not config['path']):
         print """Error. You forget mandatory parameters:
@@ -608,14 +608,34 @@ Write --help for help."""
         sys.exit()
         #usage()
     
-    if config['api'].endswith('/'):
-        config['api'] = config['api'][:-1]
-    if config['index'].endswith('/'):
-        config['index'] = config['index'][:-1]
+    #user chosen --api, --index it is neccesary for special:export, we generate it
+    if config['api'] and not config['index']:
+        config['index'] = config['api'].split('api.php')[0] + 'index.php'
+        #print 'You didn\'t provide a path for index.php, trying to wonder one:', config['index']
     
     if config['api']:
         #fix add here api.php existence comprobation
-        pass
+        f = urllib.urlopen(config['api'])
+        raw = f.read()
+        f.close()
+        print 'Checking api.php...'
+        if re.search(r'action=query', raw):
+            print 'api.php is OK'
+        else:
+            print 'Error in api.php, please, provide a correct path to api.php'
+            sys.exit()
+    
+    if config['index']:
+        #check index.php
+        f = urllib.urlopen('%s?title=Special:Version' % (config['index']))
+        raw = f.read()
+        f.close()
+        print 'Checking index.php...'
+        if re.search(r'This wiki is powered by', raw):
+            print 'index.php is OK'
+        else:
+            print 'Error in index.php, please, provide a correct path to index.php'
+            sys.exit()
     
     #adding http://
     if not config['index'] and not config['api'].startswith('http://'):
@@ -623,9 +643,7 @@ Write --help for help."""
     if not config['api'] and not config['index'].startswith('http://'):
         config['index'] = 'http://' + config['index']
     
-    #user chosen --api, --index it is neccesary for special:export, we generate it
-    if config['api'] and not config['index']:
-        config['index'] = config['api'].split('api.php')[0] + 'index.php'
+    
     
     #calculating path, if not defined by user with --path=
     if not config['path']:
