@@ -93,6 +93,10 @@ def getPageTitlesAPI(config={}):
     titles = []
     namespaces, namespacenames = getNamespaces(config=config)
     for namespace in namespaces:
+        if namespace in config['exnamespaces']:
+            print '    Skiping namespace =', namespace
+            continue
+        
         c = 0
         print '    Retrieving titles in the namespace', namespace
         headers = {'User-Agent': getUserAgent()}
@@ -187,7 +191,8 @@ def getPageTitles(config={}):
     #http://en.wikipedia.org/wiki/Special:AllPages
     #http://archiveteam.org/index.php?title=Special:AllPages
     #http://www.wikanda.es/wiki/Especial:Todas
-    print 'Loading page titles from namespaces =', ','.join([str(i) for i in config['namespaces']])
+    print 'Loading page titles from namespaces = %s' % (config['namespaces'] and ','.join([str(i) for i in config['namespaces']]) or 'None')
+    print 'Excluding titles from namespaces = %s' % (config['exnamespaces'] and ','.join([str(i) for i in config['exnamespaces']]) or 'None')
     
     titles = []
     if config['api']:
@@ -478,6 +483,7 @@ def domain2prefix(config={}):
         domain = config['api']
     elif config['index']:
         domain = config['index']
+    domain = domain.lower()
     domain = re.sub(r'(http://|www\.|/index\.php|/api\.php)', '', domain)
     domain = re.sub(r'/', '_', domain)
     domain = re.sub(r'\.', '', domain)
@@ -536,6 +542,7 @@ def getParameters():
         'logs': False,
         'xml': False,
         'namespaces': ['all'],
+        'exnamespaces': [],
         'path': '',
         'threads': 1, #fix not coded yet
         'delay': 0,
@@ -546,7 +553,7 @@ def getParameters():
     }
     #console params
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "", ["h", "help", "path=", "api=", "index=", "images", "logs", "xml", "curonly", "threads=", "resume", "delay=" ])
+        opts, args = getopt.getopt(sys.argv[1:], "", ["h", "help", "path=", "api=", "index=", "images", "logs", "xml", "curonly", "threads=", "resume", "delay=", "namespaces=", "exnamespaces=", ])
     except getopt.GetoptError, err:
         # print help information and exit:
         print str(err) # will print something like "option -a not recognized"
@@ -583,6 +590,25 @@ def getParameters():
             other["resume"] = True
         elif o in ("--delay"):
             config["delay"] = int(a)
+        elif o in ("--namespaces"):
+            if re.search(r'[^\d, \-]', a) and a.lower() != 'all':
+                print "Invalid namespaces values.\nValid format is integer(s) splitted by commas"
+                sys.exit()
+            a = re.sub(' ', '', a)
+            if a.lower() == 'all':
+                config["namespaces"] = 'all'
+            else:
+                config["namespaces"] = [int(i) for i in a.split(',')]
+        elif o in ("--exnamespaces"):
+            if re.search(r'[^\d, \-]', a):
+                print "Invalid exnamespaces values.\nValid format is integer(s) splitted by commas"
+                sys.exit()
+            a = re.sub(' ', '', a)
+            if a.lower() == 'all':
+                print 'You have excluded all namespaces. Error.'
+                sys.exit()
+            else:
+                config["exnamespaces"] = [int(i) for i in a.split(',')]
         else:
             assert False, "unhandled option"
 
@@ -603,7 +629,10 @@ And one of these, or two or three:
 
 You can resume previous incomplete dumps:
     --resume: it resumes previous incomplete dump. When using --resume, --path is mandatory (path to directory where incomplete dump is).
-    
+
+You can exclude namespaces:
+    --exnamespaces: write the number of the namespaces you want to exclude, splitted by commas.
+
 Write --help for help."""
         sys.exit()
         #usage()
