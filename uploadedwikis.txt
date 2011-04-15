@@ -34,3 +34,6 @@ http://it.opensuse.org/index.php
 http://www.wikisalamanca.org/api.php
 http://madripedia.es/api.php
 http://vozdemitierra.wiki-site.com/api.php
+http://www.guanches.org/enciclopedia/api.php
+http://ateneodecordoba.es/api.php
+
