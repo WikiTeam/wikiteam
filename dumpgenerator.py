@@ -313,8 +313,8 @@ def generateXMLDump(config={}, titles=[], start=''):
         xmlfile.close()
         xmlfile2.close()
         #subst xml with xml2
-        os.remove('%s/%s' % (config['path'], xmlfilename))
-        os.rename('%s/%s2' % (config['path'], xmlfilename), '%s/%s' % (config['path'], xmlfilename))
+        os.remove('%s/%s' % (config['path'], xmlfilename)) #remove previous xml dump
+        os.rename('%s/%s2' % (config['path'], xmlfilename), '%s/%s' % (config['path'], xmlfilename)) #move correctly truncated dump to its real name
     else:
         #requested complete xml dump
         lock = False
