@@ -682,8 +682,6 @@ Write --help for help."""
     if not config['api'] and not config['index'].startswith('http://'):
         config['index'] = 'http://' + config['index']
     
-    
-    
     #calculating path, if not defined by user with --path=
     if not config['path']:
         config['path'] = './%s-%s-wikidump' % (domain2prefix(config=config), config['date'])
