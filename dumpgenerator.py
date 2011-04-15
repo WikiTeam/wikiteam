@@ -298,13 +298,23 @@ def generateXMLDump(config={}, titles=[], start=''):
     if start:
         #remove the last chunk of xml dump (it is probably incomplete)
         xmlfile = open('%s/%s' % (config['path'], xmlfilename), 'r')
-        xml = xmlfile.read()
+        xmlfile2 = open('%s/%s2' % (config['path'], xmlfilename), 'w')
+        prev = ''
+        c = 0
+        for l in xmlfile:
+            #removing <page>\n to end
+            if c != 0: #lock to avoid write an empty line at the begining of file
+                if not re.search(r'<title>%s</title>' % (start), l): 
+                    xmlfile2.write(prev)
+                else:
+                    break
+            c += 1
+            prev = l
         xmlfile.close()
-        xml = xml.split('<title>%s</title>' % (start))[0]
-        xml = '\n'.join(xml.split('\n')[:-2]) # [:-1] removing <page>\n tag
-        xmlfile = open('%s/%s' % (config['path'], xmlfilename), 'w')
-        xmlfile.write('%s\n' % (xml))
-        xmlfile.close()
+        xmlfile2.close()
+        #subst xml with xml2
+        os.remove('%s/%s' % (config['path'], xmlfilename))
+        os.rename('%s/%s2' % (config['path'], xmlfilename), '%s/%s' % (config['path'], xmlfilename))
     else:
         #requested complete xml dump
         lock = False
