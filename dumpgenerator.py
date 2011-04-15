@@ -754,22 +754,31 @@ def main():
                 titles = getPageTitles(config=config)
                 saveTitles(config=config, titles=titles)
             #checking xml dump
-            xml = ''
+            xmliscomplete = False
+            lastxmltitle = ''
             try:
                 f = open('%s/%s-%s-%s.xml' % (config['path'], domain2prefix(config=config), config['date'], config['curonly'] and 'current' or 'history'), 'r')
-                xml = f.read()
+                for l in f:
+                    if re.findall('</mediawiki>', l):
+                        #xml dump is complete
+                        xmliscomplete = True
+                        break
+                    xmltitles = re.findall(r'<title>([^<]+)</title>', l) #weird if found more than 1, but maybe
+                    if xmltitles:
+                        lastxmltitle = xmltitles[-1]
                 f.close()
             except:
                 pass #probably file doesnot exists
-            if re.findall('</mediawiki>', xml):
-                #xml dump is complete
+            if xmliscomplete:
                 print 'XML dump was completed in the previous session'
-            else:
-                xmltitles = re.findall(r'<title>([^<]+)</title>', xml)
-                lastxmltitle = ''
-                if xmltitles:
-                    lastxmltitle = xmltitles[-1]
+            elif lastxmltitle:
+                #resuming...
+                print 'Resuming XML dump from "%s"' % (lastxmltitle)
                 generateXMLDump(config=config, titles=titles, start=lastxmltitle)
+            else:
+                #corrupt? only has XML header?
+                print 'XML is corrupt? Regenerating...'
+                generateXMLDump(config=config, titles=titles)
         
         if config['images']:
             #load images
@@ -838,6 +847,7 @@ def main():
             saveLogs(config=config)
     
     #save index.php as html, for license details at the bootom of the page
+    print 'Downloading index.php (Main Page)'
     f = urllib.urlopen(config['index'])
     raw = f.read()
     raw = removeIP(raw=raw)
@@ -846,6 +856,7 @@ def main():
     f.close()
     
     #save special:Version as html, for extensions details
+    print 'Downloading Special:Version with extensions and other related info'
     f = urllib.urlopen('%s?title=Special:Version' % (config['index']))
     raw = f.read()
     raw = removeIP(raw=raw)
