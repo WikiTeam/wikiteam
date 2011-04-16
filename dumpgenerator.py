@@ -225,7 +225,7 @@ def getXMLPage(config={}, title=''):
     truncated = False
     title_ = title
     title_ = re.sub(' ', '_', title_)
-    title_ = re.sub('&', '%26', title_) # titles with & need to be converted into %26
+    #do not convert & into %26, title_ = re.sub('&', '%26', title_)
     headers = {'User-Agent': getUserAgent()}
     params = {'title': 'Special:Export', 'pages': title_, 'action': 'submit', }
     if config['curonly']:
@@ -324,9 +324,9 @@ def generateXMLDump(config={}, titles=[], start=''):
     
     xmlfile = open('%s/%s' % (config['path'], xmlfilename), 'a')
     c = 1
-    print len(titles)
     for title in titles:
-        print '-->',title
+        if not title.strip():
+            continue
         if title == start: #start downloading from start, included
             lock = False
         if lock:
@@ -423,6 +423,7 @@ def undoHTMLEntities(text=''):
     text = re.sub('&gt;', '>', text)
     text = re.sub('&amp;', '&', text)
     text = re.sub('&quot;', '"', text)
+    text = re.sub('&#039;', '\'', text)
     return text
 
 def generateImageDump(config={}, other={}, images=[], start=''):
@@ -507,7 +508,11 @@ def domain2prefix(config={}):
     return domain
 
 def loadConfig(config={}, configfilename=''):
-    f = open('%s/%s' % (config['path'], configfilename), 'r')
+    try:
+        f = open('%s/%s' % (config['path'], configfilename), 'r')
+    except:
+        print 'There is no config file. we can\'t resume. Start a new dump.'
+        sys.exit()
     config = cPickle.load(f)
     f.close()
     return config
@@ -779,10 +784,13 @@ def main():
                         break
                     xmltitles = re.findall(r'<title>([^<]+)</title>', l) #weird if found more than 1, but maybe
                     if xmltitles:
-                        lastxmltitle = xmltitles[-1]
+                        lastxmltitle = undoHTMLEntities(text=xmltitles[-1])
                 f.close()
             except:
                 pass #probably file doesnot exists
+            #removing --END-- before getXMLs
+            while titles and titles[-1] in ['', '--END--']:
+                titles = titles[:-1]
             if xmliscomplete:
                 print 'XML dump was completed in the previous session'
             elif lastxmltitle:
