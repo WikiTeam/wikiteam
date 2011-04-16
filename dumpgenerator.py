@@ -324,7 +324,9 @@ def generateXMLDump(config={}, titles=[], start=''):
     
     xmlfile = open('%s/%s' % (config['path'], xmlfilename), 'a')
     c = 1
+    print len(titles)
     for title in titles:
+        print '-->',title
         if title == start: #start downloading from start, included
             lock = False
         if lock:
@@ -333,6 +335,10 @@ def generateXMLDump(config={}, titles=[], start=''):
         if c % 10 == 0:
             print '    Downloaded %d pages' % (c)
         xml = getXMLPage(config=config, title=title)
+        while not re.search(r'</siteinfo>', xml): #empty xml by server? retry...
+            print '    XML for this page is wrong. Waiting some seconds and reloading...'
+            time.sleep(30)
+            xml = getXMLPage(config=config, title=title)
         xml = cleanXML(xml=xml)
         xmlfile.write(xml)
         c += 1
