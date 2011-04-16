@@ -37,4 +37,7 @@ http://vozdemitierra.wiki-site.com/api.php
 http://www.guanches.org/enciclopedia/api.php
 http://ateneodecordoba.es/api.php
 http://wikanda.sevillapedia.es/w/api.php
-
+http://www.ctpedia.es/w/api.php
+http://enwada.es/api.php
+http://wikiangela.com/w/api.php
+http://wiki.greasespot.net/api.php
