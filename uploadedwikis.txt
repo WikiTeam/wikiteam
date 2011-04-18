@@ -41,3 +41,7 @@ http://www.ctpedia.es/w/api.php
 http://enwada.es/api.php
 http://wikiangela.com/w/api.php
 http://wiki.greasespot.net/api.php
+http://wikanda.almeriapedia.es/w/api.php
+http://wikanda.jaenpedia.es/w/api.php
+http://knowino.org/w/api.php
+
