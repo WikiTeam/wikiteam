@@ -33,7 +33,6 @@ import urllib2
 # Special:Log? uploads, account creations, etc
 # download Special:Version to save whch extension it used
 # que guarde el index.php (la portada) como index.html para que se vea la licencia del wiki abajo del todo
-# fix use api when available
 
 def truncateFilename(other={}, filename=''):
     return filename[:other['filenamelimit']] + md5.new(filename).hexdigest() + '.' + filename.split('.')[-1]
@@ -59,7 +58,6 @@ def cleanHTML(raw=''):
     return raw
 
 def getNamespaces(config={}):
-    #namespace checks and stuff
     #fix get namespaces from a random Special:Export page, it is better
     #too from API http://wikiindex.org/api.php?action=query&meta=siteinfo&siprop=general|namespaces
     namespaces = config['namespaces']
@@ -186,7 +184,6 @@ def getPageTitlesScrapper(config={}):
     return titles
 
 def getPageTitles(config={}):
-    #Get page titles parsing Special:Allpages or using API (fix)
     #http://en.wikipedia.org/wiki/Special:AllPages
     #http://archiveteam.org/index.php?title=Special:AllPages
     #http://www.wikanda.es/wiki/Especial:Todas
@@ -668,7 +665,6 @@ Write --help for help."""
         #print 'You didn\'t provide a path for index.php, trying to wonder one:', config['index']
     
     if config['api']:
-        #fix add here api.php existence comprobation
         f = urllib.urlopen(config['api'])
         raw = f.read()
         f.close()
@@ -866,7 +862,7 @@ def main():
             saveTitles(config=config, titles=titles)
             generateXMLDump(config=config, titles=titles)
         if config['images']:
-            images += getImageFilenamesURL(config=config) #fix add start like above
+            images += getImageFilenamesURL(config=config)
             saveImageFilenamesURL(config=config, images=images)
             generateImageDump(config=config, other=other, images=images)
         if config['logs']:
