@@ -44,4 +44,5 @@ http://wiki.greasespot.net/api.php
 http://wikanda.almeriapedia.es/w/api.php
 http://wikanda.jaenpedia.es/w/api.php
 http://knowino.org/w/api.php
+http://wikanda.granadapedia.es/w/api.php
 
