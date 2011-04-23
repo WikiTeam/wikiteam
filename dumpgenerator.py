@@ -200,6 +200,9 @@ def getPageTitles(config={}):
     elif config['index']:
         titles = getPageTitlesScrapper(config=config)
     
+    titles = list(set(titles)) #removing dupes (e.g. in CZ appears Widget:AddThis two times (main namespace and widget namespace))
+    titles.sort() #sorting
+    
     print '%d page titles loaded' % (len(titles))
     return titles
 
@@ -231,7 +234,7 @@ def getXMLPage(config={}, title=''):
     if config['curonly']:
         params['curonly'] = 1
     else:
-        params['offset'] = '1'
+        params['offset'] = '1' # 1 always < 2000s
         params['limit'] = limit
     data = urllib.urlencode(params)
     req = urllib2.Request(url=config['index'], data=data, headers=headers)
@@ -275,8 +278,19 @@ def getXMLPage(config={}, title=''):
                     truncated = True
                     break
                 else:
+                    """    </namespaces>
+                      </siteinfo>
+                      <page>
+                        <title>Main Page</title>
+                        <id>15580374</id>
+                        <restrictions>edit=sysop:move=sysop</restrictions> (?)
+                        <revision>
+                          <id>418009832</id>
+                          <timestamp>2011-03-09T19:57:06Z</timestamp>
+                          <contributor>
+                    """
                     #offset is OK in this wiki, merge with the previous chunk of this page history and continue
-                    xml = xml.split('</page>')[0]+xml2.split('<page>\n')[1]
+                    xml = xml.split('</page>')[0] + '    <revision>' + ('<revision>'.join(xml2.split('<revision>')[1:]))
             else:
                 params['offset'] = '' #no more edits in this page history
             print title, len(re.findall(r_timestamp, xml)), 'edits'
@@ -302,7 +316,7 @@ def generateXMLDump(config={}, titles=[], start=''):
         prev = ''
         c = 0
         for l in xmlfile:
-            #removing <page>\n to end
+            #removing <page>\n until end of file
             if c != 0: #lock to avoid write an empty line at the begining of file
                 if not re.search(r'<title>%s</title>' % (start), l): 
                     xmlfile2.write(prev)
