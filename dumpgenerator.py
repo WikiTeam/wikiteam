@@ -26,14 +26,6 @@ import time
 import urllib
 import urllib2
 
-# todo:
-# curonly and all history (curonly si puede acumular varias peticiones en un solo GET, ara full history pedir cada pagina una a una)
-# usar api o parsear html si no está disponible
-# http://www.mediawiki.org/wiki/Manual:Parameters_to_Special:Export
-# Special:Log? uploads, account creations, etc
-# download Special:Version to save whch extension it used
-# que guarde el index.php (la portada) como index.html para que se vea la licencia del wiki abajo del todo
-
 def truncateFilename(other={}, filename=''):
     return filename[:other['filenamelimit']] + md5.new(filename).hexdigest() + '.' + filename.split('.')[-1]
 
