@@ -30,7 +30,6 @@ import urllib2
 # curonly and all history (curonly si puede acumular varias peticiones en un solo GET, ara full history pedir cada pagina una a una)
 # usar api o parsear html si no está disponible
 # http://www.mediawiki.org/wiki/Manual:Parameters_to_Special:Export
-# threads para bajar más rápido? pedir varias páginas a la vez
 # Special:Log? uploads, account creations, etc
 # download Special:Version to save whch extension it used
 # que guarde el index.php (la portada) como index.html para que se vea la licencia del wiki abajo del todo
@@ -379,7 +378,6 @@ def saveImageFilenamesURL(config={}, images=[]):
     print 'Image filenames and URLs saved at...', imagesfilename
 
 def getImageFilenamesURL(config={}):
-    #fix start is only available if parsing from API, if not, reload all the list from special:imagelist is mandatory
     print 'Retrieving image filenames'
     r_next = r'(?<!&amp;dir=prev)&amp;offset=(?P<offset>\d+)&amp;' # (?<! http://docs.python.org/library/re.html
     images = []
@@ -441,15 +439,10 @@ def undoHTMLEntities(text=''):
     return text
 
 def generateImageDump(config={}, other={}, images=[], start=''):
-    #slurp all the images
-    #save in a .tar?
-    #tener en cuenta http://www.mediawiki.org/wiki/Manual:ImportImages.php
-    #fix, download .desc ? YEP!
-    #fix download the upload log too, for uploaders info and date
     print 'Retrieving images from "%s"' % (start and start or 'start')
     imagepath = '%s/images' % (config['path'])
     if os.path.isdir(imagepath):
-        print 'It exists an images directory for this dump' #fix, resume?
+        print 'It exists an images directory for this dump'
     else:
         os.makedirs(imagepath)
     
@@ -579,7 +572,6 @@ def getParameters():
         'namespaces': ['all'],
         'exnamespaces': [],
         'path': '',
-        'threads': 1, #fix not coded yet
         'delay': 0,
     }
     other = {
@@ -588,7 +580,7 @@ def getParameters():
     }
     #console params
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "", ["h", "help", "path=", "api=", "index=", "images", "logs", "xml", "curonly", "threads=", "resume", "delay=", "namespaces=", "exnamespaces=", ])
+        opts, args = getopt.getopt(sys.argv[1:], "", ["h", "help", "path=", "api=", "index=", "images", "logs", "xml", "curonly", "resume", "delay=", "namespaces=", "exnamespaces=", ])
     except getopt.GetoptError, err:
         # print help information and exit:
         print str(err) # will print something like "option -a not recognized"
@@ -619,8 +611,6 @@ def getParameters():
                 print "If you select --curonly, you must use --xml too"
                 sys.exit()
             config["curonly"] = True
-        elif o in ("--threads"):
-            config["threads"] = int(a)
         elif o in ("--resume"):
             other["resume"] = True
         elif o in ("--delay"):
