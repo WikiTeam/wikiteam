@@ -47,3 +47,9 @@ http://knowino.org/w/api.php
 http://wikanda.granadapedia.es/w/api.php
 http://acawiki.org/api.php
 http://wikanda.cordobapedia.es/w/api.php
+http://www.solarpedia.es/api.php
+http://www.enciclopediadelinares.com/wiki/api.php
+http://osl.uca.es/wikijuegos/w/index.php
+http://osl2.uca.es/wikira/api.php
+http://osl2.uca.es/wikiformacion/api.php
+

@@ -337,7 +337,7 @@ def generateXMLDump(config={}, titles=[], start=''):
         if c % 10 == 0:
             print '    Downloaded %d pages' % (c)
         xml = getXMLPage(config=config, title=title)
-        while not re.search(r'</siteinfo>', xml): #empty xml by server? retry...
+        while not re.search(r'</siteinfo>', xml): #empty xml by server? retry... If page was deleted, </siteinfo> is included but no <page> and no <revision>
             print '    XML for this page is wrong. Waiting some seconds and reloading...'
             time.sleep(30)
             xml = getXMLPage(config=config, title=title)
