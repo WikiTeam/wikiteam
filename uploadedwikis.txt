@@ -46,3 +46,4 @@ http://wikanda.jaenpedia.es/w/api.php
 http://knowino.org/w/api.php
 http://wikanda.granadapedia.es/w/api.php
 http://acawiki.org/api.php
+http://wikanda.cordobapedia.es/w/api.php
