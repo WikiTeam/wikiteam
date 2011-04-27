@@ -55,3 +55,4 @@ http://osl2.uca.es/wikiformacion/api.php
 http://osl2.uca.es/wikihaskell/api.php
 http://osl2.uca.es/wikiunix/api.php
 http://osl2.uca.es/wikiCE/api.php
+http://osl2.uca.es/iberogre/api.php
