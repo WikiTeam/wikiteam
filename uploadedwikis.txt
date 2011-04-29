@@ -57,3 +57,4 @@ http://osl2.uca.es/wikiunix/api.php
 http://osl2.uca.es/wikiCE/api.php
 http://osl2.uca.es/iberogre/api.php
 https://en.bitcoin.it/w/api.php
+http://atwiki.assistivetech.net/api.php
