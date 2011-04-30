@@ -431,6 +431,7 @@ def generateImageDump(config={}, other={}, images=[], start=''):
     print 'Retrieving images from "%s"' % (start and start or 'start')
     imagepath = '%s/images' % (config['path'])
     if not os.path.isdir(imagepath):
+        print 'Creating %s directory' % (imagepath)
         os.makedirs(imagepath)
     
     c = 0
