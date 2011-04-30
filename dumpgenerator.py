@@ -281,7 +281,7 @@ def getXMLPage(config={}, title=''):
                     xml = xml.split('</page>')[0] + '    <revision>' + ('<revision>'.join(xml2.split('<revision>')[1:]))
             else:
                 params['offset'] = '' #no more edits in this page history
-            print title, len(re.findall(r_timestamp, xml)), 'edits'
+    print title, len(re.findall(r_timestamp, xml)), 'edits'
     return xml
 
 def cleanXML(xml=''):
