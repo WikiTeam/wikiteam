@@ -210,6 +210,38 @@ def getUserAgent():
     useragents = ['Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.8.0.4) Gecko/20060508 Firefox/1.5.0.4']
     return useragents[0]
 
+def getXMLPageCore(headers={}, params={}, config={}):
+    xml = ''
+    c = 0
+    while not re.search(r'</mediawiki>', xml):
+        if c > 0:
+            wait = 10 * c < 60 and 10 * c or 60 # incremental until 60 seconds max
+            print '    XML for this page is wrong. Waiting %d seconds and reloading...' % (wait)
+            time.sleep(wait)
+        if c > 60:
+            print '    We have retry more than %d times' % (c)
+            print '    Network error or whatever... Closing...'
+            sys.exit()
+        if params['limit'] > 100:
+            params['limit'] = params['limit'] - (c * 100)
+        data = urllib.urlencode(params)
+        req = urllib2.Request(url=config['index'], data=data, headers=headers)
+        try:
+            f = urllib2.urlopen(req)
+        except:
+            try:
+                print 'Server is slow... Waiting some seconds and retrying...'
+                time.sleep(15)
+                f = urllib2.urlopen(req)
+            except:
+                print 'An error have occurred while retrieving "%s"' % (title)
+                print 'Please, resume the dump, --resume'
+                sys.exit()
+        xml = f.read()
+        c += 1
+    
+    return xml
+
 def getXMLPage(config={}, title=''):
     #http://www.mediawiki.org/wiki/Manual_talk:Parameters_to_Special:Export#Parameters_no_longer_in_use.3F
     limit = 1000
@@ -224,41 +256,17 @@ def getXMLPage(config={}, title=''):
     else:
         params['offset'] = '1' # 1 always < 2000s
         params['limit'] = limit
-    data = urllib.urlencode(params)
-    req = urllib2.Request(url=config['index'], data=data, headers=headers)
-    try:
-        f = urllib2.urlopen(req)
-    except:
-        try:
-            print 'Server is slow... Waiting some seconds and retrying...'
-            time.sleep(10)
-            f = urllib2.urlopen(req)
-        except:
-            print 'An error have occurred while retrieving "%s"' % (title)
-            print 'Please, resume the dump, --resume'
-            sys.exit()
-    xml = f.read()
+    
+    xml = getXMLPageCore(headers=headers, params=params, config=config)
 
     #if complete history, check if this page history has > limit edits, if so, retrieve all using offset if available
     #else, warning about Special:Export truncating large page histories
     r_timestamp = r'<timestamp>([^<]+)</timestamp>'
     if not config['curonly'] and re.search(r_timestamp, xml): # search for timestamps in xml to avoid analysing empty pages like Special:Allpages and the random one
-        while not truncated and params['offset']:
+        while not truncated and params['offset']: #next chunk
             params['offset'] = re.findall(r_timestamp, xml)[-1] #get the last timestamp from the acum XML
-            data = urllib.urlencode(params)
-            req2 = urllib2.Request(url=config['index'], data=data, headers=headers)
-            try:
-                f2 = urllib2.urlopen(req2)
-            except:
-                try:
-                    print 'Sever is slow... Waiting some seconds and retrying...'
-                    time.sleep(10)
-                    f2 = urllib2.urlopen(req2)
-                except:
-                    print 'An error have occurred while retrieving', title
-                    print 'Please, resume the dump, --resume'
-                    sys.exit()
-            xml2 = f2.read()
+            xml2 = getXMLPageCore(headers=headers, params=params, config=config)
+            
             if re.findall(r_timestamp, xml2): #are there more edits in this next XML chunk?
                 if re.findall(r_timestamp, xml2)[-1] == params['offset']:
                     #again the same XML, this wiki does not support params in Special:Export, offer complete XML up to X edits (usually 1000)
@@ -281,6 +289,7 @@ def getXMLPage(config={}, title=''):
                     xml = xml.split('</page>')[0] + '    <revision>' + ('<revision>'.join(xml2.split('<revision>')[1:]))
             else:
                 params['offset'] = '' #no more edits in this page history
+    
     print title, len(re.findall(r_timestamp, xml)), 'edits'
     return xml
 
@@ -337,10 +346,6 @@ def generateXMLDump(config={}, titles=[], start=''):
         if c % 10 == 0:
             print '    Downloaded %d pages' % (c)
         xml = getXMLPage(config=config, title=title)
-        while not re.search(r'</siteinfo>', xml): #empty xml by server? retry... If page was deleted, </siteinfo> is included but no <page> and no <revision>
-            print '    XML for this page is wrong. Waiting some seconds and reloading...'
-            time.sleep(30)
-            xml = getXMLPage(config=config, title=title)
         xml = cleanXML(xml=xml)
         xmlfile.write(xml)
         c += 1
@@ -859,22 +864,24 @@ def main():
             saveLogs(config=config)
     
     #save index.php as html, for license details at the bootom of the page
-    print 'Downloading index.php (Main Page)'
-    f = urllib.urlopen(config['index'])
-    raw = f.read()
-    raw = removeIP(raw=raw)
-    f = open('%s/index.html' % (config['path']), 'w')
-    f.write(raw)
-    f.close()
+    if not os.path.exists('%s/index.html' % (config['path']))
+        print 'Downloading index.php (Main Page)'
+        f = urllib.urlopen(config['index'])
+        raw = f.read()
+        raw = removeIP(raw=raw)
+        f = open('%s/index.html' % (config['path']), 'w')
+        f.write(raw)
+        f.close()
     
     #save special:Version as html, for extensions details
-    print 'Downloading Special:Version with extensions and other related info'
-    f = urllib.urlopen('%s?title=Special:Version' % (config['index']))
-    raw = f.read()
-    raw = removeIP(raw=raw)
-    f = open('%s/Special:Version.html' % (config['path']), 'w')
-    f.write(raw)
-    f.close()
+    if not os.path.exists('%s/Special:Version.html' % (config['path']))
+        print 'Downloading Special:Version with extensions and other related info'
+        f = urllib.urlopen('%s?title=Special:Version' % (config['index']))
+        raw = f.read()
+        raw = removeIP(raw=raw)
+        f = open('%s/Special:Version.html' % (config['path']), 'w')
+        f.write(raw)
+        f.close()
     
     bye()
 
