@@ -837,7 +837,7 @@ def main():
                     break
                 c +=1
             print '%d images were found in the directory from a previous session' % (c)
-            lastfilename2 = lastfilename # we resume from previous image, which may be corrupted by the previous session ctrl-c or abort
+            lastfilename = lastfilename2 # we resume from previous image, which may be corrupted (or missing .desc)  by the previous session ctrl-c or abort
             if complete:
                 #image dump is complete
                 print 'Image dump was completed in the previous session'
