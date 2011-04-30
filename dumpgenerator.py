@@ -864,7 +864,7 @@ def main():
             saveLogs(config=config)
     
     #save index.php as html, for license details at the bootom of the page
-    if not os.path.exists('%s/index.html' % (config['path']))
+    if not os.path.exists('%s/index.html' % (config['path'])):
         print 'Downloading index.php (Main Page)'
         f = urllib.urlopen(config['index'])
         raw = f.read()
@@ -874,7 +874,7 @@ def main():
         f.close()
     
     #save special:Version as html, for extensions details
-    if not os.path.exists('%s/Special:Version.html' % (config['path']))
+    if not os.path.exists('%s/Special:Version.html' % (config['path'])):
         print 'Downloading Special:Version with extensions and other related info'
         f = urllib.urlopen('%s?title=Special:Version' % (config['index']))
         raw = f.read()
