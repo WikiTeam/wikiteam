@@ -217,12 +217,12 @@ def logerror(config={}, text=''):
         f.close()
 
 def getXMLPageCore(headers={}, params={}, config={}):
-    #returns a full (or current only) xml ending in </mediawiki>
-    #if retrieving the full history of a page, returns a current only version
+    #returns a XML containing params['limit'] revisions (or current only), ending in </mediawiki>
+    #if retrieving params['limit'] revisions fails, returns a current only version
     #if all fail, returns the empty string
     xml = ''
     c = 0
-    maxseconds = 10 #max seconds to wait in a single sleeping
+    maxseconds = 100 #max seconds to wait in a single sleeping
     maxretries = 5 # x retries and skip
     increment = 20 #increment every retry
     while not re.search(r'</mediawiki>', xml):
@@ -264,7 +264,10 @@ def getXMLPageCore(headers={}, params={}, config={}):
     return xml
 
 def getXMLPage(config={}, title='', verbose=True):
+    #return the full history (or current only) of a page
+    #if server errors occurs while retrieving the full page history, it may return [oldest OK versions] + last version, excluding mmiddle revisions, so it would be partialy truncated
     #http://www.mediawiki.org/wiki/Manual_talk:Parameters_to_Special:Export#Parameters_no_longer_in_use.3F
+    
     limit = 1000
     truncated = False
     title_ = title
@@ -289,7 +292,7 @@ def getXMLPage(config={}, title='', verbose=True):
             params['offset'] = re.findall(r_timestamp, xml)[-1] #get the last timestamp from the acum XML
             xml2 = getXMLPageCore(headers=headers, params=params, config=config)
             
-            if re.findall(r_timestamp, xml2): #are there more edits in this next XML chunk?
+            if re.findall(r_timestamp, xml2): #are there more edits in this next XML chunk or no <page></page>?
                 if re.findall(r_timestamp, xml2)[-1] == params['offset']:
                     #again the same XML, this wiki does not support params in Special:Export, offer complete XML up to X edits (usually 1000)
                     print 'ATTENTION: This wiki does not allow some parameters in Special:Export, so, pages with large histories may be truncated'
