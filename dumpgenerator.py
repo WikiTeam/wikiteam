@@ -430,9 +430,7 @@ def undoHTMLEntities(text=''):
 def generateImageDump(config={}, other={}, images=[], start=''):
     print 'Retrieving images from "%s"' % (start and start or 'start')
     imagepath = '%s/images' % (config['path'])
-    if os.path.isdir(imagepath):
-        print 'It exists an images directory for this dump'
-    else:
+    if not os.path.isdir(imagepath):
         os.makedirs(imagepath)
     
     c = 0
@@ -827,22 +825,21 @@ def main():
             lastfilename2 = ''
             c = 0
             for filename, url, uploader in images:
+                lastfilename2 = lastfilename
+                lastfilename = filename #return always the complete filename, not the truncated
                 filename2 = filename
                 if len(filename2) > other['filenamelimit']:
                     filename2 = truncateFilename(other=other, filename=filename2)
                 if filename2 not in listdir:
                     complete = False
-                    lastfilename2 = lastfilename
-                    lastfilename = filename #return always the complete filename, not the truncated
                     break
                 c +=1
             print '%d images were found in the directory from a previous session' % (c)
-            lastfilename = lastfilename2 # we resume from previous image, which may be corrupted (or missing .desc)  by the previous session ctrl-c or abort
             if complete:
                 #image dump is complete
                 print 'Image dump was completed in the previous session'
             else:
-                generateImageDump(config=config, other=other, images=images, start=lastfilename)
+                generateImageDump(config=config, other=other, images=images, start=lastfilename2) # we resume from previous image, which may be corrupted (or missing .desc)  by the previous session ctrl-c or abort
         
         if config['logs']:
             #fix
