@@ -198,7 +198,7 @@ def getXMLHeader(config={}):
     #get the header of a random page, to attach it in the complete XML backup
     #similar to: <mediawiki xmlns="http://www.mediawiki.org/xml/export-0.3/" xmlns:x....
     randomtitle = 'AMF5LKE43MNFGHKSDMRTJ'
-    xml = getXMLPage(config=config, title=randomtitle)
+    xml = getXMLPage(config=config, title=randomtitle, verbose=False)
     header = xml.split('</mediawiki>')[0]
     return header
 
@@ -213,14 +213,17 @@ def getUserAgent():
 def getXMLPageCore(headers={}, params={}, config={}):
     xml = ''
     c = 0
+    maxseconds = 600 #seconds
+    maxretries = 10 # x retries and skip
+    increment = 60 #increment every retry
     while not re.search(r'</mediawiki>', xml):
         if c > 0:
-            wait = 10 * c < 60 and 10 * c or 60 # incremental until 60 seconds max
+            wait = increment * c < maxseconds and increment * c or maxseconds # incremental until maxseconds
             print '    XML for this page is wrong. Waiting %d seconds and reloading...' % (wait)
             time.sleep(wait)
-        if c > 60:
-            print '    We have retry more than %d times' % (c)
-            print '    Network error or whatever... Closing...'
+        if c > maxretries:
+            print '    We have retry %d times' % (c)
+            print '    MediaWiki error for this page, network error or whatever... Skiping this page...'
             sys.exit()
         if params['limit'] > 100:
             params['limit'] = params['limit'] - (c * 100)
@@ -242,7 +245,7 @@ def getXMLPageCore(headers={}, params={}, config={}):
     
     return xml
 
-def getXMLPage(config={}, title=''):
+def getXMLPage(config={}, title='', verbose=True):
     #http://www.mediawiki.org/wiki/Manual_talk:Parameters_to_Special:Export#Parameters_no_longer_in_use.3F
     limit = 1000
     truncated = False
@@ -253,6 +256,7 @@ def getXMLPage(config={}, title=''):
     params = {'title': 'Special:Export', 'pages': title_, 'action': 'submit', }
     if config['curonly']:
         params['curonly'] = 1
+        params['limit'] = 1
     else:
         params['offset'] = '1' # 1 always < 2000s
         params['limit'] = limit
@@ -290,7 +294,9 @@ def getXMLPage(config={}, title=''):
             else:
                 params['offset'] = '' #no more edits in this page history
     
-    print title, len(re.findall(r_timestamp, xml)), 'edits'
+    if verbose:
+        print '    %s, %s edits' % (title, len(re.findall(r_timestamp, xml)))
+    
     return xml
 
 def cleanXML(xml=''):
@@ -344,7 +350,7 @@ def generateXMLDump(config={}, titles=[], start=''):
             continue
         delay(config=config)
         if c % 10 == 0:
-            print '    Downloaded %d pages' % (c)
+            print 'Downloaded %d pages' % (c)
         xml = getXMLPage(config=config, title=title)
         xml = cleanXML(xml=xml)
         xmlfile.write(xml)
@@ -436,7 +442,7 @@ def generateImageDump(config={}, other={}, images=[], start=''):
     print 'Retrieving images from "%s"' % (start and start or 'start')
     imagepath = '%s/images' % (config['path'])
     if not os.path.isdir(imagepath):
-        print 'Creating %s directory' % (imagepath)
+        print 'Creating "%s" directory' % (imagepath)
         os.makedirs(imagepath)
     
     c = 0
