@@ -210,23 +210,41 @@ def getUserAgent():
     useragents = ['Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.8.0.4) Gecko/20060508 Firefox/1.5.0.4']
     return useragents[0]
 
+def logerror(config={}, text=''):
+    if text:
+        f = open('%s/errors.log' % (config['path']), 'a')
+        f.write('%s: %s\n' % (datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'), text))
+        f.close()
+
 def getXMLPageCore(headers={}, params={}, config={}):
+    #returns a full (or current only) xml ending in </mediawiki>
+    #if retrieving the full history of a page, returns a current only version
+    #if all fail, returns the empty string
     xml = ''
     c = 0
-    maxseconds = 600 #seconds
-    maxretries = 10 # x retries and skip
-    increment = 60 #increment every retry
+    maxseconds = 10 #max seconds to wait in a single sleeping
+    maxretries = 5 # x retries and skip
+    increment = 20 #increment every retry
     while not re.search(r'</mediawiki>', xml):
-        if c > 0:
+        if c > 0 and c < maxretries:
             wait = increment * c < maxseconds and increment * c or maxseconds # incremental until maxseconds
-            print '    XML for this page is wrong. Waiting %d seconds and reloading...' % (wait)
+            print '    XML for "%s" is wrong. Waiting %d seconds and reloading...' % (params['pages'], wait)
             time.sleep(wait)
-        if c > maxretries:
-            print '    We have retry %d times' % (c)
-            print '    MediaWiki error for this page, network error or whatever... Skiping this page...'
-            sys.exit()
-        if params['limit'] > 100:
-            params['limit'] = params['limit'] - (c * 100)
+            if params['limit'] > 1: # reducing server load requesting smallest chunks (if curonly then limit = 1 from mother function)
+                params['limit'] = params['limit'] / 2 # half
+        if c >= maxretries:
+            print '    We have retried %d times' % (c)
+            print '    MediaWiki error for "%s", network error or whatever...' % (params['pages'])
+            if not config['curonly']: #our last chance, preserve only the last revision...
+                print '    Trying to save only the last revision for this page...'
+                params['curonly'] = 1
+                logerror(config=config, text='Error while retrieving the full history of "%s". Trying to save only the last revision for this page' % (params['pages']))
+                return getXMLPageCore(headers=headers, params=params, config=config)
+            else:
+                print '    Saving in the errors log, and skiping...'
+                logerror(config=config, text='Error while retrieving the last revision of "%s". Skiping.' % (params['pages']))
+                return '' # empty xml
+        
         data = urllib.urlencode(params)
         req = urllib2.Request(url=config['index'], data=data, headers=headers)
         try:
@@ -301,8 +319,9 @@ def getXMLPage(config={}, title='', verbose=True):
 
 def cleanXML(xml=''):
     #do not touch xml codification, as is
-    xml = xml.split('</siteinfo>\n')[1]
-    xml = xml.split('</mediawiki>')[0]
+    if re.search(r'</siteinfo>\n', xml) and re.search(r'</mediawiki>', xml):
+        xml = xml.split('</siteinfo>\n')[1]
+        xml = xml.split('</mediawiki>')[0]
     return xml
 
 def generateXMLDump(config={}, titles=[], start=''):
@@ -353,6 +372,11 @@ def generateXMLDump(config={}, titles=[], start=''):
             print 'Downloaded %d pages' % (c)
         xml = getXMLPage(config=config, title=title)
         xml = cleanXML(xml=xml)
+        if not xml:
+            logerror(config=config, text='The page "%s" was missing in the wiki (probably deleted)' % (title))
+        #here, XML is a correct <page> </page> chunk or 
+        #an empty string due to a deleted page (logged in errors log) or
+        #an empty string due to an error while retrieving the page from server (logged in errors log)
         xmlfile.write(xml)
         c += 1
     xmlfile.write(footer)
@@ -870,7 +894,9 @@ def main():
             saveLogs(config=config)
     
     #save index.php as html, for license details at the bootom of the page
-    if not os.path.exists('%s/index.html' % (config['path'])):
+    if os.path.exists('%s/index.html' % (config['path'])):
+        print 'index.html exists, do not overwrite'
+    else:
         print 'Downloading index.php (Main Page)'
         f = urllib.urlopen(config['index'])
         raw = f.read()
@@ -880,7 +906,9 @@ def main():
         f.close()
     
     #save special:Version as html, for extensions details
-    if not os.path.exists('%s/Special:Version.html' % (config['path'])):
+    if os.path.exists('%s/Special:Version.html' % (config['path'])):
+        print 'Special:Version.html exists, do not overwrite'
+    else:
         print 'Downloading Special:Version with extensions and other related info'
         f = urllib.urlopen('%s?title=Special:Version' % (config['index']))
         raw = f.read()
