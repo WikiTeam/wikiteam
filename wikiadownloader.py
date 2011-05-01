@@ -22,9 +22,10 @@ import re
 import sys
 import urllib
 
+"""
 def month2num(month=''):
     month = month.strip().lower()
-    if month in ['january', 'gen', 'janwoar', 'januarie', 'ocak', 'taneaksat']:
+    if month in ['january', 'gen', 'janwoar', 'januarie', 'ocak', 'taneaksat', 'sty', 'yanvar']:
         return '01'
     elif month in ['february', ]:
         return '02'
@@ -48,7 +49,9 @@ def month2num(month=''):
         return '11'
     elif month in ['december', 'desember']:
         return '12'
+    print 'Error. I do not understand this month:', month
     sys.exit()
+"""
 
 f = open('wikia.com', 'r')
 wikia = f.read().strip().split('\n')
@@ -75,16 +78,26 @@ for wiki in wikia:
     for i in m:
         urldump = i.group("urldump")
         dump = i.group("dump")
-        hour = i.group("hour")
+        """hour = i.group("hour")
         month = i.group("month")
         day = i.group("day")
-        year = i.group("year")
-        print urldump, dump, hour, month, day, year
+        year = i.group("year")"""
         
-        date = datetime.datetime(year=int(year), month=int(month2num(month=month)), day=int(day))
+        
+        #date = datetime.datetime(year=int(year), month=int(month2num(month=month)), day=int(day))
         
         print 'Downloading', wiki
         if not os.path.exists(path):
             os.makedirs(path)
         
-        os.system('wget -c "%s" -O %s/%s-%s-pages-meta-%s.gz' % (urldump, path, prefix, date.strftime('%Y%m%d'), dump.lower() == 'current' and 'current' or 'history'))
+        f = urllib.urlopen('%s/index.json' % ('/'.join(urldump.split('/')[:-1])))
+        json = f.read()
+        f.close()
+        #{"name":"pages_full.xml.gz","timestamp":1273755409,"mwtimestamp":"20100513125649"}
+        #{"name":"pages_current.xml.gz","timestamp":1270731925,"mwtimestamp":"20100408130525"}
+        date = re.findall(r'{"name":"pages_%s.xml.gz","timestamp":\d+,"mwtimestamp":"(\d{8})\d{6}"}' % (dump.lower()), json)[0]
+        print urldump, dump, date #, hour, month, day, year
+        
+        #os.system('wget -c "%s" -O %s/%s-%s-pages-meta-%s.gz' % (urldump, path, prefix, date.strftime('%Y%m%d'), dump.lower() == 'current' and 'current' or 'history'))
+        #-q, turn off verbose
+        os.system('wget -q -c "%s" -O %s/%s-%s-pages-meta-%s.gz' % (urldump, path, prefix, date, dump.lower() == 'current' and 'current' or 'history'))
