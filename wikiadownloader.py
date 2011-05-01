@@ -24,7 +24,7 @@ import urllib
 
 def month2num(month=''):
     month = month.strip().lower()
-    if month in ['january', 'gen', 'janwoar', 'januarie']:
+    if month in ['january', 'gen', 'janwoar', 'januarie', 'ocak', 'taneaksat']:
         return '01'
     elif month in ['february', ]:
         return '02'
@@ -46,7 +46,7 @@ def month2num(month=''):
         return '10'
     elif month in ['november', ]:
         return '11'
-    elif month in ['december', ]:
+    elif month in ['december', 'desember']:
         return '12'
     sys.exit()
 
