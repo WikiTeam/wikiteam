@@ -204,7 +204,7 @@ def getXMLHeader(config={}):
 
 def getXMLFileDesc(config={}, title=''):
     config['curonly'] = 1 #tricky to get only the most recent desc
-    return getXMLPage(config=config, title=title)
+    return getXMLPage(config=config, title=title, verbose=False)
 
 def getUserAgent():
     useragents = ['Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.8.0.4) Gecko/20060508 Firefox/1.5.0.4']
