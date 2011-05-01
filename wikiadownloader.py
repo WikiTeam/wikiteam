@@ -15,6 +15,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # using a list of wikia subdomains, it downloads all dumps available in Special:Statistics pages
+# you can use the list available at the "listofwikis" directory, the file is called wikia.com and it contains +200k wikis
 
 import datetime
 import os
