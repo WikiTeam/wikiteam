@@ -84,7 +84,6 @@ for wiki in wikia:
         day = i.group("day")
         year = i.group("year")"""
         
-        
         #date = datetime.datetime(year=int(year), month=int(month2num(month=month)), day=int(day))
         
         print 'Downloading', wiki

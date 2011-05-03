@@ -255,7 +255,7 @@ def getXMLPageCore(headers={}, params={}, config={}):
                 time.sleep(15)
                 f = urllib2.urlopen(req)
             except:
-                print 'An error have occurred while retrieving "%s"' % (title)
+                print 'An error have occurred while retrieving "%s"' % (params['pages'])
                 print 'Please, resume the dump, --resume'
                 sys.exit()
         xml = f.read()
