@@ -23,35 +23,18 @@ import re
 import sys
 import urllib
 
-"""
-def month2num(month=''):
-    month = month.strip().lower()
-    if month in ['january', 'gen', 'janwoar', 'januarie', 'ocak', 'taneaksat', 'sty', 'yanvar']:
-        return '01'
-    elif month in ['february', ]:
-        return '02'
-    elif month in ['march', ]:
-        return '03'
-    elif month in ['april', ]:
-        return '04'
-    elif month in ['may', ]:
-        return '05'
-    elif month in ['june', ]:
-        return '06'
-    elif month in ['july', ]:
-        return '07'
-    elif month in ['august', ]:
-        return '08'
-    elif month in ['september', ]:
-        return '09'
-    elif month in ['october', ]:
-        return '10'
-    elif month in ['november', ]:
-        return '11'
-    elif month in ['december', 'desember']:
-        return '12'
-    print 'Error. I do not understand this month:', month
-    sys.exit()
+""" 
+instructions: 
+
+it requires a list of wikia wikis
+there is one in the repository (listofwikis directory)
+
+run it: python wikiadownloader.py
+
+it you want to resume: python wikiadownloader.py wikitostart
+
+where wikitostart in the last downloaded wiki in the previous session
+
 """
 
 f = open('wikia.com', 'r')
@@ -79,13 +62,7 @@ for wiki in wikia:
     for i in m:
         urldump = i.group("urldump")
         dump = i.group("dump")
-        """hour = i.group("hour")
-        month = i.group("month")
-        day = i.group("day")
-        year = i.group("year")"""
-        
-        #date = datetime.datetime(year=int(year), month=int(month2num(month=month)), day=int(day))
-        
+
         print 'Downloading', wiki
         if not os.path.exists(path):
             os.makedirs(path)
@@ -98,6 +75,5 @@ for wiki in wikia:
         date = re.findall(r'{"name":"pages_%s.xml.gz","timestamp":\d+,"mwtimestamp":"(\d{8})\d{6}"}' % (dump.lower()), json)[0]
         print urldump, dump, date #, hour, month, day, year
         
-        #os.system('wget -c "%s" -O %s/%s-%s-pages-meta-%s.gz' % (urldump, path, prefix, date.strftime('%Y%m%d'), dump.lower() == 'current' and 'current' or 'history'))
         #-q, turn off verbose
         os.system('wget -q -c "%s" -O %s/%s-%s-pages-meta-%s.gz' % (urldump, path, prefix, date, dump.lower() == 'current' and 'current' or 'history'))
