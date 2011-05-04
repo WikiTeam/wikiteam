@@ -170,7 +170,7 @@ def getPageTitlesScrapper(config={}):
         for i in m:
             if not i.group('title').startswith('Special:'):
                 if not i.group('title') in titles:
-                    titles.append(i.group('title'))
+                    titles.append(undoHTMLEntities(text=i.group('title')))
                     c += 1
         print '    %d titles retrieved in the namespace %d' % (c, namespace)
     return titles
@@ -435,7 +435,7 @@ def getImageFilenamesURL(config={}):
                 if url[0] == '/': #slash is added later
                     url = url[1:]
                 domainalone = config['index'].split('://')[1].split('/')[0] #remove from :// (http or https) until the first / after domain
-                url = 'http://%s/%s' % (domainalone, url) # concat domain + relative url
+                url = '%s://%s/%s' % (config['index'].split('://')[0], domainalone, url) # concat http(s) + domain + relative url
             url = undoHTMLEntities(text=url)
             #url = urllib.unquote(url) #do not use unquote with url, it break some urls with odd chars
             url = re.sub(' ', '_', url)

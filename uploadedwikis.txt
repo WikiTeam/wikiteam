@@ -60,3 +60,5 @@ https://en.bitcoin.it/w/api.php
 http://atwiki.assistivetech.net/api.php
 http://wiki.lessig.org/api.php
 http://www.forensicswiki.org/w/api.php
+http://wikanda.malagapedia.es/w/api.php
+https://wiki.archlinux.org/api.php
