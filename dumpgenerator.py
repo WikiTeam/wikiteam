@@ -431,11 +431,11 @@ def getImageFilenamesURL(config={}):
         
         for i in m:
             url = i.group('url')
-            if url[0] == '/' or not url.startswith('http://'): #relative URL
-                if url[0] == '/': #it is added later
+            if url[0] == '/' or (not url.startswith('http://') and not url.startswith('https://')): #is it a relative URL?
+                if url[0] == '/': #slash is added later
                     url = url[1:]
-                domainalone = config['index'].split('http://')[1].split('/')[0]
-                url = 'http://%s/%s' % (domainalone, url)
+                domainalone = config['index'].split('://')[1].split('/')[0] #remove from :// (http or https) until the first / after domain
+                url = 'http://%s/%s' % (domainalone, url) # concat domain + relative url
             url = undoHTMLEntities(text=url)
             #url = urllib.unquote(url) #do not use unquote with url, it break some urls with odd chars
             url = re.sub(' ', '_', url)
@@ -623,8 +623,14 @@ def getParameters():
                 else:
                     break
         elif o in ("--api"):
+            if not a.startswith('http://') and not a.startswith('https://'):
+                print 'api.php must start with http:// or https://'
+                sys.exit()
             config['api'] = a
         elif o in ("--index"):
+            if not a.startswith('http://') and not a.startswith('https://'):
+                print 'index.php must start with http:// or https://'
+                sys.exit()
             config["index"] = a
         elif o in ("--images"):
             config["images"] = True
@@ -715,12 +721,6 @@ Write --help for help."""
         else:
             print 'Error in index.php, please, provide a correct path to index.php'
             sys.exit()
-    
-    #adding http://
-    if not config['index'] and not config['api'].startswith('http://'):
-        config['api'] = 'http://' + config['api']
-    if not config['api'] and not config['index'].startswith('http://'):
-        config['index'] = 'http://' + config['index']
     
     #calculating path, if not defined by user with --path=
     if not config['path']:
