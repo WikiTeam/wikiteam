@@ -62,3 +62,8 @@ http://wiki.lessig.org/api.php
 http://www.forensicswiki.org/w/api.php
 http://wikanda.malagapedia.es/w/api.php
 https://wiki.archlinux.org/api.php
+http://portlandwiki.org/api.php
+http://www.adciv.org/index.php
+http://www.publicdomainideas.org/api.php
+http://ubuntuwiki.net/api.php
+http://www.projectbrahma.org/api.php

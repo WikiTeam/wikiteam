@@ -38,12 +38,15 @@ def cleanHTML(raw=''):
     #<!-- bodytext --> <!-- /bodytext -->
     #<!-- start content --> <!-- end content -->
     #<!-- Begin Content Area --> <!-- End Content Area -->
+    #<!-- content --> <!-- mw_content -->
     if re.search('<!-- bodytext -->', raw):
         raw = raw.split('<!-- bodytext -->')[1].split('<!-- /bodytext -->')[0]
     elif re.search('<!-- start content -->', raw):
         raw = raw.split('<!-- start content -->')[1].split('<!-- end content -->')[0]
     elif re.search('<!-- Begin Content Area -->', raw):
         raw = raw.split('<!-- Begin Content Area -->')[1].split('<!-- End Content Area -->')[0]
+    elif re.search('<!-- content -->', raw):
+        raw = raw.split('<!-- content -->')[1].split('<!-- mw_content -->')[0]
     else:
         print 'This wiki doesn\'t use marks to split contain'
         sys.exit()
