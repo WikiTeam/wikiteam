@@ -67,3 +67,5 @@ http://www.adciv.org/index.php
 http://www.publicdomainideas.org/api.php
 http://ubuntuwiki.net/api.php
 http://www.projectbrahma.org/api.php
+http://www.mastershaper.org/api.php
+http://botwiki.sno.cc/w/api.php
