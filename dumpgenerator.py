@@ -17,7 +17,10 @@
 import cPickle
 import datetime
 import getopt
-import md5
+try:
+    from hashlib import md5
+except ImportError:             # Python 2.4 compatibility
+    from md5 import new as md5
 import os
 import re
 import subprocess
