@@ -51,6 +51,7 @@ for wiki in wikia:
     prefix = wiki.split('http://')[1]
     if prefix < start:
         continue
+    print wiki
     path = '%s/%s/%s' % (prefix[0], prefix[0:2], prefix)
     
     f = urllib.urlopen('%s/wiki/Special:Statistics' % (wiki))
