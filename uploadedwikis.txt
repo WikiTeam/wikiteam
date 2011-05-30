@@ -70,3 +70,9 @@ http://www.projectbrahma.org/api.php
 http://www.mastershaper.org/api.php
 http://botwiki.sno.cc/w/api.php
 http://wiki.openstreetmap.org/w/api.php
+http://recentchangescamp.org/api.php
+http://www.red-sostenible.net/api.php
+http://el.opensuse.org/index.php
+http://es.opensuse.org/index.php
+http://hu.opensuse.org/index.php
+http://esoteric.voxelperfect.net/w/index.php

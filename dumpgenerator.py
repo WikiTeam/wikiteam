@@ -30,7 +30,7 @@ import urllib
 import urllib2
 
 def truncateFilename(other={}, filename=''):
-    return filename[:other['filenamelimit']] + md5.new(filename).hexdigest() + '.' + filename.split('.')[-1]
+    return filename[:other['filenamelimit']] + md5(filename).hexdigest() + '.' + filename.split('.')[-1]
 
 def delay(config={}):
     if config['delay'] > 0:
