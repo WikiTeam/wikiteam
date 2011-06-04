@@ -76,3 +76,4 @@ http://el.opensuse.org/index.php
 http://es.opensuse.org/index.php
 http://hu.opensuse.org/index.php
 http://esoteric.voxelperfect.net/w/index.php
+http://wiki.frema.ecs.soton.ac.uk/api.php

@@ -51,6 +51,7 @@ def cleanHTML(raw=''):
     elif re.search('<!-- content -->', raw):
         raw = raw.split('<!-- content -->')[1].split('<!-- mw_content -->')[0]
     else:
+        print raw[:250]
         print 'This wiki doesn\'t use marks to split contain'
         sys.exit()
     return raw
@@ -416,7 +417,8 @@ def getImageFilenamesURL(config={}):
     images = []
     offset = '29990101000000' #january 1, 2999
     while offset:
-        url = '%s?title=Special:Imagelist&limit=5000&offset=%s' % (config['index'], offset)
+        url = '%s?title=Special:Imagelist&limit=500&offset=%s' % (config['index'], offset) #5000 overload some servers
+        #print url
         raw = urllib.urlopen(url).read()
         raw = cleanHTML(raw)
         #archiveteam 1.15.1 <td class="TablePager_col_img_name"><a href="/index.php?title=File:Yahoovideo.jpg" title="File:Yahoovideo.jpg">Yahoovideo.jpg</a> (<a href="/images/2/2b/Yahoovideo.jpg">file</a>)</td>
