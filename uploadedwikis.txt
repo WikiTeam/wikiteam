@@ -77,3 +77,6 @@ http://es.opensuse.org/index.php
 http://hu.opensuse.org/index.php
 http://esoteric.voxelperfect.net/w/index.php
 http://wiki.frema.ecs.soton.ac.uk/api.php
+http://wikitravel.org/wiki/hu/api.php
+http://wiki.freeculture.org/api.php
+http://loprometidoesdeuda.com/api.php
