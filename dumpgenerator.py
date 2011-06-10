@@ -594,7 +594,9 @@ def bye():
 def usage():
     print "Write a complete help"
 
-def getParameters(params=sys.argv[1:]):
+def getParameters(params=[]):
+    if not params:
+        params = sys.argv[1:]
     config = {
         'curonly': False,
         'date': datetime.datetime.now().strftime('%Y%m%d'),
@@ -743,7 +745,7 @@ def removeIP(raw=''):
     raw = re.sub(r'(?i)[\da-f]{0,4}:[\da-f]{0,4}:[\da-f]{0,4}:[\da-f]{0,4}:[\da-f]{0,4}:[\da-f]{0,4}:[\da-f]{0,4}:[\da-f]{0,4}', '0:0:0:0:0:0:0:0', raw)
     return raw
 
-def main(params):
+def main(params=[]):
     welcome()
     configfilename = 'config.txt'
     config, other = getParameters(params=params)
