@@ -594,7 +594,7 @@ def bye():
 def usage():
     print "Write a complete help"
 
-def getParameters():
+def getParameters(params=sys.argv[1:]):
     config = {
         'curonly': False,
         'date': datetime.datetime.now().strftime('%Y%m%d'),
@@ -614,7 +614,7 @@ def getParameters():
     }
     #console params
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "", ["h", "help", "path=", "api=", "index=", "images", "logs", "xml", "curonly", "resume", "delay=", "namespaces=", "exnamespaces=", ])
+        opts, args = getopt.getopt(params, "", ["h", "help", "path=", "api=", "index=", "images", "logs", "xml", "curonly", "resume", "delay=", "namespaces=", "exnamespaces=", ])
     except getopt.GetoptError, err:
         # print help information and exit:
         print str(err) # will print something like "option -a not recognized"
@@ -743,10 +743,10 @@ def removeIP(raw=''):
     raw = re.sub(r'(?i)[\da-f]{0,4}:[\da-f]{0,4}:[\da-f]{0,4}:[\da-f]{0,4}:[\da-f]{0,4}:[\da-f]{0,4}:[\da-f]{0,4}:[\da-f]{0,4}', '0:0:0:0:0:0:0:0', raw)
     return raw
 
-def main():
+def main(params):
     welcome()
     configfilename = 'config.txt'
-    config, other = getParameters()
+    config, other = getParameters(params=params)
     
     #notice about wikipedia dumps
     if re.findall(r'(wikipedia|wikisource|wiktionary|wikibooks|wikiversity|wikimedia|wikispecies|wikiquote|wikinews)\.org', config['api']+config['index']):
