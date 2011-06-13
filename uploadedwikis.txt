@@ -83,3 +83,5 @@ http://loprometidoesdeuda.com/api.php
 http://es.tanatopedia.net/api.php
 http://www.rezeptewiki.org/api.php
 http://www.tarracowiki.cat/tarracowiki/api.php
+http://www.memoryarchive.org/en/index.php
+http://www.trentowiki.it/w/api.php
