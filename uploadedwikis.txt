@@ -80,3 +80,6 @@ http://wiki.frema.ecs.soton.ac.uk/api.php
 http://wikitravel.org/wiki/hu/api.php
 http://wiki.freeculture.org/api.php
 http://loprometidoesdeuda.com/api.php
+http://es.tanatopedia.net/api.php
+http://www.rezeptewiki.org/api.php
+http://www.tarracowiki.cat/tarracowiki/api.php
