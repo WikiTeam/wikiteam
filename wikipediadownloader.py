@@ -23,29 +23,33 @@ f = urllib.urlopen('http://dumps.wikimedia.org/backup-index.html')
 raw = f.read()
 f.close()
 
-m = re.compile(r'<a href="(?P<project>[^>]+)/\d+">[^<]+</a>: <span class=\'done\'>Dump complete</span>').finditer(raw)
+m = re.compile(r'<a href="(?P<project>[^>]+)/(?P<date>\d+)">[^<]+</a>: <span class=\'done\'>Dump complete</span>').finditer(raw)
 projects = []
 for i in m:
-    projects.append(i.group('project'))
+    projects.append([i.group('project'), i.group('date')])
 
 projects.reverse() #oldest project dump, download first
 
-for project in projects:
+#projects = [['enwiki', '20110405']]
+for project, date in projects:
     time.sleep(1) #ctrl-c
-    f = urllib.urlopen('http://dumps.wikimedia.org/%s/latest/%s-latest-pages-meta-history.xml.7z-rss.xml' % (project, project))
+    f = urllib.urlopen('http://dumps.wikimedia.org/%s/%s/' % (project, date))
     raw = f.read()
+    #print raw
     f.close()
     
-    for dumpclass in ['pages-meta-history']:
+    for dumpclass in ['pages-meta-history\d*\.xml\.7z']:
         corrupted = True
         while corrupted:
-            m = re.compile(r'a href="(?P<urldump>http://download.wikimedia.org/[^/]+/\d+/[^"]+-\d+-%s\.xml\.7z)"' % (dumpclass)).finditer(raw)
-            urldump = ''
+            m = re.compile(r'<a href="(?P<urldump>http://[^/>]+/%s/%s/%s-%s-%s)">' % (project, date, project, date, dumpclass)).finditer(raw)
+            urldumps = []
             for i in m:
-                urldump = i.group('urldump')
-            if urldump:
+                urldumps.append(i.group('urldump')) #enwiki is splitted in several files
+            
+            #print urldumps
+            for urldump in urldumps:
                 dumpfilename = urldump.split('/')[-1]
-                path = '%s/%s' % (dumpfilename[0], dumpfilename.split(dumpclass)[0][:-10])
+                path = '%s/%s' % (dumpfilename[0], project)
                 if not os.path.exists(path):
                     os.makedirs(path)
                 os.system('wget -c %s -O %s/%s' % (urldump, path, dumpfilename))
@@ -58,10 +62,10 @@ for project in projects:
                 md51 = re.findall(r'(?P<md5>[a-f0-9]{32})\s+%s/%s' % (path, dumpfilename), raw)[0]
                 print md51
                 
-                f = urllib.urlopen('http://dumps.wikimedia.org/%s/latest/%s-latest-md5sums.txt' % (project, project))
+                f = urllib.urlopen('http://dumps.wikimedia.org/%s/%s/%s-%s-md5sums.txt' % (project, date, project, date))
                 raw = f.read()
                 f.close()
-                f = open('%s/%smd5sums.txt' % (path, dumpfilename.split(dumpclass)[0]), 'w')
+                f = open('%s/%s-%s-md5sums.txt' % (path, project, date), 'w')
                 f.write(raw)
                 f.close()
                 md52 = re.findall(r'(?P<md5>[a-f0-9]{32})\s+%s' % (dumpfilename), raw)[0]
