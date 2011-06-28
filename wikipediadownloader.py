@@ -31,17 +31,20 @@ for i in m:
 projects.reverse() #oldest project dump, download first
 
 #projects = [['enwiki', '20110405']]
+
 for project, date in projects:
     time.sleep(1) #ctrl-c
     f = urllib.urlopen('http://dumps.wikimedia.org/%s/%s/' % (project, date))
-    raw = f.read()
-    #print raw
+    htmlproj = f.read()
+    #print htmlproj
     f.close()
     
     for dumpclass in ['pages-meta-history\d*\.xml\.7z']:
         corrupted = True
-        while corrupted:
-            m = re.compile(r'<a href="(?P<urldump>http://[^/>]+/%s/%s/%s-%s-%s)">' % (project, date, project, date, dumpclass)).finditer(raw)
+        maxretries = 3
+        while corrupted and maxretries > 0:
+            maxretries -= 1
+            m = re.compile(r'<a href="(?P<urldump>http://[^/>]+/%s/%s/%s-%s-%s)">' % (project, date, project, date, dumpclass)).finditer(htmlproj)
             urldumps = []
             for i in m:
                 urldumps.append(i.group('urldump')) #enwiki is splitted in several files
