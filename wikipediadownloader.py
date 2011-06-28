@@ -15,6 +15,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import re
+import sys
 import os
 import time
 import urllib
@@ -32,7 +33,18 @@ projects.reverse() #oldest project dump, download first
 
 #projects = [['enwiki', '20110405']]
 
+start = ''
+if len(sys.argv) == 2:
+    start = sys.argv[1].lower()
+
 for project, date in projects:
+    if start:
+        if start != project:
+            print 'Skipping %s, %s' % (project, date)
+            continue
+        else:
+            start = '' #reset
+    
     time.sleep(1) #ctrl-c
     f = urllib.urlopen('http://dumps.wikimedia.org/%s/%s/' % (project, date))
     htmlproj = f.read()
