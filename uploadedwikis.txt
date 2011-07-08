@@ -85,3 +85,4 @@ http://www.rezeptewiki.org/api.php
 http://www.tarracowiki.cat/tarracowiki/api.php
 http://www.memoryarchive.org/en/index.php
 http://www.trentowiki.it/w/api.php
+http://www.shoutwiki.com/w/api.php
