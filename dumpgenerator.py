@@ -731,7 +731,7 @@ Write --help for help."""
         raw = f.read()
         f.close()
         print 'Checking index.php...'
-        if re.search(r'This wiki is powered by', raw):
+        if re.search(r'(This wiki is powered by|<h2 id="mw-version-license">)', raw):
             print 'index.php is OK'
         else:
             print 'Error in index.php, please, provide a correct path to index.php'
