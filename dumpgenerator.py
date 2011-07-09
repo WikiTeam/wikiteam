@@ -700,7 +700,7 @@ def getParameters(params=[]):
         print """Error. You forget mandatory parameters:
     --api or --index: URL to api.php or to index.php, one of them. If wiki has api.php, please, use --api instead of --index. Examples: --api=http://archiveteam.org/api.php or --index=http://archiveteam.org/index.php
     
-And one of these, or two or three:
+And one of these at least:
     --xml: it generates a XML dump. It retrieves full history of pages located in namespace = 0 (articles)
            If you want more namespaces, use the parameter --namespaces=0,1,2,3... or --namespaces=all
     --images: it generates an image dump
