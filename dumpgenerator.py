@@ -416,10 +416,16 @@ def getImageFilenamesURL(config={}):
     r_next = r'(?<!&amp;dir=prev)&amp;offset=(?P<offset>\d+)&amp;' # (?<! http://docs.python.org/library/re.html
     images = []
     offset = '29990101000000' #january 1, 2999
+    limit = 5000
     while offset:
-        url = '%s?title=Special:Imagelist&limit=5000&offset=%s' % (config['index'], offset) #5000 overload some servers, but it is needed for sites like this with no next links http://www.memoryarchive.org/en/index.php?title=Special:Imagelist&sort=byname&limit=50&wpIlMatch=
+        url = '%s?title=Special:Imagelist&limit=%d&offset=%s' % (config['index'], limit, offset) #5000 overload some servers, but it is needed for sites like this with no next links http://www.memoryarchive.org/en/index.php?title=Special:Imagelist&sort=byname&limit=50&wpIlMatch=
         #print url
         raw = urllib.urlopen(url).read()
+        if limit > 10 and re.search(ur'(?i)allowed memory size of \d+ bytes exhausted', raw): # delicated wiki
+            print 'Error: listing %d images in a chunk not possible, trying tiny chunks' % (limit)
+            limit = limit/10
+            continue
+        
         raw = cleanHTML(raw)
         #archiveteam 1.15.1 <td class="TablePager_col_img_name"><a href="/index.php?title=File:Yahoovideo.jpg" title="File:Yahoovideo.jpg">Yahoovideo.jpg</a> (<a href="/images/2/2b/Yahoovideo.jpg">file</a>)</td>
         #wikanda 1.15.5 <td class="TablePager_col_img_user_text"><a href="/w/index.php?title=Usuario:Fernandocg&amp;action=edit&amp;redlink=1" class="new" title="Usuario:Fernandocg (página no existe)">Fernandocg</a></td>
