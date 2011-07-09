@@ -703,6 +703,7 @@ def getParameters(params=[]):
 And one of these at least:
     --xml: it generates a XML dump. It retrieves full history of pages located in namespace = 0 (articles)
            If you want more namespaces, use the parameter --namespaces=0,1,2,3... or --namespaces=all
+           If you want only the current versions of articles (not the full history), use --curonly option too
     --images: it generates an image dump
     --logs: it generates a log dump
 
@@ -710,7 +711,10 @@ You can resume previous incomplete dumps:
     --resume: it resumes previous incomplete dump. When using --resume, --path is mandatory (path to directory where incomplete dump is).
 
 You can exclude namespaces:
-    --exnamespaces: write the number of the namespaces you want to exclude, splitted by commas.
+    --exnamespaces: write the number of the namespaces you want to exclude, split by commas.
+
+You can be nice with servers using a delay:
+    --delay: it adds a time sleep (in seconds, adding 5 seconds between requests: --delay:5)
 
 Write --help for help."""
         sys.exit()
