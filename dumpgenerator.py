@@ -422,7 +422,7 @@ def getImageFilenamesURL(config={}):
         #print url
         raw = urllib.urlopen(url).read()
         if limit > 10 and re.search(ur'(?i)allowed memory size of \d+ bytes exhausted', raw): # delicated wiki
-            print 'Error: listing %d images in a chunk not possible, trying tiny chunks' % (limit)
+            print 'Error: listing %d images in a chunk is not possible, trying tiny chunks' % (limit)
             limit = limit/10
             continue
         
@@ -598,8 +598,9 @@ def welcome():
     print ''
 
 def bye():
-    print "Your dump is complete"
+    print "---> Congratulations! Your dump is complete <---"
     print "If you found any bug, report a new issue here (Gmail account required): http://code.google.com/p/wikiteam/issues/list"
+    print "If this is a public wiki, please, consider sending us a copy of this dump. Contact us at http://code.google.com/p/wikiteam"
     print "Good luck! Bye!"
 
 def usage():
