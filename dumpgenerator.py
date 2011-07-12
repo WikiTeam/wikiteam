@@ -30,14 +30,17 @@ import urllib
 import urllib2
 
 def truncateFilename(other={}, filename=''):
+    """  """
     return filename[:other['filenamelimit']] + md5(filename).hexdigest() + '.' + filename.split('.')[-1]
 
 def delay(config={}):
+    """  """
     if config['delay'] > 0:
         print 'Sleeping... %d seconds...' % (config['delay'])
         time.sleep(config['delay'])
 
 def cleanHTML(raw=''):
+    """  """
     #<!-- bodytext --> <!-- /bodytext -->
     #<!-- start content --> <!-- end content -->
     #<!-- Begin Content Area --> <!-- End Content Area -->
@@ -57,6 +60,7 @@ def cleanHTML(raw=''):
     return raw
 
 def getNamespaces(config={}):
+    """  """
     #fix get namespaces from a random Special:Export page, it is better
     #too from API http://wikiindex.org/api.php?action=query&meta=siteinfo&siprop=general|namespaces
     namespaces = config['namespaces']
@@ -86,6 +90,7 @@ def getNamespaces(config={}):
     return namespaces, namespacenames
 
 def getPageTitlesAPI(config={}):
+    """  """
     titles = []
     namespaces, namespacenames = getNamespaces(config=config)
     for namespace in namespaces:
@@ -126,6 +131,7 @@ def getPageTitlesAPI(config={}):
     return titles
 
 def getPageTitlesScrapper(config={}):
+    """  """
     titles = []
     namespaces, namespacenames = getNamespaces(config=config)
     for namespace in namespaces:
@@ -183,6 +189,7 @@ def getPageTitlesScrapper(config={}):
     return titles
 
 def getPageTitles(config={}):
+    """  """
     #http://en.wikipedia.org/wiki/Special:AllPages
     #http://archiveteam.org/index.php?title=Special:AllPages
     #http://www.wikanda.es/wiki/Especial:Todas
@@ -202,6 +209,7 @@ def getPageTitles(config={}):
     return titles
 
 def getXMLHeader(config={}):
+    """  """
     #get the header of a random page, to attach it in the complete XML backup
     #similar to: <mediawiki xmlns="http://www.mediawiki.org/xml/export-0.3/" xmlns:x....
     randomtitle = 'AMF5LKE43MNFGHKSDMRTJ'
@@ -210,20 +218,24 @@ def getXMLHeader(config={}):
     return header
 
 def getXMLFileDesc(config={}, title=''):
+    """  """
     config['curonly'] = 1 #tricky to get only the most recent desc
     return getXMLPage(config=config, title=title, verbose=False)
 
 def getUserAgent():
+    """ Return a cool user-agent to hide Python user-agent """
     useragents = ['Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.8.0.4) Gecko/20060508 Firefox/1.5.0.4']
     return useragents[0]
 
 def logerror(config={}, text=''):
+    """  """
     if text:
         f = open('%s/errors.log' % (config['path']), 'a')
         f.write('%s: %s\n' % (datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'), text))
         f.close()
 
 def getXMLPageCore(headers={}, params={}, config={}):
+    """  """
     #returns a XML containing params['limit'] revisions (or current only), ending in </mediawiki>
     #if retrieving params['limit'] revisions fails, returns a current only version
     #if all fail, returns the empty string
@@ -271,6 +283,7 @@ def getXMLPageCore(headers={}, params={}, config={}):
     return xml
 
 def getXMLPage(config={}, title='', verbose=True):
+    """  """
     #return the full history (or current only) of a page
     #if server errors occurs while retrieving the full page history, it may return [oldest OK versions] + last version, excluding mmiddle revisions, so it would be partialy truncated
     #http://www.mediawiki.org/wiki/Manual_talk:Parameters_to_Special:Export#Parameters_no_longer_in_use.3F
@@ -328,6 +341,7 @@ def getXMLPage(config={}, title='', verbose=True):
     return xml
 
 def cleanXML(xml=''):
+    """  """
     #do not touch xml codification, as is
     if re.search(r'</siteinfo>\n', xml) and re.search(r'</mediawiki>', xml):
         xml = xml.split('</siteinfo>\n')[1]
@@ -335,6 +349,7 @@ def cleanXML(xml=''):
     return xml
 
 def generateXMLDump(config={}, titles=[], start=''):
+    """  """
     print 'Retrieving the XML for every page from "%s"' % (start and start or 'start')
     header = getXMLHeader(config=config)
     footer = '</mediawiki>\n' #new line at the end
@@ -394,6 +409,7 @@ def generateXMLDump(config={}, titles=[], start=''):
     print 'XML dump saved at...', xmlfilename
 
 def saveTitles(config={}, titles=[]):
+    """  """
     #save titles in a txt for resume if needed
     titlesfilename = '%s-%s-titles.txt' % (domain2prefix(config=config), config['date'])
     titlesfile = open('%s/%s' % (config['path'], titlesfilename), 'w')
@@ -403,6 +419,7 @@ def saveTitles(config={}, titles=[]):
     print 'Titles saved at...', titlesfilename
 
 def saveImageFilenamesURL(config={}, images=[]):
+    """  """
     #save list of images and their urls
     imagesfilename = '%s-%s-images.txt' % (domain2prefix(config=config), config['date'])
     imagesfile = open('%s/%s' % (config['path'], imagesfilename), 'w')
@@ -412,6 +429,7 @@ def saveImageFilenamesURL(config={}, images=[]):
     print 'Image filenames and URLs saved at...', imagesfilename
 
 def getImageFilenamesURL(config={}):
+    """  """
     print 'Retrieving image filenames'
     r_next = r'(?<!&amp;dir=prev)&amp;offset=(?P<offset>\d+)&amp;' # (?<! http://docs.python.org/library/re.html
     images = []
@@ -477,6 +495,7 @@ def getImageFilenamesURL(config={}):
     return images
 
 def undoHTMLEntities(text=''):
+    """  """
     text = re.sub('&lt;', '<', text) # i guess only < > & " need conversion http://www.w3schools.com/html/html_entities.asp
     text = re.sub('&gt;', '>', text)
     text = re.sub('&amp;', '&', text)
@@ -485,6 +504,7 @@ def undoHTMLEntities(text=''):
     return text
 
 def generateImageDump(config={}, other={}, images=[], start=''):
+    """  """
     print 'Retrieving images from "%s"' % (start and start or 'start')
     imagepath = '%s/images' % (config['path'])
     if not os.path.isdir(imagepath):
@@ -528,6 +548,7 @@ def generateImageDump(config={}, other={}, images=[], start=''):
     print 'Downloaded %d images' % (c)
     
 def saveLogs(config={}):
+    """  """
     #get all logs from Special:Log
     """parse
     <select name='type'>
@@ -547,6 +568,7 @@ def saveLogs(config={}):
     delay(config=config)
 
 def domain2prefix(config={}):
+    """  """
     domain = ''
     if config['api']:
         domain = config['api']
@@ -560,6 +582,7 @@ def domain2prefix(config={}):
     return domain
 
 def loadConfig(config={}, configfilename=''):
+    """  """
     try:
         f = open('%s/%s' % (config['path'], configfilename), 'r')
     except:
@@ -570,11 +593,13 @@ def loadConfig(config={}, configfilename=''):
     return config
 
 def saveConfig(config={}, configfilename=''):
+    """  """
     f = open('%s/%s' % (config['path'], configfilename), 'w')
     cPickle.dump(config, f)
     f.close()
     
 def welcome():
+    """  """
     print "#"*73
     print """# Welcome to DumpGenerator 0.1 by WikiTeam (GPL v3)                     #
 # More info at: http://code.google.com/p/wikiteam/                      #"""
@@ -598,12 +623,14 @@ def welcome():
     print ''
 
 def bye():
+    """  """
     print "---> Congratulations! Your dump is complete <---"
     print "If you found any bug, report a new issue here (Gmail account required): http://code.google.com/p/wikiteam/issues/list"
     print "If this is a public wiki, please, consider sending us a copy of this dump. Contact us at http://code.google.com/p/wikiteam"
     print "Good luck! Bye!"
 
 def usage():
+    """  """
     print "Write a complete help"
 
 def getParameters(params=[]):
@@ -755,6 +782,7 @@ Write --help for help."""
     return config, other
 
 def removeIP(raw=''):
+    """  """
     raw = re.sub(r'\d+\.\d+\.\d+\.\d+', '0.0.0.0', raw)
     #http://www.juniper.net/techpubs/software/erx/erx50x/swconfig-routing-vol1/html/ipv6-config5.html
     #weird cases as :: are not included
@@ -762,6 +790,7 @@ def removeIP(raw=''):
     return raw
 
 def main(params=[]):
+    """  """
     welcome()
     configfilename = 'config.txt'
     config, other = getParameters(params=params)
