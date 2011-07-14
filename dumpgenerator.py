@@ -103,10 +103,11 @@ def getPageTitlesAPI(config={}):
             continue
         
         c = 0
-        print '    Retrieving titles in the namespace', namespace
+        print '    Retrieving titles in the namespace %d' % (namespace)
         headers = {'User-Agent': getUserAgent()}
         apfrom = '!'
         while apfrom:
+            sys.stderr.write('.') #progress
             params = {'action': 'query', 'list': 'allpages', 'apnamespace': namespace, 'apfrom': apfrom, 'format': 'xml', 'aplimit': 500}
             data = urllib.urlencode(params)
             req = urllib2.Request(url=config['api'], data=data, headers=headers)
@@ -440,9 +441,11 @@ def getImageFilenamesURL(config={}):
     offset = '29990101000000' #january 1, 2999
     limit = 5000
     while offset:
-        url = '%s?title=Special:Imagelist&limit=%d&offset=%s' % (config['index'], limit, offset) #5000 overload some servers, but it is needed for sites like this with no next links http://www.memoryarchive.org/en/index.php?title=Special:Imagelist&sort=byname&limit=50&wpIlMatch=
-        #print url
-        raw = urllib.urlopen(url).read()
+        #5000 overload some servers, but it is needed for sites like this with no next links http://www.memoryarchive.org/en/index.php?title=Special:Imagelist&sort=byname&limit=50&wpIlMatch=
+        req = urllib2.Request(url=config['index'], data=urllib.urlencode({'title': 'Special:Imagelist', 'limit': limit, 'offset': offset, }), headers={'User-Agent': getUserAgent()})
+        f = urllib2.urlopen(req)
+        raw = f.read()
+        f.close()
         if limit > 10 and re.search(ur'(?i)allowed memory size of \d+ bytes exhausted', raw): # delicated wiki
             print 'Error: listing %d images in a chunk is not possible, trying tiny chunks' % (limit)
             limit = limit/10
@@ -702,7 +705,7 @@ def getParameters(params=[]):
         elif o in ("--delay"):
             config["delay"] = int(a)
         elif o in ("--namespaces"):
-            if re.search(r'[^\d, \-]', a) and a.lower() != 'all':
+            if re.search(r'[^\d, \-]', a) and a.lower() != 'all': #fix, why - ?  and... --namespaces= all with a space works?
                 print "Invalid namespaces values.\nValid format is integer(s) splitted by commas"
                 sys.exit()
             a = re.sub(' ', '', a)
