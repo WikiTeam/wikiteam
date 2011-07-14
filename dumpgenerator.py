@@ -511,7 +511,8 @@ def undoHTMLEntities(text=''):
     return text
 
 def generateImageDump(config={}, other={}, images=[], start=''):
-    """  """
+    """ Save files and descriptions using a file list """
+    #fix use subdirectories md5
     print 'Retrieving images from "%s"' % (start and start or 'start')
     imagepath = '%s/images' % (config['path'])
     if not os.path.isdir(imagepath):
