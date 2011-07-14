@@ -652,10 +652,11 @@ def getParameters(params=[]):
     other = {
         'resume': False,
         'filenamelimit': 100, #do not change
+        'force': False,
     }
     #console params
     try:
-        opts, args = getopt.getopt(params, "", ["h", "help", "path=", "api=", "index=", "images", "logs", "xml", "curonly", "resume", "delay=", "namespaces=", "exnamespaces=", ])
+        opts, args = getopt.getopt(params, "", ["h", "help", "path=", "api=", "index=", "images", "logs", "xml", "curonly", "resume", "delay=", "namespaces=", "exnamespaces=", "force", ])
     except getopt.GetoptError, err:
         # print help information and exit:
         print str(err) # will print something like "option -a not recognized"
@@ -715,6 +716,8 @@ def getParameters(params=[]):
                 sys.exit()
             else:
                 config["exnamespaces"] = [int(i) for i in a.split(',')]
+        elif o in ("--force"):
+            other["force"] = True
         else:
             assert False, "unhandled option"
 
@@ -797,8 +800,10 @@ def main(params=[]):
     
     #notice about wikipedia dumps
     if re.findall(r'(wikipedia|wikisource|wiktionary|wikibooks|wikiversity|wikimedia|wikispecies|wikiquote|wikinews)\.org', config['api']+config['index']):
-        print 'DO NOT USE THIS SCRIPT TO DOWNLOAD WIKIMEDIA PROJECTS!\nDownload the dumps from http://download.wikimedia.org\nThanks!'
-        sys.exit()
+        print 'DO NOT USE THIS SCRIPT TO DOWNLOAD WIKIMEDIA PROJECTS!\nDownload the dumps from http://dumps.wikimedia.org'
+        if not other['force']:
+            print '\nThanks!'
+            sys.exit()
     
     print 'Analysing %s' % (config['api'] and config['api'] or config['index'])
     
