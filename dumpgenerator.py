@@ -529,6 +529,7 @@ def generateImageDump(config={}, other={}, images=[], start=''):
         if lock:
             continue
         delay(config=config)
+        
         #saving file
         #truncate filename if length > 100 (100 + 32 (md5) = 132 < 143 (crash limit). Later .desc is added to filename, so better 100 as max)
         filename2 = filename
@@ -536,7 +537,8 @@ def generateImageDump(config={}, other={}, images=[], start=''):
             # split last . (extension) and then merge
             filename2 = truncateFilename(other=other, filename=filename2)
             print 'Truncating filename, it is too long. Now it is called:', filename2
-        urllib.urlretrieve(url, '%s/%s' % (imagepath, filename2)) 
+        urllib.urlretrieve(url, '%s/%s' % (imagepath, filename2))
+        
         #saving description if any
         xmlfiledesc = getXMLFileDesc(config=config, title='Image:%s' % (filename)) 
         f = open('%s/%s.desc' % (imagepath, filename2), 'w')
