@@ -66,7 +66,11 @@ def getNamespaces(config={}):
     namespaces = config['namespaces']
     namespacenames = {0:''} # main is 0, no prefix
     if namespaces:
-        raw = urllib.urlopen('%s?title=Special:Allpages' % (config['index'])).read()
+        req = urllib2.Request(url=config['index'], data=urllib.urlencode({'title': 'Special:Allpages', }), headers={'User-Agent': getUserAgent()})
+        f = urllib2.urlopen(req)
+        raw = f.read()
+        f.close()
+        
         m = re.compile(r'<option [^>]*?value="(?P<namespaceid>\d+)"[^>]*?>(?P<namespacename>[^<]+)</option>').finditer(raw) # [^>]*? to include selected="selected"
         if 'all' in namespaces:
             namespaces = []
@@ -86,7 +90,7 @@ def getNamespaces(config={}):
     
     #retrieve all titles from Special:Allpages, if the wiki is big, perhaps there are sub-Allpages to explore
     namespaces = [i for i in set(namespaces)] #uniques
-    print '%d namespaces have been found' % (len(namespaces))
+    print '%d namespaces found' % (len(namespaces))
     return namespaces, namespacenames
 
 def getPageTitlesAPI(config={}):
@@ -756,6 +760,7 @@ Write --help for help."""
         #print 'You didn\'t provide a path for index.php, trying to wonder one:', config['index']
     
     if config['api']:
+        #check api.php
         f = urllib.urlopen(config['api'])
         raw = f.read()
         f.close()
@@ -768,7 +773,8 @@ Write --help for help."""
     
     if config['index']:
         #check index.php
-        f = urllib.urlopen('%s?title=Special:Version' % (config['index']))
+        req = urllib2.Request(url=config['index'], data=urllib.urlencode({'title': 'Special:Version', }), headers={'User-Agent': getUserAgent()})
+        f = urllib2.urlopen(req)
         raw = f.read()
         f.close()
         print 'Checking index.php...'
@@ -776,6 +782,7 @@ Write --help for help."""
             print 'index.php is OK'
         else:
             print 'Error in index.php, please, provide a correct path to index.php'
+            print raw[:500]
             sys.exit()
     
     #calculating path, if not defined by user with --path=
@@ -793,7 +800,7 @@ def removeIP(raw=''):
     return raw
 
 def main(params=[]):
-    """  """
+    """ Main function """
     welcome()
     configfilename = 'config.txt'
     config, other = getParameters(params=params)
@@ -802,7 +809,7 @@ def main(params=[]):
     if re.findall(r'(wikipedia|wikisource|wiktionary|wikibooks|wikiversity|wikimedia|wikispecies|wikiquote|wikinews)\.org', config['api']+config['index']):
         print 'DO NOT USE THIS SCRIPT TO DOWNLOAD WIKIMEDIA PROJECTS!\nDownload the dumps from http://dumps.wikimedia.org'
         if not other['force']:
-            print '\nThanks!'
+            print 'Thanks!'
             sys.exit()
     
     print 'Analysing %s' % (config['api'] and config['api'] or config['index'])
