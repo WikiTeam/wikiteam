@@ -440,16 +440,25 @@ def getImageFilenamesURL(config={}):
     images = []
     offset = '29990101000000' #january 1, 2999
     limit = 5000
+    retries = 5
     while offset:
         #5000 overload some servers, but it is needed for sites like this with no next links http://www.memoryarchive.org/en/index.php?title=Special:Imagelist&sort=byname&limit=50&wpIlMatch=
         req = urllib2.Request(url=config['index'], data=urllib.urlencode({'title': 'Special:Imagelist', 'limit': limit, 'offset': offset, }), headers={'User-Agent': getUserAgent()})
         f = urllib2.urlopen(req)
         raw = f.read()
         f.close()
-        if limit > 10 and re.search(ur'(?i)allowed memory size of \d+ bytes exhausted', raw): # delicated wiki
-            print 'Error: listing %d images in a chunk is not possible, trying tiny chunks' % (limit)
-            limit = limit/10
-            continue
+        if re.search(ur'(?i)(allowed memory size of \d+ bytes exhausted|Call to a member function getURL)', raw): # delicated wiki
+            if limit > 10:
+                print 'Error: listing %d images in a chunk is not possible, trying tiny chunks' % (limit)
+                limit = limit/10
+                continue
+            elif retries > 0: # waste retries, then exit
+                retries -= 1
+                print 'Retrying...'
+                continue
+            else:
+                print 'No more retries, exit...'
+                break
         
         raw = cleanHTML(raw)
         #archiveteam 1.15.1 <td class="TablePager_col_img_name"><a href="/index.php?title=File:Yahoovideo.jpg" title="File:Yahoovideo.jpg">Yahoovideo.jpg</a> (<a href="/images/2/2b/Yahoovideo.jpg">file</a>)</td>
@@ -494,6 +503,7 @@ def getImageFilenamesURL(config={}):
         
         if re.search(r_next, raw):
             offset = re.findall(r_next, raw)[0]
+            retries += 5 # add more retries if we got a page with offset
         else:
             offset = ''
     
