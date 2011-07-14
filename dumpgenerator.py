@@ -434,7 +434,7 @@ def saveImageFilenamesURL(config={}, images=[]):
     print 'Image filenames and URLs saved at...', imagesfilename
 
 def getImageFilenamesURL(config={}):
-    """  """
+    """ Retrieve file list: filename, url, uploader  """
     print 'Retrieving image filenames'
     r_next = r'(?<!&amp;dir=prev)&amp;offset=(?P<offset>\d+)&amp;' # (?<! http://docs.python.org/library/re.html
     images = []
