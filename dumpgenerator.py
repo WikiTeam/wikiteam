@@ -537,7 +537,7 @@ def generateImageDump(config={}, other={}, images=[], start=''):
             # split last . (extension) and then merge
             filename2 = truncateFilename(other=other, filename=filename2)
             print 'Truncating filename, it is too long. Now it is called:', filename2
-        urllib.urlretrieve(url, '%s/%s' % (imagepath, filename2))
+        urllib.urlretrieve(url=url, filename='%s/%s' % (imagepath, filename2), data=urllib.urlencode({})) #fix, image request fails on wikipedia (POST neither works?)
         
         #saving description if any
         xmlfiledesc = getXMLFileDesc(config=config, title='Image:%s' % (filename)) 
@@ -974,8 +974,10 @@ def main(params=[]):
         print 'index.html exists, do not overwrite'
     else:
         print 'Downloading index.php (Main Page)'
-        f = urllib.urlopen(config['index'])
+        req = urllib2.Request(url=config['index'], data=urllib.urlencode({}), headers={'User-Agent': getUserAgent()})
+        f = urllib2.urlopen(req)
         raw = f.read()
+        f.close()
         raw = removeIP(raw=raw)
         f = open('%s/index.html' % (config['path']), 'w')
         f.write(raw)
@@ -986,8 +988,10 @@ def main(params=[]):
         print 'Special:Version.html exists, do not overwrite'
     else:
         print 'Downloading Special:Version with extensions and other related info'
-        f = urllib.urlopen('%s?title=Special:Version' % (config['index']))
+        req = urllib2.Request(url=config['index'], data=urllib.urlencode({'title': 'Special:Version', }), headers={'User-Agent': getUserAgent()})
+        f = urllib2.urlopen(req)
         raw = f.read()
+        f.close()
         raw = removeIP(raw=raw)
         f = open('%s/Special:Version.html' % (config['path']), 'w')
         f.write(raw)
