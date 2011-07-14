@@ -785,7 +785,7 @@ Write --help for help."""
     return config, other
 
 def removeIP(raw=''):
-    """  """
+    """ Remove IP from HTML comments <!-- --> """
     raw = re.sub(r'\d+\.\d+\.\d+\.\d+', '0.0.0.0', raw)
     #http://www.juniper.net/techpubs/software/erx/erx50x/swconfig-routing-vol1/html/ipv6-config5.html
     #weird cases as :: are not included
