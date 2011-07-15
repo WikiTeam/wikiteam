@@ -214,10 +214,10 @@ def getPageTitles(config={}):
     return titles
 
 def getXMLHeader(config={}):
-    """  """
+    """ Retrieve a random page to extract XML headers (namespace info, etc) """
     #get the header of a random page, to attach it in the complete XML backup
     #similar to: <mediawiki xmlns="http://www.mediawiki.org/xml/export-0.3/" xmlns:x....
-    randomtitle = 'AMF5LKE43MNFGHKSDMRTJ'
+    randomtitle = 'Main_Page' #previously AMF5LKE43MNFGHKSDMRTJ
     xml = getXMLPage(config=config, title=randomtitle, verbose=False)
     header = xml.split('</mediawiki>')[0]
     return header
