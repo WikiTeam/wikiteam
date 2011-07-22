@@ -89,3 +89,4 @@ http://www.shoutwiki.com/w/api.php
 http://wikitravel.org/wiki/sv/api.php
 http://wikitravel.org/wiki/ru/api.php
 http://wikitravel.org/wiki/pt/api.php
+http://wikitravel.org/wiki/pl/api.php
