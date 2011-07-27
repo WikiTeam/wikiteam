@@ -91,3 +91,4 @@ http://wikitravel.org/wiki/ru/api.php
 http://wikitravel.org/wiki/pt/api.php
 http://wikitravel.org/wiki/pl/api.php
 http://www.gpwiki.org/api.php
+http://wikitravel.org/wiki/en/api.php
