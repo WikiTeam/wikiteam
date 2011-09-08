@@ -53,6 +53,8 @@ def cleanHTML(raw=''):
         raw = raw.split('<!-- Begin Content Area -->')[1].split('<!-- End Content Area -->')[0]
     elif re.search('<!-- content -->', raw):
         raw = raw.split('<!-- content -->')[1].split('<!-- mw_content -->')[0]
+    elif re.search('<article id="WikiaMainContent" class="WikiaMainContent">', raw):
+        raw = raw.split('<article id="WikiaMainContent" class="WikiaMainContent">')[1].split('</article>')[0]
     else:
         print raw[:250]
         print 'This wiki doesn\'t use marks to split contain'
