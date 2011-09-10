@@ -95,3 +95,4 @@ http://wikitravel.org/wiki/en/api.php
 http://wiki.nolesvotes.org/w/api.php
 http://setiquest.org/wiki/api.php
 http://www.wikiqueer.org/api.php
+http://wiki.twit.tv/w/api.php
