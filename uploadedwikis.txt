@@ -98,3 +98,4 @@ http://www.wikiqueer.org/api.php
 http://wiki.twit.tv/w/api.php
 http://ipv6wiki.net/api.php
 http://ecowiki.ecologistasenaccion.org/api.php
+http://www.globalwarmingart.com/index.php
