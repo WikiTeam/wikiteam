@@ -100,3 +100,4 @@ http://ipv6wiki.net/api.php
 http://ecowiki.ecologistasenaccion.org/api.php
 http://www.globalwarmingart.com/index.php
 http://thunderrabbit.com/w/api.php
+http://www.jerezsiempre.com/api.php
