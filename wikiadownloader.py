@@ -31,9 +31,9 @@ there is one in the repository (listofwikis directory)
 
 run it: python wikiadownloader.py
 
-it you want to resume: python wikiadownloader.py wikitostart
+it you want to resume: python wikiadownloader.py wikitostartfrom
 
-where wikitostart in the last downloaded wiki in the previous session
+where wikitostartfrom is the last downloaded wiki in the previous session
 
 """
 
