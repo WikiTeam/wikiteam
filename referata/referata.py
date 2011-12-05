@@ -25,7 +25,8 @@ f.close()
 
 for wiki in wikis:
     os.system('python ../dumpgenerator.py --api=%s/w/api.php --xml --images' % wiki)
-    wikiname = re.sub(r'\.', '', wiki.split('http://')[1])
+    wikiname = re.sub(r'(\.|^www\.)', '', wiki.split('://')[1])
+    wikiname = re.sub('-', '_', wikiname)
     wikidir = ''
     for dirname, dirnames, filenames in os.walk('.'):
         if dirname == '.':
