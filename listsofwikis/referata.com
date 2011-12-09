@@ -51,8 +51,6 @@ http://wikidb.referata.com
 http://wikimovie.referata.com
 http://wikipascom.referata.com
 http://wikisrb2upper.referata.com
-http://www.menofwarwiki.referata.com
-http://www.referata.com
 http://xstream-brasil.referata.com
 http://xstream-brazil.referata.com
 http://yoshiwiki.referata.com
