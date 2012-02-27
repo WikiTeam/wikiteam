@@ -40,7 +40,6 @@ print "Downloading Wikimedia Commons images from %s to %s" % (startdate.strftime
 while startdate <= enddate:
     print '==', startdate.strftime('%Y-%m-%d'), '=='
     path = startdate.strftime('%Y/%m/%d')
-    path2 = startdate.strftime('%Y/%m')
     filename7z = startdate.strftime('%Y-%m-%d.7z')
     try:
         os.makedirs(path)
@@ -51,15 +50,18 @@ while startdate <= enddate:
     for img_name, img_timestamp, img_user, img_user_text, img_size, img_width, img_height in f:
         if c != 1:
             img_name = unicode(img_name, 'utf-8')
+            original_name = img_name
+            if re.search(ur"(?m)^\d{14}\!", original_name):#removing XXXXXXX! from name if present
+                original_name = original_name[15:]
             img_user_text = unicode(img_user_text, 'utf-8')
             if img_timestamp.startswith(startdate.strftime('%Y%m%d')):
                 img_name_ = re.sub(r'"', r'\"', re.sub(r' ', r'_', img_name.encode('utf-8'))) # do not use u'', it is encoded
                 print img_name, img_name_, img_timestamp
-                md5_ = md5.new(re.sub(' ', '_', img_name.encode("utf-8"))).hexdigest() # do not use img_name_, md5 needs the original name without \"
+                md5_ = md5.new(re.sub(' ', '_', original_name.encode("utf-8"))).hexdigest() # do not use img_name_, md5 needs the original name without \"
                 os.system('wget -c "http://upload.wikimedia.org/wikipedia/commons/%s/%s/%s" -O "%s/%s"' % (md5_[0], md5_[0:2], img_name_, path, img_name_))
                 os.system('curl -d "&pages=File:%s&history=1&action=submit" http://commons.wikimedia.org/w/index.php?title=Special:Export -o "%s/%s.desc"' % (img_name_, path, img_name_))
         c += 1
     #7z
-    os.system('7z a %s/%s %s' % (path2, filename7z, path))
+    os.system('7z a %s %s' % (filename7z, path))
     startdate += delta
 
