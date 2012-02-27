@@ -72,7 +72,7 @@ while startdate <= enddate:
                     os.system('wget -c "http://upload.wikimedia.org/wikipedia/commons/%s/%s/%s" -O "%s/%s"' % (md5_[0], md5_[0:2], img_name_, path, img_name_))
                 os.system('curl -d "&pages=File:%s&history=1&action=submit" http://commons.wikimedia.org/w/index.php?title=Special:Export -o "%s/%s.desc"' % (original_name_, path, img_name_))
         c += 1
-    #7z
+    #zip files
     os.system('zip -9 %s %s/*' % (filenamezip, path))
     startdate += delta
 
