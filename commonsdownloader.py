@@ -35,8 +35,10 @@ elif len(sys.argv) == 2:
 elif len(sys.argv) == 3:
     startdate = datetime.datetime.strptime(sys.argv[1], '%Y-%m-%d')
     enddate = datetime.datetime.strptime(sys.argv[2], '%Y-%m-%d')
+else:
+    sys.exit()
 
-print "Downloading Wikimedia Commons images from %s to %s" % (startdate.strftime('%Y-%m-%d'), enddate.strftime('%Y-%m-%d'))
+print "Downloading Wikimedia Commons files from %s to %s" % (startdate.strftime('%Y-%m-%d'), enddate.strftime('%Y-%m-%d'))
 while startdate <= enddate:
     print '==', startdate.strftime('%Y-%m-%d'), '=='
     path = startdate.strftime('%Y/%m/%d')
@@ -55,8 +57,8 @@ while startdate <= enddate:
                 original_name = original_name[15:]
             img_user_text = unicode(img_user_text, 'utf-8')
             if img_timestamp.startswith(startdate.strftime('%Y%m%d')):
-                original_name_ = re.sub(r'"', r'\"', re.sub(r' ', r'_', original_name.encode('utf-8'))) # do not use u'', it is encoded
-                img_name_ = re.sub(r'"', r'\"', re.sub(r' ', r'_', img_name.encode('utf-8'))) # do not use u'', it is encoded
+                original_name_ = re.sub(r'"', r'\"', re.sub(r' ', r'_', original_name.encode('utf-8'))) # do not use ur'', it is encoded
+                img_name_ = re.sub(r'"', r'\"', re.sub(r' ', r'_', img_name.encode('utf-8'))) # do not use ur'', it is encoded
                 print img_name, img_name_, img_timestamp
                 md5_ = md5.new(re.sub(' ', '_', original_name.encode("utf-8"))).hexdigest() # do not use img_name_, md5 needs the original name without \"
                 if original_name != img_name:
