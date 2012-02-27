@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf8 -*-
 
-# Copyright (C) 2011 WikiTeam
+# Copyright (C) 2012 WikiTeam
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
@@ -15,35 +15,32 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import urllib
-import sys
+import csv
+import datetime
+import md5
+import os
 import re
-import codecs
+import sys
 
-"""
-recibe un argumento: 2005 (baja todo el año), 2005-01 (todo el mes), 2005-01-01 (un solo día), pero siempre organiza en directorios 2005 |_ 2005-01 |_ 2005-01-01, etc
+startdate = datetime.datetime.strptime(sys.argv[1], '%Y-%m-%d')
+enddate = datetime.datetime.strptime(sys.argv[2], '%Y-%m-%d')
+delta = datetime.timedelta(days=1)
+filename = 'commonssql.csv'
 
-http://www.mediawiki.org/wiki/Manual:Oldimage_table
+while startdate <= enddate:
+    print '==', startdate.strftime('%Y-%m-%d'), '=='
+    c = 1
+    f = csv.reader(open(filename, 'r'), delimiter='|', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+    for img_name, img_timestamp, img_user, img_user_text, img_size, img_width, img_height in f:
+        if c != 1:
+            img_name = unicode(img_name, 'utf-8')
+            img_user_text = unicode(img_user_text, 'utf-8')
+            if img_timestamp.startswith(startdate.strftime('%Y%m%d')):
+                print img_name.encode('utf-8'), img_timestamp
+                img_name_ = re.sub('"', '\"', img_name)
+                md5_ = md5.new(img_name.encode('utf-8')).hexdigest()
+                #os.system('wget -c "http://upload.wikimedia.org/wikipedia/commons/%s/%s/%s" -O "%s' % (md5_[0], md5_[0:2], img_name, img_name_))
+                #os.system('curl -d "&pages=File:%s&history=1&action=submit" http://commons.wikimedia.org/w/index.php?title=Special:Export -o "%s.desc' % (img_name_, img_name_))
+        c += 1
+    startdate += delta
 
-substr para el X y XY del md5 http://dev.mysql.com/doc/refman/5.0/en/string-functions.html#function_substr
-
-mysql -h commons-p.db.toolserver.org -e "use commonswiki_p;select oi_archive_name, oi_timestamp from oldimage where 1;" > test.txt
-"""
-
-def getUserAgent():
-    """ Return a cool user-agent to hide Python user-agent """
-    useragents = ['Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.8.0.4) Gecko/20060508 Firefox/1.5.0.4']
-    return useragents[0]
-
-class AppURLopener(urllib.FancyURLopener):
-    version = getUserAgent()
-
-urllib._urlopener = AppURLopener()
-
-f = open('image.list', 'r')
-l = f.read().splitlines()
-f.close()
-
-for i in l:
-    i=urllib.unquote(i)
-    urllib.urlretrieve(i, i.split('/')[-1])
