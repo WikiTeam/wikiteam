@@ -40,7 +40,7 @@ print "Downloading Wikimedia Commons images from %s to %s" % (startdate.strftime
 while startdate <= enddate:
     print '==', startdate.strftime('%Y-%m-%d'), '=='
     path = startdate.strftime('%Y/%m/%d')
-    filename7z = startdate.strftime('%Y-%m-%d.7z')
+    filenamezip = startdate.strftime('%Y-%m-%d.zip')
     try:
         os.makedirs(path)
     except:
@@ -66,6 +66,6 @@ while startdate <= enddate:
                 os.system('curl -d "&pages=File:%s&history=1&action=submit" http://commons.wikimedia.org/w/index.php?title=Special:Export -o "%s/%s.desc"' % (original_name_, path, img_name_))
         c += 1
     #7z
-    os.system('7z a %s %s' % (filename7z, path))
+    os.system('zip -9 %s %s/*' % (filenamezip, path))
     startdate += delta
 
