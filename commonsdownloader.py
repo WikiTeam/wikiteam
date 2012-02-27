@@ -23,7 +23,6 @@ import re
 import sys
 
 filename = 'commonssql.csv'
-filename = 'a.csv'
 startdate = ''
 enddate = ''
 delta = datetime.timedelta(days=1)
