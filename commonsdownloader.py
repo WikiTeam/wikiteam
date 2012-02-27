@@ -23,6 +23,7 @@ import re
 import sys
 
 filename = 'commonssql.csv'
+filename = 'a.csv'
 startdate = ''
 enddate = ''
 delta = datetime.timedelta(days=1)
@@ -61,6 +62,14 @@ while startdate <= enddate:
                 md5_ = md5.new(re.sub(' ', '_', original_name.encode("utf-8"))).hexdigest() # do not use img_name_, md5 needs the original name without \"
                 if original_name != img_name:
                     os.system('wget -c "http://upload.wikimedia.org/wikipedia/commons/archive/%s/%s/%s" -O "%s/%s"' % (md5_[0], md5_[0:2], img_name_, path, img_name_))
+                    if not os.path.getsize('%s/%s' % (path, img_name_)): #empty file, false XXXXXX! begining? restore original_name to ! version
+                        print 'NOO'
+                        #recalculate md5 and other variables that use original_name as source
+                        original_name = img_name
+                        original_name_ = re.sub(r'"', r'\"', re.sub(r' ', r'_', original_name.encode('utf-8')))
+                        md5_ = md5.new(re.sub(' ', '_', original_name.encode("utf-8"))).hexdigest()
+                        #redownload, now without /archive/ subpath
+                        os.system('wget -c "http://upload.wikimedia.org/wikipedia/commons/%s/%s/%s" -O "%s/%s"' % (md5_[0], md5_[0:2], img_name_, path, img_name_))
                 else:
                     os.system('wget -c "http://upload.wikimedia.org/wikipedia/commons/%s/%s/%s" -O "%s/%s"' % (md5_[0], md5_[0:2], img_name_, path, img_name_))
                 os.system('curl -d "&pages=File:%s&history=1&action=submit" http://commons.wikimedia.org/w/index.php?title=Special:Export -o "%s/%s.desc"' % (original_name_, path, img_name_))
