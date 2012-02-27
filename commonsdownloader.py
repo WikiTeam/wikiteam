@@ -22,15 +22,26 @@ import os
 import re
 import sys
 
-startdate = datetime.datetime.strptime(sys.argv[1], '%Y-%m-%d')
-enddate = datetime.datetime.strptime(sys.argv[2], '%Y-%m-%d')
-delta = datetime.timedelta(days=1)
 filename = 'commonssql.csv'
-filename = 'a.csv'
+startdate = ''
+enddate = ''
+delta = datetime.timedelta(days=1)
+if len(sys.argv) == 1:
+    print 'Usage: python script.py 2005-01-01 2005-01-10 [to download the first 10 days of 2005]'
+    sys.exit()
+elif len(sys.argv) == 2:
+    startdate = datetime.datetime.strptime(sys.argv[1], '%Y-%m-%d')
+    enddate = datetime.datetime.strptime(sys.argv[1], '%Y-%m-%d')
+elif len(sys.argv) == 3:
+    startdate = datetime.datetime.strptime(sys.argv[1], '%Y-%m-%d')
+    enddate = datetime.datetime.strptime(sys.argv[2], '%Y-%m-%d')
 
+print "Downloading Wikimedia Commons images from %s to %s" % (startdate.strftime('%Y-%m-%d'), enddate.strftime('%Y-%m-%d'))
 while startdate <= enddate:
     print '==', startdate.strftime('%Y-%m-%d'), '=='
     path = startdate.strftime('%Y/%m/%d')
+    path2 = startdate.strftime('%Y/%m')
+    filename7z = startdate.strftime('%Y-%m-%d.7z')
     try:
         os.makedirs(path)
     except:
@@ -48,5 +59,7 @@ while startdate <= enddate:
                 os.system('wget -c "http://upload.wikimedia.org/wikipedia/commons/%s/%s/%s" -O "%s/%s"' % (md5_[0], md5_[0:2], img_name_, path, img_name_))
                 os.system('curl -d "&pages=File:%s&history=1&action=submit" http://commons.wikimedia.org/w/index.php?title=Special:Export -o "%s/%s.desc"' % (img_name_, path, img_name_))
         c += 1
+    #7z
+    os.system('7z a %s/%s %s' % (path2, filename7z, path))
     startdate += delta
 
