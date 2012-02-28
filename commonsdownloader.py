@@ -98,33 +98,27 @@ def main():
                     h.write('img_name|img_saved_as|img_timestamp|img_user|img_user_text|img_size|img_width|img_height\n')
                     h.close()
                 
-                """
-                wget: md5, quotedname, savepath, savefile
-                curl: filedescpage, savepath, savefile.desc
-                special cases: oldimage, falseoldimage
-                truncatedfilename
-                """
-                
                 img_name = unicode(img_name, 'utf-8')
                 img_user_text = unicode(img_user_text, 'utf-8')
                 original_name = img_name
                 if re.search(ur"(?m)^\d{14}\!", original_name): #removing 20101005024534! (or similar) from name if present
                     original_name = original_name[15:]
                 # quote weird chars to avoid errors while wgetting
-                img_name_quoted = urllib.quote(img_name)
+                img_name_quoted = urllib.quote(re.sub(r' ', r'_', img_name.encode('utf-8')))
                 # _ ending variables contains no spaces, and \" for command line
                 img_name_ = re.sub(r'"', r'\"', re.sub(r' ', r'_', img_name.encode('utf-8'))) # do not use ur'', it is encoded
                 original_name_ = re.sub(r'"', r'\"', re.sub(r' ', r'_', original_name.encode('utf-8'))) # do not use ur'', it is encoded
-                print img_name, img_name_, img_timestamp
                 md5hash = md5(re.sub(' ', '_', original_name.encode("utf-8"))).hexdigest() # do not use image_name, md5 needs the original name and without \"
                 img_saved_as = ''
+                img_saved_as_ = ''
                 if len(img_name) > filenamelimit: #truncate filename if it is long
                     img_saved_as = img_name[:filenamelimit] + md5(img_name).hexdigest() + '.' + img_name.split('.')[-1]
-                    img_saved_as = re.sub(r' ', r'_', img_saved_as.encode('utf-8')) # do not use ur'', it is encoded
+                    img_saved_as = re.sub(r' ', r'_', img_saved_as) # do not use ur'', it is encoded
                     img_saved_as_ = re.sub(r'"', r'\"', re.sub(r' ', r'_', img_saved_as.encode('utf-8'))) # do not use ur'', it is encoded
                 else:
-                    img_saved_as = re.sub(r' ', r'_', img_name.encode('utf-8')) # do not use ur'', it is encoded
+                    img_saved_as = re.sub(r' ', r'_', img_name) # do not use ur'', it is encoded
                     img_saved_as_ = re.sub(r'"', r'\"', re.sub(r' ', r'_', img_name.encode('utf-8'))) # do not use ur'', it is encoded
+                print img_name, img_saved_as, img_timestamp
                 
                 #wget file
                 if original_name != img_name: #the image is an old version, download using /archive/ path in server
@@ -141,7 +135,7 @@ def main():
                     os.system('wget -c "http://upload.wikimedia.org/wikipedia/commons/%s/%s/%s" -O "%s/%s"' % (md5hash[0], md5hash[0:2], img_name_quoted, savepath, img_saved_as_))
                 
                 #curl .xml description page with full history
-                os.system('curl -d "&pages=File:%s&history=1&action=submit" http://commons.wikimedia.org/w/index.php?title=Special:Export -o "%s/%s.desc"' % (original_name_, savepath, img_saved_as_))
+                os.system('curl -d "&pages=File:%s&history=1&action=submit" http://commons.wikimedia.org/w/index.php?title=Special:Export -o "%s/%s.xml"' % (original_name_, savepath, img_saved_as_))
                 
                 #save csv info
                 g = csv.writer(open(filenamecsv, 'a'), delimiter='|', quotechar='"', quoting=csv.QUOTE_MINIMAL)
