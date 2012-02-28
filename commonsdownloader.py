@@ -26,6 +26,7 @@ import re
 import sys
 
 filename = 'commonssql.csv'
+filename = 'a.csv'
 startdate = ''
 enddate = ''
 delta = datetime.timedelta(days=1)
@@ -63,7 +64,7 @@ while startdate <= enddate:
                 original_name_ = re.sub(r'"', r'\"', re.sub(r' ', r'_', original_name.encode('utf-8'))) # do not use ur'', it is encoded
                 img_name_ = re.sub(r'"', r'\"', re.sub(r' ', r'_', img_name.encode('utf-8'))) # do not use ur'', it is encoded
                 print img_name, img_name_, img_timestamp
-                md5_ = md5.new(re.sub(' ', '_', original_name.encode("utf-8"))).hexdigest() # do not use img_name_, md5 needs the original name without \"
+                md5_ = md5(re.sub(' ', '_', original_name.encode("utf-8"))).hexdigest() # do not use img_name_, md5 needs the original name without \"
                 if original_name != img_name:
                     os.system('wget -c "http://upload.wikimedia.org/wikipedia/commons/archive/%s/%s/%s" -O "%s/%s"' % (md5_[0], md5_[0:2], img_name_, path, img_name_))
                     if not os.path.getsize('%s/%s' % (path, img_name_)): #empty file?, false XXXXXX! begining like this  http://commons.wikimedia.org/wiki/File:20041028210012!Pilar.jpg ? ok, restore original_name to ! version
