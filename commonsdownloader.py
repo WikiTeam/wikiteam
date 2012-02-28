@@ -112,7 +112,7 @@ def main():
                 img_saved_as = ''
                 img_saved_as_ = ''
                 if len(img_name) > filenamelimit: #truncate filename if it is long
-                    img_saved_as = img_name[:filenamelimit] + md5(img_name).hexdigest() + '.' + img_name.split('.')[-1]
+                    img_saved_as = img_name[:filenamelimit] + md5(re.sub(' ', '_', img_name.encode('utf-8'))).hexdigest() + '.' + img_name.split('.')[-1]
                     img_saved_as = re.sub(r' ', r'_', img_saved_as) # do not use ur'', it is encoded
                     img_saved_as_ = re.sub(r'"', r'\"', re.sub(r' ', r'_', img_saved_as.encode('utf-8'))) # do not use ur'', it is encoded
                 else:
