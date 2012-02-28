@@ -61,7 +61,7 @@ def main():
     welcome()
     
     filenamefeed = 'commonssql.csv' # feed
-    #filenamefeed = 'a.csv'
+    filenamefeed = 'a.csv'
     startdate = ''
     enddate = ''
     delta = datetime.timedelta(days=1) #chunks by day
@@ -136,16 +136,16 @@ def main():
                         original_name_ = re.sub(r'"', r'\"', re.sub(r' ', r'_', original_name.encode('utf-8')))
                         md5hash = md5.new(re.sub(' ', '_', original_name.encode("utf-8"))).hexdigest()
                         #redownload, now without /archive/ subpath
-                        os.system('wget -c "http://upload.wikimedia.org/wikipedia/commons/%s/%s/%s" -O "%s/%s"' % (md5hash[0], md5hash[0:2], img_name_, savepath, img_saved_as_))
+                        os.system('wget -c "http://upload.wikimedia.org/wikipedia/commons/%s/%s/%s" -O "%s/%s"' % (md5hash[0], md5hash[0:2], img_name_quoted, savepath, img_saved_as_))
                 else:
-                    os.system('wget -c "http://upload.wikimedia.org/wikipedia/commons/%s/%s/%s" -O "%s/%s"' % (md5hash[0], md5hash[0:2], img_name_, savepath, img_saved_as_))
+                    os.system('wget -c "http://upload.wikimedia.org/wikipedia/commons/%s/%s/%s" -O "%s/%s"' % (md5hash[0], md5hash[0:2], img_name_quoted, savepath, img_saved_as_))
                 
                 #curl .xml description page with full history
                 os.system('curl -d "&pages=File:%s&history=1&action=submit" http://commons.wikimedia.org/w/index.php?title=Special:Export -o "%s/%s.desc"' % (original_name_, savepath, img_saved_as_))
                 
                 #save csv info
                 g = csv.writer(open(filenamecsv, 'a'), delimiter='|', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-                g.writerow([img_name, img_saved_as, img_timestamp, img_user, img_user_text, img_size, img_width, img_height])
+                g.writerow([img_name.encode('utf-8'), img_saved_as.encode('utf-8'), img_timestamp, img_user, img_user_text.encode('utf-8'), img_size, img_width, img_height])
                 c += 1
         #zip downloaded files
         os.system('zip -9 %s %s/*' % (filenamezip, savepath))
