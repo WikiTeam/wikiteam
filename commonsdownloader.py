@@ -128,7 +128,7 @@ def main():
                         #ok, restore original_name to ! version and recalculate md5 and other variables that use original_name as source
                         original_name = img_name
                         original_name_ = re.sub(r'"', r'\"', re.sub(r' ', r'_', original_name.encode('utf-8')))
-                        md5hash = md5.new(re.sub(' ', '_', original_name.encode("utf-8"))).hexdigest()
+                        md5hash = md5(re.sub(' ', '_', original_name.encode("utf-8"))).hexdigest()
                         #redownload, now without /archive/ subpath
                         os.system('wget -c "http://upload.wikimedia.org/wikipedia/commons/%s/%s/%s" -O "%s/%s"' % (md5hash[0], md5hash[0:2], img_name_quoted, savepath, img_saved_as_))
                 else:
