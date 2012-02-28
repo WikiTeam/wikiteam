@@ -61,7 +61,7 @@ def main():
     welcome()
     
     filenamefeed = 'commonssql.csv' # feed
-    filenamefeed = 'a.csv'
+    #filenamefeed = 'a.csv'
     startdate = ''
     enddate = ''
     delta = datetime.timedelta(days=1) #chunks by day
