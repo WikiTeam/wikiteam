@@ -79,26 +79,27 @@ def main():
                 zipfiles = zipfile.ZipFile(filenamezip, 'r').infolist()
                 errors = []
                 for img_name, img_saved_as, img_timestamp, img_user, img_user_text, img_size, img_width, img_height in f:
-                    if img_timestamp.startswith(startdate.strftime(u'%Y%m%d')):
+                    if img_timestamp.startswith(startdate.strftime('%Y%m%d')):
                         #check img_saved_as existence in zip and check size
                         #img_saved_as = unicode(img_saved_as, 'utf-8')
                         ok = False
-                        error = u'missing'
+                        error = 'missing'
                         for i in zipfiles:
-                            if i.filename == u'%s/%s' % (startdate.strftime(u'%Y/%m/%d'), img_saved_as):
+                            if i.filename == unicode('%s/%s' % (startdate.strftime('%Y/%m/%d'), img_saved_as), 'utf-8'):
+                                #print i.file_size, img_size
                                 if i.file_size == img_size:
                                     ok = True
                                 else:
-                                    error = u'corrupt'
+                                    error = 'corrupt'
                         if not ok:
                             errors.append([img_saved_as, error])
                 if errors:
-                    print u'This .zip contains errors:\n'
-                    print u'\n'.join([u'  -> "%s" is %s' % (filename.encode('utf-8'), error) for filename, error in errors])
+                    print 'This .zip contains errors:'
+                    print '\n'.join(['  -> "%s" is %s' % (filename, error) for filename, error in errors])
             else:
-                print u'Error, no %s available' % (filenamezip)
+                print 'Error, no %s available' % (filenamezip)
         else:
-            print u'Error, no %s available' % (filenamecsv)
+            print 'Error, no %s available' % (filenamecsv)
         startdate += delta
 if __name__ == "__main__":
     main()
