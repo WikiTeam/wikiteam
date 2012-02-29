@@ -86,16 +86,18 @@ def main():
                         error = 'missing'
                         for i in zipfiles:
                             if i.filename == unicode('%s/%s' % (startdate.strftime('%Y/%m/%d'), img_saved_as), 'utf-8'):
-                                #print i.file_size, img_size
-                                if i.file_size == img_size:
+                                if str(i.file_size) == img_size:
                                     ok = True
                                 else:
+                                    print i.file_size, img_size
                                     error = 'corrupt'
                         if not ok:
                             errors.append([img_saved_as, error])
                 if errors:
                     print 'This .zip contains errors:'
                     print '\n'.join(['  -> "%s" is %s' % (filename, error) for filename, error in errors])
+                else:
+                    print 'No errors found'
             else:
                 print 'Error, no %s available' % (filenamezip)
         else:
