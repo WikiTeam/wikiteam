@@ -128,8 +128,11 @@ class App:
         self.tree.column('mirror', width=120, minwidth=120, anchor='center')
         self.tree.heading('mirror', text='Mirror')
         self.tree.grid(row=1, column=0, columnspan=9, sticky=W+E+N+S)
+        self.tree.bind("<Double-1>", self.downloadDump)
         self.button21 = Button(self.frame2, text="Load available dumps", command=self.loadAvailableDumps, width=15)
         self.button21.grid(row=2, column=0)
+        self.button23 = Button(self.frame2, text="Download selection", command=self.downloadDump, width=15)
+        self.button23.grid(row=2, column=4)
         self.button22 = Button(self.frame2, text="Clear list", command=self.deleteAvailableDumps, width=10)
         self.button22.grid(row=2, column=8, columnspan=2)
         
@@ -170,6 +173,11 @@ class App:
 
         #check dump
         """
+    
+    def downloadDump(self, event=None):
+        items = self.tree.selection()
+        for item in items:
+            print "you clicked on", self.tree.item(item,"text")
     
     def deleteAvailableDumps(self):
         #really delete dump list and clear tree
