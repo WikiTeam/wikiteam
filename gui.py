@@ -79,11 +79,39 @@ class App:
         self.frame3 = ttk.Frame(self.master)
         self.notebook.add(self.frame3, text='Uploader')
         
-        #dump generator tab
+        #dump generator tab (1)
         
-        #downloader tab
+        #downloader tab (2)
+        self.label21 = Label(self.frame2, text="Filter by wikifarm:")
+        self.label21.grid(row=0, column=0)
+        optionmenu21var = StringVar(self.frame2)
+        optionmenu21var.set("all")
+        self.optionmenu21 = OptionMenu(self.frame2, optionmenu21var, "all", "Referata", "OpenSuSE")
+        self.optionmenu21.grid(row=0, column=1)
+        
+        self.label22 = Label(self.frame2, text="Filter by size:")
+        self.label22.grid(row=0, column=2)
+        optionmenu22var = StringVar(self.frame2)
+        optionmenu22var.set("all")
+        self.optionmenu22 = OptionMenu(self.frame2, optionmenu22var, "all", "KB", "MB", "GB", "TB")
+        self.optionmenu22.grid(row=0, column=3)
+        
+        self.label23 = Label(self.frame2, text="Filter by date:")
+        self.label23.grid(row=0, column=4)
+        optionmenu23var = StringVar(self.frame2)
+        optionmenu23var.set("all")
+        self.optionmenu23 = OptionMenu(self.frame2, optionmenu23var, "all", "2011", "2012")
+        self.optionmenu23.grid(row=0, column=5)
+        
+        self.label24 = Label(self.frame2, text="Filter by mirror:")
+        self.label24.grid(row=0, column=6)
+        optionmenu24var = StringVar(self.frame2)
+        optionmenu24var.set("all")
+        self.optionmenu24 = OptionMenu(self.frame2, optionmenu24var, "all", "Google Code", "Internet Archive")
+        self.optionmenu24.grid(row=0, column=7)
+        
         self.treescrollbar = Scrollbar(self.frame2)
-        self.treescrollbar.grid(row=0, column=3, sticky=W+E+N+S)
+        self.treescrollbar.grid(row=1, column=8, sticky=W+E+N+S)
         self.tree = ttk.Treeview(self.frame2, height=20, columns=('dump', 'wikifarm', 'size', 'date', 'mirror'), show='headings', yscrollcommand=self.treescrollbar.set)
         self.treescrollbar.config(command=self.tree.yview)
         self.tree.column('dump', width=350, minwidth=350, anchor='center')
@@ -96,13 +124,13 @@ class App:
         self.tree.heading('date', text='Date')
         self.tree.column('mirror', width=120, minwidth=120, anchor='center')
         self.tree.heading('mirror', text='Mirror')
-        self.tree.grid(row=0, column=0, columnspan=3, sticky=W+E+N+S)
+        self.tree.grid(row=1, column=0, columnspan=8, sticky=W+E+N+S)
         self.button21 = Button(self.frame2, text="Load available dumps", command=self.loadAvailableDumps, width=15)
-        self.button21.grid(row=1, column=0)
+        self.button21.grid(row=2, column=0)
         self.button22 = Button(self.frame2, text="Clear list", command=self.clearAvailableDumps, width=10)
-        self.button22.grid(row=1, column=2)
+        self.button22.grid(row=2, column=7)
         
-        #uploader tab
+        #uploader tab (3)
         
         #end tabs
         
@@ -146,11 +174,12 @@ class App:
         self.dumps = []
     
     def loadAvailableDumps(self):
-        self.clearAvailableDumps()        
+        self.clearAvailableDumps()
+        iaregexp = ur'/download/[^/]+/(?P<filename>[^>]+\.7z)">\s*(?P<size>[\d\.]+ (?:KB|MB|GB|TB))\s*</a>'
         self.urls = [
-            ['Google Code', 'https://code.google.com/p/wikiteam/downloads/list?num=5000&start=0', ur'(?im)detail\?name=(?P<filename>[^&]+\.7z)&amp;can=2&amp;q=" style="white-space:nowrap">\s*(?P<size>[\d\.]+ (?:KB|MB|GB))\s*</a></td>'],
-            ['Referata - Internet Archive', 'http://www.archive.org/details/referata.com-20111204', ur'/download/[^/]+/(?P<filename>[^>]+\.7z)">\s*(?P<size>[\d\.]+ (?:KB|MB|GB))\s*</a>'],
-            ['Internet Archive Mirror', 'http://www.archive.org/details/WikiTeamMirror', ur'/download/[^/]+/(?P<filename>[^>]+\.7z)">\s*(?P<size>[\d\.]+ (?:KB|MB|GB))\s*</a>']
+            ['Google Code', 'https://code.google.com/p/wikiteam/downloads/list?num=5000&start=0', ur'(?im)detail\?name=(?P<filename>[^&]+\.7z)&amp;can=2&amp;q=" style="white-space:nowrap">\s*(?P<size>[\d\.]+ (?:KB|MB|GB|TB))\s*</a></td>'],
+            ['Internet Archive', 'http://www.archive.org/details/referata.com-20111204', iaregexp],
+            ['Internet Archive', 'http://www.archive.org/details/WikiTeamMirror', iaregexp],
         ]
         c = 0
         for mirror, url, regexp in self.urls:
