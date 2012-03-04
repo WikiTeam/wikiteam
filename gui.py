@@ -172,11 +172,12 @@ class App:
         """
     
     def deleteAvailableDumps(self):
+        #really delete dump list and clear tree
         self.clearAvailableDumps()
         self.dumps = [] #reset list
     
     def clearAvailableDumps(self):
-        #flush tree
+        #clear tree
         for i in range(len(self.dumps)):
             self.tree.delete(str(i))
     
