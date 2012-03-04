@@ -86,11 +86,11 @@ class App:
         self.label11.grid(row=0, column=0)
         
         #downloader tab (2)
-        self.label25 = Label(self.frame2, text="Available dumps: %d" % (len(self.dumps)))
+        self.label25 = Label(self.frame2, text="Available dumps: %d (%d MB)" % (len(self.dumps), self.sumSizes([i[2] for i in self.dumps])))
         self.label25.grid(row=0, column=0, columnspan=2)
-        self.label26 = Label(self.frame2, text="Downloaded dumps: %d" % ([i[6] for i in self.dumps].count(True)), background='lightgreen')
+        self.label26 = Label(self.frame2, text="Downloaded: %d (%d MB)" % ([i[6] for i in self.dumps].count(True), self.sumSizes([i[6] and i[2] or 0 for i in self.dumps])), background='lightgreen')
         self.label26.grid(row=0, column=2, columnspan=2)
-        self.label27 = Label(self.frame2, text="No downloaded dumps: %d" % ([i[6] for i in self.dumps].count(False)), background='white')
+        self.label27 = Label(self.frame2, text="No downloaded: %d (%d MB)" % ([i[6] for i in self.dumps].count(False), self.sumSizes([i[6]==False and i[2] or 0 for i in self.dumps])), background='white')
         self.label27.grid(row=0, column=4, columnspan=2)
         
         self.label21 = Label(self.frame2, text="Filter by wikifarm:")
@@ -174,7 +174,22 @@ class App:
         helpmenu.add_command(label="Help index", command=self.callback)
         helpmenu.add_command(label="WikiTeam homepage", command=lambda: webbrowser.open_new_tab(HOMEPAGE))
         #end menu
-        
+    
+    def sumSizes(self, sizes):
+        total = 0
+        for size in sizes:
+            if size.endswith('KB'):
+                total += float(size.split(' ')[0])
+            elif size.endswith('MB'):
+                total += float(size.split(' ')[0])*1024
+            elif size.endswith('GB'):
+                total += float(size.split(' ')[0])*1024*1024
+            elif size.endswith('TB'):
+                total += float(size.split(' ')[0])*1024*1024*1024
+            else:
+                total += size
+        return total/1024 #MB
+    
     def run(self):
         for i in range(10):
             time.sleep(0.1)
