@@ -37,8 +37,10 @@ TODO:
 """
 
 wikifarms = {
+    '': 'Unknown',
     'opensuseorg': 'OpenSuSE',
     'referatacom': 'Referata',
+    'Unknown': 'Unknown',
     'wikitravelorg': 'WikiTravel',
 }
 
@@ -120,6 +122,7 @@ class App:
                 wikifarm = 'Unknown'
                 if re.search(ur"(opensuseorg|referatacom|wikitravelorg)[_-]", filename):
                     wikifarm = re.findall(ur"(gentoo_wikicom|opensuseorg|referatacom|wikitravelorg)[_-]", filename)[0]
+                wikifarm = wikifarms[wikifarm]
                 size = i.group('size')
                 date = 'Unknown'
                 if re.search(ur"\-(\d{8})\-", filename):
