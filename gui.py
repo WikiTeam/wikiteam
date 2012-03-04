@@ -149,7 +149,8 @@ class App:
         self.clearAvailableDumps()        
         self.urls = [
             ['Google Code', 'https://code.google.com/p/wikiteam/downloads/list?num=5000&start=0', ur'(?im)detail\?name=(?P<filename>[^&]+\.7z)&amp;can=2&amp;q=" style="white-space:nowrap">\s*(?P<size>[\d\.]+ (?:KB|MB|GB))\s*</a></td>'],
-            ['Internet Archive', 'http://www.archive.org/details/referata.com-20111204', ur'/download/[^/]+/(?P<filename>[^>]+\.7z)">\s*(?P<size>[\d\.]+ (?:KB|MB|GB))\s*</a>']
+            ['Referata - Internet Archive', 'http://www.archive.org/details/referata.com-20111204', ur'/download/[^/]+/(?P<filename>[^>]+\.7z)">\s*(?P<size>[\d\.]+ (?:KB|MB|GB))\s*</a>'],
+            ['Internet Archive Mirror', 'http://www.archive.org/details/WikiTeamMirror', ur'/download/[^/]+/(?P<filename>[^>]+\.7z)">\s*(?P<size>[\d\.]+ (?:KB|MB|GB))\s*</a>']
         ]
         c = 0
         for mirror, url, regexp in self.urls:
