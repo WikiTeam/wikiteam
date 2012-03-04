@@ -88,10 +88,12 @@ def main():
                             if i.filename == unicode('%s/%s' % (startdate.strftime('%Y/%m/%d'), img_saved_as), 'utf-8'):
                                 if str(i.file_size) == img_size:
                                     ok = True
+                                elif i.file_size == 0:
+                                    error = 'empty'
                                 else:
-                                    print i.file_size, img_size
-                                    error = 'corrupt'
+                                    error = 'corrupt (%s of %s bytes)' % (i.file_size, img_size)
                         if not ok:
+                            print img_name, img_saved_as, error
                             errors.append([img_saved_as, error])
                 if errors:
                     print 'This .zip contains errors:'
