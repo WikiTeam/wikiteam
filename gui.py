@@ -64,7 +64,7 @@ class App:
         #self.run()
         
         #description
-        self.desc = Label(self.master, text="Welcome to WikiTeam tools. What do you want to do today? You can:\n1) Generate a new wiki backup, 2) Download available dumps, 3) Upload your dump anywhere.\nThanks for helping to preserve wikis.", anchor=W, font=("Arial", 10))
+        self.desc = Label(self.master, text="Welcome to WikiTeam tools. What do you want to do today? You can: 1) Generate a new wiki backup, 2) Download available dumps,\n3) Upload your dump anywhere. Thanks for helping to preserve wikis.", anchor=W, font=("Arial", 10))
         self.desc.grid(row=0, column=0, columnspan=1)
         self.footer = Label(self.master, text="%s (version %s). This program is free software (GPL v3 or higher)" % (NAME, VERSION), anchor=W, justify=LEFT, font=("Arial", 10))
         self.footer.grid(row=2, column=0, columnspan=1)
@@ -80,6 +80,8 @@ class App:
         self.notebook.add(self.frame3, text='Uploader')
         
         #dump generator tab (1)
+        self.label11 = Label(self.frame1, text="todo...")
+        self.label11.grid(row=0, column=0)
         
         #downloader tab (2)
         self.label21 = Label(self.frame2, text="Filter by wikifarm:")
@@ -115,7 +117,8 @@ class App:
         
         self.treescrollbar = Scrollbar(self.frame2)
         self.treescrollbar.grid(row=1, column=9, sticky=W+E+N+S)
-        self.tree = ttk.Treeview(self.frame2, height=20, columns=('dump', 'wikifarm', 'size', 'date', 'mirror'), show='headings', yscrollcommand=self.treescrollbar.set)
+        columns = ('dump', 'wikifarm', 'size', 'date', 'mirror')
+        self.tree = ttk.Treeview(self.frame2, height=20, columns=columns, show='headings', yscrollcommand=self.treescrollbar.set)
         self.treescrollbar.config(command=self.tree.yview)
         self.tree.column('dump', width=470, minwidth=470, anchor='center')
         self.tree.heading('dump', text='Dump')
@@ -128,6 +131,7 @@ class App:
         self.tree.column('mirror', width=120, minwidth=120, anchor='center')
         self.tree.heading('mirror', text='Mirror')
         self.tree.grid(row=1, column=0, columnspan=9, sticky=W+E+N+S)
+        [self.tree.heading(column, text=column, command=lambda: self.treeSortColumn(column=column, reverse=False)) for column in columns]        
         self.tree.bind("<Double-1>", self.downloadDump)
         self.button21 = Button(self.frame2, text="Load available dumps", command=self.loadAvailableDumps, width=15)
         self.button21.grid(row=2, column=0)
@@ -137,7 +141,8 @@ class App:
         self.button22.grid(row=2, column=8, columnspan=2)
         
         #uploader tab (3)
-        
+        self.label31 = Label(self.frame3, text="todo...")
+        self.label31.grid(row=0, column=0)
         #end tabs
         
         #begin menu
@@ -174,10 +179,20 @@ class App:
         #check dump
         """
     
+    def treeSortColumn(self, column, reverse=False):
+        l = [(self.tree.set(i, column), i) for i in self.tree.get_children('')]
+        l.sort(reverse=reverse)
+        for index, (val, i) in enumerate(l):
+            self.tree.move(i, '', index)
+        self.tree.heading(column, command=lambda: self.treeSortColumn(column=column, reverse=not reverse))
+                   
     def downloadDump(self, event=None):
         items = self.tree.selection()
-        for item in items:
-            print "you clicked on", self.tree.item(item,"text")
+        if items:
+            for item in items:
+                print "you clicked on", self.tree.item(item,"text")
+        else:
+            tkMessageBox.showerror("Error", "You have to select some dumps to download.")
     
     def deleteAvailableDumps(self):
         #really delete dump list and clear tree
@@ -186,8 +201,8 @@ class App:
     
     def clearAvailableDumps(self):
         #clear tree
-        for i in range(len(self.dumps)):
-            self.tree.delete(str(i))
+        for i in self.tree.get_children(''):
+            self.tree.delete(i)
     
     def showAvailableDumps(self):
         c = 0
