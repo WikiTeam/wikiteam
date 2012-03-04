@@ -36,6 +36,12 @@ TODO:
 
 """
 
+wikifarms = {
+    'opensuseorg': 'OpenSuSE',
+    'referatacom': 'Referata',
+    'wikitravelorg': 'WikiTravel',
+}
+
 NAME = 'WikiTeam tools'
 VERSION = '0.1'
 HOMEPAGE = 'https://code.google.com/p/wikiteam/'
@@ -68,7 +74,7 @@ class App:
         self.notebook.add(self.frame2, text='Downloader')
         self.frame3 = ttk.Frame(self.master)
         self.notebook.add(self.frame3, text='Uploader')
-        self.tree = ttk.Treeview(self.frame2, columns=('dump', 'wikifarm', 'size', 'date'), show='headings')
+        self.tree = ttk.Treeview(self.frame2, height=20, columns=('dump', 'wikifarm', 'size', 'date', 'mirror'), show='headings')
         self.tree.column('dump', width=350, minwidth=350, anchor='center')
         self.tree.heading('dump', text='Dump')
         self.tree.column('wikifarm', width=100, minwidth=100, anchor='center')
@@ -77,6 +83,8 @@ class App:
         self.tree.heading('size', text='Size')
         self.tree.column('date', width=100, minwidth=100, anchor='center')
         self.tree.heading('date', text='Date')
+        self.tree.column('mirror', width=120, minwidth=120, anchor='center')
+        self.tree.heading('mirror', text='Mirror')
         self.tree.grid(row=0, column=0, columnspan=1, sticky=W+E+N+S)
         
         #create a menu
@@ -97,22 +105,30 @@ class App:
         helpmenu.add_command(label="Help index", command=self.callback)
         helpmenu.add_command(label="WikiTeam homepage", command=lambda: webbrowser.open_new_tab(HOMEPAGE))
         
-        f = urllib.urlopen('https://code.google.com/p/wikiteam/downloads/list?num=5000&start=0') #http://www.archive.org/details/referata.com-20111204
-        m = re.findall(ur"(?im)detail\?name=([^&]+)&amp;can=2&amp;q=\" style=\"white-space:nowrap\">\s*([\d\.]+ (?:KB|MB))\s*</a></td>", f.read())
         dumps = []
-        for i in m:
-            name = i[0]
-            wikifarm = 'Unknown'
-            size = i[1]
-            date = 'Unknown'
-            if re.search(ur"\-(\d{8})\-", name):
-                date = re.findall(ur"\-(\d{4})(\d{2})(\d{2})\-", name)[0]
-                date = '%s-%s-%s' % (date[0], date[1], date[2])
-            if re.search(ur"(opensuseorg|referatacom|wikitravelorg)[_-]", name):
-                wikifarm = re.findall(ur"(gentoo_wikicom|opensuseorg|referatacom|wikitravelorg)[_-]", name)[0]
-            dumps.append([name, wikifarm, size, date])
-        for name, wikifarm, size, date in dumps:
-            self.tree.insert('', 'end', text=i, values=(name, wikifarm, size, date))
+        urls = [
+            ['Google Code', 'https://code.google.com/p/wikiteam/downloads/list?num=5000&start=0', ur'(?im)detail\?name=(?P<filename>[^&]+)&amp;can=2&amp;q=" style="white-space:nowrap">\s*(?P<size>[\d\.]+ (?:KB|MB|GB))\s*</a></td>'],
+            ['Internet Archive', 'http://www.archive.org/details/referata.com-20111204', ur'/download/[^/]+/(?P<filename>[^>]+)">\s*(?P<size>[\d\.]+ (?:KB|MB|GB))\s*</a>']
+        ]
+        for mirror, url, regexp in urls:
+            print 'Loading data from', mirror, url
+            f = urllib.urlopen(url)
+            m = re.compile(regexp).finditer(f.read())
+            dumps_ = []
+            for i in m:
+                filename = i.group('filename')
+                wikifarm = 'Unknown'
+                if re.search(ur"(opensuseorg|referatacom|wikitravelorg)[_-]", filename):
+                    wikifarm = re.findall(ur"(gentoo_wikicom|opensuseorg|referatacom|wikitravelorg)[_-]", filename)[0]
+                size = i.group('size')
+                date = 'Unknown'
+                if re.search(ur"\-(\d{8})\-", filename):
+                    date = re.findall(ur"\-(\d{4})(\d{2})(\d{2})\-", filename)[0]
+                    date = '%s-%s-%s' % (date[0], date[1], date[2])
+                dumps_.append([filename, wikifarm, size, date, mirror])
+                dumps.append([filename, wikifarm, size, date, mirror])
+            for filename, wikifarm, size, date, mirror in dumps_:
+                self.tree.insert('', 'end', text=i, values=(filename, wikifarm, size, date, mirror))
         
     def run(self):
         for i in range(10):
@@ -137,7 +153,12 @@ def askclose():
 
 if __name__ == "__main__":
     root = Tk()
-    root.geometry('800x600+200+100')
+    width = 800
+    height = 600
+    # calculate position x, y
+    x = (root.winfo_screenwidth()/2) - (width/2) 
+    y = (root.winfo_screenheight()/2) - (height/2)
+    root.geometry('%dx%d+%d+%d' % (width, height, x, y))
     root.title('%s (version %s)' % (NAME, VERSION))
     root.protocol("WM_DELETE_WINDOW", askclose)
     #logo
