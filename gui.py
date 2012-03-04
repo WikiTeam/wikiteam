@@ -84,34 +84,37 @@ class App:
         #downloader tab (2)
         self.label21 = Label(self.frame2, text="Filter by wikifarm:")
         self.label21.grid(row=0, column=0)
-        optionmenu21var = StringVar(self.frame2)
-        optionmenu21var.set("all")
-        self.optionmenu21 = OptionMenu(self.frame2, optionmenu21var, "all", "Referata", "OpenSuSE")
+        self.optionmenu21var = StringVar(self.frame2)
+        self.optionmenu21var.set("all")
+        self.optionmenu21 = OptionMenu(self.frame2, self.optionmenu21var, "all", "Referata", "OpenSuSE", "Unknown", "WikiTravel")
         self.optionmenu21.grid(row=0, column=1)
         
         self.label22 = Label(self.frame2, text="Filter by size:")
         self.label22.grid(row=0, column=2)
-        optionmenu22var = StringVar(self.frame2)
-        optionmenu22var.set("all")
-        self.optionmenu22 = OptionMenu(self.frame2, optionmenu22var, "all", "KB", "MB", "GB", "TB")
+        self.optionmenu22var = StringVar(self.frame2)
+        self.optionmenu22var.set("all")
+        self.optionmenu22 = OptionMenu(self.frame2, self.optionmenu22var, "all", "KB", "MB", "GB", "TB")
         self.optionmenu22.grid(row=0, column=3)
         
         self.label23 = Label(self.frame2, text="Filter by date:")
         self.label23.grid(row=0, column=4)
-        optionmenu23var = StringVar(self.frame2)
-        optionmenu23var.set("all")
-        self.optionmenu23 = OptionMenu(self.frame2, optionmenu23var, "all", "2011", "2012")
+        self.optionmenu23var = StringVar(self.frame2)
+        self.optionmenu23var.set("all")
+        self.optionmenu23 = OptionMenu(self.frame2, self.optionmenu23var, "all", "2011", "2012")
         self.optionmenu23.grid(row=0, column=5)
         
         self.label24 = Label(self.frame2, text="Filter by mirror:")
         self.label24.grid(row=0, column=6)
-        optionmenu24var = StringVar(self.frame2)
-        optionmenu24var.set("all")
-        self.optionmenu24 = OptionMenu(self.frame2, optionmenu24var, "all", "Google Code", "Internet Archive")
+        self.optionmenu24var = StringVar(self.frame2)
+        self.optionmenu24var.set("all")
+        self.optionmenu24 = OptionMenu(self.frame2, self.optionmenu24var, "all", "Google Code", "Internet Archive")
         self.optionmenu24.grid(row=0, column=7)
         
+        self.button23 = Button(self.frame2, text="Apply filter", command=self.filterAvailableDumps, width=10)
+        self.button23.grid(row=0, column=8)
+        
         self.treescrollbar = Scrollbar(self.frame2)
-        self.treescrollbar.grid(row=1, column=8, sticky=W+E+N+S)
+        self.treescrollbar.grid(row=1, column=9, sticky=W+E+N+S)
         self.tree = ttk.Treeview(self.frame2, height=20, columns=('dump', 'wikifarm', 'size', 'date', 'mirror'), show='headings', yscrollcommand=self.treescrollbar.set)
         self.treescrollbar.config(command=self.tree.yview)
         self.tree.column('dump', width=350, minwidth=350, anchor='center')
@@ -124,11 +127,11 @@ class App:
         self.tree.heading('date', text='Date')
         self.tree.column('mirror', width=120, minwidth=120, anchor='center')
         self.tree.heading('mirror', text='Mirror')
-        self.tree.grid(row=1, column=0, columnspan=8, sticky=W+E+N+S)
+        self.tree.grid(row=1, column=0, columnspan=9, sticky=W+E+N+S)
         self.button21 = Button(self.frame2, text="Load available dumps", command=self.loadAvailableDumps, width=15)
         self.button21.grid(row=2, column=0)
-        self.button22 = Button(self.frame2, text="Clear list", command=self.clearAvailableDumps, width=10)
-        self.button22.grid(row=2, column=7)
+        self.button22 = Button(self.frame2, text="Clear list", command=self.deleteAvailableDumps, width=10)
+        self.button22.grid(row=2, column=8, columnspan=2)
         
         #uploader tab (3)
         
@@ -168,13 +171,34 @@ class App:
         #check dump
         """
     
+    def deleteAvailableDumps(self):
+        self.clearAvailableDumps()
+        self.dumps = [] #reset list
+    
     def clearAvailableDumps(self):
+        #flush tree
         for i in range(len(self.dumps)):
             self.tree.delete(str(i))
-        self.dumps = []
+    
+    def showAvailableDumps(self):
+        c = 0
+        for filename, wikifarm, size, date, mirror in self.dumps:
+            self.tree.insert('', 'end', str(c), text=filename, values=(filename, wikifarm, size, date, mirror))
+            c += 1
+        
+    def filterAvailableDumps(self):
+        self.clearAvailableDumps()
+        self.showAvailableDumps()
+        for i in range(len(self.dumps)):
+            if (self.optionmenu21var.get() != 'all' and not self.optionmenu21var.get() == self.dumps[i][1]) or \
+                (self.optionmenu22var.get() != 'all' and not self.optionmenu22var.get() in self.dumps[i][2]) or \
+                (self.optionmenu23var.get() != 'all' and not self.optionmenu23var.get() in self.dumps[i][3]) or \
+                (self.optionmenu24var.get() != 'all' and not self.optionmenu24var.get() in self.dumps[i][4]):
+                self.tree.detach(str(i))
     
     def loadAvailableDumps(self):
-        self.clearAvailableDumps()
+        if self.dumps:
+            self.deleteAvailableDumps()
         iaregexp = ur'/download/[^/]+/(?P<filename>[^>]+\.7z)">\s*(?P<size>[\d\.]+ (?:KB|MB|GB|TB))\s*</a>'
         self.urls = [
             ['Google Code', 'https://code.google.com/p/wikiteam/downloads/list?num=5000&start=0', ur'(?im)detail\?name=(?P<filename>[^&]+\.7z)&amp;can=2&amp;q=" style="white-space:nowrap">\s*(?P<size>[\d\.]+ (?:KB|MB|GB|TB))\s*</a></td>'],
@@ -186,7 +210,6 @@ class App:
             print 'Loading data from', mirror, url
             f = urllib.urlopen(url)
             m = re.compile(regexp).finditer(f.read())
-            dumps_ = []
             for i in m:
                 filename = i.group('filename')
                 wikifarm = 'Unknown'
@@ -198,11 +221,9 @@ class App:
                 if re.search(ur"\-(\d{8})\-", filename):
                     date = re.findall(ur"\-(\d{4})(\d{2})(\d{2})\-", filename)[0]
                     date = '%s-%s-%s' % (date[0], date[1], date[2])
-                dumps_.append([filename, wikifarm, size, date, mirror])
                 self.dumps.append([filename, wikifarm, size, date, mirror])
-            for filename, wikifarm, size, date, mirror in dumps_:
-                self.tree.insert('', 'end', str(c), text=filename, values=(filename, wikifarm, size, date, mirror))
-                c += 1
+        self.showAvailableDumps()
+        self.filterAvailableDumps()
     
     def callback(self):
         self.setStatus("Feature not implemented for the moment. Contributions are welcome.")
