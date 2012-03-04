@@ -81,7 +81,10 @@ class App:
         #dump generator tab
         
         #downloader tab
-        self.tree = ttk.Treeview(self.frame2, height=20, columns=('dump', 'wikifarm', 'size', 'date', 'mirror'), show='headings')
+        self.treescrollbar = Scrollbar(self.frame2)
+        self.treescrollbar.grid(row=0, column=1, sticky=W+E+N+S)
+        self.tree = ttk.Treeview(self.frame2, height=20, columns=('dump', 'wikifarm', 'size', 'date', 'mirror'), show='headings', yscrollcommand=self.treescrollbar.set)
+        self.treescrollbar.config(command=self.tree.yview)
         self.tree.column('dump', width=350, minwidth=350, anchor='center')
         self.tree.heading('dump', text='Dump')
         self.tree.column('wikifarm', width=100, minwidth=100, anchor='center')
