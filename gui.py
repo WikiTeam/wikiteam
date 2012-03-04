@@ -86,11 +86,17 @@ class App:
         self.label11.grid(row=0, column=0)
         
         #downloader tab (2)
-        self.label25 = Label(self.frame2, text="Available dumps: %d (%d MB)" % (len(self.dumps), self.sumSizes([i[2] for i in self.dumps])))
+        self.label25var = StringVar(self.frame2)
+        self.label25var.set("Available dumps: 0 (0 MB)")
+        self.label25 = Label(self.frame2, textvariable=self.label25var)
         self.label25.grid(row=0, column=0, columnspan=2)
-        self.label26 = Label(self.frame2, text="Downloaded: %d (%d MB)" % ([i[6] for i in self.dumps].count(True), self.sumSizes([i[6] and i[2] or 0 for i in self.dumps])), background='lightgreen')
+        self.label26var = StringVar(self.frame2)
+        self.label26var.set("Downlaoded: 0 (0 MB)")
+        self.label26 = Label(self.frame2, textvariable=self.label26var, background='lightgreen')
         self.label26.grid(row=0, column=2, columnspan=2)
-        self.label27 = Label(self.frame2, text="No downloaded: %d (%d MB)" % ([i[6] for i in self.dumps].count(False), self.sumSizes([i[6]==False and i[2] or 0 for i in self.dumps])), background='white')
+        self.label27var = StringVar(self.frame2)
+        self.label27var.set("No downloaded: 0 (0 MB)")
+        self.label27 = Label(self.frame2, textvariable=self.label27var, background='white')
         self.label27.grid(row=0, column=4, columnspan=2)
         
         self.label21 = Label(self.frame2, text="Filter by wikifarm:")
@@ -259,12 +265,29 @@ class App:
     def filterAvailableDumps(self):
         self.clearAvailableDumps()
         self.showAvailableDumps()
+        sizes = []
+        downloadedsizes = []
+        nodownloadedsizes = []
         for i in range(len(self.dumps)):
-            if (self.optionmenu21var.get() != 'all' and not self.optionmenu21var.get() == self.dumps[i][1]) or \
+            if (self.optionmenu21var.get() == 'all' and self.optionmenu22var.get() == 'all' and self.optionmenu23var.get() == 'all' and self.optionmenu24var.get() == 'all'):
+                sizes.append(self.dumps[i][2])
+                if self.dumps[i][6]:
+                    downloadedsizes.append(self.dumps[i][2])
+                else:
+                    nodownloadedsizes.append(self.dumps[i][2])
+            elif (self.optionmenu21var.get() != 'all' and not self.optionmenu21var.get() == self.dumps[i][1]) or \
                 (self.optionmenu22var.get() != 'all' and not self.optionmenu22var.get() in self.dumps[i][2]) or \
                 (self.optionmenu23var.get() != 'all' and not self.optionmenu23var.get() in self.dumps[i][3]) or \
                 (self.optionmenu24var.get() != 'all' and not self.optionmenu24var.get() in self.dumps[i][4]):
                 self.tree.detach(str(i))
+                sizes.append(self.dumps[i][2])
+                if self.dumps[i][6]:
+                    downloadedsizes.append(self.dumps[i][2])
+                else:
+                    nodownloadedsizes.append(self.dumps[i][2])
+        self.label25var.set("Available dumps: %d (%d MB)" % (len(sizes), self.sumSizes(sizes)))
+        self.label26var.set("Downloaded: %d (%d MB)" % (len(downloadedsizes), self.sumSizes(downloadedsizes)))
+        self.label27var.set("No downloaded: %d (%d MB)" % (len(nodownloadedsizes), self.sumSizes(nodownloadedsizes)))
     
     def isDumpDownloaded(self, filename):
         #improve, size check or md5sum?
