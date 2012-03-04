@@ -117,7 +117,7 @@ class App:
         self.treescrollbar.grid(row=1, column=9, sticky=W+E+N+S)
         self.tree = ttk.Treeview(self.frame2, height=20, columns=('dump', 'wikifarm', 'size', 'date', 'mirror'), show='headings', yscrollcommand=self.treescrollbar.set)
         self.treescrollbar.config(command=self.tree.yview)
-        self.tree.column('dump', width=350, minwidth=350, anchor='center')
+        self.tree.column('dump', width=470, minwidth=470, anchor='center')
         self.tree.heading('dump', text='Dump')
         self.tree.column('wikifarm', width=100, minwidth=100, anchor='center')
         self.tree.heading('wikifarm', text='Wikifarm')
@@ -235,7 +235,7 @@ def askclose():
 
 if __name__ == "__main__":
     root = Tk()
-    width = 800
+    width = 930
     height = 600
     # calculate position x, y
     x = (root.winfo_screenwidth()/2) - (width/2) 
