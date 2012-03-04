@@ -17,6 +17,7 @@
 
 import os
 import platform
+import random
 import re
 from Tkinter import *
 import ttk
@@ -55,6 +56,7 @@ class App:
     def __init__(self, master):
         self.master = master
         self.dumps = []
+        self.downloadpath = 'downloads'
         
         # interface elements
         #progressbar
@@ -133,6 +135,8 @@ class App:
         self.tree.grid(row=1, column=0, columnspan=9, sticky=W+E+N+S)
         [self.tree.heading(column, text=column, command=lambda: self.treeSortColumn(column=column, reverse=False)) for column in columns]        
         self.tree.bind("<Double-1>", self.downloadDump)
+        self.tree.tag_configure('downloaded', background='green')
+        self.tree.tag_configure('nodownloaded', background='white')
         self.button21 = Button(self.frame2, text="Load available dumps", command=self.loadAvailableDumps, width=15)
         self.button21.grid(row=2, column=0)
         self.button23 = Button(self.frame2, text="Download selection", command=self.downloadDump, width=15)
@@ -185,14 +189,34 @@ class App:
         for index, (val, i) in enumerate(l):
             self.tree.move(i, '', index)
         self.tree.heading(column, command=lambda: self.treeSortColumn(column=column, reverse=not reverse))
-                   
+    
+    def downloadProgress(self, block_count, block_size, total_size):
+        try:
+            total_mb = total_size/1024/1024.0
+            downloaded = block_count *(block_size/1024/1024.0)
+            percent = downloaded/(total_mb/100.0)
+            if not random.randint(0,10):
+                print "%.1f MB of %.1f MB downloaded (%.1f%%)" %(downloaded, total_mb, percent <= 100 and percent or 100)
+            #sys.stdout.write("%.1f MB of %.1f MB downloaded (%.2f%%)" %(downloaded, total_mb, percent))
+            #sys.stdout.flush()
+        except:
+            pass
+    
     def downloadDump(self, event=None):
         items = self.tree.selection()
         if items:
+            if not os.path.exists(self.downloadpath):
+                os.makedirs(self.downloadpath)
             for item in items:
-                print "you clicked on", self.tree.item(item,"text")
+                print "Downloading", self.tree.item(item,"text")
+                filepath = self.downloadpath and self.downloadpath + '/' + self.dumps[int(item)][0] or self.dumps[int(item)][0]
+                f = urllib.urlretrieve(self.dumps[int(item)][5], filepath, reporthook=self.downloadProgress)
+                print 'Final size:', os.path.getsize(filepath), 'bytes'
+                self.dumps[int(item)] = self.dumps[int(item)][:6] + ['True']
         else:
             tkMessageBox.showerror("Error", "You have to select some dumps to download.")
+        self.clearAvailableDumps()
+        self.showAvailableDumps()
     
     def deleteAvailableDumps(self):
         #really delete dump list and clear tree
@@ -206,8 +230,8 @@ class App:
     
     def showAvailableDumps(self):
         c = 0
-        for filename, wikifarm, size, date, mirror in self.dumps:
-            self.tree.insert('', 'end', str(c), text=filename, values=(filename, wikifarm, size, date, mirror))
+        for filename, wikifarm, size, date, mirror, url, downloaded in self.dumps:
+            self.tree.insert('', 'end', str(c), text=filename, values=(filename, wikifarm, size, date, mirror), tags=(downloaded and 'downloaded' or 'nodownloaded',))
             c += 1
         
     def filterAvailableDumps(self):
@@ -219,6 +243,22 @@ class App:
                 (self.optionmenu23var.get() != 'all' and not self.optionmenu23var.get() in self.dumps[i][3]) or \
                 (self.optionmenu24var.get() != 'all' and not self.optionmenu24var.get() in self.dumps[i][4]):
                 self.tree.detach(str(i))
+    
+    def isDumpDownloaded(self, filename):
+        #improve, size check or md5sum?
+        if filename:
+            filepath = self.downloadpath and self.downloadpath + '/' + filename or filename
+            if os.path.exists(filepath):
+                return True
+        
+        """estsize = os.path.getsize(filepath)
+                c = 0
+                while int(estsize) >= 1024:
+                    estsize = estsize/1024.0
+                    c += 1
+                estsize = '%.1f %s' % (estsize, ['', 'KB', 'MB', 'GB', 'TB'][c])"""
+        
+        return False
     
     def loadAvailableDumps(self):
         if self.dumps:
@@ -245,7 +285,13 @@ class App:
                 if re.search(ur"\-(\d{8})\-", filename):
                     date = re.findall(ur"\-(\d{4})(\d{2})(\d{2})\-", filename)[0]
                     date = '%s-%s-%s' % (date[0], date[1], date[2])
-                self.dumps.append([filename, wikifarm, size, date, mirror])
+                downloadurl = ''
+                if mirror == 'Google Code':
+                    downloadurl = 'https://wikiteam.googlecode.com/files/' + filename
+                elif mirror == 'Internet Archive':
+                    downloadurl = url + '/' + filename
+                downloaded = self.isDumpDownloaded(filename)
+                self.dumps.append([filename, wikifarm, size, date, mirror, downloadurl, downloaded])
         self.showAvailableDumps()
         self.filterAvailableDumps()
     
