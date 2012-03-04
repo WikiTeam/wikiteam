@@ -68,8 +68,8 @@ class App:
         #description
         self.desc = Label(self.master, text="Welcome to WikiTeam tools. What do you want to do today? You can: 1) Generate a new wiki backup, 2) Download available dumps,\n3) Upload your dump anywhere. Thanks for helping to preserve wikis.", anchor=W, font=("Arial", 10))
         self.desc.grid(row=0, column=0, columnspan=1)
-        self.footer = Label(self.master, text="%s (version %s). This program is free software (GPL v3 or higher)" % (NAME, VERSION), anchor=W, justify=LEFT, font=("Arial", 10))
-        self.footer.grid(row=2, column=0, columnspan=1)
+        #self.footer = Label(self.master, text="%s (version %s). This program is free software (GPL v3 or higher)" % (NAME, VERSION), anchor=W, justify=LEFT, font=("Arial", 10))
+        #self.footer.grid(row=2, column=0, columnspan=1)
         
         #begin tabs
         self.notebook = ttk.Notebook(self.master)
@@ -88,32 +88,32 @@ class App:
         #downloader tab (2)
         self.label25var = StringVar(self.frame2)
         self.label25var.set("Available dumps: 0 (0.0 MB)")
-        self.label25 = Label(self.frame2, textvariable=self.label25var)
+        self.label25 = Label(self.frame2, textvariable=self.label25var, width=27, anchor=W)
         self.label25.grid(row=0, column=0, columnspan=2)
         self.label26var = StringVar(self.frame2)
         self.label26var.set("Downloaded: 0 (0.0 MB)")
-        self.label26 = Label(self.frame2, textvariable=self.label26var, background='lightgreen')
+        self.label26 = Label(self.frame2, textvariable=self.label26var, background='lightgreen', width=27, anchor=W)
         self.label26.grid(row=0, column=2, columnspan=2)
         self.label27var = StringVar(self.frame2)
         self.label27var.set("No downloaded: 0 (0.0 MB)")
-        self.label27 = Label(self.frame2, textvariable=self.label27var, background='white')
+        self.label27 = Label(self.frame2, textvariable=self.label27var, background='white', width=27, anchor=W)
         self.label27.grid(row=0, column=4, columnspan=2)
         
-        self.label21 = Label(self.frame2, text="Filter by wikifarm:")
+        self.label21 = Label(self.frame2, text="Filter by wikifarm:", width=15, anchor=W)
         self.label21.grid(row=1, column=0)
         self.optionmenu21var = StringVar(self.frame2)
         self.optionmenu21var.set("all")
         self.optionmenu21 = OptionMenu(self.frame2, self.optionmenu21var, "all", "Referata", "OpenSuSE", "Unknown", "WikiTravel")
         self.optionmenu21.grid(row=1, column=1)
         
-        self.label22 = Label(self.frame2, text="Filter by size:")
+        self.label22 = Label(self.frame2, text="Filter by size:", width=15, anchor=W)
         self.label22.grid(row=1, column=2)
         self.optionmenu22var = StringVar(self.frame2)
         self.optionmenu22var.set("all")
         self.optionmenu22 = OptionMenu(self.frame2, self.optionmenu22var, "all", "KB", "MB", "GB", "TB")
         self.optionmenu22.grid(row=1, column=3)
         
-        self.label23 = Label(self.frame2, text="Filter by date:")
+        self.label23 = Label(self.frame2, text="Filter by date:", width=15, anchor=W)
         self.label23.grid(row=1, column=4)
         self.optionmenu23var = StringVar(self.frame2)
         self.optionmenu23var.set("all")
@@ -127,15 +127,15 @@ class App:
         self.optionmenu24 = OptionMenu(self.frame2, self.optionmenu24var, "all", "Google Code", "Internet Archive")
         self.optionmenu24.grid(row=1, column=7)
         
-        self.button23 = Button(self.frame2, text="Apply filter", command=self.filterAvailableDumps, width=10)
+        self.button23 = Button(self.frame2, text="Filter!", command=self.filterAvailableDumps, width=7)
         self.button23.grid(row=1, column=8)
         
         self.treescrollbar = Scrollbar(self.frame2)
         self.treescrollbar.grid(row=2, column=9, sticky=W+E+N+S)
-        columns = ('dump', 'wikifarm', 'size', 'date', 'mirror')
+        columns = ('dump', 'wikifarm', 'size', 'date', 'mirror', 'status')
         self.tree = ttk.Treeview(self.frame2, height=20, columns=columns, show='headings', yscrollcommand=self.treescrollbar.set)
         self.treescrollbar.config(command=self.tree.yview)
-        self.tree.column('dump', width=470, minwidth=470, anchor='center')
+        self.tree.column('dump', width=400, minwidth=200, anchor='center')
         self.tree.heading('dump', text='Dump')
         self.tree.column('wikifarm', width=100, minwidth=100, anchor='center')
         self.tree.heading('wikifarm', text='Wikifarm')
@@ -145,6 +145,8 @@ class App:
         self.tree.heading('date', text='Date')
         self.tree.column('mirror', width=120, minwidth=120, anchor='center')
         self.tree.heading('mirror', text='Mirror')
+        self.tree.column('status', width=120, minwidth=120, anchor='center')
+        self.tree.heading('status', text='Status')
         self.tree.grid(row=2, column=0, columnspan=9, sticky=W+E+N+S)
         [self.tree.heading(column, text=column, command=lambda: self.treeSortColumn(column=column, reverse=False)) for column in columns]        
         self.tree.bind("<Double-1>", self.downloadDump)
@@ -161,6 +163,10 @@ class App:
         self.label31 = Label(self.frame3, text="todo...")
         self.label31.grid(row=0, column=0)
         #end tabs
+        
+        #statusbar
+        self.status = Label(self.master, text="Welcome!", bd=1, justify=LEFT, relief=SUNKEN)
+        self.status.grid(row=4, column=0, columnspan=10, sticky=W+E)
         
         #begin menu
         menu = Menu(self.master)
@@ -257,13 +263,13 @@ class App:
     
     def clearAvailableDumps(self):
         #clear tree
-        for i in self.tree.get_children(''):
-            self.tree.delete(i)
+        for i in range(len(self.dumps)):
+            self.tree.delete(str(i))
     
     def showAvailableDumps(self):
         c = 0
         for filename, wikifarm, size, date, mirror, url, downloaded in self.dumps:
-            self.tree.insert('', 'end', str(c), text=filename, values=(filename, wikifarm, size, date, mirror), tags=(downloaded and 'downloaded' or 'nodownloaded',))
+            self.tree.insert('', 'end', str(c), text=filename, values=(filename, wikifarm, size, date, mirror, downloaded and 'Downloaded' or 'No downloaded'), tags=(downloaded and 'downloaded' or 'nodownloaded',))
             c += 1
         
     def filterAvailableDumps(self):
@@ -283,7 +289,7 @@ class App:
                 (self.optionmenu22var.get() != 'all' and not self.optionmenu22var.get() in self.dumps[i][2]) or \
                 (self.optionmenu23var.get() != 'all' and not self.optionmenu23var.get() in self.dumps[i][3]) or \
                 (self.optionmenu24var.get() != 'all' and not self.optionmenu24var.get() in self.dumps[i][4]):
-                self.tree.detach(str(i))
+                self.tree.detach(str(i)) #hide this item
                 sizes.append(self.dumps[i][2])
                 if self.dumps[i][6]:
                     downloadedsizes.append(self.dumps[i][2])
@@ -353,8 +359,8 @@ def askclose():
 
 if __name__ == "__main__":
     root = Tk()
-    width = 930
-    height = 600
+    width = 955
+    height = 580
     # calculate position x, y
     x = (root.winfo_screenwidth()/2) - (width/2) 
     y = (root.winfo_screenheight()/2) - (height/2)
