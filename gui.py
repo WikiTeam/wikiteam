@@ -54,7 +54,8 @@ if PATH: os.chdir(PATH)
 class App:
     def __init__(self, master):
         self.master = master
-
+        self.dumps = []
+        
         # interface elements
         #progressbar
         #self.value = 0
@@ -68,6 +69,7 @@ class App:
         self.footer = Label(self.master, text="%s (version %s). This program is free software (GPL v3 or higher)" % (NAME, VERSION), anchor=W, justify=LEFT, font=("Arial", 10))
         self.footer.grid(row=2, column=0, columnspan=1)
         
+        #tabs
         self.notebook = ttk.Notebook(self.master)
         self.notebook.grid(row=1, column=0, columnspan=1, sticky=W+E+N+S)
         self.frame1 = ttk.Frame(self.master)
@@ -76,6 +78,9 @@ class App:
         self.notebook.add(self.frame2, text='Downloader')
         self.frame3 = ttk.Frame(self.master)
         self.notebook.add(self.frame3, text='Uploader')
+        #dump generator tab
+        
+        #downloader tab
         self.tree = ttk.Treeview(self.frame2, height=20, columns=('dump', 'wikifarm', 'size', 'date', 'mirror'), show='headings')
         self.tree.column('dump', width=350, minwidth=350, anchor='center')
         self.tree.heading('dump', text='Dump')
@@ -88,6 +93,10 @@ class App:
         self.tree.column('mirror', width=120, minwidth=120, anchor='center')
         self.tree.heading('mirror', text='Mirror')
         self.tree.grid(row=0, column=0, columnspan=1, sticky=W+E+N+S)
+        self.button21 = Button(self.frame2, text="Load available dumps", command=self.loadAvailableDumps, width=15)
+        self.button21.grid(row=1, column=0)
+        #uploader tab
+        
         
         #create a menu
         menu = Menu(self.master)
@@ -107,12 +116,32 @@ class App:
         helpmenu.add_command(label="Help index", command=self.callback)
         helpmenu.add_command(label="WikiTeam homepage", command=lambda: webbrowser.open_new_tab(HOMEPAGE))
         
-        dumps = []
-        urls = [
+    def run(self):
+        for i in range(10):
+            time.sleep(0.1)
+            self.value += 10
+        
+        """
+        #get parameters selected
+        params = ['--api=http://www.archiveteam.org/api.php', '--xml']
+
+        #launch dump
+        dumpgenerator.main(params=params)
+
+        #check dump
+        """
+    
+    def loadAvailableDumps(self):
+        #clear
+        for i in range(len(self.dumps)):
+            self.tree.delete(str(i))
+        self.dumps = []
+        self.urls = [
             ['Google Code', 'https://code.google.com/p/wikiteam/downloads/list?num=5000&start=0', ur'(?im)detail\?name=(?P<filename>[^&]+)&amp;can=2&amp;q=" style="white-space:nowrap">\s*(?P<size>[\d\.]+ (?:KB|MB|GB))\s*</a></td>'],
             ['Internet Archive', 'http://www.archive.org/details/referata.com-20111204', ur'/download/[^/]+/(?P<filename>[^>]+)">\s*(?P<size>[\d\.]+ (?:KB|MB|GB))\s*</a>']
         ]
-        for mirror, url, regexp in urls:
+        c = 0
+        for mirror, url, regexp in self.urls:
             print 'Loading data from', mirror, url
             f = urllib.urlopen(url)
             m = re.compile(regexp).finditer(f.read())
@@ -129,24 +158,11 @@ class App:
                     date = re.findall(ur"\-(\d{4})(\d{2})(\d{2})\-", filename)[0]
                     date = '%s-%s-%s' % (date[0], date[1], date[2])
                 dumps_.append([filename, wikifarm, size, date, mirror])
-                dumps.append([filename, wikifarm, size, date, mirror])
+                self.dumps.append([filename, wikifarm, size, date, mirror])
             for filename, wikifarm, size, date, mirror in dumps_:
-                self.tree.insert('', 'end', text=i, values=(filename, wikifarm, size, date, mirror))
-        
-    def run(self):
-        for i in range(10):
-            time.sleep(0.1)
-            self.value += 10
-        
-        """
-        #get parameters selected
-        params = ['--api=http://www.archiveteam.org/api.php', '--xml']
-
-        #launch dump
-        dumpgenerator.main(params=params)
-
-        #check dump
-        """
+                self.tree.insert('', 'end', str(c), text=filename, values=(filename, wikifarm, size, date, mirror))
+                c += 1
+    
     def callback(self):
         self.setStatus("Feature not implemented for the moment. Contributions are welcome.")
     
