@@ -69,7 +69,7 @@ class App:
         self.footer = Label(self.master, text="%s (version %s). This program is free software (GPL v3 or higher)" % (NAME, VERSION), anchor=W, justify=LEFT, font=("Arial", 10))
         self.footer.grid(row=2, column=0, columnspan=1)
         
-        #tabs
+        #begin tabs
         self.notebook = ttk.Notebook(self.master)
         self.notebook.grid(row=1, column=0, columnspan=1, sticky=W+E+N+S)
         self.frame1 = ttk.Frame(self.master)
@@ -78,11 +78,12 @@ class App:
         self.notebook.add(self.frame2, text='Downloader')
         self.frame3 = ttk.Frame(self.master)
         self.notebook.add(self.frame3, text='Uploader')
+        
         #dump generator tab
         
         #downloader tab
         self.treescrollbar = Scrollbar(self.frame2)
-        self.treescrollbar.grid(row=0, column=1, sticky=W+E+N+S)
+        self.treescrollbar.grid(row=0, column=3, sticky=W+E+N+S)
         self.tree = ttk.Treeview(self.frame2, height=20, columns=('dump', 'wikifarm', 'size', 'date', 'mirror'), show='headings', yscrollcommand=self.treescrollbar.set)
         self.treescrollbar.config(command=self.tree.yview)
         self.tree.column('dump', width=350, minwidth=350, anchor='center')
@@ -95,29 +96,34 @@ class App:
         self.tree.heading('date', text='Date')
         self.tree.column('mirror', width=120, minwidth=120, anchor='center')
         self.tree.heading('mirror', text='Mirror')
-        self.tree.grid(row=0, column=0, columnspan=1, sticky=W+E+N+S)
+        self.tree.grid(row=0, column=0, columnspan=3, sticky=W+E+N+S)
         self.button21 = Button(self.frame2, text="Load available dumps", command=self.loadAvailableDumps, width=15)
         self.button21.grid(row=1, column=0)
+        self.button22 = Button(self.frame2, text="Clear list", command=self.clearAvailableDumps, width=10)
+        self.button22.grid(row=1, column=2)
+        
         #uploader tab
         
+        #end tabs
         
-        #create a menu
+        #begin menu
         menu = Menu(self.master)
         master.config(menu=menu)
 
-        #begin file
+        #file menu
         filemenu = Menu(menu)
         menu.add_cascade(label="File", menu=filemenu)
         filemenu.add_command(label="Preferences", command=self.callback)
         filemenu.add_separator()
         filemenu.add_command(label="Exit", command=askclose)
         
-        #help
+        #help menu
         helpmenu = Menu(menu)
         menu.add_cascade(label="Help", menu=helpmenu)
         helpmenu.add_command(label="About", command=self.callback)
         helpmenu.add_command(label="Help index", command=self.callback)
         helpmenu.add_command(label="WikiTeam homepage", command=lambda: webbrowser.open_new_tab(HOMEPAGE))
+        #end menu
         
     def run(self):
         for i in range(10):
@@ -134,14 +140,16 @@ class App:
         #check dump
         """
     
-    def loadAvailableDumps(self):
-        #clear
+    def clearAvailableDumps(self):
         for i in range(len(self.dumps)):
             self.tree.delete(str(i))
         self.dumps = []
+    
+    def loadAvailableDumps(self):
+        self.clearAvailableDumps()        
         self.urls = [
-            ['Google Code', 'https://code.google.com/p/wikiteam/downloads/list?num=5000&start=0', ur'(?im)detail\?name=(?P<filename>[^&]+)&amp;can=2&amp;q=" style="white-space:nowrap">\s*(?P<size>[\d\.]+ (?:KB|MB|GB))\s*</a></td>'],
-            ['Internet Archive', 'http://www.archive.org/details/referata.com-20111204', ur'/download/[^/]+/(?P<filename>[^>]+)">\s*(?P<size>[\d\.]+ (?:KB|MB|GB))\s*</a>']
+            ['Google Code', 'https://code.google.com/p/wikiteam/downloads/list?num=5000&start=0', ur'(?im)detail\?name=(?P<filename>[^&]+\.7z)&amp;can=2&amp;q=" style="white-space:nowrap">\s*(?P<size>[\d\.]+ (?:KB|MB|GB))\s*</a></td>'],
+            ['Internet Archive', 'http://www.archive.org/details/referata.com-20111204', ur'/download/[^/]+/(?P<filename>[^>]+\.7z)">\s*(?P<size>[\d\.]+ (?:KB|MB|GB))\s*</a>']
         ]
         c = 0
         for mirror, url, regexp in self.urls:
