@@ -654,7 +654,26 @@ def bye():
 
 def usage():
     """  """
-    print "Write a complete help"
+    print """Error. You forget mandatory parameters:
+    --api or --index: URL to api.php or to index.php, one of them. If wiki has api.php, please, use --api instead of --index. Examples: --api=http://archiveteam.org/api.php or --index=http://archiveteam.org/index.php
+    
+And one of these at least:
+    --xml: it generates a XML dump. It retrieves full history of pages located in namespace = 0 (articles)
+           If you want more namespaces, use the parameter --namespaces=0,1,2,3... or --namespaces=all
+           If you want only the current versions of articles (not the full history), use --curonly option too
+    --images: it generates an image dump
+    --logs: it generates a log dump
+
+You can resume previous incomplete dumps:
+    --resume: it resumes previous incomplete dump. When using --resume, --path is mandatory (path to directory where incomplete dump is).
+
+You can exclude namespaces:
+    --exnamespaces: write the number of the namespaces you want to exclude, split by commas.
+
+You can be nice with servers using a delay:
+    --delay: it adds a time sleep (in seconds, adding 5 seconds between requests: --delay:5)
+
+Write --help for help."""
 
 def getParameters(params=[]):
     if not params:
@@ -688,6 +707,7 @@ def getParameters(params=[]):
     for o, a in opts:
         if o in ("-h","--help"):
             usage()
+            sys.exit()
         elif o in ("--path"):
             config["path"] = a
             while len(config["path"])>0:
@@ -750,28 +770,8 @@ def getParameters(params=[]):
        (config['api'] and not re.search('/api\.php', config['api'])) or \
        not (config["xml"] or config["images"] or config["logs"]) or \
        (other['resume'] and not config['path']):
-        print """Error. You forget mandatory parameters:
-    --api or --index: URL to api.php or to index.php, one of them. If wiki has api.php, please, use --api instead of --index. Examples: --api=http://archiveteam.org/api.php or --index=http://archiveteam.org/index.php
-    
-And one of these at least:
-    --xml: it generates a XML dump. It retrieves full history of pages located in namespace = 0 (articles)
-           If you want more namespaces, use the parameter --namespaces=0,1,2,3... or --namespaces=all
-           If you want only the current versions of articles (not the full history), use --curonly option too
-    --images: it generates an image dump
-    --logs: it generates a log dump
-
-You can resume previous incomplete dumps:
-    --resume: it resumes previous incomplete dump. When using --resume, --path is mandatory (path to directory where incomplete dump is).
-
-You can exclude namespaces:
-    --exnamespaces: write the number of the namespaces you want to exclude, split by commas.
-
-You can be nice with servers using a delay:
-    --delay: it adds a time sleep (in seconds, adding 5 seconds between requests: --delay:5)
-
-Write --help for help."""
+        usage()
         sys.exit()
-        #usage()
     
     #user chosen --api, --index it is neccesary for special:export, we generate it
     if config['api'] and not config['index']:
