@@ -87,15 +87,15 @@ class App:
         
         #downloader tab (2)
         self.label25var = StringVar(self.frame2)
-        self.label25var.set("Available dumps: 0 (0 MB)")
+        self.label25var.set("Available dumps: 0 (0.0 MB)")
         self.label25 = Label(self.frame2, textvariable=self.label25var)
         self.label25.grid(row=0, column=0, columnspan=2)
         self.label26var = StringVar(self.frame2)
-        self.label26var.set("Downlaoded: 0 (0 MB)")
+        self.label26var.set("Downloaded: 0 (0.0 MB)")
         self.label26 = Label(self.frame2, textvariable=self.label26var, background='lightgreen')
         self.label26.grid(row=0, column=2, columnspan=2)
         self.label27var = StringVar(self.frame2)
-        self.label27var.set("No downloaded: 0 (0 MB)")
+        self.label27var.set("No downloaded: 0 (0.0 MB)")
         self.label27 = Label(self.frame2, textvariable=self.label27var, background='white')
         self.label27.grid(row=0, column=4, columnspan=2)
         
@@ -236,15 +236,19 @@ class App:
             if not os.path.exists(self.downloadpath):
                 os.makedirs(self.downloadpath)
             for item in items:
-                print "Downloading", self.tree.item(item,"text")
                 filepath = self.downloadpath and self.downloadpath + '/' + self.dumps[int(item)][0] or self.dumps[int(item)][0]
-                f = urllib.urlretrieve(self.dumps[int(item)][5], filepath, reporthook=self.downloadProgress)
-                print 'Final size:', os.path.getsize(filepath), 'bytes'
+                if os.path.exists(filepath):
+                    print 'That dump was downloaded before'
+                else:
+                    print "Downloading", self.tree.item(item,"text")
+                    f = urllib.urlretrieve(self.dumps[int(item)][5], filepath, reporthook=self.downloadProgress)
+                    print 'Final size:', os.path.getsize(filepath), 'bytes'
                 self.dumps[int(item)] = self.dumps[int(item)][:6] + ['True']
         else:
             tkMessageBox.showerror("Error", "You have to select some dumps to download.")
         self.clearAvailableDumps()
         self.showAvailableDumps()
+        self.filterAvailableDumps()
     
     def deleteAvailableDumps(self):
         #really delete dump list and clear tree
@@ -285,9 +289,9 @@ class App:
                     downloadedsizes.append(self.dumps[i][2])
                 else:
                     nodownloadedsizes.append(self.dumps[i][2])
-        self.label25var.set("Available dumps: %d (%d MB)" % (len(sizes), self.sumSizes(sizes)))
-        self.label26var.set("Downloaded: %d (%d MB)" % (len(downloadedsizes), self.sumSizes(downloadedsizes)))
-        self.label27var.set("No downloaded: %d (%d MB)" % (len(nodownloadedsizes), self.sumSizes(nodownloadedsizes)))
+        self.label25var.set("Available dumps: %d (%.1f MB)" % (len(sizes), self.sumSizes(sizes)))
+        self.label26var.set("Downloaded: %d (%.1f MB)" % (len(downloadedsizes), self.sumSizes(downloadedsizes)))
+        self.label27var.set("No downloaded: %d (%.1f MB)" % (len(nodownloadedsizes), self.sumSizes(nodownloadedsizes)))
     
     def isDumpDownloaded(self, filename):
         #improve, size check or md5sum?
