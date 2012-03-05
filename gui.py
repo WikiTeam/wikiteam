@@ -179,7 +179,7 @@ class App:
         #end tabs
         
         #statusbar
-        self.status = Label(self.master, text="Welcome to WikiTeam tools. What do you want to do today?", bd=1, background='yellow', justify=LEFT, relief=SUNKEN)
+        self.status = Label(self.master, text="Welcome to WikiTeam tools. What do you want to do today?", bd=1, background='grey', justify=LEFT, relief=SUNKEN)
         self.status.grid(row=4, column=0, columnspan=10, sticky=W+E)
         
         #begin menu
@@ -207,18 +207,18 @@ class App:
                 self.msg('Please wait... Checking api.php...')
                 if dumpgenerator.checkAPI(self.entry11.get()):
                     self.entry11.config(background='lightgreen')
-                    self.msg('api.php is OK!')
+                    self.msg('api.php is correct!', level='ok')
                 else:
                     self.entry11.config(background='red')
-                    self.msg('api.php is incorrect!')
+                    self.msg('api.php is incorrect!', level='error')
             elif self.optionmenu11var.get() == 'index.php':
                 self.msg('Please wait... Checking index.php...')
                 if dumpgenerator.checkIndexphp(self.entry11.get()):
                     self.entry11.config(background='lightgreen')
-                    self.msg('index.php is OK!')
+                    self.msg('index.php is OK!', level='ok')
                 else:
                     self.entry11.config(background='red')
-                    self.msg('index.php is incorrect!')
+                    self.msg('index.php is incorrect!', level='error')
         else:
             tkMessageBox.showerror("Error", "You have to write a correct api.php or index.php URL.")
     
@@ -252,9 +252,14 @@ class App:
         #check dump
         """
     
-    def msg(self, msg=''):
-        print msg
-        self.status.config(text=msg)
+    def msg(self, msg='', level=''):
+        levels = { 'ok': 'lightgreen', 'warning': 'yellow', 'error': 'red' }
+        if levels.has_key(level.lower()):
+            print '%s: %s' % (level.upper(), msg)
+            self.status.config(text=msg, background=levels[level.lower()])
+        else:
+            print msg
+            self.status.config(text=msg, background='grey')
     
     def treeSortColumn(self, column, reverse=False):
         l = [(self.tree.set(i, column), i) for i in self.tree.get_children('')]
@@ -270,7 +275,7 @@ class App:
             percent = downloaded/(total_mb/100.0)
             if not random.randint(0,10):
                 msg = "%.1f MB of %.1f MB downloaded (%.1f%%)" % (downloaded, total_mb, percent <= 100 and percent or 100)
-                self.msg(msg)
+                self.msg(msg, level='ok')
             #sys.stdout.write("%.1f MB of %.1f MB downloaded (%.2f%%)" %(downloaded, total_mb, percent))
             #sys.stdout.flush()
         except:
@@ -281,16 +286,24 @@ class App:
         if items:
             if not os.path.exists(self.downloadpath):
                 os.makedirs(self.downloadpath)
+            c = 0
+            d = 0
             for item in items:
                 filepath = self.downloadpath and self.downloadpath + '/' + self.dumps[int(item)][0] or self.dumps[int(item)][0]
                 if os.path.exists(filepath):
-                    print 'That dump was downloaded before'
+                    self.msg('That dump was downloaded before', level='ok')
+                    d += 1
                 else:
-                    print "Downloading", self.tree.item(item,"text"), 'from', self.dumps[int(item)][5]
+                    self.msg("[%d of %d] Downloading %s from %s" % (c+1, len(items), self.tree.item(item,"text"), self.dumps[int(item)][5]))
                     f = urllib.urlretrieve(self.dumps[int(item)][5], filepath, reporthook=self.downloadProgress)
                     msg='%s size is %s bytes large. Download successful!' % (self.dumps[int(item)][0], os.path.getsize(filepath))
-                    self.msg(msg=msg)
+                    self.msg(msg=msg, level='ok')
+                    c += 1
                 self.dumps[int(item)] = self.dumps[int(item)][:6] + ['True']
+            if c + d == len(items):
+                self.msg('Downloaded %d of %d (and %d were previously downloaded).' % (c, len(items), d), level='ok')
+            else:
+                self.msg('Problems in %d dumps. Downloaded %d of %d (and %d were previously downloaded).' % (len(items)-(c+d), c, len(items), d), level='error')
         else:
             tkMessageBox.showerror("Error", "You have to select some dumps to download.")
         self.clearAvailableDumps()
@@ -398,10 +411,10 @@ class App:
         self.dumps.sort()
         self.showAvailableDumps()
         self.filterAvailableDumps()
-        self.msg(msg='OK. Loaded available dumps!')
+        self.msg(msg='Loaded available dumps!', level='ok')
     
     def callback(self):
-        self.msg("Feature not implemented for the moment. Contributions are welcome.")
+        self.msg("Feature not implemented for the moment. Contributions are welcome.", level='warning')
     
 def askclose():
     if tkMessageBox.askokcancel("Quit", "Do you really wish to exit?"):
