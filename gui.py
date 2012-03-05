@@ -39,11 +39,15 @@ TODO:
 """
 
 wikifarms = {
-    '': 'Unknown',
+    'gentoo_wikicom': 'Gentoo Wiki',
     'opensuseorg': 'OpenSuSE',
     'referatacom': 'Referata',
+    'shoutwikicom': 'ShoutWiki',
     'Unknown': 'Unknown',
+    'wikanda': 'Wikanda',
+    'wikifur': 'WikiFur',
     'wikitravelorg': 'WikiTravel',
+    'wikkii': 'Wikkii',
 }
 
 NAME = 'WikiTeam tools'
@@ -112,7 +116,7 @@ class App:
         self.label21.grid(row=1, column=0)
         self.optionmenu21var = StringVar(self.frame2)
         self.optionmenu21var.set("all")
-        self.optionmenu21 = OptionMenu(self.frame2, self.optionmenu21var, "all", "Referata", "OpenSuSE", "Unknown", "WikiTravel")
+        self.optionmenu21 = OptionMenu(self.frame2, self.optionmenu21var, "all", "Gentoo Wiki", "OpenSuSE", "Referata", "ShoutWiki", "Unknown", "Wikanda", "WikiFur", "WikiTravel", "Wikkii")
         self.optionmenu21.grid(row=1, column=1)
         
         self.label22 = Label(self.frame2, text="Filter by size:", width=15, anchor=W)
@@ -340,6 +344,7 @@ class App:
             ['Internet Archive', 'http://www.archive.org/details/WikiTeamMirror', iaregexp],
             ['ScottDB', 'http://mirrors.sdboyd56.com/WikiTeam/', ur'<a href="(?P<filename>[^>]+\.7z)">(?P<size>[\d\.]+ (?:KB|MB|GB|TB))</a>'],
         ]
+        wikifarms_r = re.compile(ur"(%s)" % ('|'.join(wikifarms.keys())))
         c = 0
         for mirror, url, regexp in self.urls:
             print 'Loading data from', mirror, url
@@ -349,8 +354,8 @@ class App:
             for i in m:
                 filename = i.group('filename')
                 wikifarm = 'Unknown'
-                if re.search(ur"(opensuseorg|referatacom|wikitravelorg)[_-]", filename):
-                    wikifarm = re.findall(ur"(gentoo_wikicom|opensuseorg|referatacom|wikitravelorg)[_-]", filename)[0]
+                if re.search(wikifarms_r, filename):
+                    wikifarm = re.findall(wikifarms_r, filename)[0]
                 wikifarm = wikifarms[wikifarm]
                 size = i.group('size')
                 date = 'Unknown'
@@ -368,6 +373,7 @@ class App:
                     downloadurl = url + '/' + filename
                 downloaded = self.isDumpDownloaded(filename)
                 self.dumps.append([filename, wikifarm, size, date, mirror, downloadurl, downloaded])
+        self.dumps.sort()
         self.showAvailableDumps()
         self.filterAvailableDumps()
         self.msg(msg='OK. Loaded available dumps!')
