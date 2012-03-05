@@ -330,7 +330,6 @@ class App:
             ['Google Code', 'https://code.google.com/p/wikiteam/downloads/list?num=5000&start=0', ur'(?im)detail\?name=(?P<filename>[^&]+\.7z)&amp;can=2&amp;q=" style="white-space:nowrap">\s*(?P<size>[\d\.]+ (?:KB|MB|GB|TB))\s*</a></td>'],
             ['Internet Archive', 'http://www.archive.org/details/referata.com-20111204', iaregexp],
             ['Internet Archive', 'http://www.archive.org/details/WikiTeamMirror', iaregexp],
-            ['ScottDB', 'http://mirrors.sdboyd56.com/WikiTeam/', ur'<a href="(?P<filename>[^>]+\.7z)">(?P<size>[\d\.]+ (?:KB|MB|GB|TB))</a>'],
         ]
         c = 0
         for mirror, url, regexp in self.urls:
