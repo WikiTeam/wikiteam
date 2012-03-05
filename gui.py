@@ -125,7 +125,7 @@ class App:
         self.label24.grid(row=1, column=6)
         self.optionmenu24var = StringVar(self.frame2)
         self.optionmenu24var.set("all")
-        self.optionmenu24 = OptionMenu(self.frame2, self.optionmenu24var, "all", "Google Code", "Internet Archive")
+        self.optionmenu24 = OptionMenu(self.frame2, self.optionmenu24var, "all", "Google Code", "Internet Archive", "ScottDB")
         self.optionmenu24.grid(row=1, column=7)
         
         self.button23 = Button(self.frame2, text="Filter!", command=self.filterAvailableDumps, width=7)
@@ -330,6 +330,7 @@ class App:
             ['Google Code', 'https://code.google.com/p/wikiteam/downloads/list?num=5000&start=0', ur'(?im)detail\?name=(?P<filename>[^&]+\.7z)&amp;can=2&amp;q=" style="white-space:nowrap">\s*(?P<size>[\d\.]+ (?:KB|MB|GB|TB))\s*</a></td>'],
             ['Internet Archive', 'http://www.archive.org/details/referata.com-20111204', iaregexp],
             ['Internet Archive', 'http://www.archive.org/details/WikiTeamMirror', iaregexp],
+            ['ScottDB', 'http://mirrors.sdboyd56.com/WikiTeam/', ur'<a href="(?P<filename>[^>]+\.7z)">(?P<size>[\d\.]+ (?:KB|MB|GB|TB))</a>'],
         ]
         c = 0
         for mirror, url, regexp in self.urls:
@@ -352,6 +353,8 @@ class App:
                 if mirror == 'Google Code':
                     downloadurl = 'https://wikiteam.googlecode.com/files/' + filename
                 elif mirror == 'Internet Archive':
+                    downloadurl = url + '/' + filename
+                elif mirror == 'ScottDB':
                     downloadurl = url + '/' + filename
                 downloaded = self.isDumpDownloaded(filename)
                 self.dumps.append([filename, wikifarm, size, date, mirror, downloadurl, downloaded])
