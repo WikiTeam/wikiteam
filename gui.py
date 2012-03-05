@@ -296,6 +296,10 @@ class App:
             pass
     
     def downloadDump(self, event=None):
+        if self.block:
+            return
+        else:
+            self.block = True
         items = self.tree.selection()
         if items:
             if not os.path.exists(self.downloadpath):
@@ -323,6 +327,7 @@ class App:
         self.clearAvailableDumps()
         self.showAvailableDumps()
         self.filterAvailableDumps()
+        self.block = False
     
     def deleteAvailableDumps(self):
         #really delete dump list and clear tree
