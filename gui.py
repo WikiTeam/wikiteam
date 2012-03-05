@@ -150,7 +150,7 @@ class App:
         self.tree.heading('status', text='Status')
         self.tree.grid(row=2, column=0, columnspan=9, sticky=W+E+N+S)
         [self.tree.heading(column, text=column, command=lambda: self.treeSortColumn(column=column, reverse=False)) for column in columns]        
-        self.tree.bind("<Double-1>", self.downloadDump)
+        #self.tree.bind("<Double-1>", (lambda: thread.start_new_thread(self.downloadDump, ())))
         self.tree.tag_configure('downloaded', background='lightgreen')
         self.tree.tag_configure('nodownloaded', background='white')
         self.button21 = Button(self.frame2, text="Load available dumps", command=lambda: thread.start_new_thread(self.loadAvailableDumps, ()), width=15)
