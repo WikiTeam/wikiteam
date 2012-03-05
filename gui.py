@@ -365,7 +365,7 @@ class App:
         self.msg(msg='OK. Loaded available dumps!')
     
     def callback(self):
-        self.setStatus("Feature not implemented for the moment. Contributions are welcome.")
+        self.msg("Feature not implemented for the moment. Contributions are welcome.")
     
 def askclose():
     if tkMessageBox.askokcancel("Quit", "Do you really wish to exit?"):
