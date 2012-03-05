@@ -780,11 +780,7 @@ def getParameters(params=[]):
     
     if config['api']:
         #check api.php
-        f = urllib.urlopen(config['api'])
-        raw = f.read()
-        f.close()
-        print 'Checking api.php...'
-        if re.search(r'action=query', raw):
+        if checkAPI(config['api']):
             print 'api.php is OK'
         else:
             print 'Error in api.php, please, provide a correct path to api.php'
@@ -792,16 +788,10 @@ def getParameters(params=[]):
     
     if config['index']:
         #check index.php
-        req = urllib2.Request(url=config['index'], data=urllib.urlencode({'title': 'Special:Version', }), headers={'User-Agent': getUserAgent()})
-        f = urllib2.urlopen(req)
-        raw = f.read()
-        f.close()
-        print 'Checking index.php...'
-        if re.search(r'(This wiki is powered by|<h2 id="mw-version-license">)', raw):
+        if checkIndexphp(config['index']):
             print 'index.php is OK'
         else:
             print 'Error in index.php, please, provide a correct path to index.php'
-            print raw[:500]
             sys.exit()
     
     #calculating path, if not defined by user with --path=
@@ -809,6 +799,25 @@ def getParameters(params=[]):
         config['path'] = './%s-%s-wikidump' % (domain2prefix(config=config), config['date'])
     
     return config, other
+
+def checkAPI(api):
+    f = urllib.urlopen(api)
+    raw = f.read()
+    f.close()
+    print 'Checking api.php...'
+    if re.search(r'action=query', raw):
+        return True
+    return False
+
+def checkIndexphp(indexphp):
+    req = urllib2.Request(url=indexphp, data=urllib.urlencode({'title': 'Special:Version', }), headers={'User-Agent': getUserAgent()})
+    f = urllib2.urlopen(req)
+    raw = f.read()
+    f.close()
+    print 'Checking index.php...'
+    if re.search(r'(This wiki is powered by|<h2 id="mw-version-license">)', raw):
+        return True
+    return False
 
 def removeIP(raw=''):
     """ Remove IP from HTML comments <!-- --> """
