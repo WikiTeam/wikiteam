@@ -46,6 +46,7 @@ wikifarms = {
     'Unknown': 'Unknown',
     'wikanda': 'Wikanda',
     'wikifur': 'WikiFur',
+    'wikimedia': 'Wikimedia',
     'wikitravelorg': 'WikiTravel',
     'wikkii': 'Wikkii',
 }
@@ -62,6 +63,7 @@ class App:
         self.master = master
         self.dumps = []
         self.downloadpath = 'downloads'
+        self.block = False
         
         # interface elements
         #progressbar
@@ -127,7 +129,7 @@ class App:
         self.label21.grid(row=1, column=0)
         self.optionmenu21var = StringVar(self.frame2)
         self.optionmenu21var.set("all")
-        self.optionmenu21 = OptionMenu(self.frame2, self.optionmenu21var, self.optionmenu21var.get(), "Gentoo Wiki", "OpenSuSE", "Referata", "ShoutWiki", "Unknown", "Wikanda", "WikiFur", "WikiTravel", "Wikkii")
+        self.optionmenu21 = OptionMenu(self.frame2, self.optionmenu21var, self.optionmenu21var.get(), "Gentoo Wiki", "OpenSuSE", "Referata", "ShoutWiki", "Unknown", "Wikanda", "WikiFur", "Wikimedia", "WikiTravel", "Wikkii")
         self.optionmenu21.grid(row=1, column=1)
         
         self.label22 = Label(self.frame2, text="Filter by size:", width=15, anchor=W)
@@ -243,6 +245,8 @@ class App:
                 total += float(size.split(' ')[0])*1024*1024
             elif size.endswith('TB'):
                 total += float(size.split(' ')[0])*1024*1024*1024
+            elif not size or size.lower() == 'unknown':
+                pass
             else:
                 total += size
         return total/1024 #MB
@@ -380,6 +384,10 @@ class App:
         return False
     
     def loadAvailableDumps(self):
+        if self.block:
+            return
+        else:
+            self.block = True
         if self.dumps:
             self.deleteAvailableDumps()
         iaregexp = ur'/download/[^/]+/(?P<filename>[^>]+\.7z)">\s*(?P<size>[\d\.]+ (?:KB|MB|GB|TB))\s*</a>'
@@ -388,6 +396,7 @@ class App:
             ['Internet Archive', 'http://www.archive.org/details/referata.com-20111204', iaregexp],
             ['Internet Archive', 'http://www.archive.org/details/WikiTeamMirror', iaregexp],
             ['ScottDB', 'http://mirrors.sdboyd56.com/WikiTeam/', ur'<a href="(?P<filename>[^>]+\.7z)">(?P<size>[\d\.]+ (?:KB|MB|GB|TB))</a>'],
+            ['Wikimedia', 'http://dumps.wikimedia.org/backup-index.html', ur'(?P<size>)<a href="(?P<filename>[^>]+)">[^>]+</a>: <span class=\'done\'>Dump complete</span></li>']
         ]
         wikifarms_r = re.compile(ur"(%s)" % ('|'.join(wikifarms.keys())))
         c = 0
@@ -398,6 +407,8 @@ class App:
             m = re.compile(regexp).finditer(f.read())
             for i in m:
                 filename = i.group('filename')
+                if mirror == 'Wikimedia':
+                    filename = '%s-pages-meta-history.xml.7z' % (re.sub('/', '-', filename))
                 wikifarm = 'Unknown'
                 if re.search(wikifarms_r, filename):
                     wikifarm = re.findall(wikifarms_r, filename)[0]
@@ -416,12 +427,15 @@ class App:
                     downloadurl = re.sub(ur'/details/', ur'/download/', url) + '/' + filename
                 elif mirror == 'ScottDB':
                     downloadurl = url + '/' + filename
+                elif mirror == 'Wikimedia':
+                    downloadurl = 'http://dumps.wikimedia.org/' + filename.split('-')[0] + '/' + re.sub('-', '', date) + '/' + filename
                 downloaded = self.isDumpDownloaded(filename)
                 self.dumps.append([filename, wikifarm, size, date, mirror, downloadurl, downloaded])
         self.dumps.sort()
         self.showAvailableDumps()
         self.filterAvailableDumps()
         self.msg(msg='Loaded available dumps!', level='ok')
+        self.block = False
     
     def callback(self):
         self.msg("Feature not implemented for the moment. Contributions are welcome.", level='warning')
