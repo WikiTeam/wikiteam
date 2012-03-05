@@ -22,6 +22,7 @@ import re
 from Tkinter import *
 import ttk
 import tkMessageBox
+import thread
 import time
 import urllib
 import webbrowser
@@ -82,7 +83,7 @@ class App:
         self.notebook.add(self.frame3, text='Uploader')
         
         #dump generator tab (1)
-        self.label11 = Label(self.frame1, text="todo...")
+        self.label11 = Label(self.frame1, text="Wiki URL:")
         self.label11.grid(row=0, column=0)
         
         #downloader tab (2)
@@ -152,9 +153,9 @@ class App:
         self.tree.bind("<Double-1>", self.downloadDump)
         self.tree.tag_configure('downloaded', background='lightgreen')
         self.tree.tag_configure('nodownloaded', background='white')
-        self.button21 = Button(self.frame2, text="Load available dumps", command=self.loadAvailableDumps, width=15)
+        self.button21 = Button(self.frame2, text="Load available dumps", command=lambda: thread.start_new_thread(self.loadAvailableDumps, ()), width=15)
         self.button21.grid(row=3, column=0)
-        self.button23 = Button(self.frame2, text="Download selection", command=self.downloadDump, width=15)
+        self.button23 = Button(self.frame2, text="Download selection", command=lambda: thread.start_new_thread(self.downloadDump, ()), width=15)
         self.button23.grid(row=3, column=4)
         self.button22 = Button(self.frame2, text="Clear list", command=self.deleteAvailableDumps, width=10)
         self.button22.grid(row=3, column=8, columnspan=2)
@@ -165,7 +166,7 @@ class App:
         #end tabs
         
         #statusbar
-        self.status = Label(self.master, text="Welcome!", bd=1, justify=LEFT, relief=SUNKEN)
+        self.status = Label(self.master, text="Welcome!", bd=1, background='yellow', justify=LEFT, relief=SUNKEN)
         self.status.grid(row=4, column=0, columnspan=10, sticky=W+E)
         
         #begin menu
@@ -217,6 +218,10 @@ class App:
         #check dump
         """
     
+    def msg(self, msg=''):
+        print msg
+        self.status.config(text=msg)
+    
     def treeSortColumn(self, column, reverse=False):
         l = [(self.tree.set(i, column), i) for i in self.tree.get_children('')]
         l.sort(reverse=reverse)
@@ -230,7 +235,8 @@ class App:
             downloaded = block_count *(block_size/1024/1024.0)
             percent = downloaded/(total_mb/100.0)
             if not random.randint(0,10):
-                print "%.1f MB of %.1f MB downloaded (%.1f%%)" %(downloaded, total_mb, percent <= 100 and percent or 100)
+                msg = "%.1f MB of %.1f MB downloaded (%.1f%%)" % (downloaded, total_mb, percent <= 100 and percent or 100)
+                self.msg(msg)
             #sys.stdout.write("%.1f MB of %.1f MB downloaded (%.2f%%)" %(downloaded, total_mb, percent))
             #sys.stdout.flush()
         except:
@@ -248,7 +254,8 @@ class App:
                 else:
                     print "Downloading", self.tree.item(item,"text")
                     f = urllib.urlretrieve(self.dumps[int(item)][5], filepath, reporthook=self.downloadProgress)
-                    print 'Final size:', os.path.getsize(filepath), 'bytes'
+                    msg='%s size is %s bytes long. OK, downloaded!' % (self.dumps[int(item)][0], os.path.getsize(filepath))
+                    self.msg(msg=msg)
                 self.dumps[int(item)] = self.dumps[int(item)][:6] + ['True']
         else:
             tkMessageBox.showerror("Error", "You have to select some dumps to download.")
@@ -327,6 +334,7 @@ class App:
         c = 0
         for mirror, url, regexp in self.urls:
             print 'Loading data from', mirror, url
+            self.msg(msg='Please wait... Loading data from %s %s' % (mirror, url))
             f = urllib.urlopen(url)
             m = re.compile(regexp).finditer(f.read())
             for i in m:
@@ -349,6 +357,7 @@ class App:
                 self.dumps.append([filename, wikifarm, size, date, mirror, downloadurl, downloaded])
         self.showAvailableDumps()
         self.filterAvailableDumps()
+        self.msg(msg='OK. Loaded available dumps!')
     
     def callback(self):
         self.setStatus("Feature not implemented for the moment. Contributions are welcome.")
