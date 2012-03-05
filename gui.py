@@ -89,7 +89,7 @@ class App:
         self.entry11.grid(row=0, column=1)
         self.optionmenu11var = StringVar(self.frame1)
         self.optionmenu11var.set("api")
-        self.optionmenu11 = OptionMenu(self.frame1, self.optionmenu11var, "api", "index.php")
+        self.optionmenu11 = OptionMenu(self.frame1, self.optionmenu11var, "api.php", "index.php")
         self.optionmenu11.grid(row=0, column=2)
         self.button11 = Button(self.frame1, text="Check", command=lambda: thread.start_new_thread(self.callback, ()), width=5)
         self.button11.grid(row=0, column=3)
