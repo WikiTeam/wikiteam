@@ -67,7 +67,7 @@ class App:
         #self.run()
         
         #description
-        self.desc = Label(self.master, text="Welcome to WikiTeam tools. What do you want to do today? You can: 1) Generate a new wiki backup, 2) Download available dumps,\n3) Upload your dump anywhere. Thanks for helping to preserve wikis.", anchor=W, font=("Arial", 10))
+        self.desc = Label(self.master, text="", anchor=W, font=("Arial", 10))
         self.desc.grid(row=0, column=0, columnspan=1)
         #self.footer = Label(self.master, text="%s (version %s). This program is free software (GPL v3 or higher)" % (NAME, VERSION), anchor=W, justify=LEFT, font=("Arial", 10))
         #self.footer.grid(row=2, column=0, columnspan=1)
@@ -136,7 +136,7 @@ class App:
         columns = ('dump', 'wikifarm', 'size', 'date', 'mirror', 'status')
         self.tree = ttk.Treeview(self.frame2, height=20, columns=columns, show='headings', yscrollcommand=self.treescrollbar.set)
         self.treescrollbar.config(command=self.tree.yview)
-        self.tree.column('dump', width=400, minwidth=200, anchor='center')
+        self.tree.column('dump', width=495, minwidth=200, anchor='center')
         self.tree.heading('dump', text='Dump')
         self.tree.column('wikifarm', width=100, minwidth=100, anchor='center')
         self.tree.heading('wikifarm', text='Wikifarm')
@@ -166,7 +166,7 @@ class App:
         #end tabs
         
         #statusbar
-        self.status = Label(self.master, text="Welcome!", bd=1, background='yellow', justify=LEFT, relief=SUNKEN)
+        self.status = Label(self.master, text="Welcome to WikiTeam tools. What do you want to do today?", bd=1, background='yellow', justify=LEFT, relief=SUNKEN)
         self.status.grid(row=4, column=0, columnspan=10, sticky=W+E)
         
         #begin menu
@@ -368,8 +368,8 @@ def askclose():
 
 if __name__ == "__main__":
     root = Tk()
-    width = 955
-    height = 580
+    width = 1050
+    height = 560
     # calculate position x, y
     x = (root.winfo_screenwidth()/2) - (width/2) 
     y = (root.winfo_screenheight()/2) - (height/2)
