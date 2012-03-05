@@ -125,7 +125,7 @@ class App:
         self.label24.grid(row=1, column=6)
         self.optionmenu24var = StringVar(self.frame2)
         self.optionmenu24var.set("all")
-        self.optionmenu24 = OptionMenu(self.frame2, self.optionmenu24var, "all", "Google Code", "Internet Archive", "ScottDB")
+        self.optionmenu24 = OptionMenu(self.frame2, self.optionmenu24var, "all", "Google Code", "Internet Archive")
         self.optionmenu24.grid(row=1, column=7)
         
         self.button23 = Button(self.frame2, text="Filter!", command=self.filterAvailableDumps, width=7)
@@ -276,7 +276,7 @@ class App:
     def showAvailableDumps(self):
         c = 0
         for filename, wikifarm, size, date, mirror, url, downloaded in self.dumps:
-            self.tree.insert('', 'end', str(c), text=filename, values=(filename, wikifarm, size, date, mirror, downloaded and 'Downloaded' or 'No downloaded'), tags=(downloaded and 'downloaded' or 'nodownloaded',))
+            self.tree.insert('', 'end', str(c), text=filename, values=(filename, wikifarm, size, date, mirror, downloaded and 'Downloaded' or 'Not downloaded'), tags=(downloaded and 'downloaded' or 'nodownloaded',))
             c += 1
         
     def filterAvailableDumps(self):
@@ -352,8 +352,6 @@ class App:
                 if mirror == 'Google Code':
                     downloadurl = 'https://wikiteam.googlecode.com/files/' + filename
                 elif mirror == 'Internet Archive':
-                    downloadurl = url + '/' + filename
-                elif mirror == 'ScottDB':
                     downloadurl = url + '/' + filename
                 downloaded = self.isDumpDownloaded(filename)
                 self.dumps.append([filename, wikifarm, size, date, mirror, downloadurl, downloaded])
