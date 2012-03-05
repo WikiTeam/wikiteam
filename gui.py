@@ -273,7 +273,7 @@ class App:
         levels = { 'ok': 'lightgreen', 'warning': 'yellow', 'error': 'red' }
         if levels.has_key(level.lower()):
             print '%s: %s' % (level.upper(), msg)
-            self.status.config(text=msg, background=levels[level.lower()])
+            self.status.config(text='%s: %s' % (level.upper(), msg), background=levels[level.lower()])
         else:
             print msg
             self.status.config(text=msg, background='grey')
