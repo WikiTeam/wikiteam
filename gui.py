@@ -301,7 +301,7 @@ class App:
                     c += 1
                 self.dumps[int(item)] = self.dumps[int(item)][:6] + ['True']
             if c + d == len(items):
-                self.msg('Downloaded %d of %d (and %d were previously downloaded).' % (c, len(items), d), level='ok')
+                self.msg('Downloaded %d of %d%s.' % (c, len(items), d and ' (and %d were previously downloaded)' % (d) or ''), level='ok')
             else:
                 self.msg('Problems in %d dumps. Downloaded %d of %d (and %d were previously downloaded).' % (len(items)-(c+d), c, len(items), d), level='error')
         else:
