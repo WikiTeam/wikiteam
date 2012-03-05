@@ -346,9 +346,11 @@ class App:
                 wikifarm = wikifarms[wikifarm]
                 size = i.group('size')
                 date = 'Unknown'
-                if re.search(ur"\-(\d{8})\-", filename):
-                    date = re.findall(ur"\-(\d{4})(\d{2})(\d{2})\-", filename)[0]
+                if re.search(ur"\-(\d{8})[\.-]", filename):
+                    date = re.findall(ur"\-(\d{4})(\d{2})(\d{2})[\.-]", filename)[0]
                     date = '%s-%s-%s' % (date[0], date[1], date[2])
+                elif re.search(ur"\-(\d{4}\-\d{2}\-\d{2})[\.-]", filename):
+                    date = re.findall(ur"\-(\d{4}\-\d{2}\-\d{2})[\.-]", filename)[0]
                 downloadurl = ''
                 if mirror == 'Google Code':
                     downloadurl = 'https://wikiteam.googlecode.com/files/' + filename
