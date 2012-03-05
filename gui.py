@@ -189,7 +189,7 @@ class App:
         #end tabs
         
         #statusbar
-        self.status = Label(self.master, text="Welcome to WikiTeam tools. What do you want to do today?", bd=1, background='grey', justify=LEFT, relief=SUNKEN)
+        self.status = Label(self.master, text="Welcome to WikiTeam tools. What wiki do you want to preserve today?", bd=1, background='grey', justify=LEFT, relief=SUNKEN)
         self.status.grid(row=4, column=0, columnspan=10, sticky=W+E)
         
         #begin menu
