@@ -254,7 +254,7 @@ class App:
                 else:
                     print "Downloading", self.tree.item(item,"text")
                     f = urllib.urlretrieve(self.dumps[int(item)][5], filepath, reporthook=self.downloadProgress)
-                    msg='%s size is %s bytes long. OK, downloaded!' % (self.dumps[int(item)][0], os.path.getsize(filepath))
+                    msg='%s size is %s bytes large. Download successful!' % (self.dumps[int(item)][0], os.path.getsize(filepath))
                     self.msg(msg=msg)
                 self.dumps[int(item)] = self.dumps[int(item)][:6] + ['True']
         else:
