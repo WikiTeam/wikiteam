@@ -96,7 +96,7 @@ class App:
         self.label26 = Label(self.frame2, textvariable=self.label26var, background='lightgreen', width=27, anchor=W)
         self.label26.grid(row=0, column=2, columnspan=2)
         self.label27var = StringVar(self.frame2)
-        self.label27var.set("No downloaded: 0 (0.0 MB)")
+        self.label27var.set("Not downloaded: 0 (0.0 MB)")
         self.label27 = Label(self.frame2, textvariable=self.label27var, background='white', width=27, anchor=W)
         self.label27.grid(row=0, column=4, columnspan=2)
         
@@ -304,7 +304,7 @@ class App:
                     nodownloadedsizes.append(self.dumps[i][2])
         self.label25var.set("Available dumps: %d (%.1f MB)" % (len(sizes), self.sumSizes(sizes)))
         self.label26var.set("Downloaded: %d (%.1f MB)" % (len(downloadedsizes), self.sumSizes(downloadedsizes)))
-        self.label27var.set("No downloaded: %d (%.1f MB)" % (len(nodownloadedsizes), self.sumSizes(nodownloadedsizes)))
+        self.label27var.set("Not downloaded: %d (%.1f MB)" % (len(nodownloadedsizes), self.sumSizes(nodownloadedsizes)))
     
     def isDumpDownloaded(self, filename):
         #improve, size check or md5sum?
