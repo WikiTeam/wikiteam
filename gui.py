@@ -91,11 +91,12 @@ class App:
         self.label11.grid(row=0, column=0)
         self.entry11 = Entry(self.frame1, width=40)
         self.entry11.grid(row=0, column=1)
+        self.entry11.bind('<Return>', (lambda event: self.checkURL()))
         self.optionmenu11var = StringVar(self.frame1)
         self.optionmenu11var.set("api.php")
         self.optionmenu11 = OptionMenu(self.frame1, self.optionmenu11var, self.optionmenu11var.get(), "index.php")
         self.optionmenu11.grid(row=0, column=2)
-        self.button11 = Button(self.frame1, text="Check", command=lambda: thread.start_new_thread(self.callback, ()), width=5)
+        self.button11 = Button(self.frame1, text="Check", command=lambda: thread.start_new_thread(self.checkURL, ()), width=5)
         self.button11.grid(row=0, column=3)
         
         #downloader tab (2)
@@ -199,6 +200,27 @@ class App:
         helpmenu.add_command(label="Help index", command=self.callback)
         helpmenu.add_command(label="WikiTeam homepage", command=lambda: webbrowser.open_new_tab(HOMEPAGE))
         #end menu
+    
+    def checkURL(self):
+        if re.search(ur"(?im)^https?://[^/]+\.[^/]+/", self.entry11.get()): #well-constructed URL?, one dot at least, aaaaa.com, but bb.aaaaa.com is allowed too
+            if self.optionmenu11var.get() == 'api.php':
+                self.msg('Please wait... Checking api.php...')
+                if dumpgenerator.checkAPI(self.entry11.get()):
+                    self.entry11.config(background='lightgreen')
+                    self.msg('api.php is OK!')
+                else:
+                    self.entry11.config(background='red')
+                    self.msg('api.php is incorrect!')
+            elif self.optionmenu11var.get() == 'index.php':
+                self.msg('Please wait... Checking index.php...')
+                if dumpgenerator.checkIndexphp(self.entry11.get()):
+                    self.entry11.config(background='lightgreen')
+                    self.msg('index.php is OK!')
+                else:
+                    self.entry11.config(background='red')
+                    self.msg('index.php is incorrect!')
+        else:
+            tkMessageBox.showerror("Error", "You have to write a correct api.php or index.php URL.")
     
     def sumSizes(self, sizes):
         total = 0
