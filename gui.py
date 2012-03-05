@@ -213,6 +213,9 @@ class App:
         helpmenu.add_command(label="WikiTeam homepage", command=lambda: webbrowser.open_new_tab(HOMEPAGE))
         #end menu
     
+    def blocked(self):
+        tkMessageBox.showerror("Error", "There is a task in progress. Please, wait.")
+    
     def checkURL(self):
         if re.search(ur"(?im)^https?://[^/]+\.[^/]+/", self.entry11.get()): #well-constructed URL?, one dot at least, aaaaa.com, but bb.aaaaa.com is allowed too
             if self.optionmenu11var.get() == 'api.php':
@@ -297,6 +300,7 @@ class App:
     
     def downloadDump(self, event=None):
         if self.block:
+            self.blocked()
             return
         else:
             self.block = True
@@ -390,6 +394,7 @@ class App:
     
     def loadAvailableDumps(self):
         if self.block:
+            self.blocked()
             return
         else:
             self.block = True
@@ -419,6 +424,8 @@ class App:
                     wikifarm = re.findall(wikifarms_r, filename)[0]
                 wikifarm = wikifarms[wikifarm]
                 size = i.group('size')
+                if not size:
+                    size = 'Unknown'
                 date = 'Unknown'
                 if re.search(ur"\-(\d{8})[\.-]", filename):
                     date = re.findall(ur"\-(\d{4})(\d{2})(\d{2})[\.-]", filename)[0]
@@ -439,7 +446,7 @@ class App:
         self.dumps.sort()
         self.showAvailableDumps()
         self.filterAvailableDumps()
-        self.msg(msg='Loaded available dumps!', level='ok')
+        self.msg(msg='Loaded %d available dumps!' % (len(self.dumps)), level='ok')
         self.block = False
     
     def callback(self):
