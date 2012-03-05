@@ -85,6 +85,10 @@ class App:
         #dump generator tab (1)
         self.label11 = Label(self.frame1, text="Wiki URL:")
         self.label11.grid(row=0, column=0)
+        self.entry11 = Entry(self.frame1, width=20)
+        self.entry11.grid(row=0, column=1)
+        self.button11 = Button(self.frame1, text="Check", command=lambda: thread.start_new_thread(self.callback, ()), width=5)
+        self.button11.grid(row=0, column=2)
         
         #downloader tab (2)
         self.label25var = StringVar(self.frame2)
