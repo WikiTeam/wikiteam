@@ -264,7 +264,7 @@ class App:
                 if os.path.exists(filepath):
                     print 'That dump was downloaded before'
                 else:
-                    print "Downloading", self.tree.item(item,"text")
+                    print "Downloading", self.tree.item(item,"text"), 'from', self.dumps[int(item)][5]
                     f = urllib.urlretrieve(self.dumps[int(item)][5], filepath, reporthook=self.downloadProgress)
                     msg='%s size is %s bytes large. Download successful!' % (self.dumps[int(item)][0], os.path.getsize(filepath))
                     self.msg(msg=msg)
@@ -368,7 +368,7 @@ class App:
                 if mirror == 'Google Code':
                     downloadurl = 'https://wikiteam.googlecode.com/files/' + filename
                 elif mirror == 'Internet Archive':
-                    downloadurl = url + '/' + filename
+                    downloadurl = re.sub(ur'/details/', ur'/download/', url) + '/' + filename
                 elif mirror == 'ScottDB':
                     downloadurl = url + '/' + filename
                 downloaded = self.isDumpDownloaded(filename)
