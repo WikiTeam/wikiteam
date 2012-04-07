@@ -35,7 +35,6 @@ TODO:
 * basic: GUI to download just a wiki
 
 * advanced: batch downloads, upload to Internet Archive or anywhere
-
 """
 
 wikifarms = {
