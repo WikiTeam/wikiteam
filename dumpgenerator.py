@@ -15,6 +15,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+# DumpGenerator.py is a script to generate backups of MediaWiki wikis
+# To learn more, read the documentation:
+#        http://code.google.com/p/wikiteam/wiki/NewTutorial
+
 import cPickle
 import datetime
 import getopt
