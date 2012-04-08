@@ -22,10 +22,7 @@ import time
 
 import dumpgenerator
 
-f = open(sys.argv[1], 'r')
-wikis = f.read().splitlines()
-f.close()
-
+wikis = open(sys.argv[1], 'r').read().splitlines()
 for wiki in wikis:
     wiki = wiki.lower()
     prefix = dumpgenerator.domain2prefix(config={'api': wiki})
