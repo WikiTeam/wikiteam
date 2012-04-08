@@ -25,6 +25,7 @@ wikis = f.read().splitlines()
 f.close()
 
 for wiki in wikis:
+    skip = False
     wikiname = re.sub(r'(\.|^www\.|\/api\.php)', '', wiki.lower().split('://')[1])
     wikiname = re.sub('[-/]', '_', wikiname)
     wikidir = ''
@@ -37,7 +38,11 @@ for wiki in wikis:
                 if f.startswith(wikiname) and f.endswith('.7z'):
                     print 'This wiki was downloaded and compressed before in:', f
                     print 'Skiping...'
+                    skip  = True
     prefix = wikidir.split('-wikidump')[0]
+    
+    if skip:
+        continue
     
     if wikidir: #resume
         print 'Resuming download, using directory', wikidir
