@@ -327,7 +327,7 @@ def getXMLPage(config={}, title='', verbose=True):
             if re.findall(r_timestamp, xml2): #are there more edits in this next XML chunk or no <page></page>?
                 if re.findall(r_timestamp, xml2)[-1] == params['offset']:
                     #again the same XML, this wiki does not support params in Special:Export, offer complete XML up to X edits (usually 1000)
-                    print 'ATTENTION: This wiki does not allow some parameters in Special:Export, so, pages with large histories may be truncated'
+                    print 'ATTENTION: This wiki does not allow some parameters in Special:Export, therefore pages with large histories may be truncated'
                     truncated = True
                     break
                 else:
