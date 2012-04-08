@@ -27,31 +27,40 @@ wikis = f.read().splitlines()
 f.close()
 
 for wiki in wikis:
-    skip = False
     wiki = wiki.lower()
-    wikiname = dumpgenerator.domain2prefix(config={'api': wiki})
+    prefix = dumpgenerator.domain2prefix(config={'api': wiki})
+    
+    #check if compressed, in that case it is finished
+    compressed = False
+    for dirname, dirnames, filenames in os.walk('.'):
+        if dirname == '.':
+            for f in filenames:
+                if f.startswith(prefix) and f.endswith('.7z'):
+                    compressed = True
+                    zipfilename = f
+    
+    if compressed:
+        print 'Skiping... This wiki was downloaded and compressed before in', zipfilename
+        continue
+    
+    #download
+    started = False #was this wiki download started before? then resume
     wikidir = ''
     for dirname, dirnames, filenames in os.walk('.'):
         if dirname == '.':
             for d in dirnames:
-                if d.startswith(wikiname):
+                if d.startswith(prefix):
                     wikidir = d
-            for f in filenames:
-                if f.startswith(wikiname) and f.endswith('.7z'):
-                    print 'This wiki was downloaded and compressed before in:', f
-                    print 'Skiping...'
-                    skip = True
-    prefix = wikidir.split('-wikidump')[0]
+                    started = True
     
-    if skip:
-        continue
-    
-    if wikidir: #resume
+    if started and wikidir: #then resume
         print 'Resuming download, using directory', wikidir
         os.system('python dumpgenerator.py --api=%s --xml --images --resume --path=%s' % (wiki, wikidir))
-    else:
+    else: #download from scratch
         os.system('python dumpgenerator.py --api=%s --xml --images' % wiki)
-
+    
+    
+    #compress
     if wikidir and prefix:
         time.sleep(1)
         os.chdir(wikidir)
