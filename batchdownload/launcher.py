@@ -64,6 +64,7 @@ for wiki in wikis:
     
     #compress
     if wikidir and prefix:
+        prefix = wikidir.split('-wikidump')[0]
         time.sleep(1)
         os.chdir(wikidir)
         print 'Changed directory to', os.getcwd()
