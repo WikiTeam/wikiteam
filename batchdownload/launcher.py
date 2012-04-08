@@ -33,6 +33,10 @@ for wiki in wikis:
             for d in dirnames:
                 if d.startswith(wikiname):
                     wikidir = d
+            for f in filenames:
+                if f.startswith(wikiname) and f.endswith('.7z'):
+                    print 'This wiki was downloaded and compressed before in:', f
+                    print 'Skiping...'
     prefix = wikidir.split('-wikidump')[0]
     
     if wikidir: #resume
