@@ -20,15 +20,16 @@ import re
 import sys
 import time
 
+import dumpgenerator
+
 f = open(sys.argv[1], 'r')
 wikis = f.read().splitlines()
 f.close()
 
 for wiki in wikis:
     skip = False
-    wikiname = re.sub(r'(^www\.|\/api\.php)', '', wiki.lower().split('://')[1])
-    wikiname = re.sub(r'\.', '', wikiname)
-    wikiname = re.sub(r'[-/]', '_', wikiname)
+    wiki = wiki.lower()
+    wikiname = dumpgenerator.domain2prefix(config={'api': wiki})
     wikidir = ''
     for dirname, dirnames, filenames in os.walk('.'):
         if dirname == '.':
