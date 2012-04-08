@@ -51,6 +51,7 @@ for wiki in wikis:
         os.system('python dumpgenerator.py --api=%s --xml --images' % wiki)
 
     if wikidir and prefix:
+        time.sleep(1)
         os.chdir(wikidir)
         print 'Changed directory to', os.getcwd()
         os.system('grep "<title>" *.xml -c;grep "<page>" *.xml -c;grep "</page>" *.xml -c;grep "<revision>" *.xml -c;grep "</revision>" *.xml -c')
