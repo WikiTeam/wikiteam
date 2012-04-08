@@ -60,10 +60,10 @@ for wiki in wikis:
         os.system('python dumpgenerator.py --api=%s --xml --images' % wiki)
         #save wikidir now
         for dirname, dirnames, filenames in os.walk('.'):
-        if dirname == '.':
-            for d in dirnames:
-                if d.startswith(prefix):
-                    wikidir = d
+            if dirname == '.':
+                for d in dirnames:
+                    if d.startswith(prefix):
+                        wikidir = d
     
     #compress
     if wikidir and prefix:
