@@ -38,7 +38,7 @@ for wiki in wikis:
                 if f.startswith(wikiname) and f.endswith('.7z'):
                     print 'This wiki was downloaded and compressed before in:', f
                     print 'Skiping...'
-                    skip  = True
+                    skip = True
     prefix = wikidir.split('-wikidump')[0]
     
     if skip:
