@@ -26,8 +26,9 @@ f.close()
 
 for wiki in wikis:
     skip = False
-    wikiname = re.sub(r'(\.|^www\.|\/api\.php)', '', wiki.lower().split('://')[1])
-    wikiname = re.sub('[-/]', '_', wikiname)
+    wikiname = re.sub(r'(^www\.|\/api\.php)', '', wiki.lower().split('://')[1])
+    wikiname = re.sub(r'\.', '', wikiname)
+    wikiname = re.sub(r'[-/]', '_', wikiname)
     wikidir = ''
     for dirname, dirnames, filenames in os.walk('.'):
         if dirname == '.':
