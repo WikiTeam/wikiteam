@@ -26,8 +26,8 @@ f.close()
 
 for wiki in wikis:
     os.system('python dumpgenerator.py --api=%s --xml --images' % wiki)
-    wikiname = re.sub(r'(\.|^www\.)', '', wiki.split('://')[1])
-    wikiname = re.sub('-', '_', wikiname)
+    wikiname = re.sub(r'(\.|^www\.|\/api\.php)', '', wiki.split('://')[1])
+    wikiname = re.sub('[-/]', '_', wikiname)
     wikidir = ''
     for dirname, dirnames, filenames in os.walk('.'):
         if dirname == '.':
@@ -36,6 +36,7 @@ for wiki in wikis:
                     wikidir = d
     prefix = wikidir.split('-wikidump')[0]
     
+    print "---->", wikidir, prefix
     if wikidir and prefix:
         os.chdir(wikidir)
         print 'Changed directory to', os.getcwd()
