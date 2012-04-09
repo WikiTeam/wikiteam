@@ -37,7 +37,7 @@ for wiki in wikis:
                     zipfilename = f
     
     if compressed:
-        print 'Skiping... This wiki was downloaded and compressed before in', zipfilename
+        print 'Skipping... This wiki was downloaded and compressed before in', zipfilename
         continue
     
     #download
