@@ -652,8 +652,8 @@ def welcome():
 def bye():
     """  """
     print "---> Congratulations! Your dump is complete <---"
-    print "If you found any bug, report a new issue here (Gmail account required): http://code.google.com/p/wikiteam/issues/list"
-    print "If this is a public wiki, please, consider sending us a copy of this dump. Contact us at http://code.google.com/p/wikiteam"
+    print "If you found any bug, report a new issue here (Google account required): http://code.google.com/p/wikiteam/issues/list"
+    print "If this is a public wiki, please, consider publishing this dump. Do it yourself as explained in http://code.google.com/p/wikiteam/wiki/NewTutorial#Publishing_the_dump or contact us at http://code.google.com/p/wikiteam"
     print "Good luck! Bye!"
 
 def usage():
