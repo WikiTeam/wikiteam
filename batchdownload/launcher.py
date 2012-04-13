@@ -17,6 +17,7 @@
 
 import os
 import re
+import subprocess
 import sys
 import time
 
@@ -24,6 +25,9 @@ import dumpgenerator
 
 wikis = open(sys.argv[1], 'r').read().splitlines()
 for wiki in wikis:
+    print "#"*73
+    print "# Downloading", wiki
+    print "#"*73
     wiki = wiki.lower()
     prefix = dumpgenerator.domain2prefix(config={'api': wiki})
     
@@ -38,6 +42,12 @@ for wiki in wikis:
     
     if compressed:
         print 'Skipping... This wiki was downloaded and compressed before in', zipfilename
+        archivecontent = subprocess.check_output (['7z', 'l', zipfilename])
+#        print archivecontent
+        if re.search ("%s.+-history.xml" % prefix, archivecontent) is None:
+            print "ERROR: The archive contains no history!"
+        if re.search ("Special:Version.html", archivecontent) is None:
+            print "WARNING: The archive doesn't contain Special:Version.html, this may indicate that download didn't finish."
         continue
     
     #download
@@ -74,4 +84,3 @@ for wiki in wikis:
         os.chdir('..')
         print 'Changed directory to', os.getcwd()
         time.sleep(1)
-
