@@ -808,7 +808,7 @@ def checkAPI(api):
     f = urllib.urlopen(api)
     raw = f.read()
     f.close()
-    print 'Checking api.php...'
+    print 'Checking api.php...', api
     if re.search(r'action=query', raw):
         return True
     return False
@@ -818,7 +818,7 @@ def checkIndexphp(indexphp):
     f = urllib2.urlopen(req)
     raw = f.read()
     f.close()
-    print 'Checking index.php...'
+    print 'Checking index.php...', indexphp
     if re.search(r'(This wiki is powered by|<h2 id="mw-version-license">)', raw):
         return True
     return False
