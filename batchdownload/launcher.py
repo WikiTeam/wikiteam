@@ -42,9 +42,10 @@ for wiki in wikis:
     
     if compressed:
         print 'Skipping... This wiki was downloaded and compressed before in', zipfilename
-        archivecontent = subprocess.check_output(['7z', 'l', zipfilename])
-        #print archivecontent
+        # Get the archive's file list.
+        archivecontent = subprocess.check_output (['7z', 'l', zipfilename])
         if re.search(ur"%s.+-history\.xml" % (prefix), archivecontent) is None:
+            # We should perhaps not create an archive in this case, but we continue anyway.
             print "ERROR: The archive contains no history!"
         if re.search(ur"Special:Version\.html", archivecontent) is None:
             print "WARNING: The archive doesn't contain Special:Version.html, this may indicate that download didn't finish."
@@ -78,9 +79,13 @@ for wiki in wikis:
         time.sleep(1)
         os.chdir(wikidir)
         print 'Changed directory to', os.getcwd()
+        # Basic integrity check for the xml. The script doesn't actually do anything, so you should check if it's broken. Nothing can be done anyway, but redownloading.
         os.system('grep "<title>" *.xml -c;grep "<page>" *.xml -c;grep "</page>" *.xml -c;grep "<revision>" *.xml -c;grep "</revision>" *.xml -c')
-        os.system('7z a ../%s-wikidump.7z %s-history.xml %s-titles.txt %s-images.txt index.html Special:Version.html errors.log images/' % (prefix, prefix, prefix, prefix))
-        os.system('7z a ../%s-history.xml.7z %s-history.xml %s-titles.txt index.html Special:Version.html errors.log' % (prefix, prefix, prefix))
+        # Make a non-solid archive with all the text and metadata at default compression.
+        os.system('7z a -ms=off ../%s-history.xml.7z %s-history.xml %s-titles.txt %s-images.txt index.html Special:Version.html config.txt errors.log' % (prefix, prefix, prefix, prefix))
+        # Now we add the images, if there are some, to create another archive, without recompressing everything, at the min compression rate, higher doesn't compress images much more.
+        os.system('cp ../%s-history.xml.7z ../%s-wikidump.7z' % (prefix, prefix))
+        os.system('7z a -ms=off -mx=1 ../%s-wikidump.7z images/' % prefix)
         os.chdir('..')
         print 'Changed directory to', os.getcwd()
         time.sleep(1)
