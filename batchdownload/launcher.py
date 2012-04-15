@@ -42,11 +42,11 @@ for wiki in wikis:
     
     if compressed:
         print 'Skipping... This wiki was downloaded and compressed before in', zipfilename
-        archivecontent = subprocess.check_output (['7z', 'l', zipfilename])
-#        print archivecontent
-        if re.search ("%s.+-history.xml" % prefix, archivecontent) is None:
+        archivecontent = subprocess.check_output(['7z', 'l', zipfilename])
+        #print archivecontent
+        if re.search(ur"%s.+-history\.xml" % (prefix), archivecontent) is None:
             print "ERROR: The archive contains no history!"
-        if re.search ("Special:Version.html", archivecontent) is None:
+        if re.search(ur"Special:Version\.html", archivecontent) is None:
             print "WARNING: The archive doesn't contain Special:Version.html, this may indicate that download didn't finish."
         continue
     
