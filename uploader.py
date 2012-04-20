@@ -19,3 +19,22 @@
 # https://wiki.archive.org/twiki/bin/view/Main/IAS3BulkUploader
 # http://en.ecgpedia.org/api.php?action=query&meta=siteinfo&siprop=rightsinfo
 
+import subprocess
+
+log = subprocess.check_output(['curl', '--location', 
+    '--header', "'x-amz-auto-make-bucket:1",
+    '--header', "'x-archive-queue-derive:0",
+    '--header', "'x-archive-size-hint:9638436173'", 
+    '--header', "'authorization: LOW accesskey:secretkey'",
+    '--header', "'x-archive-meta-mediatype:web'",
+    '--header', "'x-archive-meta-collection:opensource'",
+    '--header', "'x-archive-meta-title:Wiki - ECGpedia'",
+    '--header', """'x-archive-meta-description:<a href="http://en.ecgpedia.org/" rel="nofollow">ECGpedia,</a>: a free electrocardiography (ECG) tutorial and textbook to which anyone can contribute, designed for medical professionals such as cardiac care nurses and physicians. Dumped with <a href="http://code.google.com/p/wikiteam/" rel="nofollow">WikiTeam</a> tool.'"""
+    '--header', "'x-archive-meta-subject:ecg; ECGpedia; wiki; wikiteam; MediaWiki'",
+    '--header', "'x-archive-meta-licenseurl:http://creativecommons.org/licenses/by-nc-sa/3.0/'",
+    '--header', "'x-archive-meta-rights:http://en.ecgpedia.org/wiki/Frequently_Asked_Questions'",
+    '--header', "'x-archive-meta-originalurl:http://en.ecgpedia.org/api.php'",
+    '--upload-file', "/home/.../ArchiveTeam/WikiTeam/enecgpediaorg-20120419-wikidump.7z",
+    "http://s3.us.archive.org/wiki-en.ecgpedia.org/enecgpediaorg-20120419-wikidump.7z"
+    ])
+
