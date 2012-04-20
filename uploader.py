@@ -43,17 +43,26 @@ log = subprocess.check_output(['curl', '--location',
     ])
 """
 
-def upload(f):
-    print f
+def upload(wikis):
+    for wiki, dumps in wikis.items():
+        wikiname = '-'.join(wiki.split('-')[:-1])
+        wikidate = wiki.split('-')[-1]
+        for dump in dumps:
+            print wiki, wikiname, wikidate, dump
 
-wikis = []
+wikis = {}
 def main():
     for dirname, dirnames, filenames in os.walk('.'):
         if dirname == '.':
             for f in filenames:
                 if f.endswith('-wikidump.7z') or f.endswith('-history.xml.7z'):
-                    upload(f)
+                    wiki = f.split('-wikidump.7z')[0].split('-history.xml.7z')[0]
+                    if not wikis.has_key(wiki):
+                        wikis[wiki] = []
+                    wikis[wiki].append(f)
             break
+    
+    upload(wikis)
 
 if __name__ == "__main__":
     main()
