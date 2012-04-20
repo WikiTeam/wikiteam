@@ -24,31 +24,52 @@ import re
 import subprocess
 import urllib
 
-"""
-log = subprocess.check_output(['curl', '--location', 
-    '--header', "'x-amz-auto-make-bucket:1",
-    '--header', "'x-archive-queue-derive:0",
-    '--header', "'x-archive-size-hint:9638436173'", 
-    '--header', "'authorization: LOW accesskey:secretkey'",
-    '--header', "'x-archive-meta-mediatype:web'",
-    '--header', "'x-archive-meta-collection:opensource'",
-    '--header', "'x-archive-meta-title:Wiki - ECGpedia'",
-    '--header', "'x-archive-meta-description:<a href=\"http://en.ecgpedia.org/\" rel=\"nofollow\">ECGpedia,</a>: a free electrocardiography (ECG) tutorial and textbook to which anyone can contribute, designed for medical professionals such as cardiac care nurses and physicians. Dumped with <a href=\"http://code.google.com/p/wikiteam/\" rel=\"nofollow\">WikiTeam</a> tool.'"
-    '--header', "'x-archive-meta-subject:ecg; ECGpedia; wiki; wikiteam; MediaWiki'",
-    '--header', "'x-archive-meta-licenseurl:http://creativecommons.org/licenses/by-nc-sa/3.0/'",
-    '--header', "'x-archive-meta-rights:http://en.ecgpedia.org/wiki/Frequently_Asked_Questions'",
-    '--header', "'x-archive-meta-originalurl:http://en.ecgpedia.org/api.php'",
-    '--upload-file', "/home/.../ArchiveTeam/WikiTeam/enecgpediaorg-20120419-wikidump.7z",
-    "http://s3.us.archive.org/wiki-en.ecgpedia.org/enecgpediaorg-20120419-wikidump.7z"
-    ])
-"""
+accesskey = ''
+secretkey = ''
 
 def upload(wikis):
     for wiki, dumps in wikis.items():
         wikiname = '-'.join(wiki.split('-')[:-1])
         wikidate = wiki.split('-')[-1]
+        c = 0
         for dump in dumps:
             print wiki, wikiname, wikidate, dump
+            #get api.php
+            pass
+            
+            #retrieve some info from the wiki
+            wikititle = "" # Wiki - ECGpedia
+            wikidesc = "" # "<a href=\"http://en.ecgpedia.org/\" rel=\"nofollow\">ECGpedia,</a>: a free electrocardiography (ECG) tutorial and textbook to which anyone can contribute, designed for medical professionals such as cardiac care nurses and physicians. Dumped with <a href=\"http://code.google.com/p/wikiteam/\" rel=\"nofollow\">WikiTeam</a> tool."
+            wikikeys = [] # ecg; ECGpedia; wiki; wikiteam; MediaWiki
+            wikilicenseurl = "" # http://creativecommons.org/licenses/by-nc-sa/3.0/
+            wikirights = "" # http://en.ecgpedia.org/wiki/Frequently_Asked_Questions
+            wikiurl = "" # we use api here http://en.ecgpedia.org/api.php
+                        
+            #creates curl command
+            curl = ['curl', '--location', 
+                '--header', "'x-amz-auto-make-bucket:1",
+                '--header', "'x-archive-queue-derive:0",
+                '--header', "'x-archive-size-hint:%d'" % (os.path.getsize(dump)), 
+                '--header', "'authorization: LOW %s:%s'" % (accesskey, secretkey),
+            ]
+            if c == 0:
+                curl += ['--header', "'x-archive-meta-mediatype:web'",
+                    '--header', "'x-archive-meta-collection:opensource'",
+                    '--header', "'x-archive-meta-title:%s'" % (wikititle),
+                    '--header', "'x-archive-meta-description:%s'" % (wikidesc),
+                    '--header', "'x-archive-meta-subject:%s'" % (wikikeys),
+                    '--header', "'x-archive-meta-licenseurl:%s'" % (wikilicenseurl),
+                    '--header', "'x-archive-meta-rights:%s'" % (wikirights),
+                    '--header', "'x-archive-meta-originalurl:%s'" % (wikiurl),
+                ]
+            
+            curl += ['--upload-file', "%s" % (dump),
+                    "http://s3.us.archive.org/wiki-%s/%s" % (wikiname, dump),
+            ]
+            print '\n'.join(curl)
+            #log = subprocess.check_output(curl)
+            #print log
+            c += 1
 
 wikis = {}
 def main():
