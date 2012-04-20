@@ -313,6 +313,8 @@ def getXMLPage(config={}, title='', verbose=True):
     else:
         params['offset'] = '1' # 1 always < 2000s
         params['limit'] = limit
+    if config.has_key('templates') and config['templates']: #in other case, do not set params['templates']
+        params['templates'] = 1
     
     xml = getXMLPageCore(headers=headers, params=params, config=config)
 
