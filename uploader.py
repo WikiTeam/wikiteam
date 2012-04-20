@@ -15,6 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+# http://archive.org/account/s3.php
 # http://archive.org/help/abouts3.txt
 # https://wiki.archive.org/twiki/bin/view/Main/IAS3BulkUploader
 # http://en.ecgpedia.org/api.php?action=query&meta=siteinfo&siprop=rightsinfo
@@ -38,9 +39,9 @@ def upload(wikis):
             pass
             
             #retrieve some info from the wiki
-            wikititle = "" # Wiki - ECGpedia
-            wikidesc = "" # "<a href=\"http://en.ecgpedia.org/\" rel=\"nofollow\">ECGpedia,</a>: a free electrocardiography (ECG) tutorial and textbook to which anyone can contribute, designed for medical professionals such as cardiac care nurses and physicians. Dumped with <a href=\"http://code.google.com/p/wikiteam/\" rel=\"nofollow\">WikiTeam</a> tool."
-            wikikeys = [] # ecg; ECGpedia; wiki; wikiteam; MediaWiki
+            wikititle = "Wiki - " # Wiki - ECGpedia
+            wikidesc = "... Dumped with <a href=\"http://code.google.com/p/wikiteam/\" rel=\"nofollow\">WikiTeam</a> tool." # "<a href=\"http://en.ecgpedia.org/\" rel=\"nofollow\">ECGpedia,</a>: a free electrocardiography (ECG) tutorial and textbook to which anyone can contribute, designed for medical professionals such as cardiac care nurses and physicians. Dumped with <a href=\"http://code.google.com/p/wikiteam/\" rel=\"nofollow\">WikiTeam</a> tool."
+            wikikeys = [, 'wiki', 'wikiteam', 'MediaWiki'] # ecg; ECGpedia; wiki; wikiteam; MediaWiki
             wikilicenseurl = "" # http://creativecommons.org/licenses/by-nc-sa/3.0/
             wikirights = "" # http://en.ecgpedia.org/wiki/Frequently_Asked_Questions
             wikiurl = "" # we use api here http://en.ecgpedia.org/api.php
@@ -57,7 +58,7 @@ def upload(wikis):
                     '--header', "'x-archive-meta-collection:opensource'",
                     '--header', "'x-archive-meta-title:%s'" % (wikititle),
                     '--header', "'x-archive-meta-description:%s'" % (wikidesc),
-                    '--header', "'x-archive-meta-subject:%s'" % (wikikeys),
+                    '--header', "'x-archive-meta-subject:%s'" % ('; '.join(wikikeys)),
                     '--header', "'x-archive-meta-licenseurl:%s'" % (wikilicenseurl),
                     '--header', "'x-archive-meta-rights:%s'" % (wikirights),
                     '--header', "'x-archive-meta-originalurl:%s'" % (wikiurl),
