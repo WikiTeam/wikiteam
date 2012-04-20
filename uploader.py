@@ -19,8 +19,12 @@
 # https://wiki.archive.org/twiki/bin/view/Main/IAS3BulkUploader
 # http://en.ecgpedia.org/api.php?action=query&meta=siteinfo&siprop=rightsinfo
 
+import os
+import re
 import subprocess
+import urllib
 
+"""
 log = subprocess.check_output(['curl', '--location', 
     '--header', "'x-amz-auto-make-bucket:1",
     '--header', "'x-archive-queue-derive:0",
@@ -29,7 +33,7 @@ log = subprocess.check_output(['curl', '--location',
     '--header', "'x-archive-meta-mediatype:web'",
     '--header', "'x-archive-meta-collection:opensource'",
     '--header', "'x-archive-meta-title:Wiki - ECGpedia'",
-    '--header', """'x-archive-meta-description:<a href="http://en.ecgpedia.org/" rel="nofollow">ECGpedia,</a>: a free electrocardiography (ECG) tutorial and textbook to which anyone can contribute, designed for medical professionals such as cardiac care nurses and physicians. Dumped with <a href="http://code.google.com/p/wikiteam/" rel="nofollow">WikiTeam</a> tool.'"""
+    '--header', "'x-archive-meta-description:<a href=\"http://en.ecgpedia.org/\" rel=\"nofollow\">ECGpedia,</a>: a free electrocardiography (ECG) tutorial and textbook to which anyone can contribute, designed for medical professionals such as cardiac care nurses and physicians. Dumped with <a href=\"http://code.google.com/p/wikiteam/\" rel=\"nofollow\">WikiTeam</a> tool.'"
     '--header', "'x-archive-meta-subject:ecg; ECGpedia; wiki; wikiteam; MediaWiki'",
     '--header', "'x-archive-meta-licenseurl:http://creativecommons.org/licenses/by-nc-sa/3.0/'",
     '--header', "'x-archive-meta-rights:http://en.ecgpedia.org/wiki/Frequently_Asked_Questions'",
@@ -37,4 +41,19 @@ log = subprocess.check_output(['curl', '--location',
     '--upload-file', "/home/.../ArchiveTeam/WikiTeam/enecgpediaorg-20120419-wikidump.7z",
     "http://s3.us.archive.org/wiki-en.ecgpedia.org/enecgpediaorg-20120419-wikidump.7z"
     ])
+"""
 
+def upload(f):
+    print f
+
+wikis = []
+def main():
+    for dirname, dirnames, filenames in os.walk('.'):
+        if dirname == '.':
+            for f in filenames:
+                if f.endswith('-wikidump.7z') or f.endswith('-history.xml.7z'):
+                    upload(f)
+            break
+
+if __name__ == "__main__":
+    main()

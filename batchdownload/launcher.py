@@ -39,6 +39,7 @@ for wiki in wikis:
                 if f.startswith(prefix) and f.endswith('.7z'):
                     compressed = True
                     zipfilename = f
+            break #stop searching, dot not explore subdirectories
     
     if compressed:
         print 'Skipping... This wiki was downloaded and compressed before in', zipfilename
@@ -60,6 +61,7 @@ for wiki in wikis:
                 if d.startswith(prefix):
                     wikidir = d
                     started = True
+            break #stop searching, dot not explore subdirectories
     
     if started and wikidir: #then resume
         print 'Resuming download, using directory', wikidir
@@ -72,6 +74,7 @@ for wiki in wikis:
                 for d in dirnames:
                     if d.startswith(prefix):
                         wikidir = d
+                break #stop searching, dot not explore subdirectories
     
     #compress
     prefix = wikidir.split('-wikidump')[0]
