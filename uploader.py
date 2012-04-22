@@ -43,7 +43,7 @@ def upload(wikis):
             wikidesc = "... Dumped with <a href=\"http://code.google.com/p/wikiteam/\" rel=\"nofollow\">WikiTeam</a> tool." # "<a href=\"http://en.ecgpedia.org/\" rel=\"nofollow\">ECGpedia,</a>: a free electrocardiography (ECG) tutorial and textbook to which anyone can contribute, designed for medical professionals such as cardiac care nurses and physicians. Dumped with <a href=\"http://code.google.com/p/wikiteam/\" rel=\"nofollow\">WikiTeam</a> tool."
             wikikeys = [, 'wiki', 'wikiteam', 'MediaWiki'] # ecg; ECGpedia; wiki; wikiteam; MediaWiki
             wikilicenseurl = "" # http://creativecommons.org/licenses/by-nc-sa/3.0/
-            wikirights = "" # e.g. http://en.ecgpedia.org/wiki/Frequently_Asked_Questions : hard to fetch automaticall, could be the output of API's rightsinfo if it's not a usable licenseurl or "Unknown copyright status" if nothing is found.
+            wikirights = "" # e.g. http://en.ecgpedia.org/wiki/Frequently_Asked_Questions : hard to fetch automatically, could be the output of API's rightsinfo if it's not a usable licenseurl or "Unknown copyright status" if nothing is found.
             wikiurl = "" # we use api here http://en.ecgpedia.org/api.php
                         
             #creates curl command
@@ -65,7 +65,7 @@ def upload(wikis):
                 ]
             
             curl += ['--upload-file', "%s" % (dump),
-                    "http://s3.us.archive.org/wiki-%s/%s" % (wikiname, dump), # it could happen that the identifier is taken by another user; only wikiteam collection admins will be able to upload more files to it
+                    "http://s3.us.archive.org/wiki-%s/%s" % (wikiname, dump), # it could happen that the identifier is taken by another user; only wikiteam collection admins will be able to upload more files to it, curl will fail immediately and get a permissions error by s3.
             ]
             print '\n'.join(curl)
             #log = subprocess.check_output(curl)
