@@ -18,7 +18,7 @@
 # http://archive.org/account/s3.php
 # http://archive.org/help/abouts3.txt
 # https://wiki.archive.org/twiki/bin/view/Main/IAS3BulkUploader
-# http://en.ecgpedia.org/api.php?action=query&meta=siteinfo&siprop=rightsinfo
+# http://en.ecgpedia.org/api.php?action=query&meta=siteinfo&siprop=general|rightsinfo
 
 import os
 import re
@@ -43,29 +43,29 @@ def upload(wikis):
             wikidesc = "... Dumped with <a href=\"http://code.google.com/p/wikiteam/\" rel=\"nofollow\">WikiTeam</a> tool." # "<a href=\"http://en.ecgpedia.org/\" rel=\"nofollow\">ECGpedia,</a>: a free electrocardiography (ECG) tutorial and textbook to which anyone can contribute, designed for medical professionals such as cardiac care nurses and physicians. Dumped with <a href=\"http://code.google.com/p/wikiteam/\" rel=\"nofollow\">WikiTeam</a> tool."
             wikikeys = [, 'wiki', 'wikiteam', 'MediaWiki'] # ecg; ECGpedia; wiki; wikiteam; MediaWiki
             wikilicenseurl = "" # http://creativecommons.org/licenses/by-nc-sa/3.0/
-            wikirights = "" # http://en.ecgpedia.org/wiki/Frequently_Asked_Questions
+            wikirights = "" # e.g. http://en.ecgpedia.org/wiki/Frequently_Asked_Questions : hard to fetch automaticall, could be the output of API's rightsinfo if it's not a usable licenseurl or "Unknown copyright status" if nothing is found.
             wikiurl = "" # we use api here http://en.ecgpedia.org/api.php
                         
             #creates curl command
             curl = ['curl', '--location', 
-                '--header', "'x-amz-auto-make-bucket:1",
-                '--header', "'x-archive-queue-derive:0",
+                '--header', "'x-amz-auto-make-bucket:1'",
+                '--header', "'x-archive-queue-derive:0'",
                 '--header', "'x-archive-size-hint:%d'" % (os.path.getsize(dump)), 
                 '--header', "'authorization: LOW %s:%s'" % (accesskey, secretkey),
             ]
             if c == 0:
                 curl += ['--header', "'x-archive-meta-mediatype:web'",
-                    '--header', "'x-archive-meta-collection:opensource'",
+                    '--header', "'x-archive-meta-collection:opensource'", #replace with wikiteam if you're an admin of the collection
                     '--header', "'x-archive-meta-title:%s'" % (wikititle),
                     '--header', "'x-archive-meta-description:%s'" % (wikidesc),
-                    '--header', "'x-archive-meta-subject:%s'" % ('; '.join(wikikeys)),
+                    '--header', "'x-archive-meta-subject:%s'" % ('; '.join(wikikeys)), # keywords should be separated by ; but it doesn't matter much; the alternative is to set one per field with subject[0], subject[1], ...
                     '--header', "'x-archive-meta-licenseurl:%s'" % (wikilicenseurl),
                     '--header', "'x-archive-meta-rights:%s'" % (wikirights),
                     '--header', "'x-archive-meta-originalurl:%s'" % (wikiurl),
                 ]
             
             curl += ['--upload-file', "%s" % (dump),
-                    "http://s3.us.archive.org/wiki-%s/%s" % (wikiname, dump),
+                    "http://s3.us.archive.org/wiki-%s/%s" % (wikiname, dump), # it could happen that the identifier is taken by another user; only wikiteam collection admins will be able to upload more files to it
             ]
             print '\n'.join(curl)
             #log = subprocess.check_output(curl)
