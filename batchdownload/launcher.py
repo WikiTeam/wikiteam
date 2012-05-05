@@ -78,9 +78,9 @@ for wiki in wikis:
     
     prefix = wikidir.split('-wikidump')[0]
     
+    finished = False
     if started and wikidir and prefix:
         if (subprocess.call (['tail -n 1 %s/%s-history.xml | grep -q "</mediawiki>"' % (wikidir, prefix)], shell=True) ):
-            finished = False
             print "No </mediawiki> tag found: dump failed, needs fixing; resume didn't work. Exiting."
         else:
             finished = True
