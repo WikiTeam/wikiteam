@@ -31,7 +31,7 @@ secretkey = ''
 
 def upload(wikis):
     for wiki, dumps in wikis.items():
-        wikiname = '-'.join(wiki.split('-')[:-1])
+        wikiname = '-'.join(wiki.split('-')[:-1]) # The identifier has to match this pattern: ^[a-zA-Z0-9][a-zA-Z0-9_.-]{4,100}$
         wikidate = wiki.split('-')[-1]
         c = 0
         for dump in dumps:
