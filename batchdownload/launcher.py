@@ -76,9 +76,19 @@ for wiki in wikis:
                         wikidir = d
                 break #stop searching, dot not explore subdirectories
     
-    #compress
     prefix = wikidir.split('-wikidump')[0]
-    if wikidir and prefix:
+    
+    if started and wikidir and prefix:
+        if (subprocess.call (['tail -n 1 %s/%s-history.xml | grep -q "</mediawiki>"' % (wikidir, prefix)], shell=True) ):
+            finished = False
+            print "No </mediawiki> tag found: dump failed, needs fixing; resume didn't work. Exiting."
+        else:
+            finished = True
+    # You can also issue this on your working directory to find all incomplete dumps:
+    # tail -n 1 */*-history.xml | grep -Ev -B 1 "</page>|</mediawiki>|==|^$"
+    
+    #compress
+    if finished:
         time.sleep(1)
         os.chdir(wikidir)
         print 'Changed directory to', os.getcwd()
