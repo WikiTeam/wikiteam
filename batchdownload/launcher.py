@@ -94,8 +94,8 @@ for wiki in wikis:
         print 'Changed directory to', os.getcwd()
         # Basic integrity check for the xml. The script doesn't actually do anything, so you should check if it's broken. Nothing can be done anyway, but redownloading.
         os.system('grep "<title>" *.xml -c;grep "<page>" *.xml -c;grep "</page>" *.xml -c;grep "<revision>" *.xml -c;grep "</revision>" *.xml -c')
-        # Make a non-solid archive with all the text and metadata at default compression.
-        os.system('7z a -ms=off ../%s-history.xml.7z %s-history.xml %s-titles.txt %s-images.txt index.html Special:Version.html config.txt errors.log' % (prefix, prefix, prefix, prefix))
+        # Make a non-solid archive with all the text and metadata at default compression. You can also add config.txt if you don't care about your computer and user names being published or you don't use full paths so that they're not stored in it.
+        os.system('7z a -ms=off ../%s-history.xml.7z %s-history.xml %s-titles.txt %s-images.txt index.html Special:Version.html errors.log' % (prefix, prefix, prefix, prefix))
         # Now we add the images, if there are some, to create another archive, without recompressing everything, at the min compression rate, higher doesn't compress images much more.
         os.system('cp ../%s-history.xml.7z ../%s-wikidump.7z' % (prefix, prefix))
         os.system('7z a -ms=off -mx=1 ../%s-wikidump.7z images/' % prefix)
