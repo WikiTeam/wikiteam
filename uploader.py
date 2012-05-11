@@ -28,7 +28,9 @@ import urllib
 # Configuration goes here
 accesskey = ''
 secretkey = ''
+collection = 'opensource' # Replace with "wikiteam" if you're an admin of the collection
 
+# Nothing to change below
 def upload(wikis):
     for wiki, dumps in wikis.items():
         wikiname = '-'.join(wiki.split('-')[:-1]) # The identifier has to match this pattern: ^[a-zA-Z0-9][a-zA-Z0-9_.-]{4,100}$
@@ -56,7 +58,7 @@ def upload(wikis):
             ]
             if c == 0:
                 curl += ['--header', "'x-archive-meta-mediatype:web'",
-                    '--header', "'x-archive-meta-collection:opensource'", # Replace with wikiteam if you're an admin of the collection
+                    '--header', "'x-archive-meta-collection:%s'" % (collection),
                     '--header', "'x-archive-meta-title:%s'" % (wikititle),
                     '--header', "'x-archive-meta-description:%s'" % (wikidesc),
                     '--header', "'x-archive-meta-subject:%s'" % ('; '.join(wikikeys)), # Keywords should be separated by ; but it doesn't matter much; the alternative is to set one per field with subject[0], subject[1], ...
