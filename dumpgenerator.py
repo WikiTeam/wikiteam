@@ -62,14 +62,12 @@ def cleanHTML(raw=''):
         raw = raw.split('<article id="WikiaMainContent" class="WikiaMainContent">')[1].split('</article>')[0]
     else:
         print raw[:250]
-        print 'This wiki doesn\'t use marks to split contain'
+        print 'This wiki doesn\'t use marks to split content'
         sys.exit()
     return raw
 
 def getNamespaces(config={}):
-    """  """
-    #fix get namespaces from a random Special:Export page, it is better
-    #too from API http://wikiindex.org/api.php?action=query&meta=siteinfo&siprop=general|namespaces
+    """ Hackishly gets the list of namespaces names and ids from the dropdown in the HTML of Special:AllPages. Function called if no API is available. """
     namespaces = config['namespaces']
     namespacenames = {0:''} # main is 0, no prefix
     if namespaces:
@@ -99,14 +97,45 @@ def getNamespaces(config={}):
     namespaces = [i for i in set(namespaces)] #uniques
     print '%d namespaces found' % (len(namespaces))
     return namespaces, namespacenames
+    
+def getNamespacesAPI(config={}):
+    """ Uses the API to get the list of namespaces names and ids """
+    namespaces = config['namespaces']
+    namespacenames = {0:''} # main is 0, no prefix
+    if namespaces:
+        req = urllib2.Request(url=config['api'], data=urllib.urlencode({'action': 'query', 'meta': 'siteinfo', 'siprop': 'namespaces', 'format': 'xml'}), headers={'User-Agent': getUserAgent()})
+        f = urllib2.urlopen(req)
+        raw = f.read()
+        f.close()
+            
+        m = re.compile(r'<ns id="(?P<namespaceid>\d+)"[^>]*?/?>(?P<namespacename>[^<]+)?(</ns>)?').finditer(raw) # [^>]*? to include case="first-letter" canonical= etc.
+        if 'all' in namespaces:
+            namespaces = []
+            for i in m:
+                namespaces.append(int(i.group("namespaceid")))
+                namespacenames[int(i.group("namespaceid"))] = i.group("namespacename")
+        else:
+            #check if those namespaces really exist in this wiki
+            namespaces2 = []
+            for i in m:
+                if int(i.group("namespaceid")) in namespaces:
+                    namespaces2.append(int(i.group("namespaceid")))
+                    namespacenames[int(i.group("namespaceid"))] = i.group("namespacename")
+            namespaces = namespaces2
+    else:
+        namespaces = [0]
+    
+    namespaces = [i for i in set(namespaces)] #uniques
+    print '%d namespaces found' % (len(namespaces))
+    return namespaces, namespacenames
 
 def getPageTitlesAPI(config={}):
-    """  """
+    """ Uses the API to get the list of page titles """
     titles = []
-    namespaces, namespacenames = getNamespaces(config=config)
+    namespaces, namespacenames = getNamespacesAPI(config=config)
     for namespace in namespaces:
         if namespace in config['exnamespaces']:
-            print '    Skiping namespace =', namespace
+            print '    Skipping namespace =', namespace
             continue
         
         c = 0
@@ -456,7 +485,7 @@ def getImageFilenamesURL(config={}):
         f = urllib2.urlopen(req)
         raw = f.read()
         f.close()
-        if re.search(ur'(?i)(allowed memory size of \d+ bytes exhausted|Call to a member function getURL)', raw): # delicated wiki
+        if re.search(ur'(?i)(allowed memory size of \d+ bytes exhausted|Call to a member function getURL)', raw): # delicate wiki
             if limit > 10:
                 print 'Error: listing %d images in a chunk is not possible, trying tiny chunks' % (limit)
                 limit = limit/10
@@ -516,6 +545,58 @@ def getImageFilenamesURL(config={}):
         else:
             offset = ''
     
+    print '    Found %d images' % (len(images))
+    images.sort()
+    return images
+
+def getImageFilenamesURLAPI(config={}):
+    """ Retrieve file list: filename, url, uploader """
+    print 'Retrieving image filenames'
+    headers = {'User-Agent': getUserAgent()}
+    aifrom = '!'
+    images = []
+    while aifrom:
+        sys.stderr.write('.') #progress
+        params = {'action': 'query', 'list': 'allimages', 'aiprop': 'url|user', 'aifrom': aifrom, 'format': 'xml', 'ailimit': 500}
+        data = urllib.urlencode(params)
+        req = urllib2.Request(url=config['api'], data=data, headers=headers)
+        try:
+            f = urllib2.urlopen(req)
+        except:
+            try:
+                print 'Server is slow... Waiting some seconds and retrying...'
+                time.sleep(10)
+                f = urllib2.urlopen(req)
+            except:
+                print 'An error has occurred while retrieving page titles with API'
+                print 'Please, resume the dump, --resume'
+                sys.exit()
+        xml = f.read()
+        f.close()
+        m = re.findall(r'<allimages aifrom="([^>]+)" />', xml)
+        if m:
+            aifrom = undoHTMLEntities(text=m[0]) #&quot; = ", etc
+        else:
+            aifrom = ''
+        m = re.compile(r'(?im)<img name="(?P<filename>[^"]+)"[^>]*user="(?P<uploader>[^"]+)"[^>]* url="(?P<url>[^"]+)"[^>]*/>').finditer(xml) # Retrieves a filename, uploader, url triple from the name, user, url field of the xml line; space before url needed to avoid getting the descriptionurl field instead.
+        for i in m:
+            url = i.group('url')
+            if url[0] == '/' or (not url.startswith('http://') and not url.startswith('https://')): #is it a relative URL?
+                if url[0] == '/': #slash is added later
+                    url = url[1:]
+                domainalone = config['index'].split('://')[1].split('/')[0] #remove from :// (http or https) until the first / after domain
+                url = '%s://%s/%s' % (config['index'].split('://')[0], domainalone, url) # concat http(s) + domain + relative url
+            url = undoHTMLEntities(text=url)
+            #url = urllib.unquote(url) #do not use unquote with url, it break some urls with odd chars
+            url = re.sub(' ', '_', url)
+            filename = re.sub('_', ' ', i.group('filename'))
+            filename = undoHTMLEntities(text=filename)
+            filename = urllib.unquote(filename)
+            uploader = re.sub('_', ' ', i.group('uploader'))
+            uploader = undoHTMLEntities(text=uploader)
+            uploader = urllib.unquote(uploader)
+            images.append([filename, url, uploader])           
+                    
     print '    Found %d images' % (len(images))
     images.sort()
     return images
@@ -951,7 +1032,10 @@ def main(params=[]):
             else:
                 print 'Image list is incomplete. Reloading...'
                 #do not resume, reload, to avoid inconsistences, deleted images or so
-                images = getImageFilenamesURL(config=config)
+                if config['api']:
+                    images=getImageFilenamesURLAPI(config=config)
+                else:
+                    images = getImageFilenamesURL(config=config)
                 saveImageFilenamesURL(config=config, images=images)
             #checking images directory
             listdir = []
@@ -991,7 +1075,10 @@ def main(params=[]):
             saveTitles(config=config, titles=titles)
             generateXMLDump(config=config, titles=titles)
         if config['images']:
-            images += getImageFilenamesURL(config=config)
+            if config['api']:
+                images += getImageFilenamesURLAPI(config=config)
+            else:
+                images += getImageFilenamesURL(config=config)
             saveImageFilenamesURL(config=config, images=images)
             generateImageDump(config=config, other=other, images=images)
         if config['logs']:
