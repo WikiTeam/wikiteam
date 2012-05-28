@@ -155,7 +155,7 @@ def getPageTitlesAPI(config={}):
                     time.sleep(10)
                     f = urllib2.urlopen(req)
                 except:
-                    print 'An error have occurred while retrieving page titles with API'
+                    print 'An error has occurred while retrieving page titles with API'
                     print 'Please, resume the dump, --resume'
                     sys.exit()
             xml = f.read()
@@ -256,6 +256,9 @@ def getXMLHeader(config={}):
     randomtitle = 'Main_Page' #previously AMF5LKE43MNFGHKSDMRTJ
     xml = getXMLPage(config=config, title=randomtitle, verbose=False)
     header = xml.split('</mediawiki>')[0]
+    if not xml:
+        print 'XML export on this wiki is broken, quitting.'
+        sys.exit()
     return header
 
 def getXMLFileDesc(config={}, title=''):
@@ -295,14 +298,17 @@ def getXMLPageCore(headers={}, params={}, config={}):
         if c >= maxretries:
             print '    We have retried %d times' % (c)
             print '    MediaWiki error for "%s", network error or whatever...' % (params['pages'])
-            if not config['curonly']: #our last chance, preserve only the last revision...
+            # If it's not already what we tried: our last chance, preserve only the last revision...
+            # config['curonly'] means that the whole dump is configured to save nonly the last
+            # params['curonly'] means that we've already tried this fallback, because it's set by the following if and passed to getXMLPageCore
+            if not config['curonly'] and not params['curonly']: 
                 print '    Trying to save only the last revision for this page...'
                 params['curonly'] = 1
                 logerror(config=config, text='Error while retrieving the full history of "%s". Trying to save only the last revision for this page' % (params['pages']))
                 return getXMLPageCore(headers=headers, params=params, config=config)
             else:
-                print '    Saving in the errors log, and skiping...'
-                logerror(config=config, text='Error while retrieving the last revision of "%s". Skiping.' % (params['pages']))
+                print '    Saving in the errors log, and skipping...'
+                logerror(config=config, text='Error while retrieving the last revision of "%s". Skipping.' % (params['pages']))
                 return '' # empty xml
         
         data = urllib.urlencode(params)
@@ -318,6 +324,7 @@ def getXMLPageCore(headers={}, params={}, config={}):
                 print 'An error have occurred while retrieving "%s"' % (params['pages'])
                 print 'Please, resume the dump, --resume'
                 sys.exit()
+                # The error is usually temporary, but we exit the dump altogether.
         xml = f.read()
         c += 1
     
@@ -326,7 +333,7 @@ def getXMLPageCore(headers={}, params={}, config={}):
 def getXMLPage(config={}, title='', verbose=True):
     """  """
     #return the full history (or current only) of a page
-    #if server errors occurs while retrieving the full page history, it may return [oldest OK versions] + last version, excluding mmiddle revisions, so it would be partialy truncated
+    #if server errors occurs while retrieving the full page history, it may return [oldest OK versions] + last version, excluding middle revisions, so it would be partialy truncated
     #http://www.mediawiki.org/wiki/Manual_talk:Parameters_to_Special:Export#Parameters_no_longer_in_use.3F
     
     limit = 1000
@@ -342,6 +349,7 @@ def getXMLPage(config={}, title='', verbose=True):
     else:
         params['offset'] = '1' # 1 always < 2000s
         params['limit'] = limit
+        params['curonly'] = 0 # we need this to be defined, in getXMLPageCore
     if config.has_key('templates') and config['templates']: #in other case, do not set params['templates']
         params['templates'] = 1
     
