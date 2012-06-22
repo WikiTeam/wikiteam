@@ -300,8 +300,8 @@ def getXMLPageCore(headers={}, params={}, config={}):
             print '    MediaWiki error for "%s", network error or whatever...' % (params['pages'])
             # If it's not already what we tried: our last chance, preserve only the last revision...
             # config['curonly'] means that the whole dump is configured to save nonly the last
-            # params['curonly'] means that we've already tried this fallback, because it's set by the following if and passed to getXMLPageCore
-            if not config['curonly'] and not params['curonly']: 
+            # params['curonly'] should mean that we've already tried this fallback, because it's set by the following if and passed to getXMLPageCore
+            if not config['curonly']: 
                 print '    Trying to save only the last revision for this page...'
                 params['curonly'] = 1
                 logerror(config=config, text='Error while retrieving the full history of "%s". Trying to save only the last revision for this page' % (params['pages']))
@@ -349,7 +349,6 @@ def getXMLPage(config={}, title='', verbose=True):
     else:
         params['offset'] = '1' # 1 always < 2000s
         params['limit'] = limit
-        params['curonly'] = 0 # we need this to be defined, in getXMLPageCore
     if config.has_key('templates') and config['templates']: #in other case, do not set params['templates']
         params['templates'] = 1
     
