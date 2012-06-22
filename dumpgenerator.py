@@ -921,6 +921,22 @@ def removeIP(raw=''):
     raw = re.sub(r'(?i)[\da-f]{0,4}:[\da-f]{0,4}:[\da-f]{0,4}:[\da-f]{0,4}:[\da-f]{0,4}:[\da-f]{0,4}:[\da-f]{0,4}:[\da-f]{0,4}', '0:0:0:0:0:0:0:0', raw)
     return raw
 
+def checkXMLIntegrity(config={}):
+    print "Verifying dump..."
+    os.chdir(config['path'])
+    checktitles = os.system('grep "<title>" *.xml -c > /dev/null')
+    checkpageopen = os.system('grep "<page>" *.xml -c > /dev/null')
+    checkpageclose = os.system('grep "</page>" *.xml -c > /dev/null')
+    checkrevisionopen = os.system('grep "<revision>" *.xml -c > /dev/null')
+    checkrevisionclose = os.system('grep "</revision>" *.xml -c > /dev/null')
+    os.chdir('..')
+    if (checktitles == checkpageopen and checktitles == checkpageclose and checkpageopen == checkpageclose):
+        xmlisgood = True
+    else:
+        xmlisgood = False
+        print "XML dump is corrupted, regenerating a new dump"
+        generateXMLDump(config=config, titles=titles)
+
 def main(params=[]):
     """ Main function """
     welcome()
@@ -1081,6 +1097,7 @@ def main(params=[]):
             titles += getPageTitles(config=config)
             saveTitles(config=config, titles=titles)
             generateXMLDump(config=config, titles=titles)
+            checkXMLIntegrity(config=config)
         if config['images']:
             if config['api']:
                 images += getImageFilenamesURLAPI(config=config)
