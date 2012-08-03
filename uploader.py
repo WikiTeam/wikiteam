@@ -23,11 +23,12 @@
 import os
 import re
 import subprocess
+import sys
 import urllib
 
 # Configuration goes here
-accesskey = ''
-secretkey = ''
+accesskey = open('keys.txt', 'r').readlines()[0].strip()
+secretkey = open('keys.txt', 'r').readlines()[1].strip()
 collection = 'opensource' # Replace with "wikiteam" if you're an admin of the collection
 
 # Nothing to change below
@@ -70,9 +71,8 @@ def upload(wikis):
             curl += ['--upload-file', "%s" % (dump),
                     "http://s3.us.archive.org/wiki-%s/%s" % (wikiname, dump), # It could happen that the identifier is taken by another user; only wikiteam collection admins will be able to upload more files to it, curl will fail immediately and get a permissions error by s3.
             ]
-            print '\n'.join(curl)
-            #log = subprocess.check_output(curl)
-            #print log
+            curlline = ' '.join(curl)
+            os.system(curlline)
             c += 1
 
 wikis = {}
