@@ -30,12 +30,20 @@ import urllib2
 
 import dumpgenerator
 
+listfile = sys.argv[1]
+
 # Configuration goes here
+# You need a file named keys.txt with access and secret keys, in two different lines
 accesskey = open('keys.txt', 'r').readlines()[0].strip()
 secretkey = open('keys.txt', 'r').readlines()[1].strip()
-collection = 'opensource' # Replace with "wikiteam" if you're an admin of the collection
+collection = 'wikiteam' # Replace with "opensource" if you are not an admin of the collection
 
 # Nothing to change below
+def log(wiki, msg):
+    f = open('uploader-%s.log' % (listfile), 'a')
+    f.write('\n%s;%s' % (wiki, msg))
+    f.close()
+
 def upload(wikis):
     for wiki in wikis:
         print "#"*73
@@ -67,28 +75,36 @@ def upload(wikis):
             try:
                 f = urllib2.urlopen(req)
             except:
-                print "Error while retrieving metadata from API, skiping this wiki..."
-                break
+                print "Error while retrieving metadata from API, skiping this dump..."
+                log(wiki, 'missing metadata')
+                continue
             xml = f.read()
             f.close()
             
             sitename = ''
             rightsinfourl = ''
             rightsinfotext = ''
+            baseurl = ''
             try:
                 sitename = re.findall(ur"sitename=\"([^\"]+)\"", xml)[0]
                 rightsinfourl = re.findall(ur"rightsinfo url=\"([^\"]+)\"", xml)[0]
                 rightsinfotext = re.findall(ur"text=\"([^\"]+)\"", xml)[0]
+                baseurl = re.findall(ur"base=\"([^\"]+)\"", xml)[0]
             except:
                 pass
             
-            if not sitename or not rightsinfourl or not rightsinfotext:
-                print "Error while retrieving metadata from API, skiping this wiki..."
-                break
+            if not sitename or not baseurl or not rightsinfourl or not rightsinfotext:
+                print "Error while retrieving metadata from API, skiping this dump..."
+                log(wiki, 'missing metadata')
+                continue
+            """if not rightsinfourl:
+                rightsinfourl = baseurl + '#footer'
+            if not rightsinfotext:
+                rightsinfotext = baseurl + '#footer'"""
             
             #retrieve some info from the wiki
             wikititle = "Wiki - %s" % (sitename) # Wiki - ECGpedia
-            wikidesc = "Dumped with <a href=\"http://code.google.com/p/wikiteam/\" rel=\"nofollow\">WikiTeam</a> tools." # "<a href=\"http://en.ecgpedia.org/\" rel=\"nofollow\">ECGpedia,</a>: a free electrocardiography (ECG) tutorial and textbook to which anyone can contribute, designed for medical professionals such as cardiac care nurses and physicians. Dumped with <a href=\"http://code.google.com/p/wikiteam/\" rel=\"nofollow\">WikiTeam</a> tools."
+            wikidesc = "<a href=\"%s\">%s</a> dumped with <a href=\"http://code.google.com/p/wikiteam/\" rel=\"nofollow\">WikiTeam</a> tools." % (baseurl, sitename)# "<a href=\"http://en.ecgpedia.org/\" rel=\"nofollow\">ECGpedia,</a>: a free electrocardiography (ECG) tutorial and textbook to which anyone can contribute, designed for medical professionals such as cardiac care nurses and physicians. Dumped with <a href=\"http://code.google.com/p/wikiteam/\" rel=\"nofollow\">WikiTeam</a> tools."
             wikikeys = ['wiki', 'wikiteam', 'MediaWiki', sitename, wikiname] # ecg; ECGpedia; wiki; wikiteam; MediaWiki
             print wikikeys
             wikilicenseurl = rightsinfourl # http://creativecommons.org/licenses/by-nc-sa/3.0/
@@ -119,9 +135,10 @@ def upload(wikis):
             curlline = ' '.join(curl)
             os.system(curlline)
             c += 1
+            log(wiki, 'ok')
 
 def main():
-    wikis = open(sys.argv[1], 'r').read().splitlines()
+    wikis = open(listfile, 'r').read().splitlines()
     upload(wikis)
 
 if __name__ == "__main__":
