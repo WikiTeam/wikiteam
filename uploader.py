@@ -18,7 +18,7 @@
 # Keys: http://archive.org/account/s3.php
 # Documentation: http://archive.org/help/abouts3.txt
 # https://wiki.archive.org/twiki/bin/view/Main/IAS3BulkUploader
-# http://en.ecgpedia.org/api.php?action=query&meta=siteinfo&siprop=general|rightsinfo
+# http://en.ecgpedia.org/api.php?action=query&meta=siteinfo&siprop=general|rightsinfo&format=xml
 
 import os
 import re
@@ -39,9 +39,9 @@ secretkey = open('keys.txt', 'r').readlines()[1].strip()
 collection = 'wikiteam' # Replace with "opensource" if you are not an admin of the collection
 
 # Nothing to change below
-def log(wiki, msg):
+def log(wiki, dump, msg):
     f = open('uploader-%s.log' % (listfile), 'a')
-    f.write('\n%s;%s' % (wiki, msg))
+    f.write('\n%s;%s;%s' % (wiki, dump, msg))
     f.close()
 
 def upload(wikis):
@@ -68,45 +68,75 @@ def upload(wikis):
             print wiki, wikiname, wikidate, dump
             
             #get metadata from api.php
+            #first sitename and base url
             headers = {'User-Agent': dumpgenerator.getUserAgent()}
-            params = {'action': 'query', 'meta': 'siteinfo', 'siprop': 'general|rightsinfo', 'format': 'xml'}
+            params = {'action': 'query', 'meta': 'siteinfo', 'format': 'xml'}
             data = urllib.urlencode(params)
             req = urllib2.Request(url=wiki, data=data, headers=headers)
             try:
                 f = urllib2.urlopen(req)
             except:
                 print "Error while retrieving metadata from API, skiping this dump..."
-                log(wiki, 'missing metadata')
+                log(wiki, dump, 'missing metadata')
                 continue
             xml = f.read()
             f.close()
             
             sitename = ''
-            rightsinfourl = ''
-            rightsinfotext = ''
             baseurl = ''
             try:
                 sitename = re.findall(ur"sitename=\"([^\"]+)\"", xml)[0]
-                rightsinfourl = re.findall(ur"rightsinfo url=\"([^\"]+)\"", xml)[0]
-                rightsinfotext = re.findall(ur"text=\"([^\"]+)\"", xml)[0]
                 baseurl = re.findall(ur"base=\"([^\"]+)\"", xml)[0]
             except:
                 pass
             
+            #now copyright info from API
+            params = {'action': 'query', 'siprop': 'general|rightsinfo', 'format': 'xml'}
+            data = urllib.urlencode(params)
+            req = urllib2.Request(url=wiki, data=data, headers=headers)
+            xml = ''
+            try:
+                f = urllib2.urlopen(req)
+                xml = f.read()
+                f.close()
+            except:
+                pass
+            
+            rightsinfourl = ''
+            rightsinfotext = ''
+            try:
+                rightsinfourl = re.findall(ur"rightsinfo url=\"([^\"]+)\"", xml)[0]
+                rightsinfotext = re.findall(ur"text=\"([^\"]+)\"", xml)[0]
+            except:
+                pass
+            
+            #or copyright info from #footer in mainpage
+            if not rightsinfourl and not rightsinfotext:
+                f = urllib.urlopen(baseurl)
+                raw = f.read()
+                f.close()
+                rightsinfotext = ''
+                rightsinfourl = ''
+                try:
+                    rightsinfourl = re.findall(ur"<link rel=\"copyright\" href=\"([^\"]+)\" />", raw)[0]
+                except:
+                    pass
+                try:
+                    rightsinfotext = re.findall(ur"<li id=\"copyright\">([^\n\r]*?)</li>", raw)[0]
+                except:
+                    pass
+                if rightsinfotext and not rightsinfourl:
+                    rightsinfourl = baseurl + '#footer'
+            
             if not sitename or not baseurl or not rightsinfourl or not rightsinfotext:
                 print "Error while retrieving metadata from API, skiping this dump..."
-                log(wiki, 'missing metadata')
+                log(wiki, dump, 'missing metadata')
                 continue
-            """if not rightsinfourl:
-                rightsinfourl = baseurl + '#footer'
-            if not rightsinfotext:
-                rightsinfotext = baseurl + '#footer'"""
             
             #retrieve some info from the wiki
             wikititle = "Wiki - %s" % (sitename) # Wiki - ECGpedia
             wikidesc = "<a href=\"%s\">%s</a> dumped with <a href=\"http://code.google.com/p/wikiteam/\" rel=\"nofollow\">WikiTeam</a> tools." % (baseurl, sitename)# "<a href=\"http://en.ecgpedia.org/\" rel=\"nofollow\">ECGpedia,</a>: a free electrocardiography (ECG) tutorial and textbook to which anyone can contribute, designed for medical professionals such as cardiac care nurses and physicians. Dumped with <a href=\"http://code.google.com/p/wikiteam/\" rel=\"nofollow\">WikiTeam</a> tools."
             wikikeys = ['wiki', 'wikiteam', 'MediaWiki', sitename, wikiname] # ecg; ECGpedia; wiki; wikiteam; MediaWiki
-            print wikikeys
             wikilicenseurl = rightsinfourl # http://creativecommons.org/licenses/by-nc-sa/3.0/
             wikirights = rightsinfotext # e.g. http://en.ecgpedia.org/wiki/Frequently_Asked_Questions : hard to fetch automatically, could be the output of API's rightsinfo if it's not a usable licenseurl or "Unknown copyright status" if nothing is found.
             wikiurl = wiki # we use api here http://en.ecgpedia.org/api.php
@@ -135,10 +165,10 @@ def upload(wikis):
             curlline = ' '.join(curl)
             os.system(curlline)
             c += 1
-            log(wiki, 'ok')
+            log(wiki, dump, 'ok')
 
 def main():
-    wikis = open(listfile, 'r').read().splitlines()
+    wikis = open(listfile, 'r').read().strip().splitlines()
     upload(wikis)
 
 if __name__ == "__main__":
