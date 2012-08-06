@@ -30,13 +30,19 @@ import urllib2
 
 import dumpgenerator
 
-listfile = sys.argv[1]
-
 # Configuration goes here
 # You need a file named keys.txt with access and secret keys, in two different lines
 accesskey = open('keys.txt', 'r').readlines()[0].strip()
 secretkey = open('keys.txt', 'r').readlines()[1].strip()
 collection = 'wikiteam' # Replace with "opensource" if you are not an admin of the collection
+
+listfile = sys.argv[1]
+uploadeddumps = []
+try:
+    uploadeddumps = [l.split(';')[1] for l in open('uploader-%s.log' % (listfile), 'r').read().strip().splitlines()]
+except:
+    pass
+print '%d dumps uploaded previously' % (len(uploadeddumps))
 
 # Nothing to change below
 def log(wiki, dump, msg):
@@ -63,6 +69,10 @@ def upload(wikis):
 
         c = 0
         for dump in dumps:
+            if dump in uploadeddumps:
+                print '%s was uploaded before, skiping...' % (dump)
+                continue
+            
             time.sleep(0.1)
             wikidate = dump.split('-')[1]
             wikidate_text = wikidate[0:4]+'-'+wikidate[4:6]+'-'+wikidate[6:8]
@@ -173,6 +183,7 @@ def upload(wikis):
             curlline = ' '.join(curl)
             os.system(curlline)
             c += 1
+            uploadeddumps.append(dump)
             log(wiki, dump, 'ok')
 
 def main():
