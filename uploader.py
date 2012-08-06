@@ -65,6 +65,7 @@ def upload(wikis):
         for dump in dumps:
             time.sleep(0.1)
             wikidate = dump.split('-')[1]
+            wikidate_text = wikidate[0:4]+'-'+wikidate[4:6]+'-'+wikidate[6:8]
             print wiki, wikiname, wikidate, dump
             
             #get metadata from api.php
@@ -73,14 +74,13 @@ def upload(wikis):
             params = {'action': 'query', 'meta': 'siteinfo', 'format': 'xml'}
             data = urllib.urlencode(params)
             req = urllib2.Request(url=wiki, data=data, headers=headers)
+            xml = ''
             try:
                 f = urllib2.urlopen(req)
+                xml = f.read()
+                f.close()
             except:
-                print "Error while retrieving metadata from API, skiping this dump..."
-                log(wiki, dump, 'missing metadata')
-                continue
-            xml = f.read()
-            f.close()
+                pass
             
             sitename = ''
             baseurl = ''
@@ -89,6 +89,11 @@ def upload(wikis):
                 baseurl = re.findall(ur"base=\"([^\"]+)\"", xml)[0]
             except:
                 pass
+            
+            if not sitename:
+                sitename = wikiname
+            if not baseurl:
+                baseurl = re.sub(ur"(?im)/api\.php", ur"", wiki)
             
             #now copyright info from API
             params = {'action': 'query', 'siprop': 'general|rightsinfo', 'format': 'xml'}
@@ -111,7 +116,7 @@ def upload(wikis):
                 pass
             
             #or copyright info from #footer in mainpage
-            if not rightsinfourl and not rightsinfotext:
+            if baseurl and not rightsinfourl and not rightsinfotext:
                 f = urllib.urlopen(baseurl)
                 raw = f.read()
                 f.close()
@@ -128,15 +133,13 @@ def upload(wikis):
                 if rightsinfotext and not rightsinfourl:
                     rightsinfourl = baseurl + '#footer'
             
-            if not sitename or not baseurl or not rightsinfourl or not rightsinfotext:
-                print "Error while retrieving metadata from API, skiping this dump..."
-                log(wiki, dump, 'missing metadata')
-                continue
-            
             #retrieve some info from the wiki
             wikititle = "Wiki - %s" % (sitename) # Wiki - ECGpedia
             wikidesc = "<a href=\"%s\">%s</a> dumped with <a href=\"http://code.google.com/p/wikiteam/\" rel=\"nofollow\">WikiTeam</a> tools." % (baseurl, sitename)# "<a href=\"http://en.ecgpedia.org/\" rel=\"nofollow\">ECGpedia,</a>: a free electrocardiography (ECG) tutorial and textbook to which anyone can contribute, designed for medical professionals such as cardiac care nurses and physicians. Dumped with <a href=\"http://code.google.com/p/wikiteam/\" rel=\"nofollow\">WikiTeam</a> tools."
             wikikeys = ['wiki', 'wikiteam', 'MediaWiki', sitename, wikiname] # ecg; ECGpedia; wiki; wikiteam; MediaWiki
+            if not rightsinfourl and not rightsinfotext:
+                wikikeys.append('unknowncopyright')
+            
             wikilicenseurl = rightsinfourl # http://creativecommons.org/licenses/by-nc-sa/3.0/
             wikirights = rightsinfotext # e.g. http://en.ecgpedia.org/wiki/Frequently_Asked_Questions : hard to fetch automatically, could be the output of API's rightsinfo if it's not a usable licenseurl or "Unknown copyright status" if nothing is found.
             wikiurl = wiki # we use api here http://en.ecgpedia.org/api.php
