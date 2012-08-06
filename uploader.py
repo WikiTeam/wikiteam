@@ -117,9 +117,13 @@ def upload(wikis):
             
             #or copyright info from #footer in mainpage
             if baseurl and not rightsinfourl and not rightsinfotext:
-                f = urllib.urlopen(baseurl)
-                raw = f.read()
-                f.close()
+                raw = ''
+                try:
+                    f = urllib.urlopen(baseurl)
+                    raw = f.read()
+                    f.close()
+                except:
+                    pass
                 rightsinfotext = ''
                 rightsinfourl = ''
                 try:
