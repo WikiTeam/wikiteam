@@ -35,7 +35,10 @@ import dumpgenerator
 accesskey = open('keys.txt', 'r').readlines()[0].strip()
 secretkey = open('keys.txt', 'r').readlines()[1].strip()
 collection = 'wikiteam' # Replace with "opensource" if you are not an admin of the collection
+# end configuration
 
+# Nothing to change below
+convertlang = {'ar': 'Arabic', 'de': 'German', 'en': 'English', 'es': 'Spanish', 'fr': 'French', 'it': 'Italian', 'ja': 'Japanese', 'nl': 'Dutch', 'pl': 'Polish', 'pt': 'Portuguese', 'ru': 'Russian'}
 listfile = sys.argv[1]
 uploadeddumps = []
 try:
@@ -44,7 +47,6 @@ except:
     pass
 print '%d dumps uploaded previously' % (len(uploadeddumps))
 
-# Nothing to change below
 def log(wiki, dump, msg):
     f = open('uploader-%s.log' % (listfile), 'a')
     f.write('\n%s;%s;%s' % (wiki, dump, msg))
@@ -94,9 +96,17 @@ def upload(wikis):
             
             sitename = ''
             baseurl = ''
+            lang = ''
             try:
                 sitename = re.findall(ur"sitename=\"([^\"]+)\"", xml)[0]
+            except:
+                pass
+            try:
                 baseurl = re.findall(ur"base=\"([^\"]+)\"", xml)[0]
+            except:
+                pass
+            try:
+                lang = re.findall(ur"lang=\"([^\"]+)\"", xml)[0]
             except:
                 pass
             
@@ -104,6 +114,8 @@ def upload(wikis):
                 sitename = wikiname
             if not baseurl:
                 baseurl = re.sub(ur"(?im)/api\.php", ur"", wiki)
+            if lang:
+                lang = convertlang.has_key(lang.lower()) and convertlang[lang.lower()] or lang.lower()
             
             #now copyright info from API
             params = {'action': 'query', 'siprop': 'general|rightsinfo', 'format': 'xml'}
@@ -170,6 +182,7 @@ def upload(wikis):
                     '--header', "'x-archive-meta-collection:%s'" % (collection),
                     '--header', "'x-archive-meta-title:%s'" % (wikititle),
                     '--header', "'x-archive-meta-description:%s'" % (wikidesc),
+                    '--header', "'x-archive-meta-language:%s'" % (lang),
                     '--header', "'x-archive-meta-last-updated-date:%s'" % (wikidate_text),
                     '--header', "'x-archive-meta-subject:%s'" % ('; '.join(wikikeys)), # Keywords should be separated by ; but it doesn't matter much; the alternative is to set one per field with subject[0], subject[1], ...
                     '--header', "'x-archive-meta-licenseurl:%s'" % (wikilicenseurl),
