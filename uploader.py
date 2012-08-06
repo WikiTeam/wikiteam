@@ -24,7 +24,11 @@ import os
 import re
 import subprocess
 import sys
+import time
 import urllib
+import urllib2
+
+import dumpgenerator
 
 # Configuration goes here
 accesskey = open('keys.txt', 'r').readlines()[0].strip()
@@ -33,22 +37,63 @@ collection = 'opensource' # Replace with "wikiteam" if you're an admin of the co
 
 # Nothing to change below
 def upload(wikis):
-    for wiki, dumps in wikis.items():
-        wikiname = '-'.join(wiki.split('-')[:-1]) # The identifier has to match this pattern: ^[a-zA-Z0-9][a-zA-Z0-9_.-]{4,100}$
-        wikidate = wiki.split('-')[-1]
+    for wiki in wikis:
+        print "#"*73
+        print "# Uploading", wiki
+        print "#"*73
+        wiki = wiki.lower()
+        prefix = dumpgenerator.domain2prefix(config={'api': wiki})
+    
+        wikiname = prefix.split('-')[0]
+        dumps = []
+        for dirname, dirnames, filenames in os.walk('.'):
+            if dirname == '.':
+                for f in filenames:
+                    if f.startswith('%s-' % (wikiname)) and (f.endswith('-wikidump.7z') or f.endswith('-history.xml.7z')):
+                        dumps.append(f)
+                break
+
         c = 0
         for dump in dumps:
+            time.sleep(0.1)
+            wikidate = dump.split('-')[1]
             print wiki, wikiname, wikidate, dump
-            #get api.php
-            pass
+            
+            #get metadata from api.php
+            headers = {'User-Agent': dumpgenerator.getUserAgent()}
+            params = {'action': 'query', 'meta': 'siteinfo', 'siprop': 'general|rightsinfo', 'format': 'xml'}
+            data = urllib.urlencode(params)
+            req = urllib2.Request(url=wiki, data=data, headers=headers)
+            try:
+                f = urllib2.urlopen(req)
+            except:
+                print "Error while retrieving metadata from API, skiping this wiki..."
+                break
+            xml = f.read()
+            f.close()
+            
+            sitename = ''
+            rightsinfourl = ''
+            rightsinfotext = ''
+            try:
+                sitename = re.findall(ur"sitename=\"([^\"]+)\"", xml)[0]
+                rightsinfourl = re.findall(ur"rightsinfo url=\"([^\"]+)\"", xml)[0]
+                rightsinfotext = re.findall(ur"text=\"([^\"]+)\"", xml)[0]
+            except:
+                pass
+            
+            if not sitename or not rightsinfourl or not rightsinfotext:
+                print "Error while retrieving metadata from API, skiping this wiki..."
+                break
             
             #retrieve some info from the wiki
-            wikititle = "Wiki - " # Wiki - ECGpedia
-            wikidesc = "... Dumped with <a href=\"http://code.google.com/p/wikiteam/\" rel=\"nofollow\">WikiTeam</a> tools." # "<a href=\"http://en.ecgpedia.org/\" rel=\"nofollow\">ECGpedia,</a>: a free electrocardiography (ECG) tutorial and textbook to which anyone can contribute, designed for medical professionals such as cardiac care nurses and physicians. Dumped with <a href=\"http://code.google.com/p/wikiteam/\" rel=\"nofollow\">WikiTeam</a> tools."
-            wikikeys = ['wiki', 'wikiteam', 'MediaWiki'] # ecg; ECGpedia; wiki; wikiteam; MediaWiki
-            wikilicenseurl = "" # http://creativecommons.org/licenses/by-nc-sa/3.0/
-            wikirights = "" # e.g. http://en.ecgpedia.org/wiki/Frequently_Asked_Questions : hard to fetch automatically, could be the output of API's rightsinfo if it's not a usable licenseurl or "Unknown copyright status" if nothing is found.
-            wikiurl = "" # we use api here http://en.ecgpedia.org/api.php
+            wikititle = "Wiki - %s" % (sitename) # Wiki - ECGpedia
+            wikidesc = "Dumped with <a href=\"http://code.google.com/p/wikiteam/\" rel=\"nofollow\">WikiTeam</a> tools." # "<a href=\"http://en.ecgpedia.org/\" rel=\"nofollow\">ECGpedia,</a>: a free electrocardiography (ECG) tutorial and textbook to which anyone can contribute, designed for medical professionals such as cardiac care nurses and physicians. Dumped with <a href=\"http://code.google.com/p/wikiteam/\" rel=\"nofollow\">WikiTeam</a> tools."
+            wikikeys = ['wiki', 'wikiteam', 'MediaWiki', sitename, wikiname] # ecg; ECGpedia; wiki; wikiteam; MediaWiki
+            print wikikeys
+            wikilicenseurl = rightsinfourl # http://creativecommons.org/licenses/by-nc-sa/3.0/
+            wikirights = rightsinfotext # e.g. http://en.ecgpedia.org/wiki/Frequently_Asked_Questions : hard to fetch automatically, could be the output of API's rightsinfo if it's not a usable licenseurl or "Unknown copyright status" if nothing is found.
+            wikiurl = wiki # we use api here http://en.ecgpedia.org/api.php
                         
             #creates curl command
             curl = ['curl', '--location', 
@@ -75,18 +120,8 @@ def upload(wikis):
             os.system(curlline)
             c += 1
 
-wikis = {}
 def main():
-    for dirname, dirnames, filenames in os.walk('.'):
-        if dirname == '.':
-            for f in filenames:
-                if f.endswith('-wikidump.7z') or f.endswith('-history.xml.7z'):
-                    wiki = f.split('-wikidump.7z')[0].split('-history.xml.7z')[0]
-                    if not wikis.has_key(wiki):
-                        wikis[wiki] = []
-                    wikis[wiki].append(f)
-            break
-    
+    wikis = open(sys.argv[1], 'r').read().splitlines()
     upload(wikis)
 
 if __name__ == "__main__":
