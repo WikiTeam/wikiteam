@@ -156,6 +156,7 @@ def upload(wikis):
                     '--header', "'x-archive-meta-collection:%s'" % (collection),
                     '--header', "'x-archive-meta-title:%s'" % (wikititle),
                     '--header', "'x-archive-meta-description:%s'" % (wikidesc),
+                    '--header', "'x-archive-meta-last-updated-date:%s'" % (wikidate_text),
                     '--header', "'x-archive-meta-subject:%s'" % ('; '.join(wikikeys)), # Keywords should be separated by ; but it doesn't matter much; the alternative is to set one per field with subject[0], subject[1], ...
                     '--header', "'x-archive-meta-licenseurl:%s'" % (wikilicenseurl),
                     '--header', "'x-archive-meta-rights:%s'" % (wikirights),
