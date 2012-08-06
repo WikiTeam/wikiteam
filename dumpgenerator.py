@@ -15,9 +15,11 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-# DumpGenerator.py is a script to generate backups of MediaWiki wikis
-# To learn more, read the documentation:
-#        http://code.google.com/p/wikiteam/wiki/NewTutorial
+#######################################################################
+# DumpGenerator.py is a script to generate backups of MediaWiki wikis #
+# To learn more, read the documentation:                              #
+#        http://code.google.com/p/wikiteam/wiki/NewTutorial           #
+#######################################################################
 
 import cPickle
 import datetime
@@ -35,11 +37,11 @@ import urllib
 import urllib2
 
 def truncateFilename(other={}, filename=''):
-    """  """
+    """ Truncate filenames when downloading images """
     return filename[:other['filenamelimit']] + md5(filename).hexdigest() + '.' + filename.split('.')[-1]
 
 def delay(config={}):
-    """  """
+    """ Add a delay if configured for that """
     if config['delay'] > 0:
         print 'Sleeping... %d seconds...' % (config['delay'])
         time.sleep(config['delay'])
@@ -922,6 +924,8 @@ def removeIP(raw=''):
     return raw
 
 def checkXMLIntegrity(config={}):
+    """ Check XML dump integrity, to detect broken XML chunks """
+    #TODO instead relaunch, ask first to user
     print "Verifying dump..."
     os.chdir(config['path'])
     checktitles = os.system('grep "<title>" *.xml -c > /dev/null')
