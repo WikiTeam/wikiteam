@@ -47,11 +47,9 @@ def delay(config={}):
         time.sleep(config['delay'])
 
 def cleanHTML(raw=''):
-    """  """
-    #<!-- bodytext --> <!-- /bodytext -->
-    #<!-- start content --> <!-- end content -->
-    #<!-- Begin Content Area --> <!-- End Content Area -->
-    #<!-- content --> <!-- mw_content -->
+    """ Extract only the real wiki content and remove rubbish. This function is only used to retrieve page titles and file names when no API is available """
+    """ DO NOT use this function to extract page content """
+    #different "tags" used by different MediaWiki versions to mark where starts and ends content
     if re.search('<!-- bodytext -->', raw):
         raw = raw.split('<!-- bodytext -->')[1].split('<!-- /bodytext -->')[0]
     elif re.search('<!-- start content -->', raw):
@@ -95,7 +93,6 @@ def getNamespaces(config={}):
     else:
         namespaces = [0]
     
-    #retrieve all titles from Special:Allpages, if the wiki is big, perhaps there are sub-Allpages to explore
     namespaces = [i for i in set(namespaces)] #uniques
     print '%d namespaces found' % (len(namespaces))
     return namespaces, namespacenames
