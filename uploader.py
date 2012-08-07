@@ -21,9 +21,11 @@
 # http://en.ecgpedia.org/api.php?action=query&meta=siteinfo&siprop=general|rightsinfo&format=xml
 #
 # TODO: bug - upload may fail if two (small) files are sent to s3 without pause http://p.defau.lt/?puN_G_zKXbv1lz9TfSliPg http://archive.org/details/wiki-editionorg_w
-# TODO: minor bug - check for duplicates with originalurl http://archive.org/details/wiki-enecgpediaorg http://archive.org/details/wiki-en.ecgpedia.org
+# TODO: minor bug - skip sites requiring authentication without asking user input (e.g. ilab.usc.edu)
 # TODO: minor bug - don't overwrite existing files with same filename in the same identifier
-# TODO: feature - download wiki logo and upload as *-logo.png, should suffice to get the thumb used
+# TODO: trivial bug - check for duplicates with originalurl http://archive.org/details/wiki-enecgpediaorg http://archive.org/details/wiki-en.ecgpedia.org
+# TODO: enhancement - download wiki logo and upload as *-logo.png, should suffice to get the thumb used
+# TODO: enhancement - fix escapement? http://archive.org/details/wiki-encitizendiumorg
 
 import os
 import re
