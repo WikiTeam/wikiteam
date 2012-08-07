@@ -20,7 +20,8 @@ import os
 import time
 import urllib
 
-f = urllib.urlopen('http://dumps.wikimedia.org/backup-index.html')
+dumpsdomain = 'http://dumps.wikimedia.org'
+f = urllib.urlopen('%s/backup-index.html' % (dumpsdomain))
 raw = f.read()
 f.close()
 
@@ -28,9 +29,7 @@ m = re.compile(r'<a href="(?P<project>[^>]+)/(?P<date>\d+)">[^<]+</a>: <span cla
 projects = []
 for i in m:
     projects.append([i.group('project'), i.group('date')])
-
 projects.reverse() #oldest project dump, download first
-
 #projects = [['enwiki', '20110405']]
 
 start = ''
@@ -45,8 +44,9 @@ for project, date in projects:
         else:
             start = '' #reset
     
+    print '-'*50, '\n', 'Checking', project, date, '\n', '-'*50
     time.sleep(1) #ctrl-c
-    f = urllib.urlopen('http://dumps.wikimedia.org/%s/%s/' % (project, date))
+    f = urllib.urlopen('%s/%s/%s/' % (dumpsdomain, project, date))
     htmlproj = f.read()
     #print htmlproj
     f.close()
@@ -56,10 +56,10 @@ for project, date in projects:
         maxretries = 3
         while corrupted and maxretries > 0:
             maxretries -= 1
-            m = re.compile(r'<a href="(?P<urldump>http://[^/>]+/%s/%s/%s-%s-%s)">' % (project, date, project, date, dumpclass)).finditer(htmlproj)
+            m = re.compile(r'<a href="(?P<urldump>/%s/%s/%s-%s-%s)">' % (project, date, project, date, dumpclass)).finditer(htmlproj)
             urldumps = []
-            for i in m:
-                urldumps.append(i.group('urldump')) #enwiki is splitted in several files
+            for i in m: #enwiki is splitted in several files, thats why we need a loop here
+                urldumps.append('%s/%s' % (dumpsdomain, i.group('urldump')))
             
             #print urldumps
             for urldump in urldumps:
@@ -77,7 +77,7 @@ for project, date in projects:
                 md51 = re.findall(r'(?P<md5>[a-f0-9]{32})\s+%s/%s' % (path, dumpfilename), raw)[0]
                 print md51
                 
-                f = urllib.urlopen('http://dumps.wikimedia.org/%s/%s/%s-%s-md5sums.txt' % (project, date, project, date))
+                f = urllib.urlopen('%s/%s/%s/%s-%s-md5sums.txt' % (dumpsdomain, project, date, project, date))
                 raw = f.read()
                 f.close()
                 f = open('%s/%s-%s-md5sums.txt' % (path, project, date), 'w')
