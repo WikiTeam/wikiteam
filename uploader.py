@@ -20,7 +20,7 @@
 # https://wiki.archive.org/twiki/bin/view/Main/IAS3BulkUploader
 # http://en.ecgpedia.org/api.php?action=query&meta=siteinfo&siprop=general|rightsinfo&format=xml
 #
-# TODO: bug - upload may fail if two (small) files are sent to s3 without pause http://p.defau.lt/?puN_G_zKXbv1lz9TfSliPg http://archive.org/details/wiki-editionorg_w
+# TODO: bug - upload may (partly) fail if two (small) files are sent to s3 without pause http://p.defau.lt/?puN_G_zKXbv1lz9TfSliPg http://archive.org/details/wiki-editionorg_w or something http://p.defau.lt/?udwrG7YQn4RK_1whl1XWRw http://archive.org/details/wiki-jutedreamhosterscom_lineageii_bestiary
 # TODO: minor bug - skip sites requiring authentication without asking user input (e.g. ilab.usc.edu)
 # TODO: minor bug - don't overwrite existing files with same filename in the same identifier
 # TODO: trivial bug - check for duplicates with originalurl http://archive.org/details/wiki-enecgpediaorg http://archive.org/details/wiki-en.ecgpedia.org
