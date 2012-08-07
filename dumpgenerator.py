@@ -922,7 +922,9 @@ def removeIP(raw=''):
 
 def checkXMLIntegrity(config={}):
     """ Check XML dump integrity, to detect broken XML chunks """
-    #TODO instead relaunch, ask first to user
+    return 
+    
+    #TODO fix, instead relaunch, ask first to user, also it fails on windows without grep : (
     print "Verifying dump..."
     os.chdir(config['path'])
     checktitles = os.system('grep "<title>" *.xml -c > /dev/null')
