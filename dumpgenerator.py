@@ -648,13 +648,8 @@ def generateImageDump(config={}, other={}, images=[], start=''):
         #saving description if any
         xmlfiledesc = getXMLFileDesc(config=config, title='Image:%s' % (filename)) 
         f = open('%s/%s.desc' % (imagepath, filename2), 'w')
-        if re.search(r'<text xml:space="preserve"/>', xmlfiledesc):
-            #empty desc
-            xmlfiledesc = ''
-        elif re.search(r'<text xml:space="preserve">', xmlfiledesc):
-            xmlfiledesc = xmlfiledesc.split('<text xml:space="preserve">')[1].split('</text>')[0]
-            xmlfiledesc = undoHTMLEntities(text=xmlfiledesc)
-        else: #failure when retrieving desc?
+        if not re.search(r'<text xml:space=', xmlfiledesc): #<text xml:space="preserve" bytes="36">Banner featuring SG1, SGA, SGU teams</text>
+            #failure when retrieving desc? then save it as empty .desc
             xmlfiledesc = ''
         f.write(xmlfiledesc)
         f.close()

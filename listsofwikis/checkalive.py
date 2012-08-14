@@ -29,8 +29,10 @@ limit = 100
 def checkcore(api):
     try:
         if '&lt;api' in urllib2.urlopen(api, None, delay).read():
+            print api, 'is alive'
             open('wikisalive.txt', 'a').write(('%s\n' % api.strip()).encode('utf-8'))
     except:
+        print api, 'is dead or has errors'
         pass
 
 def check(apis):
