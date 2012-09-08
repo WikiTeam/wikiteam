@@ -746,20 +746,18 @@ def usage():
     --api or --index: URL to api.php or to index.php, one of them. If wiki has api.php, please, use --api instead of --index. Examples: --api=http://archiveteam.org/api.php or --index=http://archiveteam.org/index.php
     
 And one of these at least:
-    --xml: it generates a XML dump. It retrieves full history of pages located in namespace = 0 (articles)
-           If you want more namespaces, use the parameter --namespaces=0,1,2,3... or --namespaces=all
-           If you want only the current versions of articles (not the full history), use --curonly option too
-    --images: it generates an image dump
-    --logs: it generates a log dump
+    --xml: It generates a XML dump. It retrieves full history of all pages (if you want only the current version use --xml --curonly)
+           If you want filter by namespace, use the parameter --namespaces=0,1,2,3...
+    --images: It generates an image dump
 
 You can resume previous incomplete dumps:
-    --resume: it resumes previous incomplete dump. When using --resume, --path is mandatory (path to directory where incomplete dump is).
+    --resume: It resumes previous incomplete dump. When using --resume, --path is mandatory (path to directory where incomplete dump is).
 
 You can exclude namespaces:
-    --exnamespaces: write the number of the namespaces you want to exclude, split by commas.
+    --exnamespaces: Write the number of the namespaces you want to exclude, split by commas.
 
 You can be nice with servers using a delay:
-    --delay: it adds a time sleep (in seconds, adding 5 seconds between requests: --delay:5)
+    --delay: It adds a delay (in seconds, adding 5 seconds between requests: --delay:5)
 
 Write --help for help."""
 
