@@ -159,7 +159,7 @@ def getPageTitlesAPI(config={}):
                     sys.exit()
             xml = f.read()
             f.close()
-            m = re.findall(r'<allpages apfrom="([^>]+)" />', xml)
+            m = re.findall(r'<allpages (?:apfrom|apcontinue)="([^>]+)" />', xml)
             if m:
                 apfrom = undoHTMLEntities(text=m[0]) #&quot; = ", etc
             else:
@@ -743,7 +743,7 @@ def bye():
 def usage():
     """  """
     print """Error. You forget mandatory parameters:
-    --api or --index: URL to api.php or to index.php, one of them. WARNING: API support is experimental (faster but broken). . Examples: --api=http://archiveteam.org/api.php or --index=http://archiveteam.org/index.php
+    --api or --index: URL to api.php or to index.php, one of them. Examples: --api=http://archiveteam.org/api.php or --index=http://archiveteam.org/index.php
     
 And one of these at least:
     --xml: It generates a XML dump. It retrieves full history of all pages (if you want only the current version use --xml --curonly)
@@ -867,7 +867,7 @@ def getParameters(params=[]):
     if config['api']:
         #check api.php
         if checkAPI(config['api']):
-            print 'api.php is OK – however, WARNING: API support is experimental (faster but broken)'
+            print 'api.php is OK'
         else:
             print 'Error in api.php, please, provide a correct path to api.php'
             sys.exit()
