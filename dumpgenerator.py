@@ -961,11 +961,11 @@ def main(params=[]):
             if not os.path.isfile('%s/%s' % (config['path'], configfilename)):
                 print 'No config file found. I can\'t resume. Aborting.'
                 sys.exit()
-            print 'You have selected YES'
+            print 'You have selected: YES'
             other['resume'] = True
             break
         elif reply.lower() in ['no', 'n']:
-            print 'You have selected NO'
+            print 'You have selected: NO'
             other['resume'] = False
         config['path'] = '%s-%d' % (originalpath, c)
         print 'Trying to use path "%s"...' % (config['path'])
