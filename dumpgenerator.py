@@ -608,8 +608,8 @@ def getImageFilenamesURLAPI(config={}):
     return images
 
 def undoHTMLEntities(text=''):
-    """  """
-    text = re.sub('&lt;', '<', text) # i guess only < > & " need conversion http://www.w3schools.com/html/html_entities.asp
+    """ Undo some HTML codes """
+    text = re.sub('&lt;', '<', text) # i guess only < > & " ' need conversion http://www.w3schools.com/html/html_entities.asp
     text = re.sub('&gt;', '>', text)
     text = re.sub('&amp;', '&', text)
     text = re.sub('&quot;', '"', text)
@@ -630,7 +630,7 @@ def generateImageDump(config={}, other={}, images=[], start=''):
     if not start:
         lock = False
     for filename, url, uploader in images:
-        if filename == start: #start downloading from start, included
+        if filename == start: #start downloading from start (included)
             lock = False
         if lock:
             continue
@@ -642,11 +642,11 @@ def generateImageDump(config={}, other={}, images=[], start=''):
         if len(filename2) > other['filenamelimit']:
             # split last . (extension) and then merge
             filename2 = truncateFilename(other=other, filename=filename2)
-            print 'Truncating filename, it is too long. Now it is called:', filename2
+            print 'Filename is too long, truncating. Now it is:', filename2
         urllib.urlretrieve(url=url, filename='%s/%s' % (imagepath, filename2), data=urllib.urlencode({})) #fix, image request fails on wikipedia (POST neither works?)
         
         #saving description if any
-        xmlfiledesc = getXMLFileDesc(config=config, title='Image:%s' % (filename)) 
+        xmlfiledesc = getXMLFileDesc(config=config, title='Image:%s' % (filename)) # use Image: for backwards compatibility
         f = open('%s/%s.desc' % (imagepath, filename2), 'w')
         if not re.search(r'</mediawiki>', xmlfiledesc): #<text xml:space="preserve" bytes="36">Banner featuring SG1, SGA, SGU teams</text>
             #failure when retrieving desc? then save it as empty .desc
