@@ -941,7 +941,8 @@ def main(params=[]):
     
     #notice about wikipedia dumps
     if re.findall(r'(wikipedia|wikisource|wiktionary|wikibooks|wikiversity|wikimedia|wikispecies|wikiquote|wikinews|wikidata|wikivoyage)\.org', config['api']+config['index']):
-        print 'DO NOT USE THIS SCRIPT TO DOWNLOAD WIKIMEDIA PROJECTS!\nDownload the dumps from http://dumps.wikimedia.org'
+        print 'PLEASE, DO NOT USE THIS SCRIPT TO DOWNLOAD WIKIMEDIA PROJECTS!'
+        print 'Download the dumps from http://dumps.wikimedia.org'
         if not other['force']:
             print 'Thanks!'
             sys.exit()
@@ -951,7 +952,7 @@ def main(params=[]):
     #creating path or resuming if desired
     c = 2
     originalpath = config['path'] # to avoid concat blabla-2, blabla-2-3, and so on...
-    while not other['resume'] and os.path.isdir(config['path']): #do not enter if resume is request from begining
+    while not other['resume'] and os.path.isdir(config['path']): #do not enter if resume is requested from begining
         print '\nWarning!: "%s" path exists' % (config['path'])
         reply = ''
         while reply.lower() not in ['yes', 'y', 'no', 'n']:
@@ -967,7 +968,7 @@ def main(params=[]):
             print 'You have selected NO'
             other['resume'] = False
         config['path'] = '%s-%d' % (originalpath, c)
-        print 'Trying "%s"...' % (config['path'])
+        print 'Trying to use path "%s"...' % (config['path'])
         c += 1
 
     if other['resume']:
@@ -1104,11 +1105,11 @@ def main(params=[]):
         if config['logs']:
             saveLogs(config=config)
     
-    #save index.php as html, for license details at the bootom of the page
+    #save index.php as .html, to preserve license details available at the botom of the page
     if os.path.exists('%s/index.html' % (config['path'])):
         print 'index.html exists, do not overwrite'
     else:
-        print 'Downloading index.php (Main Page)'
+        print 'Downloading index.php (Main Page) as index.html'
         req = urllib2.Request(url=config['index'], data=urllib.urlencode({}), headers={'User-Agent': getUserAgent()})
         f = urllib2.urlopen(req)
         raw = f.read()
@@ -1118,7 +1119,7 @@ def main(params=[]):
         f.write(raw)
         f.close()
     
-    #save special:Version as html, for extensions details
+    #save Special:Version as .html, to preserve extensions details
     if os.path.exists('%s/Special:Version.html' % (config['path'])):
         print 'Special:Version.html exists, do not overwrite'
     else:
