@@ -37,7 +37,7 @@ import urllib
 import urllib2
 
 def truncateFilename(other={}, filename=''):
-    """ Truncate filenames when downloading images """
+    """ Truncate filenames when downloading images with large filenames """
     return filename[:other['filenamelimit']] + md5(filename).hexdigest() + '.' + filename.split('.')[-1]
 
 def delay(config={}):
@@ -47,7 +47,8 @@ def delay(config={}):
         time.sleep(config['delay'])
 
 def cleanHTML(raw=''):
-    """ Extract only the real wiki content and remove rubbish. This function is only used to retrieve page titles and file names when no API is available """
+    """ Extract only the real wiki content and remove rubbish """
+    """ This function is ONLY used to retrieve page titles and file names when no API is available """
     """ DO NOT use this function to extract page content """
     #different "tags" used by different MediaWiki versions to mark where starts and ends content
     if re.search('<!-- bodytext -->', raw):
@@ -66,8 +67,9 @@ def cleanHTML(raw=''):
         sys.exit()
     return raw
 
-def getNamespaces(config={}):
-    """ Hackishly gets the list of namespaces names and ids from the dropdown in the HTML of Special:AllPages. Function called if no API is available. """
+def getNamespacesScraper(config={}):
+    """ Hackishly gets the list of namespaces names and ids from the dropdown in the HTML of Special:AllPages """
+    """ Function called if no API is available """
     namespaces = config['namespaces']
     namespacenames = {0:''} # main is 0, no prefix
     if namespaces:
@@ -93,7 +95,7 @@ def getNamespaces(config={}):
     else:
         namespaces = [0]
     
-    namespaces = [i for i in set(namespaces)] #uniques
+    namespaces = list(set(namespaces)) #uniques
     print '%d namespaces found' % (len(namespaces))
     return namespaces, namespacenames
     
@@ -124,7 +126,7 @@ def getNamespacesAPI(config={}):
     else:
         namespaces = [0]
     
-    namespaces = [i for i in set(namespaces)] #uniques
+    namespaces = list(set(namespaces)) #uniques
     print '%d namespaces found' % (len(namespaces))
     return namespaces, namespacenames
 
@@ -170,10 +172,10 @@ def getPageTitlesAPI(config={}):
         print '    %d titles retrieved in the namespace %d' % (c, namespace)
     return titles
 
-def getPageTitlesScrapper(config={}):
+def getPageTitlesScraper(config={}):
     """  """
     titles = []
-    namespaces, namespacenames = getNamespaces(config=config)
+    namespaces, namespacenames = getNamespacesScraper(config=config)
     for namespace in namespaces:
         print '    Retrieving titles in the namespace', namespace
         url = '%s?title=Special:Allpages&namespace=%s' % (config['index'], namespace)
@@ -240,7 +242,7 @@ def getPageTitles(config={}):
     if config['api']:
         titles = getPageTitlesAPI(config=config)
     elif config['index']:
-        titles = getPageTitlesScrapper(config=config)
+        titles = getPageTitlesScraper(config=config)
     
     titles = list(set(titles)) #removing dupes (e.g. in CZ appears Widget:AddThis two times (main namespace and widget namespace))
     titles.sort() #sorting
@@ -261,7 +263,7 @@ def getXMLHeader(config={}):
     return header
 
 def getXMLFileDesc(config={}, title=''):
-    """  """
+    """ Get XML for image description page """
     config['curonly'] = 1 #tricky to get only the most recent desc
     return getXMLPage(config=config, title=title, verbose=False)
 
@@ -271,7 +273,7 @@ def getUserAgent():
     return useragents[0]
 
 def logerror(config={}, text=''):
-    """  """
+    """ Log error in file """
     if text:
         f = open('%s/errors.log' % (config['path']), 'a')
         f.write('%s: %s\n' % (datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'), text))
@@ -390,8 +392,8 @@ def getXMLPage(config={}, title='', verbose=True):
     return xml
 
 def cleanXML(xml=''):
-    """  """
-    #do not touch xml codification, as is
+    """ Trim redundant info """
+    #do not touch XML codification, leave AS IS
     if re.search(r'</siteinfo>\n', xml) and re.search(r'</mediawiki>', xml):
         xml = xml.split('</siteinfo>\n')[1]
         xml = xml.split('</mediawiki>')[0]
@@ -458,7 +460,7 @@ def generateXMLDump(config={}, titles=[], start=''):
     print 'XML dump saved at...', xmlfilename
 
 def saveTitles(config={}, titles=[]):
-    """  """
+    """ Save title list in a file """
     #save titles in a txt for resume if needed
     titlesfilename = '%s-%s-titles.txt' % (domain2prefix(config=config), config['date'])
     titlesfile = open('%s/%s' % (config['path'], titlesfilename), 'w')
@@ -468,7 +470,7 @@ def saveTitles(config={}, titles=[]):
     print 'Titles saved at...', titlesfilename
 
 def saveImageFilenamesURL(config={}, images=[]):
-    """  """
+    """ Save image list in a file """
     #save list of images and their urls
     imagesfilename = '%s-%s-images.txt' % (domain2prefix(config=config), config['date'])
     imagesfile = open('%s/%s' % (config['path'], imagesfilename), 'w')
