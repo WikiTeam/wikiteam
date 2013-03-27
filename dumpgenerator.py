@@ -659,7 +659,7 @@ def generateImageDump(config={}, other={}, images=[], start=''):
     print 'Downloaded %d images' % (c)
     
 def saveLogs(config={}):
-    """  """
+    """ Save Special:Log """
     #get all logs from Special:Log
     """parse
     <select name='type'>
@@ -679,7 +679,7 @@ def saveLogs(config={}):
     delay(config=config)
 
 def domain2prefix(config={}):
-    """  """
+    """ Convert domain name to a valid prefix filename """
     domain = ''
     if config['api']:
         domain = config['api']
@@ -693,7 +693,7 @@ def domain2prefix(config={}):
     return domain
 
 def loadConfig(config={}, configfilename=''):
-    """  """
+    """ Load config file """
     try:
         f = open('%s/%s' % (config['path'], configfilename), 'r')
     except:
@@ -704,7 +704,7 @@ def loadConfig(config={}, configfilename=''):
     return config
 
 def saveConfig(config={}, configfilename=''):
-    """  """
+    """ Save config file """
     f = open('%s/%s' % (config['path'], configfilename), 'w')
     cPickle.dump(config, f)
     f.close()
