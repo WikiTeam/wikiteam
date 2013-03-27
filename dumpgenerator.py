@@ -710,14 +710,14 @@ def saveConfig(config={}, configfilename=''):
     f.close()
     
 def welcome():
-    """  """
+    """ Opening message """
     print "#"*73
     print """# Welcome to DumpGenerator 0.1 by WikiTeam (GPL v3)                     #
 # More info at: http://code.google.com/p/wikiteam/                      #"""
     print "#"*73
     print ''
     print "#"*73
-    print """# Copyright (C) 2011-2012 WikiTeam                                      #
+    print """# Copyright (C) 2011-2013 WikiTeam                                      #
 # This program is free software: you can redistribute it and/or modify  #
 # it under the terms of the GNU General Public License as published by  #
 # the Free Software Foundation, either version 3 of the License, or     #
@@ -734,7 +734,7 @@ def welcome():
     print ''
 
 def bye():
-    """  """
+    """ Closing message """
     print "---> Congratulations! Your dump is complete <---"
     print "If you found any bug, report a new issue here (Google account required): http://code.google.com/p/wikiteam/issues/list"
     print "If this is a public wiki, please, consider publishing this dump. Do it yourself as explained in http://code.google.com/p/wikiteam/wiki/NewTutorial#Publishing_the_dump or contact us at http://code.google.com/p/wikiteam"
@@ -933,12 +933,167 @@ def checkXMLIntegrity(config={}):
         print "XML dump is corrupted, regenerating a new dump"
         generateXMLDump(config=config, titles=titles)
 
-def main(params=[]):
-    """ Main function """
-    welcome()
-    configfilename = 'config.txt'
-    config, other = getParameters(params=params)
+def createNewDump(config={}):
+    titles = []
+    images = []
+    print 'Trying generating a new dump into a new directory...'
+    if config['xml']:
+        titles += getPageTitles(config=config)
+        saveTitles(config=config, titles=titles)
+        generateXMLDump(config=config, titles=titles)
+        checkXMLIntegrity(config=config)
+    if config['images']:
+        if config['api']:
+            images += getImageFilenamesURLAPI(config=config)
+        else:
+            images += getImageFilenamesURL(config=config)
+        saveImageFilenamesURL(config=config, images=images)
+        generateImageDump(config=config, other=other, images=images)
+    if config['logs']:
+        saveLogs(config=config)
+
+def resumePreviousDump(config={}):
+    titles = []
+    images = []
+    print 'Resuming previous dump process...'
+    if config['xml']:
+        #load titles
+        lasttitle = ''
+        try:
+            f = open('%s/%s-%s-titles.txt' % (config['path'], domain2prefix(config=config), config['date']), 'r')
+            raw = f.read()
+            titles = raw.split('\n')
+            lasttitle = titles[-1]
+            if not lasttitle: #empty line at EOF ?
+                lasttitle = titles[-2]
+            f.close()
+        except:
+            pass #probably file doesnot exists
+        if lasttitle == '--END--':
+            #titles list is complete
+            print 'Title list was completed in the previous session'
+        else:
+            print 'Title list is incomplete. Reloading...'
+            #do not resume, reload, to avoid inconsistences, deleted pages or so
+            titles = getPageTitles(config=config)
+            saveTitles(config=config, titles=titles)
+        #checking xml dump
+        xmliscomplete = False
+        lastxmltitle = ''
+        try:
+            f = open('%s/%s-%s-%s.xml' % (config['path'], domain2prefix(config=config), config['date'], config['curonly'] and 'current' or 'history'), 'r')
+            for l in f:
+                if re.findall('</mediawiki>', l):
+                    #xml dump is complete
+                    xmliscomplete = True
+                    break
+                xmltitles = re.findall(r'<title>([^<]+)</title>', l) #weird if found more than 1, but maybe
+                if xmltitles:
+                    lastxmltitle = undoHTMLEntities(text=xmltitles[-1])
+            f.close()
+        except:
+            pass #probably file doesnot exists
+        #removing --END-- before getXMLs
+        while titles and titles[-1] in ['', '--END--']:
+            titles = titles[:-1]
+        if xmliscomplete:
+            print 'XML dump was completed in the previous session'
+        elif lastxmltitle:
+            #resuming...
+            print 'Resuming XML dump from "%s"' % (lastxmltitle)
+            generateXMLDump(config=config, titles=titles, start=lastxmltitle)
+        else:
+            #corrupt? only has XML header?
+            print 'XML is corrupt? Regenerating...'
+            generateXMLDump(config=config, titles=titles)
     
+    if config['images']:
+        #load images
+        lastimage = ''
+        try:
+            f = open('%s/%s-%s-images.txt' % (config['path'], domain2prefix(config=config), config['date']), 'r')
+            raw = f.read()
+            lines = raw.split('\n')
+            for l in lines:
+                if re.search(r'\t', l):
+                    images.append(l.split('\t'))
+            lastimage = lines[-1]
+            f.close()
+        except:
+            pass #probably file doesnot exists
+        if lastimage == '--END--':
+            print 'Image list was completed in the previous session'
+        else:
+            print 'Image list is incomplete. Reloading...'
+            #do not resume, reload, to avoid inconsistences, deleted images or so
+            if config['api']:
+                images=getImageFilenamesURLAPI(config=config)
+            else:
+                images = getImageFilenamesURL(config=config)
+            saveImageFilenamesURL(config=config, images=images)
+        #checking images directory
+        listdir = []
+        try:
+            listdir = os.listdir('%s/images' % (config['path']))
+        except:
+            pass #probably directory does not exist
+        listdir.sort()
+        complete = True
+        lastfilename = ''
+        lastfilename2 = ''
+        c = 0
+        for filename, url, uploader in images:
+            lastfilename2 = lastfilename
+            lastfilename = filename #return always the complete filename, not the truncated
+            filename2 = filename
+            if len(filename2) > other['filenamelimit']:
+                filename2 = truncateFilename(other=other, filename=filename2)
+            if filename2 not in listdir:
+                complete = False
+                break
+            c +=1
+        print '%d images were found in the directory from a previous session' % (c)
+        if complete:
+            #image dump is complete
+            print 'Image dump was completed in the previous session'
+        else:
+            generateImageDump(config=config, other=other, images=images, start=lastfilename2) # we resume from previous image, which may be corrupted (or missing .desc)  by the previous session ctrl-c or abort
+    
+    if config['logs']:
+        #fix
+        pass
+
+def saveSpecialVersion(config={}):
+    #save Special:Version as .html, to preserve extensions details
+    if os.path.exists('%s/Special:Version.html' % (config['path'])):
+        print 'Special:Version.html exists, do not overwrite'
+    else:
+        print 'Downloading Special:Version with extensions and other related info'
+        req = urllib2.Request(url=config['index'], data=urllib.urlencode({'title': 'Special:Version', }), headers={'User-Agent': getUserAgent()})
+        f = urllib2.urlopen(req)
+        raw = f.read()
+        f.close()
+        raw = removeIP(raw=raw)
+        f = open('%s/Special:Version.html' % (config['path']), 'w')
+        f.write(raw)
+        f.close()
+
+def saveIndexPHP(config={}):
+    #save index.php as .html, to preserve license details available at the botom of the page
+    if os.path.exists('%s/index.html' % (config['path'])):
+        print 'index.html exists, do not overwrite'
+    else:
+        print 'Downloading index.php (Main Page) as index.html'
+        req = urllib2.Request(url=config['index'], data=urllib.urlencode({}), headers={'User-Agent': getUserAgent()})
+        f = urllib2.urlopen(req)
+        raw = f.read()
+        f.close()
+        raw = removeIP(raw=raw)
+        f = open('%s/index.html' % (config['path']), 'w')
+        f.write(raw)
+        f.close()
+
+def avoidWikimediaProjects(config={}):
     #notice about wikipedia dumps
     if re.findall(r'(?i)(wikipedia|wikisource|wiktionary|wikibooks|wikiversity|wikimedia|wikispecies|wikiquote|wikinews|wikidata|wikivoyage)\.org', config['api']+config['index']):
         print 'PLEASE, DO NOT USE THIS SCRIPT TO DOWNLOAD WIKIMEDIA PROJECTS!'
@@ -946,7 +1101,13 @@ def main(params=[]):
         if not other['force']:
             print 'Thanks!'
             sys.exit()
-    
+
+def main(params=[]):
+    """ Main function """
+    welcome()
+    configfilename = 'config.txt'
+    config, other = getParameters(params=params)
+    avoidWikimediaProjects(config=config)
     print 'Analysing %s' % (config['api'] and config['api'] or config['index'])
     
     #creating path or resuming if desired
@@ -978,161 +1139,13 @@ def main(params=[]):
         os.mkdir(config['path'])
         saveConfig(config=config, configfilename=configfilename)
     
-    titles = []
-    images = []
     if other['resume']:
-        print 'Resuming previous dump process...'
-        if config['xml']:
-            #load titles
-            lasttitle = ''
-            try:
-                f = open('%s/%s-%s-titles.txt' % (config['path'], domain2prefix(config=config), config['date']), 'r')
-                raw = f.read()
-                titles = raw.split('\n')
-                lasttitle = titles[-1]
-                if not lasttitle: #empty line at EOF ?
-                    lasttitle = titles[-2]
-                f.close()
-            except:
-                pass #probably file doesnot exists
-            if lasttitle == '--END--':
-                #titles list is complete
-                print 'Title list was completed in the previous session'
-            else:
-                print 'Title list is incomplete. Reloading...'
-                #do not resume, reload, to avoid inconsistences, deleted pages or so
-                titles = getPageTitles(config=config)
-                saveTitles(config=config, titles=titles)
-            #checking xml dump
-            xmliscomplete = False
-            lastxmltitle = ''
-            try:
-                f = open('%s/%s-%s-%s.xml' % (config['path'], domain2prefix(config=config), config['date'], config['curonly'] and 'current' or 'history'), 'r')
-                for l in f:
-                    if re.findall('</mediawiki>', l):
-                        #xml dump is complete
-                        xmliscomplete = True
-                        break
-                    xmltitles = re.findall(r'<title>([^<]+)</title>', l) #weird if found more than 1, but maybe
-                    if xmltitles:
-                        lastxmltitle = undoHTMLEntities(text=xmltitles[-1])
-                f.close()
-            except:
-                pass #probably file doesnot exists
-            #removing --END-- before getXMLs
-            while titles and titles[-1] in ['', '--END--']:
-                titles = titles[:-1]
-            if xmliscomplete:
-                print 'XML dump was completed in the previous session'
-            elif lastxmltitle:
-                #resuming...
-                print 'Resuming XML dump from "%s"' % (lastxmltitle)
-                generateXMLDump(config=config, titles=titles, start=lastxmltitle)
-            else:
-                #corrupt? only has XML header?
-                print 'XML is corrupt? Regenerating...'
-                generateXMLDump(config=config, titles=titles)
-        
-        if config['images']:
-            #load images
-            lastimage = ''
-            try:
-                f = open('%s/%s-%s-images.txt' % (config['path'], domain2prefix(config=config), config['date']), 'r')
-                raw = f.read()
-                lines = raw.split('\n')
-                for l in lines:
-                    if re.search(r'\t', l):
-                        images.append(l.split('\t'))
-                lastimage = lines[-1]
-                f.close()
-            except:
-                pass #probably file doesnot exists
-            if lastimage == '--END--':
-                print 'Image list was completed in the previous session'
-            else:
-                print 'Image list is incomplete. Reloading...'
-                #do not resume, reload, to avoid inconsistences, deleted images or so
-                if config['api']:
-                    images=getImageFilenamesURLAPI(config=config)
-                else:
-                    images = getImageFilenamesURL(config=config)
-                saveImageFilenamesURL(config=config, images=images)
-            #checking images directory
-            listdir = []
-            try:
-                listdir = os.listdir('%s/images' % (config['path']))
-            except:
-                pass #probably directory does not exist
-            listdir.sort()
-            complete = True
-            lastfilename = ''
-            lastfilename2 = ''
-            c = 0
-            for filename, url, uploader in images:
-                lastfilename2 = lastfilename
-                lastfilename = filename #return always the complete filename, not the truncated
-                filename2 = filename
-                if len(filename2) > other['filenamelimit']:
-                    filename2 = truncateFilename(other=other, filename=filename2)
-                if filename2 not in listdir:
-                    complete = False
-                    break
-                c +=1
-            print '%d images were found in the directory from a previous session' % (c)
-            if complete:
-                #image dump is complete
-                print 'Image dump was completed in the previous session'
-            else:
-                generateImageDump(config=config, other=other, images=images, start=lastfilename2) # we resume from previous image, which may be corrupted (or missing .desc)  by the previous session ctrl-c or abort
-        
-        if config['logs']:
-            #fix
-            pass
+        resumePreviousDump(config=config)
     else:
-        print 'Trying generating a new dump into a new directory...'
-        if config['xml']:
-            titles += getPageTitles(config=config)
-            saveTitles(config=config, titles=titles)
-            generateXMLDump(config=config, titles=titles)
-            checkXMLIntegrity(config=config)
-        if config['images']:
-            if config['api']:
-                images += getImageFilenamesURLAPI(config=config)
-            else:
-                images += getImageFilenamesURL(config=config)
-            saveImageFilenamesURL(config=config, images=images)
-            generateImageDump(config=config, other=other, images=images)
-        if config['logs']:
-            saveLogs(config=config)
-    
-    #save index.php as .html, to preserve license details available at the botom of the page
-    if os.path.exists('%s/index.html' % (config['path'])):
-        print 'index.html exists, do not overwrite'
-    else:
-        print 'Downloading index.php (Main Page) as index.html'
-        req = urllib2.Request(url=config['index'], data=urllib.urlencode({}), headers={'User-Agent': getUserAgent()})
-        f = urllib2.urlopen(req)
-        raw = f.read()
-        f.close()
-        raw = removeIP(raw=raw)
-        f = open('%s/index.html' % (config['path']), 'w')
-        f.write(raw)
-        f.close()
-    
-    #save Special:Version as .html, to preserve extensions details
-    if os.path.exists('%s/Special:Version.html' % (config['path'])):
-        print 'Special:Version.html exists, do not overwrite'
-    else:
-        print 'Downloading Special:Version with extensions and other related info'
-        req = urllib2.Request(url=config['index'], data=urllib.urlencode({'title': 'Special:Version', }), headers={'User-Agent': getUserAgent()})
-        f = urllib2.urlopen(req)
-        raw = f.read()
-        f.close()
-        raw = removeIP(raw=raw)
-        f = open('%s/Special:Version.html' % (config['path']), 'w')
-        f.write(raw)
-        f.close()
-    
+        createNewDump(config=config)
+
+    saveIndexPHP(config=config)    
+    saveSpecialVersion(config=config)
     bye()
 
 if __name__ == "__main__":
