@@ -887,6 +887,7 @@ def getParameters(params=[]):
     return config, other
 
 def checkAPI(api):
+    """ Checking API availability """
     f = urllib.urlopen(api)
     raw = f.read()
     f.close()
@@ -896,6 +897,7 @@ def checkAPI(api):
     return False
 
 def checkIndexphp(indexphp):
+    """ Checking index.php availability """
     req = urllib2.Request(url=indexphp, data=urllib.urlencode({'title': 'Special:Version', }), headers={'User-Agent': getUserAgent()})
     f = urllib2.urlopen(req)
     raw = f.read()
@@ -933,7 +935,7 @@ def checkXMLIntegrity(config={}):
         print "XML dump is corrupted, regenerating a new dump"
         generateXMLDump(config=config, titles=titles)
 
-def createNewDump(config={}):
+def createNewDump(config={}, other={}):
     titles = []
     images = []
     print 'Trying generating a new dump into a new directory...'
@@ -952,7 +954,7 @@ def createNewDump(config={}):
     if config['logs']:
         saveLogs(config=config)
 
-def resumePreviousDump(config={}):
+def resumePreviousDump(config={}, other={}):
     titles = []
     images = []
     print 'Resuming previous dump process...'
@@ -1094,6 +1096,7 @@ def saveIndexPHP(config={}):
         f.close()
 
 def avoidWikimediaProjects(config={}):
+    """ Skip Wikimedia projects and redirect to the dumps website """
     #notice about wikipedia dumps
     if re.findall(r'(?i)(wikipedia|wikisource|wiktionary|wikibooks|wikiversity|wikimedia|wikispecies|wikiquote|wikinews|wikidata|wikivoyage)\.org', config['api']+config['index']):
         print 'PLEASE, DO NOT USE THIS SCRIPT TO DOWNLOAD WIKIMEDIA PROJECTS!'
@@ -1140,9 +1143,9 @@ def main(params=[]):
         saveConfig(config=config, configfilename=configfilename)
     
     if other['resume']:
-        resumePreviousDump(config=config)
+        resumePreviousDump(config=config, other=other)
     else:
-        createNewDump(config=config)
+        createNewDump(config=config, other=other)
 
     saveIndexPHP(config=config)    
     saveSpecialVersion(config=config)
