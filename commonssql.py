@@ -18,6 +18,7 @@
 import csv
 import MySQLdb
 import re
+import sys
 
 filename = 'commonssql.csv'
 f = open(filename, 'w')
@@ -26,7 +27,7 @@ f.close()
 
 #http://www.mediawiki.org/wiki/Manual:Image_table
 #http://www.mediawiki.org/wiki/Manual:Oldimage_table
-year = 2008
+year = int(sys.argv[1])
 queries = [
     "SELECT /* commonssql.py SLOW_OK */ img_name, img_timestamp, img_user, img_user_text, img_size, img_width, img_height FROM image WHERE img_timestamp>=%d0101000000 AND img_timestamp<=%d1231235959 ORDER BY img_timestamp ASC" % (year, year),
     "SELECT /* commonssql.py SLOW_OK */ oi_archive_name AS img_name, oi_timestamp AS img_timestamp, oi_user AS img_user, oi_user_text AS img_user_text, oi_size AS img_size, oi_width AS img_width, oi_height AS img_height FROM oldimage WHERE oi_deleted=0 AND oi_timestamp>=%d0101000000 AND oi_timestamp<=%d1231235959 ORDER BY oi_timestamp ASC" % (year, year), #do not get unavailable images
