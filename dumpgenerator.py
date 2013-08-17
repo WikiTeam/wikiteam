@@ -905,7 +905,7 @@ def checkIndexphp(indexphp):
     raw = f.read()
     f.close()
     print 'Checking index.php...', indexphp
-    if re.search(r'(This wiki is powered by|<h2 id="mw-version-license">)', raw):
+    if re.search(r'(This wiki is powered by|<h2 id="mw-version-license">|meta name="generator" content="MediaWiki)', raw):
         return True
     return False
 
