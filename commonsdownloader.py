@@ -144,8 +144,8 @@ def main():
                 g = csv.writer(open(filenamecsv, 'a'), delimiter='|', quotechar='"', quoting=csv.QUOTE_MINIMAL)
                 g.writerow([img_name.encode('utf-8'), img_saved_as.encode('utf-8'), img_timestamp, img_user, img_user_text.encode('utf-8'), img_size, img_width, img_height])
                 c += 1
-        #zip downloaded files
-        os.system('zip -9 %s %s/*' % (filenamezip, savepath))
+        #zip downloaded files; add mT to the options if you want to save space by removing the downloaded files day by day; commonschecker needs only zip and csv
+        os.system('zip -9r %s %s/' % (filenamezip, savepath))
         startdate += delta
     bye()
 
