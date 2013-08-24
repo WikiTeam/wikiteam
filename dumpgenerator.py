@@ -387,7 +387,11 @@ def getXMLPage(config={}, title='', verbose=True):
                 params['offset'] = '' #no more edits in this page history
     
     if verbose:
-        print '    %s, %s edits' % (title, len(re.findall(r_timestamp, xml)))
+    	numberofedits = len(re.findall(r_timestamp, xml))
+    	if (numberofedits == 1):
+    		print '    %s, %s edit' % (title, numberofedits)
+    	else:
+	        print '    %s, %s edits' % (title, numberofedits)
     
     return xml
 
