@@ -269,7 +269,7 @@ def getXMLFileDesc(config={}, title=''):
 
 def getUserAgent():
     """ Return a cool user-agent to hide Python user-agent """
-    useragents = ['Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.8.0.4) Gecko/20060508 Firefox/1.5.0.4']
+    useragents = ['Mozilla/5.0 (X11; Linux i686; rv:24.0) Gecko/20100101 Firefox/24.0']
     return useragents[0]
 
 def logerror(config={}, text=''):
@@ -894,7 +894,8 @@ def getParameters(params=[]):
 
 def checkAPI(api):
     """ Checking API availability """
-    f = urllib.urlopen(api)
+    req = urllib2.Request(url=api, headers={'User-Agent': getUserAgent()})
+    f = urllib2.urlopen(req)
     raw = f.read()
     f.close()
     print 'Checking api.php...', api
