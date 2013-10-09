@@ -21,6 +21,7 @@
 #        http://code.google.com/p/wikiteam/wiki/NewTutorial           #
 #######################################################################
 
+import cookielib
 import cPickle
 import datetime
 import getopt
@@ -762,6 +763,9 @@ You can resume previous incomplete dumps:
 You can exclude namespaces:
     --exnamespaces: Write the number of the namespaces you want to exclude, split by commas.
 
+You can use authenticaton cookies from a Mozilla cookies.txt file:
+    --cookies: Path to a cookies.txt file. Example: --cookies=$HOME/.netscape/cookies.txt
+
 You can be nice with servers using a delay:
     --delay: It adds a delay (in seconds, adding 5 seconds between requests: --delay:5)
 
@@ -781,6 +785,7 @@ def getParameters(params=[]):
         'namespaces': ['all'],
         'exnamespaces': [],
         'path': '',
+        'cookies': '',
         'delay': 0,
     }
     other = {
@@ -790,7 +795,7 @@ def getParameters(params=[]):
     }
     #console params
     try:
-        opts, args = getopt.getopt(params, "", ["h", "help", "path=", "api=", "index=", "images", "logs", "xml", "curonly", "resume", "delay=", "namespaces=", "exnamespaces=", "force", ])
+        opts, args = getopt.getopt(params, "", ["h", "help", "path=", "api=", "index=", "images", "logs", "xml", "curonly", "resume", "cookies=", "delay=", "namespaces=", "exnamespaces=", "force", ])
     except getopt.GetoptError, err:
         # print help information and exit:
         print str(err) # will print something like "option -a not recognized"
@@ -830,6 +835,8 @@ def getParameters(params=[]):
             config["curonly"] = True
         elif o in ("--resume"):
             other["resume"] = True
+        elif o in ("--cookies"):
+            config["cookies"] = a
         elif o in ("--delay"):
             config["delay"] = int(a)
         elif o in ("--namespaces"):
@@ -870,6 +877,13 @@ def getParameters(params=[]):
         config['index'] = config['api'].split('api.php')[0] + 'index.php'
         #print 'You didn\'t provide a path for index.php, trying to wonder one:', config['index']
     
+    if config['cookies']:
+        cj = cookielib.MozillaCookieJar()
+        cj.load(config['cookies'])
+        opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj))
+        urllib2.install_opener(opener)
+        print 'Using cookies from %s' % config['cookies']
+
     if config['api']:
         #check api.php
         if checkAPI(config['api']):
