@@ -390,9 +390,9 @@ def getXMLPage(config={}, title='', verbose=True):
     if verbose:
     	numberofedits = len(re.findall(r_timestamp, xml))
     	if (numberofedits == 1):
-    		print '    %s, %s edit' % (title, numberofedits)
+    		print '    %s, 1 edit' % (title)
     	else:
-	        print '    %s, %s edits' % (title, numberofedits)
+	        print '    %s, %d edits' % (title, numberofedits)
     
     return xml
 
@@ -558,7 +558,11 @@ def getImageFilenamesURL(config={}):
         else:
             offset = ''
     
-    print '    Found %d images' % (len(images))
+    if (len(images) == 1):
+	    print '    Found 1 image'
+	else:
+		print '    Found %d images' % (len(images))
+    
     images.sort()
     return images
 
@@ -609,8 +613,12 @@ def getImageFilenamesURLAPI(config={}):
             uploader = undoHTMLEntities(text=uploader)
             uploader = urllib.unquote(uploader)
             images.append([filename, url, uploader])           
-                    
-    print '    Found %d images' % (len(images))
+
+    if (len(images) == 1):
+        print '    Found 1 image'
+    else:
+        print '    Found %d images' % (len(images))
+
     images.sort()
     return images
 
