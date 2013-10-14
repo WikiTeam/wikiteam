@@ -561,9 +561,9 @@ def getImageFilenamesURL(config={}):
             offset = ''
     
     if (len(images) == 1):
-	    print '    Found 1 image'
-	else:
-		print '    Found %d images' % (len(images))
+        print '    Found 1 image'
+    else:
+        print '    Found %d images' % (len(images))
     
     images.sort()
     return images
