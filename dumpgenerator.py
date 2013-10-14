@@ -180,7 +180,8 @@ def getPageTitlesScraper(config={}):
     for namespace in namespaces:
         print '    Retrieving titles in the namespace', namespace
         url = '%s?title=Special:Allpages&namespace=%s' % (config['index'], namespace)
-        raw = urllib.urlopen(url).read()
+        req = urllib2.Request(url=url, headers={'User-Agent': getUserAgent()})
+        raw = urllib2.urlopen(req)
         raw = cleanHTML(raw)
         
         r_title = r'title="(?P<title>[^>]+)">'
@@ -215,7 +216,8 @@ def getPageTitlesScraper(config={}):
                 
                 if not name in checked_suballpages:
                     checked_suballpages.append(name) #to avoid reload dupe subpages links
-                    raw2 = urllib.urlopen(url).read()
+                    req2 = urllib2.Request(url=url, headers={'User-Agent': getUserAgent()})
+                    raw2 = urllib2.urlopen(req)
                     raw2 = cleanHTML(raw2)
                     rawacum += raw2 #merge it after removed junk
                     print '    Reading', name, len(raw2), 'bytes', len(re.findall(r_suballpages, raw2)), 'subpages', len(re.findall(r_title, raw2)), 'pages'
@@ -658,6 +660,14 @@ def generateImageDump(config={}, other={}, images=[], start=''):
             # split last . (extension) and then merge
             filename2 = truncateFilename(other=other, filename=filename2)
             print 'Filename is too long, truncating. Now it is:', filename2
+        # We need to set the user agent for urlretrieve but we can't do it in its call
+        # so we just override the class here; all I know about this method comes from
+        # http://docs.python.org/2/library/urllib.html#urllib._urlopener ,
+        # http://docs.python.org/2/tutorial/classes.html#class-definition-syntax .
+        # TODO: Override the user agent for all functions in a more sensible place.
+        class URLopenerUserAgent(urllib.FancyURLopener):
+            version = "%s" % getUserAgent()
+        urllib._urlopener = URLopenerUserAgent()
         urllib.urlretrieve(url=url, filename='%s/%s' % (imagepath, filename2), data=urllib.urlencode({})) #fix, image request fails on wikipedia (POST neither works?)
         
         #saving description if any
