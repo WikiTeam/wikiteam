@@ -15,6 +15,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+# Instructions: https://code.google.com/p/wikiteam/wiki/NewTutorial#Download_a_list_of_wikis
+
 import os
 import re
 import subprocess
