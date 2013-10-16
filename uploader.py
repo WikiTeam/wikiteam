@@ -15,9 +15,18 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+# uploader.py
+# This script takes the filename of a list of wikis as argument and uploads their dumps to archive.org.
+# The list must be a text file with the wiki's api.php URLs, one per line.
+# Dumps must be in the same directory and follow the -wikidump.7z/-history.xml.7z format
+# as produced by launcher.py (explained in https://code.google.com/p/wikiteam/wiki/NewTutorial#Publishing_the_dump ).
+# Adjust your configuration; see below "Configuration goes here".
+# You also need dumpgenerator.py in the same directory as this script.
+
+# Developing scratchpad
 # Keys: http://archive.org/account/s3.php
 # Documentation: http://archive.org/help/abouts3.txt
-# https://wiki.archive.org/twiki/bin/view/Main/IAS3BulkUploader
+# https://github.com/kngenie/ias3upload
 # http://en.ecgpedia.org/api.php?action=query&meta=siteinfo&siprop=general|rightsinfo&format=xml
 #
 # TODO: bug - upload may (partly) fail if two (small) files are sent to s3 without pause http://p.defau.lt/?puN_G_zKXbv1lz9TfSliPg http://archive.org/details/wiki-editionorg_w or something http://p.defau.lt/?udwrG7YQn4RK_1whl1XWRw http://archive.org/details/wiki-jutedreamhosterscom_lineageii_bestiary
@@ -80,7 +89,7 @@ def upload(wikis):
         c = 0
         for dump in dumps:
             if dump in uploadeddumps:
-                print '%s was uploaded before, skiping...' % (dump)
+                print '%s was uploaded before, skipping...' % (dump)
                 continue
             
             time.sleep(0.1)
