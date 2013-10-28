@@ -16,6 +16,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # Instructions: https://code.google.com/p/wikiteam/wiki/NewTutorial#Download_a_list_of_wikis
+# Requires python 2.7 or more (for subprocess.check_output)
 
 import os
 import re
