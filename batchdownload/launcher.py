@@ -67,9 +67,10 @@ for wiki in wikis:
     
     if started and wikidir: #then resume
         print 'Resuming download, using directory', wikidir
-        os.system('python dumpgenerator.py --api=%s --xml --images --resume --path=%s' % (wiki, wikidir))
+        subprocess.call('python dumpgenerator.py --api=%s --xml --images --resume --path=%s' % (wiki, wikidir), shell=True)
     else: #download from scratch
-        os.system('python dumpgenerator.py --api=%s --xml --images' % wiki)
+        subprocess.call('python dumpgenerator.py --api=%s --xml --images' % wiki, shell=True)
+        started = True
         #save wikidir now
         for dirname, dirnames, filenames in os.walk('.'):
             if dirname == '.':
@@ -95,12 +96,12 @@ for wiki in wikis:
         os.chdir(wikidir)
         print 'Changed directory to', os.getcwd()
         # Basic integrity check for the xml. The script doesn't actually do anything, so you should check if it's broken. Nothing can be done anyway, but redownloading.
-        os.system('grep "<title>" *.xml -c;grep "<page>" *.xml -c;grep "</page>" *.xml -c;grep "<revision>" *.xml -c;grep "</revision>" *.xml -c')
+        subprocess.call('grep "<title>" *.xml -c;grep "<page>" *.xml -c;grep "</page>" *.xml -c;grep "<revision>" *.xml -c;grep "</revision>" *.xml -c', shell=True)
         # Make a non-solid archive with all the text and metadata at default compression. You can also add config.txt if you don't care about your computer and user names being published or you don't use full paths so that they're not stored in it.
-        os.system('7z a -ms=off ../%s-history.xml.7z %s-history.xml %s-titles.txt index.html Special:Version.html errors.log' % (prefix, prefix, prefix))
+        subprocess.call('7z' + ' a -ms=off ../%s-history.xml.7z %s-history.xml %s-titles.txt index.html Special:Version.html errors.log' % (prefix, prefix, prefix), shell=True)
         # Now we add the images, if there are some, to create another archive, without recompressing everything, at the min compression rate, higher doesn't compress images much more.
-        os.system('cp ../%s-history.xml.7z ../%s-wikidump.7z' % (prefix, prefix))
-        os.system('7z a -ms=off -mx=1 ../%s-wikidump.7z %s-images.txt images/' % (prefix, prefix))
+        subprocess.call('cp' + ' ../%s-history.xml.7z ../%s-wikidump.7z' % (prefix, prefix), shell=True)
+        subprocess.call('7z' + ' a -ms=off -mx=1 ../%s-wikidump.7z %s-images.txt images/' % (prefix, prefix), shell=True)
         os.chdir('..')
         print 'Changed directory to', os.getcwd()
         time.sleep(1)
