@@ -668,7 +668,8 @@ def generateImageDump(config={}, other={}, images=[], start=''):
         class URLopenerUserAgent(urllib.FancyURLopener):
             version = "%s" % getUserAgent()
         urllib._urlopener = URLopenerUserAgent()
-        urllib.urlretrieve(url=url, filename='%s/%s' % (imagepath, filename2), data=urllib.urlencode({})) #fix, image request fails on wikipedia (POST neither works?)
+        urllib.urlretrieve(url=url, filename='%s/%s' % (imagepath, filename2) ) 
+        # TODO: data=urllib.urlencode({}) removed image; request fails on wikipedia and POST neither works?
         
         #saving description if any
         xmlfiledesc = getXMLFileDesc(config=config, title='Image:%s' % (filename)) # use Image: for backwards compatibility
