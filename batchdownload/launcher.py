@@ -47,7 +47,7 @@ for wiki in wikis:
     if compressed:
         print 'Skipping... This wiki was downloaded and compressed before in', zipfilename
         # Get the archive's file list.
-        if ( sys.version_info[0] = 3 and sys.version_info[1] > 0 ) or ( sys.version_info[0] = 2 and sys.version_info[1] > 6 )
+        if ( ( ( sys.version_info[0] == 3 ) and ( sys.version_info[1] > 0 ) ) or ( ( sys.version_info[0] == 2 ) and ( sys.version_info[1] > 6 ) ) ):
             archivecontent = subprocess.check_output (['7z', 'l', zipfilename])
             if re.search(ur"%s.+-history\.xml" % (prefix), archivecontent) is None:
                 # We should perhaps not create an archive in this case, but we continue anyway.
