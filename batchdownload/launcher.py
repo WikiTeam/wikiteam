@@ -47,12 +47,16 @@ for wiki in wikis:
     if compressed:
         print 'Skipping... This wiki was downloaded and compressed before in', zipfilename
         # Get the archive's file list.
-        archivecontent = subprocess.check_output (['7z', 'l', zipfilename])
-        if re.search(ur"%s.+-history\.xml" % (prefix), archivecontent) is None:
-            # We should perhaps not create an archive in this case, but we continue anyway.
-            print "ERROR: The archive contains no history!"
-        if re.search(ur"Special:Version\.html", archivecontent) is None:
-            print "WARNING: The archive doesn't contain Special:Version.html, this may indicate that download didn't finish."
+        if ( sys.version_info[0] = 3 and sys.version_info[1] > 0 ) or ( sys.version_info[0] = 2 and sys.version_info[1] > 6 )
+            archivecontent = subprocess.check_output (['7z', 'l', zipfilename])
+            if re.search(ur"%s.+-history\.xml" % (prefix), archivecontent) is None:
+                # We should perhaps not create an archive in this case, but we continue anyway.
+                print "ERROR: The archive contains no history!"
+            if re.search(ur"Special:Version\.html", archivecontent) is None:
+                print "WARNING: The archive doesn't contain Special:Version.html, this may indicate that download didn't finish."
+        else:
+            print "WARNING: Content of the archive not checked, we need python 2.7+ or 3.1+."
+            # TODO: Find a way like grep -q below without doing a 7z l multiple times?
         continue
     
     #download
