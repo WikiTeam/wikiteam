@@ -181,7 +181,7 @@ def getPageTitlesScraper(config={}):
         print '    Retrieving titles in the namespace', namespace
         url = '%s?title=Special:Allpages&namespace=%s' % (config['index'], namespace)
         req = urllib2.Request(url=url, headers={'User-Agent': getUserAgent()})
-        raw = urllib2.urlopen(req)
+        raw = urllib2.urlopen(req).read()
         raw = cleanHTML(raw)
         
         r_title = r'title="(?P<title>[^>]+)">'
@@ -217,7 +217,7 @@ def getPageTitlesScraper(config={}):
                 if not name in checked_suballpages:
                     checked_suballpages.append(name) #to avoid reload dupe subpages links
                     req2 = urllib2.Request(url=url, headers={'User-Agent': getUserAgent()})
-                    raw2 = urllib2.urlopen(req)
+                    raw2 = urllib2.urlopen(req).read()
                     raw2 = cleanHTML(raw2)
                     rawacum += raw2 #merge it after removed junk
                     print '    Reading', name, len(raw2), 'bytes', len(re.findall(r_suballpages, raw2)), 'subpages', len(re.findall(r_title, raw2)), 'pages'
