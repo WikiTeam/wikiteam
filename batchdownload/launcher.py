@@ -70,6 +70,10 @@ for wiki in wikis:
                     started = True
             break #stop searching, dot not explore subdirectories
     
+    # time.sleep(60)
+    # Uncomment what above and add --delay=60 in the dumpgenerator.py calls below for broken wiki farms
+    # such as editthis.info, wiki-site.com, wikkii (adjust the value as needed;
+    # typically they don't provide any crawl-delay value in their robots.txt).
     if started and wikidir: #then resume
         print 'Resuming download, using directory', wikidir
         subprocess.call('python dumpgenerator.py --api=%s --xml --images --resume --path=%s' % (wiki, wikidir), shell=True)
