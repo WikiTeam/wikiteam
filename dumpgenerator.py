@@ -216,6 +216,7 @@ def getPageTitlesScraper(config={}):
                 
                 if not name in checked_suballpages:
                     checked_suballpages.append(name) #to avoid reload dupe subpages links
+                    delay(config=config)
                     req2 = urllib2.Request(url=url, headers={'User-Agent': getUserAgent()})
                     raw2 = urllib2.urlopen(req).read()
                     raw2 = cleanHTML(raw2)
