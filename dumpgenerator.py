@@ -786,7 +786,7 @@ You can use authenticaton cookies from a Mozilla cookies.txt file:
     --cookies: Path to a cookies.txt file. Example: --cookies=$HOME/.netscape/cookies.txt
 
 You can be nice with servers using a delay:
-    --delay: It adds a delay (in seconds, adding 5 seconds between requests: --delay:5)
+    --delay: It adds a delay (in seconds, adding 5 seconds between requests: --delay=5)
 
 Write --help for help."""
 
