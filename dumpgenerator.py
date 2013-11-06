@@ -707,9 +707,9 @@ def saveLogs(config={}):
 def domain2prefix(config={}):
     """ Convert domain name to a valid prefix filename """
     domain = ''
-    if config['api']:
+    if 'api' in config:
         domain = config['api']
-    elif config['index']:
+    elif 'index' in config:
         domain = config['index']
     domain = domain.lower()
     domain = re.sub(r'(https?://|www\.|/index\.php|/api\.php)', '', domain)
