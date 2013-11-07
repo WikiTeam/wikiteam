@@ -32,7 +32,8 @@ for wiki in wikis:
     print "# Downloading", wiki
     print "#"*73
     wiki = wiki.lower()
-    prefix = dumpgenerator.domain2prefix(config={'api': wiki})
+    # Make the prefix in standard way; api and index must be defined, not important which is which
+    prefix = dumpgenerator.domain2prefix(config={'api': wiki, 'index': wiki})
     
     #check if compressed, in that case it is finished
     compressed = False

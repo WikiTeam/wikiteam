@@ -706,12 +706,15 @@ def saveLogs(config={}):
     delay(config=config)
 
 def domain2prefix(config={}):
-    """ Convert domain name to a valid prefix filename """
+    """ Convert domain name to a valid prefix filename. """
+    # At this point, both api and index are supposed to be defined
     domain = ''
-    if 'api' in config:
+
+    if config['api']:
         domain = config['api']
-    elif 'index' in config:
+    elif config['index']:
         domain = config['index']
+
     domain = domain.lower()
     domain = re.sub(r'(https?://|www\.|/index\.php|/api\.php)', '', domain)
     domain = re.sub(r'/', '_', domain)
