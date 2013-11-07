@@ -720,6 +720,7 @@ def domain2prefix(config={}):
     domain = re.sub(r'/', '_', domain)
     domain = re.sub(r'\.', '', domain)
     domain = re.sub(r'[^A-Za-z0-9]', '_', domain)
+    print 'Domain is', domain
     return domain
 
 def loadConfig(config={}, configfilename=''):
@@ -948,6 +949,9 @@ def checkIndexphp(indexphp):
     raw = f.read()
     f.close()
     print 'Checking index.php...', indexphp
+    if re.search(r'<title>Login required', raw) and not config['cookies']: # Workaround for issue 71
+         print "ERROR: This wiki requires login and we are not authenticated"
+         return False
     if re.search(r'(This wiki is powered by|<h2 id="mw-version-license">|meta name="generator" content="MediaWiki)', raw):
         return True
     return False
