@@ -593,7 +593,8 @@ def getImageFilenamesURLAPI(config={}):
                 sys.exit()
         xml = f.read()
         f.close()
-        m = re.findall(r'<allimages aifrom="([^>]+)" />', xml)
+        # Match the query-continue, old and new format
+        m = re.findall(r'<allimages (aicontinue|aifrom)="([^>]+)" />', xml)
         if m:
             aifrom = undoHTMLEntities(text=m[0]) #&quot; = ", etc
         else:
