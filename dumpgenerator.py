@@ -899,7 +899,7 @@ def getParameters(params=[]):
     
     #user chose --api, but --index it is necessary for special:export: we generate it
     if config['api'] and not config['index']:
-        config['index'] = config['api'].split('api.php')[0] # + 'index.php'
+        config['index'] = config['api'].split('api.php')[0] + 'index.php'
         # WARNING: remove index.php here for misconfigured sites like editthis.info, or provide --index directly
         print 'You didn\'t provide a path for index.php, we try this one:', config['index']
     
