@@ -744,7 +744,7 @@ def saveConfig(config={}, configfilename=''):
 def welcome():
     """ Opening message """
     print "#"*73
-    print """# Welcome to DumpGenerator 0.1 by WikiTeam (GPL v3)                     #
+    print """# Welcome to DumpGenerator 1.1 by WikiTeam (GPL v3)                     #
 # More info at: http://code.google.com/p/wikiteam/                      #"""
     print "#"*73
     print ''
