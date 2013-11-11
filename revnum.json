@@ -4,7 +4,7 @@
 	"releases": {
 		"2.0": {
 			"downloadurl": "http://wikiteam.googlecode.com/svn/branches/2.0/dumpgenerator.py",
-			"downloadurl2": "https://raw.github.com/dumps/DumpGenerator/REL2.0/dumpgenerator.py",
+			"downloadurl2": "https://raw.github.com/dumps/DumpGenerator/master/2.0/dumpgenerator.py",
 			"revision": "1"
 		}
 	}
