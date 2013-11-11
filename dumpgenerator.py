@@ -326,7 +326,7 @@ def getXMLPageCore(headers={}, params={}, config={}):
                 time.sleep(15)
                 f = urllib2.urlopen(req)
             except:
-                print 'An error have occurred while retrieving "%s"' % (params['pages'])
+                print 'An error has occurred while retrieving "%s"' % (params['pages'])
                 print 'Please, resume the dump, --resume'
                 sys.exit()
                 # The error is usually temporary, but we exit the dump altogether.
@@ -721,7 +721,6 @@ def domain2prefix(config={}):
     domain = re.sub(r'/', '_', domain)
     domain = re.sub(r'\.', '', domain)
     domain = re.sub(r'[^A-Za-z0-9]', '_', domain)
-    print 'Domain is', domain
     return domain
 
 def loadConfig(config={}, configfilename=''):
