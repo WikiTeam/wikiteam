@@ -49,8 +49,8 @@ import dumpgenerator
 
 # Configuration goes here
 # You need a file named keys.txt with access and secret keys, in two different lines
-accesskey = open('keys.txt', 'r').readlines()[0].strip()
-secretkey = open('keys.txt', 'r').readlines()[1].strip()
+#accesskey = open('keys.txt', 'r').readlines()[0].strip()
+#secretkey = open('keys.txt', 'r').readlines()[1].strip()
 collection = 'wikiteam' # Replace with "opensource" if you are not an admin of the collection
 # end configuration
 
@@ -76,7 +76,10 @@ def upload(wikis):
         print "#"*73
         wiki = wiki.lower()
         prefix = dumpgenerator.domain2prefix(config={'api': wiki})
-    
+        domain = re.sub(r'(/index\.php|/api\.php)', '', wiki)
+        domain = re.sub(r'(http://|https://)', '', domain)
+        domain = re.sub(r'/', '_', domain)
+
         wikiname = prefix.split('-')[0]
         dumps = []
         for dirname, dirnames, filenames in os.walk('.'):
@@ -208,7 +211,7 @@ def upload(wikis):
                 ]
             
             curl += ['--upload-file', "%s" % (dump),
-                    "http://s3.us.archive.org/wiki-%s/%s" % (wikiname, dump), # It could happen that the identifier is taken by another user; only wikiteam collection admins will be able to upload more files to it, curl will fail immediately and get a permissions error by s3.
+                    "http://s3.us.archive.org/wiki-%s/%s" % (domain, dump), # It could happen that the identifier is taken by another user; only wikiteam collection admins will be able to upload more files to it, curl will fail immediately and get a permissions error by s3.
             ]
             curlline = ' '.join(curl)
             os.system(curlline)
