@@ -968,21 +968,37 @@ def checkXMLIntegrity(config={}):
     """ Check XML dump integrity, to detect broken XML chunks """
     return 
     
-    #TODO fix, instead relaunch, ask first to user, also it fails on windows without grep : (
-    print "Verifying dump..."
-    os.chdir(config['path'])
-    checktitles = os.system('grep "<title>" *.xml -c > /dev/null')
-    checkpageopen = os.system('grep "<page>" *.xml -c > /dev/null')
-    checkpageclose = os.system('grep "</page>" *.xml -c > /dev/null')
-    checkrevisionopen = os.system('grep "<revision>" *.xml -c > /dev/null')
-    checkrevisionclose = os.system('grep "</revision>" *.xml -c > /dev/null')
-    os.chdir('..')
+    print 'Verifying dump...'
+    checktitles = 0
+    checkpageopen = 0
+    checkpageclose = 0
+    checkrevisionopen = 0
+    checkrevisionclose = 0
+    for line in file('%s/%s-%s-%s.xml' % (config['path'], domain2prefix(config=config), config['date'], config['curonly'] and 'current' or 'history'), 'r').read().splitlines():
+        if "<title>" in line:
+            checktitles += 1
+        elif "<page>" in line:
+            checkpageopen += 1
+        elif "</page>" in line:
+            checkpageclose += 1
+        elif "<revision>" in line:
+            checkrevisionopen += 1
+        elif "</revision>" in line:
+            checkrevisionclose += 1
+        else:
+            continue
     if (checktitles == checkpageopen and checktitles == checkpageclose and checkpageopen == checkpageclose):
-        xmlisgood = True
+        pass
     else:
-        xmlisgood = False
-        print "XML dump is corrupted, regenerating a new dump"
-        generateXMLDump(config=config, titles=titles)
+        print 'XML dump seems to be corrupted.'
+        reply = ''
+        while reply.lower() not in ['yes', 'y', 'no', 'n']:
+            reply = raw_input('Regenerate a new dump ([yes, y], [no, n])? ')
+        if reply.lower() in ['yes', 'y']:
+            generateXMLDump(config=config, titles=titles)
+        elif reply.lower() in ['no', 'n']:
+            print 'Not generating a new dump.'
+        
 
 def createNewDump(config={}, other={}):
     titles = []
