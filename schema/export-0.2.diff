@@ -1,0 +1,48 @@
+5a6,8
+> 	Version 0.2 adds optional basic file upload info support,
+> 	which is used by our OAI export/import submodule.
+> 
+7c10
+< 	http://www.mediawiki.org/xml/export-0.1.xsd
+---
+> 	http://www.mediawiki.org/xml/export-0.2.xsd
+10c13
+< 	http://www.mediawiki.org/xml/export-0.1/
+---
+> 	http://www.mediawiki.org/xml/export-0.2/
+13,14c16,17
+< 		xmlns:mw="http://www.mediawiki.org/xml/export-0.1/"
+< 		targetNamespace="http://www.mediawiki.org/xml/export-0.1/"
+---
+> 		xmlns:mw="http://www.mediawiki.org/xml/export-0.2/"
+> 		targetNamespace="http://www.mediawiki.org/xml/export-0.2/"
+50,52c53,57
+< 			<!-- Zero or more sets of revision data -->
+< 			<element name="revision" type="mw:RevisionType"
+< 					 minOccurs="0" maxOccurs="unbounded"/>
+---
+> 			<!-- Zero or more sets of revision or upload data -->
+> 			<choice minOccurs="0" maxOccurs="unbounded">
+> 				<element name="revision" type="mw:RevisionType" />
+> 				<element name="upload" type="mw:UploadType" />
+> 			</choice>
+72a78,96
+> 		</sequence>
+> 	</complexType>
+> 
+> 	<complexType name="UploadType">
+> 		<sequence>
+> 			<!-- Revision-style data... -->
+> 			<element name="timestamp" type="dateTime"/>
+> 			<element name="contributor" type="mw:ContributorType"/>
+> 			<element name="comment" type="string" minOccurs="0"/>
+> 
+> 			<!-- Filename. (Using underscores, not spaces. No 'Image:' namespace marker.) -->
+> 			<element name="filename" type="string"/>
+> 
+> 			<!-- URI at which this resource can be obtained -->
+> 			<element name="src" type="anyURI"/>
+> 
+> 			<element name="size" type="positiveInteger" />
+> 
+> 			<!-- TODO: add other metadata fields -->

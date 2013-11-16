@@ -1,0 +1,186 @@
+20a21,27
+> 	Version 0.7 adds a unique identity constraint for both page and
+> 	revision identifiers. See also bug 4220.
+> 	Fix type for <ns> from "positiveInteger" to "nonNegativeInteger" to allow 0
+> 	Moves <logitem> to its right location.
+> 	Add parentid to revision.
+> 	Fix type for <id> within <contributor> to "nonNegativeInteger"
+> 
+22c29
+< 	http://www.mediawiki.org/xml/export-0.6.xsd
+---
+> 	http://www.mediawiki.org/xml/export-0.7.xsd
+25c32
+< 	http://www.mediawiki.org/xml/export-0.6/
+---
+> 	http://www.mediawiki.org/xml/export-0.7/
+28,29c35,36
+< 		xmlns:mw="http://www.mediawiki.org/xml/export-0.6/"
+< 		targetNamespace="http://www.mediawiki.org/xml/export-0.6/"
+---
+> 		xmlns:mw="http://www.mediawiki.org/xml/export-0.7/"
+> 		targetNamespace="http://www.mediawiki.org/xml/export-0.7/"
+40c47
+< 			schemaLocation="http://www.w3.org/2001/xml.xsd"/>
+---
+> 			schemaLocation="http://www.w3.org/2001/xml.xsd" />
+43c50,61
+< 	<element name="mediawiki" type="mw:MediaWikiType"/>
+---
+> 	<element name="mediawiki" type="mw:MediaWikiType">
+> 		<!-- Page ID contraint, see bug 4220 -->
+> 		<unique name="PageIDConstraint">
+> 			<selector xpath="mw:page" />
+> 			<field xpath="mw:id" />
+> 		</unique>
+> 		<!-- Revision ID contraint, see bug 4220 -->
+> 		<unique name="RevIDConstraint">
+> 			<selector xpath="mw:page/mw:revision" />
+> 			<field xpath="mw:id" />
+> 		</unique>
+> 	</element>
+48c66
+< 					 minOccurs="0" maxOccurs="1"/>
+---
+> 					 minOccurs="0" maxOccurs="1" />
+50c68,70
+< 					 minOccurs="0" maxOccurs="unbounded"/>
+---
+> 					 minOccurs="0" maxOccurs="unbounded" />
+> 			<element name="logitem" type="mw:LogItemType"
+> 					 minOccurs="0" maxOccurs="unbounded" />
+52,53c72,73
+< 		<attribute name="version" type="string" use="required"/>
+< 		<attribute ref="xml:lang" use="required"/>
+---
+> 		<attribute name="version" type="string" use="required" />
+> 		<attribute ref="xml:lang" use="required" />
+84c104
+< 			<enumeration value="deleted"/>
+---
+> 			<enumeration value="deleted" />
+103a124,131
+> 	<complexType name="RedirectType">
+> 		<simpleContent>
+> 			<extension base="string">
+> 				<attribute name="title" type="string" />
+> 			</extension>
+> 		</simpleContent>
+> 	</complexType>
+> 
+107c135
+< 			<element name="title" type="string"/>
+---
+> 			<element name="title" type="string" />
+110c138
+< 			<element name="ns" type="positiveInteger"/>
+---
+> 			<element name="ns" type="nonNegativeInteger" />
+113c141
+< 			<element name="id" type="positiveInteger" minOccurs="0"/>
+---
+> 			<element name="id" type="positiveInteger" />
+116c144
+< 			<element name="redirect" type="string" minOccurs="0"/>
+---
+> 			<element name="redirect" type="mw:RedirectType" minOccurs="0" maxOccurs="1" />
+119c147
+< 			<element name="restrictions" type="string" minOccurs="0"/>
+---
+> 			<element name="restrictions" type="string" minOccurs="0" />
+125d152
+< 				<element name="logitem" type="mw:LogItemType" />
+135,139c162,167
+< 			<element name="id" type="positiveInteger" minOccurs="0"/>
+< 			<element name="timestamp" type="dateTime"/>
+< 			<element name="contributor" type="mw:ContributorType"/>
+< 			<element name="minor" minOccurs="0" />
+< 			<element name="comment" type="mw:CommentType" minOccurs="0"/>
+---
+> 			<element name="id" type="positiveInteger" />
+> 			<element name="parentid" type="positiveInteger" minOccurs="0" />
+> 			<element name="timestamp" type="dateTime" />
+> 			<element name="contributor" type="mw:ContributorType" />
+> 			<element name="minor" minOccurs="0" maxOccurs="1" />
+> 			<element name="comment" type="mw:CommentType" minOccurs="0" maxOccurs="1" />
+147,150c175,178
+< 			<element name="id" type="positiveInteger" minOccurs="0"/>
+< 			<element name="timestamp" type="dateTime"/>
+< 			<element name="contributor" type="mw:ContributorType"/>
+< 			<element name="comment" type="mw:CommentType" minOccurs="0"/>
+---
+> 			<element name="id" type="positiveInteger" />
+> 			<element name="timestamp" type="dateTime" />
+> 			<element name="contributor" type="mw:ContributorType" />
+> 			<element name="comment" type="mw:CommentType" minOccurs="0" />
+153c181,183
+< 			<element name="text" type="mw:TextType" />
+---
+> 			<element name="text" type="mw:LogTextType" minOccurs="0" maxOccurs="1" />
+> 			<element name="logtitle" type="string" minOccurs="0" maxOccurs="1" />
+> 			<element name="params" type="mw:LogParamsType" minOccurs="0" maxOccurs="1" />
+161c191
+< 				<attribute name="deleted" use="optional" type="mw:DeletedFlagType"/>
+---
+> 				<attribute name="deleted" use="optional" type="mw:DeletedFlagType" />
+166d195
+< 
+172c201
+< 				<attribute name="deleted" use="optional" type="mw:DeletedFlagType"/>
+---
+> 				<attribute name="deleted" use="optional" type="mw:DeletedFlagType" />
+176,177c205,223
+< 				<attribute name="id" type="NMTOKEN"/>
+< 				<attribute name="bytes" use="optional" type="nonNegativeInteger"/>
+---
+> 				<attribute name="id" type="NMTOKEN" />
+> 				<attribute name="bytes" use="optional" type="nonNegativeInteger" />
+> 			</extension>
+> 		</simpleContent>
+> 	</complexType>
+> 
+> 	<complexType name="LogTextType">
+> 		<simpleContent>
+> 			<extension base="string">
+> 				<!-- This allows deleted=deleted on non-empty elements, but XSD is not omnipotent -->
+> 				<attribute name="deleted" use="optional" type="mw:DeletedFlagType" />
+> 			</extension>
+> 		</simpleContent>
+> 	</complexType>
+> 
+> 	<complexType name="LogParamsType">
+> 		<simpleContent>
+> 			<extension base="string">
+> 				<attribute ref="xml:space" use="optional" default="preserve" />
+184,185c230,231
+< 			<element name="username" type="string" minOccurs="0"/>
+< 			<element name="id" type="positiveInteger" minOccurs="0" />
+---
+> 			<element name="username" type="string" minOccurs="0" />
+> 			<element name="id" type="nonNegativeInteger" minOccurs="0" />
+187c233
+< 			<element name="ip" type="string" minOccurs="0"/>
+---
+> 			<element name="ip" type="string" minOccurs="0" />
+190c236
+< 		<attribute name="deleted" use="optional" type="mw:DeletedFlagType"/>
+---
+> 		<attribute name="deleted" use="optional" type="mw:DeletedFlagType" />
+196,198c242,244
+< 			<element name="timestamp" type="dateTime"/>
+< 			<element name="contributor" type="mw:ContributorType"/>
+< 			<element name="comment" type="string" minOccurs="0"/>
+---
+> 			<element name="timestamp" type="dateTime" />
+> 			<element name="contributor" type="mw:ContributorType" />
+> 			<element name="comment" type="string" minOccurs="0" />
+200,201c246,247
+< 			<!-- Filename. (Using underscores, not spaces. No 'Image:' namespace marker.) -->
+< 			<element name="filename" type="string"/>
+---
+> 			<!-- Filename. (Using underscores, not spaces. No 'File:' namespace marker.) -->
+> 			<element name="filename" type="string" />
+204c250
+< 			<element name="src" type="anyURI"/>
+---
+> 			<element name="src" type="anyURI" />

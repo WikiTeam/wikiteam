@@ -1,0 +1,96 @@
+11a12,15
+> 	Version 0.4 adds per-revision delete flags, log exports,
+> 	discussion threading data, a per-page redirect flag, and
+> 	per-namespace capitalization.
+> 
+13c17
+< 	http://www.mediawiki.org/xml/export-0.3.xsd
+---
+> 	http://www.mediawiki.org/xml/export-0.4.xsd
+16c20
+< 	http://www.mediawiki.org/xml/export-0.3/
+---
+> 	http://www.mediawiki.org/xml/export-0.4/
+19,20c23,24
+< 		xmlns:mw="http://www.mediawiki.org/xml/export-0.3/"
+< 		targetNamespace="http://www.mediawiki.org/xml/export-0.3/"
+---
+> 		xmlns:mw="http://www.mediawiki.org/xml/export-0.4/"
+> 		targetNamespace="http://www.mediawiki.org/xml/export-0.4/"
+67,68c71,72
+< 			<!-- Cannot have two titles differing only by case. -->
+< 			<!-- Not yet implemented as of MediaWiki 1.5 -->
+---
+> 			<!-- Cannot have non-case senstitive titles eg [[FOO]] == [[Foo]] -->
+> 			<!-- Not yet implemented as of MediaWiki 1.18 -->
+72a77,82
+> 	<simpleType name="DeletedFlagType">
+> 		<restriction base="NMTOKEN">
+> 			<enumeration value="deleted"/>
+> 		</restriction>
+> 	</simpleType>
+> 
+83a94
+> 				<attribute name="case" type="mw:CaseType" />
+95a107,109
+> 			<!-- flag if the current revision is a redirect -->
+> 			<element name="redirect" minOccurs="0"/>
+> 
+102a117
+> 				<element name="logitem" type="mw:LogItemType" />
+103a119,121
+> 
+> 			<!-- Zero or One sets of discussion threading data -->
+> 			<element name="discussionthreadinginfo" minOccurs="0" maxOccurs="1" type="mw:DiscussionThreadingInfo" />
+113c131
+< 			<element name="comment" type="string" minOccurs="0"/>
+---
+> 			<element name="comment" type="mw:CommentType" minOccurs="0"/>
+117a136,157
+> 	<complexType name="LogItemType">
+> 		<sequence>
+> 			<element name="id" type="positiveInteger" minOccurs="0"/>
+> 			<element name="timestamp" type="dateTime"/>
+> 			<element name="contributor" type="mw:ContributorType"/>
+> 			<element name="comment" type="mw:CommentType" minOccurs="0"/>
+> 			<element name="type" type="string" />
+> 			<element name="action" type="string" />
+> 			<element name="text" type="mw:TextType" />
+> 		</sequence>
+> 	</complexType>
+> 
+> 	<complexType name="CommentType">
+> 		<simpleContent>
+> 			<extension base="string">
+> 				<!-- This allows deleted=deleted on non-empty elements, but XSD is not omnipotent -->
+> 				<attribute name="deleted" use="optional" type="mw:DeletedFlagType"/>
+> 			</extension>
+> 		</simpleContent>
+> 	</complexType>
+> 
+> 
+121a162,167
+> 				<!-- This allows deleted=deleted on non-empty elements, but XSD is not omnipotent -->
+> 				<attribute name="deleted" use="optional" type="mw:DeletedFlagType"/>
+> 				<!-- This isn't a good idea; we should be using "ID" instead of "NMTOKEN" -->
+> 				<!-- However, "NMTOKEN" is strictest definition that is both compatible with existing -->
+> 				<!-- usage ([0-9]+) and with the "ID" type. -->
+> 				<attribute name="id" type="NMTOKEN"/>
+132a179,180
+> 		<!-- This allows deleted=deleted on non-empty elements, but XSD is not omnipotent -->
+> 		<attribute name="deleted" use="optional" type="mw:DeletedFlagType"/>
+150a199,212
+> 		</sequence>
+> 	</complexType>
+> 
+> 	<!-- Discussion threading data for LiquidThreads -->
+> 	<complexType name="DiscussionThreadingInfo">
+> 		<sequence>
+> 			<element name="ThreadSubject" type="string" />
+> 			<element name="ThreadParent" type="positiveInteger" />
+> 			<element name="ThreadAncestor" type="positiveInteger" />
+> 			<element name="ThreadPage" type="string" />
+> 			<element name="ThreadID" type="positiveInteger" />
+> 			<element name="ThreadAuthor" type="string" />
+> 			<element name="ThreadEditStatus" type="string" />
+> 			<element name="ThreadType" type="string" />

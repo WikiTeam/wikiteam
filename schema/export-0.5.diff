@@ -1,0 +1,19 @@
+15a16,17
+> 	Version 0.5 adds byte count per revision.
+> 
+17c19
+< 	http://www.mediawiki.org/xml/export-0.4.xsd
+---
+> 	http://www.mediawiki.org/xml/export-0.5.xsd
+20c22
+< 	http://www.mediawiki.org/xml/export-0.4/
+---
+> 	http://www.mediawiki.org/xml/export-0.5/
+23,24c25,26
+< 		xmlns:mw="http://www.mediawiki.org/xml/export-0.4/"
+< 		targetNamespace="http://www.mediawiki.org/xml/export-0.4/"
+---
+> 		xmlns:mw="http://www.mediawiki.org/xml/export-0.5/"
+> 		targetNamespace="http://www.mediawiki.org/xml/export-0.5/"
+167a170
+> 				<attribute name="bytes" use="optional" type="nonNegativeInteger"/>
