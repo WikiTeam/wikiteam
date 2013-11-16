@@ -987,7 +987,7 @@ def checkXMLIntegrity(config={}):
             checkrevisionclose += 1
         else:
             continue
-    if (checktitles == checkpageopen and checktitles == checkpageclose and checkpageopen == checkpageclose):
+    if (checktitles == checkpageopen and checktitles == checkpageclose and checkrevisionopen == checkrevisionclose):
         pass
     else:
         print 'XML dump seems to be corrupted.'
