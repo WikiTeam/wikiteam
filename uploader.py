@@ -49,8 +49,8 @@ import dumpgenerator
 
 # Configuration goes here
 # You need a file named keys.txt with access and secret keys, in two different lines
-#accesskey = open('keys.txt', 'r').readlines()[0].strip()
-#secretkey = open('keys.txt', 'r').readlines()[1].strip()
+accesskey = open('keys.txt', 'r').readlines()[0].strip()
+secretkey = open('keys.txt', 'r').readlines()[1].strip()
 collection = 'wikiteam' # Replace with "opensource" if you are not an admin of the collection
 # end configuration
 
