@@ -975,16 +975,16 @@ def checkXMLIntegrity(config={}):
     checkrevisionopen = 0
     checkrevisionclose = 0
     for line in file('%s/%s-%s-%s.xml' % (config['path'], domain2prefix(config=config), config['date'], config['curonly'] and 'current' or 'history'), 'r').read().splitlines():
-        if "<title>" in line:
-            checktitles += 1
+        if "<revision>" in line:
+            checkrevisionopen += 1
+        elif "</revision>" in line:
+            checkrevisionclose += 1
         elif "<page>" in line:
             checkpageopen += 1
         elif "</page>" in line:
             checkpageclose += 1
-        elif "<revision>" in line:
-            checkrevisionopen += 1
-        elif "</revision>" in line:
-            checkrevisionclose += 1
+        elif "<title>" in line:
+            checktitles += 1
         else:
             continue
     if (checktitles == checkpageopen and checktitles == checkpageclose and checkrevisionopen == checkrevisionclose):
