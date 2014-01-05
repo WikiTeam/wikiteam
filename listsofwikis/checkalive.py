@@ -21,16 +21,26 @@ import thread
 import time
 import sys
 import urllib2
+import re
 
 #configuration
 delay = 10
 limit = 100
 
+def printapi(api):
+    print api, 'is alive'
+    open('wikisalive.txt', 'a').write(('%s\n' % api.strip()).encode('utf-8'))
+
 def checkcore(api):
     try:
-        if '&lt;api' in urllib2.urlopen(api, None, delay).read():
-            print api, 'is alive'
-            open('wikisalive.txt', 'a').write(('%s\n' % api.strip()).encode('utf-8'))
+        raw = urllib2.urlopen(api, None, delay).read()
+        if '&lt;api' in raw:
+            printapi(api)
+        else:
+            rsd = re.search(r'(?:link rel="EditURI".+href=")(?:https?:)?(.+api.php)\?action=rsd', raw)
+            if rsd:
+                api = 'http:' + rsd.group(1)
+                printapi(api)
     except:
         print api, 'is dead or has errors'
         pass
