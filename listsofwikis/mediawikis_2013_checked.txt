@@ -20,7 +20,6 @@ http://activities.tjhsst.edu/vmt/wiki/api.php
 http://adullact.net/plugins/mediawiki/wiki/milimail/api.php
 http://advancedfinance.ru/api.php
 http://afrf.redhammer.su/api.php
-http://af.wikipedia.org/w/api.php
 http://against-the-day.pynchonwiki.com/wiki/api.php
 http://age-phenome-wiki.med.ad.bgu.ac.il/api.php
 http://aide.airlines-manager.com/api.php
@@ -129,7 +128,6 @@ http://biwiki.isegi.unl.pt/api.php
 http://bizneskompas.home.pl/slownik/mediawiki/api.php
 http://blackholes.ist.utl.pt/wiki/api.php
 http://blah.pizzahack.eu/w/api.php
-http://bloggingullrich.blogspot.com/2008/08
 http://blogorob.ru/wiki/api.php
 http://bluebrown.net/w/api.php
 http://blue.unist.ac.kr/wiki/api.php
@@ -218,7 +216,6 @@ http://collada.org/mediawiki/api.php
 http://commodore64.se/wiki/api.php
 http://commons.oreilly.com/wiki/api.php
 http://commons.uncyclomedia.co/w/api.php
-http://commons.wikimedia.org/w/api.php
 http://community.virtual-labs.ac.in/w/api.php
 http://community.wikihub.ssu.lt/api.php
 http://community.wps.cn/wiki/api.php
@@ -300,7 +297,6 @@ http://dev.map.by/api.php
 http://devs.soldat.pl/api.php
 http://de.wiki.lp.edu.ua/api.php
 http://dewiki.nl/api.php
-http://de.wikipedia.org/w/api.php
 http://d.guteswort.com/mediawiki/api.php
 http://diablo3.ingame.de/wiki/api.php
 http://dialettitaliani.it/w20/api.php
@@ -310,7 +306,6 @@ http://digicon.sinning.dk/api.php
 http://digimon.neoseeker.com/w/api.php
 http://dinonews.net/wiki/api.php
 http://dionysus.psych.wisc.edu/MediaWiki/api.php
-http://diq.wikipedia.org/w/api.php
 http://dirac.ruc.dk/wiki/api.php
 http://directory.fsf.org/w/api.php
 http://discoursedb.org/w/api.php
@@ -395,16 +390,11 @@ http://ents.ca/api.php
 http://en.uncyclopedia.co/w/api.php
 http://en.vinopedia.hr/wiki/api.php
 http://en.wikiarquitectura.com/api.php
-http://en.wikibooks.org/w/api.php
 http://en.wiki.ehive.com/w/api.php
 http://en.wiki.fs.uni-lj.si/api.php
 http://en.wiki.lp.edu.ua/api.php
 http://en.wiki.mumb1e.de/w/api.php
-http://en.wikinews.org/w/api.php
-http://en.wikipedia.org/w/api.php
 http://en.wiki.riseofflight.com/api.php
-http://en.wikivoyage.org/w/api.php
-http://en.wiktionary.org/w/api.php
 http://e-otoci.carnet.hr/api.php
 http://eplmediawiki.di.uminho.pt/api.php
 http://eq2.ogregaming.com/wiki/api.php
@@ -414,7 +404,6 @@ http://es.manhunt.wikia.com/api.php
 http://esports.gameindustry.ph/w/api.php
 http://es.sakuracardcaptors.wikia.com/api.php
 http://es.starwars.wikia.com/api.php
-http://es.wikipedia.org/w/api.php
 http://etec.ctlt.ubc.ca/510wiki/api.php
 http://eurotrashsecurity.eu/api.php
 http://eve.isxgames.com/wiki/api.php
@@ -435,7 +424,6 @@ http://faq.corolla.su/api.php
 http://faq.he.net/api.php
 http://fcqi.tij.uabc.mx/usuarios/mydci/wiki/api.php
 http://fdogs.free.fr/wiki/api.php
-http://fdp.frogcommunity.com/questions/view/159
 http://fedora.or.id/wiki/api.php
 http://fedoraproject.org/w/api.php
 http://feihuzhao.com/wiki/api.php
@@ -450,7 +438,6 @@ http://fisica.cab.cnea.gov.ar/afa2010/api.php
 http://fisica.cab.cnea.gov.ar/bt/api.php
 http://fisica.unmsm.edu.pe/api.php
 http://fi.starwars.shoutwiki.com/w/api.php
-http://fi.wikipedia.org/w/api.php
 http://flrcg.rasip.fer.hr/laricswiki/api.php
 http://folk.poesie.ru/wiki/api.php
 http://fonicamedia.com/wiki/api.php
@@ -476,7 +463,6 @@ http://fr.residentevil.wikia.com/api.php
 http://fr.shoutwiki.com/w/api.php
 http://fr-thenorth.net/mediawiki/api.php
 http://fr.vinopedia.hr/wiki/api.php
-http://fr.wikipedia.org/w/api.php
 http://fs.choveshkata.net/api.php
 http://fsec.foi.hr/wiki/api.php
 http://fs.fsinf.at/api.php
@@ -484,7 +470,6 @@ http://ftp.iiis.tsinghua.edu.cn/cswiki/api.php
 http://fuckerpedia.com/api.php
 http://fusionforge.org/plugins/mediawiki/wiki/coclico/api.php
 http://fusionforge.org/plugins/mediawiki/wiki/fusionforge/api.php
-http://futuremediawiki.org/de/api.php
 http://futureofmankind.co.uk/w/api.php
 http://gaelhack.hackerspaces.ie/wiki/api.php
 http://gak.rod.sch.gr/wiki/api.php
@@ -605,7 +590,6 @@ http://icube-miv.unistra.fr/en/api.php
 http://icube-reseaux.unistra.fr/en/api.php
 http://ideelibre.fr/cowbox/api.php
 http://ids.snu.ac.kr/w/api.php
-http://id.wikipedia.org/w/api.php
 http://igos-nusantara.or.id/wiki/api.php
 http://ikhi.pk/media/api.php
 http://ikt.net.ua/mediawiki-1.19.2/api.php
@@ -655,13 +639,9 @@ http://itservices.chattanoogastate.edu/kb/api.php
 http://it.uib.no/ithelp/api.php
 http://it.uib.no/ithjelp/api.php
 http://it.vinopedia.hr/wiki/api.php
-http://it.wikibooks.org/w/api.php
 http://it-wiki.es.aau.dk/api.php
 http://it.wiki.lp.edu.ua/api.php
-http://it.wikinews.org/w/api.php
 http://itwiki.nis.edu.kz/api.php
-http://it.wikipedia.org/w/api.php
-http://it.wikisource.org/w/api.php
 http://ivis.cwnu.ac.kr/wiki/api.php
 http://ivl.calit2.net/wiki/api.php
 http://jabc.cs.tu-dortmund.de/manual/api.php
@@ -669,7 +649,6 @@ http://jaenpedia.wikanda.es/w/api.php
 http://james.boelen.ca/wiki/api.php
 http://jaringmas.co.id/wiki/api.php
 http://ja.uncyclopedia.info/api.php
-http://ja.wikipedia.org/w/api.php
 http://ja.wiki.wgfa.org/api.php
 http://jbv.unik.no/api.php
 http://jcbl.jp/mediawiki/api.php
@@ -816,7 +795,6 @@ http://merlin.fit.vutbr.cz/wiki/api.php
 http://metabolomics.jp/mediawiki/api.php
 http://metalab.at/wiki/api.php
 http://metasystems.riken.jp/api.php
-http://meta.wikimedia.org/w/api.php
 http://mfiles.pl/en/api.php
 http://mhwiki.hitgrab.com/wiki/api.php
 http://micki-clark.com/wiki/api.php
@@ -895,7 +873,6 @@ http://nfk.be/wiki/api.php
 http://nifgk5szbodg7qbo.onion.lu/wiki/api.php
 http://nipponichi.jp1.com/api.php
 http://nixos.org/w/api.php
-http://nl.wikipedia.org/w/api.php
 http://nolife-wiki.fr/api.php
 http://nornlanguage.x10.mx/wiki/api.php
 http://notam02.no/projects/api.php
@@ -987,7 +964,6 @@ http://proyectasistemas.mx/wiki/api.php
 http://pshield.unik.no/api.php
 http://psvita.es/w/api.php
 http://ptasieogrody.pl/w/api.php
-http://pt.wikipedia.org/w/api.php
 http://pundit.pratt.duke.edu/piki/api.php
 http://puyonexus.net/mediawiki/api.php
 http://pvdm.xs4all.nl/wiki/api.php
@@ -1069,7 +1045,6 @@ http://secure.unrelated.net.au/wiki/api.php
 http://securipedia.eu/mediawiki/api.php
 http://security.foi.hr/wiki/api.php
 https://elearning.ufp.pt/wiki/api.php
-http://semantic-mediawiki.org/w/api.php
 http://semantics.eurecom.fr/w/api.php
 http://semanticweb.org/api.php
 http://semr.seecs.nust.edu.pk/wiki/api.php
@@ -1089,7 +1064,6 @@ http://shall.dip.jp/mediawiki/api.php
 http://shareaza.sourceforge.net/mediawiki/api.php
 http://shg.phys.msu.ru/wiki/api.php
 http://shmmy.ntua.gr/wiki/api.php
-https://hpv.leo.uberspace.de/wordpress
 http://sh.shoutwiki.com/w/api.php
 http://shukra.cedt.iisc.ernet.in/w/api.php
 http://si.deis.unical.it/wiki/api.php
@@ -1130,7 +1104,6 @@ http://sopedia.gamescampus.eu/api.php
 http://soporte.osiris.mx/api.php
 http://sosiaaliasemax.fi/~sosiaali/wiki/api.php
 http://sova.mef.hr/_mediawiki/api.php
-http://so.wikipedia.org/w/api.php
 http://spacebasedf9.gamepedia.com/api.php
 http://speech.tenet.res.in/wiki/api.php
 http://spiritedaway.wikia.com/api.php
@@ -1148,11 +1121,6 @@ https://secure.dd-wrt.com/wiki/api.php
 https://shmmy.ntua.gr/wiki/api.php
 http://sss.uczymy24.pl/api.php
 https://supercomp.cuni.cz/wiki/api.php
-http://stackoverflow.com/questions/10150131
-http://stackoverflow.com/questions/12147886
-http://stackoverflow.com/questions/16472747
-http://stackoverflow.com/questions/16580687
-http://stackoverflow.com/tags/mediawiki-api/hot
 http://staff.ee.sun.ac.za/pjrandewijk/wiki/api.php
 http://stage48.net/wiki/api.php
 http://stap.sjtu.edu.cn/api.php
@@ -1231,7 +1199,6 @@ http://test.asenjo.nl/api.php
 http://testbit.eu/wiki.mw/api.php
 http://test.idigbio.org/wiki/api.php
 http://test.uncyclopedia.co/w/api.php
-http://test.wikimedia.org.au/w/api.php
 http://tftl.tomedu.ru/wiki/api.php
 http://theatrebreaks.co/w/api.php
 http://thebritishjugglingconvention.co.uk/wiki/api.php
@@ -1292,7 +1259,6 @@ http://venedia.ru/wiki/api.php
 http://ventublog.it/wikicc/api.php
 http://verasco.imag.fr/w/api.php
 http://vereda.ula.ve/wiki_artevenezolano/api.php
-http://ve.wikimedia.org/w/api.php
 http://vgtu.geraspatarimas.lt/api.php
 http://vh.cmp.uea.ac.uk/api.php
 http://video.gameindustry.ph/w/api.php
@@ -1562,7 +1528,6 @@ http://wiki.lte.lu/mediawiki/api.php
 http://wiki.luv.asn.au/w/api.php
 http://wiki.macchky.net/api.php
 http://wiki.magrid.ma/api.php
-http://wikimania2013.wikimedia.org/w/api.php
 http://wiki.marin.nl/api.php
 http://wiki.marwan.ma/api.php
 http://wiki.matfyz.cz/api.php
@@ -1573,8 +1538,6 @@ http://wikimech.com.au/api.php
 http://wikimedia.by/w/api.php
 http://wiki.mediagoblin.org/api.php
 http://wikimedia.hu/w/api.php
-http://wikimedia.org.ve/w/api.php
-http://wikimedia.org.za/api.php
 http://wikimedia.sk/api.php
 http://wikimedica.or.kr/api.php
 http://wiki.medieval-europe.eu/api.php
@@ -1743,7 +1706,6 @@ http://wiki.socius.be/w/api.php
 http://wiki.sok.hr/api.php
 http://wiki.solarsails.info/api.php
 http://wiki.sotahuuto.fi/wiki/api.php
-http://wikisource.org/w/api.php
 http://wikispesa.costodellostato.it/api.php
 http://wikispooks.com/w/api.php
 http://wiki.sse.reading.ac.uk/api.php
@@ -1774,7 +1736,6 @@ http://wiki.teamliquid.net/starcraft/api.php
 http://wiki.techinc.nl/api.php
 http://wiki.technicaldiving.ie/api.php
 http://wiki.technicpack.net/api.php
-http://wikitech.wikimedia.org/w/api.php
 http://wikitelecom.ltrudeau.ep.profweb.qc.ca/api.php
 http://wiki.telfer.uottawa.ca/ci-wiki/api.php
 http://wikitest.newline.net.ua/wiki/api.php
@@ -2289,9 +2250,6 @@ http://www.masa.asn.au/masawiki/api.php
 http://www.mastin.su/w/api.php
 http://www.mbge.com.mx/wiki/api.php
 http://www.mecs.u-picardie.fr/api.php
-http://www.mediawiki.org/w/api.php
-http://www.mediawiki.org/wiki/API:Query
-http://www.mediawiki.org/wiki/Thread:Project:Support_desk/API_error:_No_JSON_object_could_be_decoded
 http://www.mediawikiwidgets.org/w/api.php
 http://www.medica.be/w/api.php
 http://www.megazine3.de/wiki/api.php
@@ -2573,7 +2531,6 @@ http://www.wikialagoas.al.org.br/api.php
 http://www.wikicampus.fi/api.php
 http://www.wikicasino.it/wiki/api.php
 http://www.wikicg.it/wiki/api.php
-http://www.wikidata.org/w/api.php
 http://www.wikidelft.nl/api.php
 http://www.wikident.de/api.php
 http://www.wikigender.org/api.php
@@ -2588,9 +2545,6 @@ http://www.wikilm.es/w/api.php
 http://www.wikilovesmonuments.be/w/api.php
 http://www.wikimafia.it/wiki/api.php
 http://www.wikimedia.am/api.php
-http://www.wikimedia.org.au//w/api.php
-http://www.wikimedia.org.au/w/api.php
-http://www.wikimedia.org.ph/wmph/api.php
 http://www.wikimedia.or.id/w/api.php
 http://www.wiki.mundoaccesible.org.ve/api.php
 http://www.wikinology.cn/w/api.php
@@ -2650,7 +2604,6 @@ http://zerovm.org/api.php
 http://zettaikarenchildren.wikia.com/api.php
 http://zeus.phys.uconn.edu/wiki/api.php
 http://zh.wikicatia.org/api.php
-http://zh.wikipedia.org/w/api.php
 http://zil.dhbw-karlsruhe.de/wiki/api.php
 http://zingalicio.us/w/api.php
 http://zizania.tolabaki.gr/mediawiki/api.php
