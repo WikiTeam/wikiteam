@@ -78,7 +78,8 @@ def getNamespacesScraper(config={}):
         f = urllib2.urlopen(req)
         raw = f.read()
         f.close()
-        
+        delay(config=config)
+
         m = re.compile(r'<option [^>]*?value="(?P<namespaceid>\d+)"[^>]*?>(?P<namespacename>[^<]+)</option>').finditer(raw) # [^>]*? to include selected="selected"
         if 'all' in namespaces:
             namespaces = []
@@ -109,7 +110,8 @@ def getNamespacesAPI(config={}):
         f = urllib2.urlopen(req)
         raw = f.read()
         f.close()
-            
+        delay(config=config)
+
         m = re.compile(r'<ns id="(?P<namespaceid>\d+)"[^>]*?/?>(?P<namespacename>[^<]+)?(</ns>)?').finditer(raw) # [^>]*? to include case="first-letter" canonical= etc.
         if 'all' in namespaces:
             namespaces = []
@@ -170,6 +172,7 @@ def getPageTitlesAPI(config={}):
             m = re.findall(r'title="([^>]+)" />', xml)
             titles += [undoHTMLEntities(title) for title in m]
             c += len(m)
+            delay(config=config)
         print '    %d titles retrieved in the namespace %d' % (c, namespace)
     return titles
 
@@ -222,6 +225,8 @@ def getPageTitlesScraper(config={}):
                     raw2 = cleanHTML(raw2)
                     rawacum += raw2 #merge it after removed junk
                     print '    Reading', name, len(raw2), 'bytes', len(re.findall(r_suballpages, raw2)), 'subpages', len(re.findall(r_title, raw2)), 'pages'
+
+                delay(config=config)
             c += 1
         
         c = 0
@@ -501,6 +506,7 @@ def getImageFilenamesURL(config={}):
         f = urllib2.urlopen(req)
         raw = f.read()
         f.close()
+        delay(config=config)
         if re.search(ur'(?i)(allowed memory size of \d+ bytes exhausted|Call to a member function getURL)', raw): # delicate wiki
             if limit > 10:
                 print 'Error: listing %d images in a chunk is not possible, trying tiny chunks' % (limit)
@@ -593,6 +599,7 @@ def getImageFilenamesURLAPI(config={}):
                 sys.exit()
         xml = f.read()
         f.close()
+        delay(config=config)
         # Match the query-continue, old and new format
         m = re.findall(r'<allimages (?:aicontinue|aifrom)="([^>]+)" />', xml)
         if m:
@@ -670,7 +677,7 @@ def generateImageDump(config={}, other={}, images=[], start=''):
         class URLopenerUserAgent(urllib.FancyURLopener):
             version = "%s" % getUserAgent()
         urllib._urlopener = URLopenerUserAgent()
-        urllib.urlretrieve(url=url, filename='%s/%s' % (imagepath, filename2) ) 
+        urllib.urlretrieve(url=url, filename='%s/%s' % (imagepath, filename2) )
         # TODO: data=urllib.urlencode({}) removed image; request fails on wikipedia and POST neither works?
         
         #saving description if any
@@ -681,6 +688,7 @@ def generateImageDump(config={}, other={}, images=[], start=''):
             xmlfiledesc = ''
         f.write(xmlfiledesc)
         f.close()
+        delay(config=config)
         c += 1
         if c % 10 == 0:
             print '    Downloaded %d images' % (c)
@@ -937,6 +945,7 @@ def checkAPI(api):
     f = urllib2.urlopen(req)
     raw = f.read()
     f.close()
+    delay(config=config)
     print 'Checking api.php...', api
     if re.search(r'action=query', raw):
         return True
@@ -948,6 +957,7 @@ def checkIndexphp(indexphp):
     f = urllib2.urlopen(req)
     raw = f.read()
     f.close()
+    delay(config=config)
     print 'Checking index.php...', indexphp
     if re.search(r'Special:Badtitle</a>', raw) and not config['cookies']: # Workaround for issue 71
          print "ERROR: This wiki requires login and we are not authenticated"
@@ -1140,6 +1150,7 @@ def saveSpecialVersion(config={}):
         f = urllib2.urlopen(req)
         raw = f.read()
         f.close()
+        delay(config=config)
         raw = removeIP(raw=raw)
         f = open('%s/Special:Version.html' % (config['path']), 'w')
         f.write(raw)
@@ -1155,6 +1166,7 @@ def saveIndexPHP(config={}):
         f = urllib2.urlopen(req)
         raw = f.read()
         f.close()
+        delay(config=config)
         raw = removeIP(raw=raw)
         f = open('%s/index.html' % (config['path']), 'w')
         f.write(raw)
