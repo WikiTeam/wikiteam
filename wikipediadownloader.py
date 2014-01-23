@@ -30,7 +30,7 @@ projects = []
 for i in m:
     projects.append([i.group('project'), i.group('date')])
 projects.reverse() #oldest project dump, download first
-#projects = [['enwiki', '20110405']]
+#projects = [['enwiki', '20130805']]
 
 start = ''
 if len(sys.argv) == 2:
@@ -51,7 +51,7 @@ for project, date in projects:
     #print htmlproj
     f.close()
     
-    for dumpclass in ['pages-meta-history\d*\.xml\.7z']:
+    for dumpclass in ['pages-meta-history\d*\.xml[^\.]*\.7z']:
         corrupted = True
         maxretries = 3
         while corrupted and maxretries > 0:
