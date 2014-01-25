@@ -919,7 +919,7 @@ def getParameters(params=[]):
 
     if config['api']:
         #check api.php
-        if checkAPI(config['api']):
+        if checkAPI(config['api'], config):
             print 'api.php is OK'
         else:
             print 'Error in api.php, please, provide a correct path to api.php'
@@ -927,7 +927,7 @@ def getParameters(params=[]):
     
     if config['index']:
         #check index.php
-        if checkIndexphp(config['index']):
+        if checkIndexphp(config['index'], config):
             print 'index.php is OK'
         else:
             print 'Error in index.php, please, provide a correct path to index.php'
@@ -939,7 +939,7 @@ def getParameters(params=[]):
     
     return config, other
 
-def checkAPI(api):
+def checkAPI(api, config={}):
     """ Checking API availability """
     req = urllib2.Request(url=api, headers={'User-Agent': getUserAgent()})
     f = urllib2.urlopen(req)
@@ -951,7 +951,7 @@ def checkAPI(api):
         return True
     return False
 
-def checkIndexphp(indexphp):
+def checkIndexphp(indexphp, config={}):
     """ Checking index.php availability """
     req = urllib2.Request(url=indexphp, data=urllib.urlencode({'title': 'Special:Version', }), headers={'User-Agent': getUserAgent()})
     f = urllib2.urlopen(req)
