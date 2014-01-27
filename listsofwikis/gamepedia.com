@@ -73,6 +73,7 @@ http://storm.gamepedia.com/api.php
 http://subnautica.gamepedia.com/api.php
 http://sunlesssea.gamepedia.com/api.php
 http://sunrider.gamepedia.com/api.php
+http://terraria.gamepedia.com/api.php
 http://test.gamepedia.com/api.php
 http://theforest.gamepedia.com/api.php
 http://thehinterlands.gamepedia.com/api.php
