@@ -34,7 +34,7 @@ def printapi(api):
 def checkcore(api):
     try:
         raw = urllib2.urlopen(api, None, delay).read()
-        if '&lt;api' in raw:
+        if 'This is an auto-generated MediaWiki API documentation page' in raw:
             printapi(api)
         else:
             rsd = re.search(r'(?:link rel="EditURI".+href=")(?:https?:)?(.+api.php)\?action=rsd', raw)
