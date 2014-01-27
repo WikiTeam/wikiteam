@@ -21,10 +21,11 @@ import thread
 import time
 import sys
 import urllib2
+import exceptions
 import re
 
-#configuration
-delay = 10
+# Configuration
+delay = 10 # Seconds before timing out on request
 limit = 100
 
 def printapi(api):
@@ -32,18 +33,32 @@ def printapi(api):
     open('wikisalive.txt', 'a').write(('%s\n' % api.strip()).encode('utf-8'))
 
 def checkcore(api):
+    req = urllib2.Request(api, None)
     try:
-        raw = urllib2.urlopen(api, None, delay).read()
-        if 'This is an auto-generated MediaWiki API documentation page' in raw:
-            printapi(api)
-        else:
-            rsd = re.search(r'(?:link rel="EditURI".+href=")(?:https?:)?(.+api.php)\?action=rsd', raw)
-            if rsd:
-                api = 'http:' + rsd.group(1)
-                printapi(api)
-    except:
+        raw = urllib2.urlopen(req, None, delay).read()
+    except IOError: # http://docs.python.org/2/howto/urllib2.html#handling-exceptions
         print api, 'is dead or has errors'
-        pass
+        return
+    # RSD is available since 1.17, bug 25648
+    rsd = re.search(r'(?:link rel="EditURI".+href=")(?:https?:)?(.+api.php)\?action=rsd', raw)
+    # Feeds are available, with varying format, in 1.8 or earlier
+    feed = re.search(r'(?:link rel="alternate" type="application/)(?:atom|rss)(?:\+xml[^>]+href="/)([^>]*index.php)(?:\?title=[^>]+&amp;)(?:feed|format)', raw)
+    # Sometimes they're missing though, this should catch the rest but goes out of <head>
+    login = re.search(r'(?:<li id="pt-login"><a href="/)([^>]*index.php)', raw)
+    domain = re.search(r'(https?://.[^/]+/)', api)
+    if 'This is an auto-generated MediaWiki API documentation page' in raw:
+        printapi(api)
+    elif rsd:
+        api = 'http:' + rsd.group(1)
+        printapi(api)
+    elif feed:
+        index = domain.group(1) + feed.group(1)
+        printapi(index)
+    elif login:
+        index = domain.group(1) + login.group(1)
+        printapi(index)
+    else:
+        print api, 'is not a MediaWiki wiki'
 
 def check(apis):
     for api in apis:
