@@ -35,7 +35,7 @@ my $alivelist="alive-wikis.txt";
 my $deadlist="dead-wikis.txt";
 my $pwrdby1="Powered by MediaWiki";
 my $pwrdby2="poweredby_mediawiki";
-my $genmw="meta name=\"generator\" content=\"MediaWiki"
+my $genmw="meta name\=\"generator\" content\=\"MediaWiki";
 my $mwapi="MediaWiki API documentation page";
 my $lw=0; my $dw=0;
 my $a=1; my $b=0; my $c=0;
