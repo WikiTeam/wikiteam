@@ -1,13 +1,13 @@
 #!/usr/bin/perl
 
-# Name: checkalive.pl v1.1
+# Name: checkalive.pl v1.2
 # Description: This script will go thru a list of URLs & determine 
 # if they are online & if they are Mediawiki wikis. It should work
 # with: "/index.php/Main_Page", "index.php", "api.php" and even pages
 # such as: "/wiki/Pagina_principale".
 #
 # Created: 12/14/2013
-# Most recently updated: 01/25/2014 (It's a work-in-progress...)
+# Most recently updated: 01/26/2014 (It's a work-in-progress...)
 # Copyright (c) 2013-2014 by Scott D. Boyd - scottdb56@gmail.com
 # ====================================================================
 # This program is free software: you can redistribute it and/or modify
@@ -30,16 +30,18 @@ use LWP::Simple;
 use LWP::UserAgent;
 use Crypt::SSLeay;
 my $slp=2; # You can change this number for seconds to sleep between requests (currently 2 seconds)
-my $urllist="URL-list.txt";
+my $urllist="my-URL-list.txt";
 my $alivelist="alive-wikis.txt";
 my $deadlist="dead-wikis.txt";
 my $pwrdby1="Powered by MediaWiki";
 my $pwrdby2="poweredby_mediawiki";
+my $genmw="meta name=\"generator\" content=\"MediaWiki"
 my $mwapi="MediaWiki API documentation page";
 my $lw=0; my $dw=0;
 my $a=1; my $b=0; my $c=0;
 my $flag=0;
 my $ua = LWP::UserAgent->new;
+$ua->agent("Mozilla/5.0");			# use this user-agent to get into wikis that block spiders & robots
 $ua->timeout(30);
 $ua->show_progress(1);
 
@@ -96,6 +98,10 @@ sub ParsePage  {
    if (($doc=~/$pwrdby1/i) || ($doc=~/$pwrdby2/i)) {	# if the page contains: "Powered by MediaWiki"
       print "It's alive and powered by Mediawiki\n";	# or: "poweredby_mediawiki"
       print ALIVEFILE "$url\n";				# then it's a MediaWiki wiki
+      $flag=1;$lw++;
+   } elsif ($doc=~/$genmw/i) {				# if the content generator is MediaWiki
+      print "It's alive and powered by Mediawiki\n";	# then it's a MediaWiki wiki
+      print ALIVEFILE "$url\n";
       $flag=1;$lw++;
    } elsif ($doc=~/$mwapi/i) {				# if the api.php contains: "MediaWiki API documentation page"
       print "It's alive and powered by Mediawiki\n";	# then it's a MediaWiki wiki
