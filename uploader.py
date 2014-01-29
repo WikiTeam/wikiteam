@@ -211,10 +211,10 @@ def upload(wikis):
                     "http://s3.us.archive.org/wiki-%s/%s" % (wikiname, dump), # It could happen that the identifier is taken by another user; only wikiteam collection admins will be able to upload more files to it, curl will fail immediately and get a permissions error by s3.
             ]
             curlline = ' '.join(curl)
-            os.system(curlline)
+            if os.system(curlline):
+                uploadeddumps.append(dump)
+                log(wiki, dump, 'ok')
             c += 1
-            uploadeddumps.append(dump)
-            log(wiki, dump, 'ok')
 
 def main():
     wikis = open(listfile, 'r').read().strip().splitlines()
