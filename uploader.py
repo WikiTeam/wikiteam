@@ -44,6 +44,7 @@ import sys
 import time
 import urllib
 import urllib2
+from xml.sax.saxutils import quoteattr
 
 import dumpgenerator
 
@@ -197,14 +198,15 @@ def upload(wikis):
             if c == 0:
                 curl += ['--header', "'x-archive-meta-mediatype:web'",
                     '--header', "'x-archive-meta-collection:%s'" % (collection),
-                    '--header', "'x-archive-meta-title:%s'" % (wikititle),
-                    '--header', "'x-archive-meta-description:%s'" % (wikidesc),
-                    '--header', "'x-archive-meta-language:%s'" % (lang),
+                    '--header', quoteattr("'x-archive-meta-title:'" + wikititle),
+                    '--header', quoteattr("'x-archive-meta-description:'" + wikidesc),
+                    '--header', quoteattr("'x-archive-meta-language:'" + lang),
                     '--header', "'x-archive-meta-last-updated-date:%s'" % (wikidate_text),
                     '--header', "'x-archive-meta-subject:%s'" % ('; '.join(wikikeys)), # Keywords should be separated by ; but it doesn't matter much; the alternative is to set one per field with subject[0], subject[1], ...
-                    '--header', "'x-archive-meta-licenseurl:%s'" % (wikilicenseurl),
-                    '--header', "'x-archive-meta-rights:%s'" % (wikirights),
-                    '--header', "'x-archive-meta-originalurl:%s'" % (wikiurl),
+                    '--header', quoteattr("'x-archive-meta-licenseurl:'" + wikilicenseurl),
+                    '--header', quoteattr("'x-archive-meta-rights:'" + wikirights),
+                    '--header', quoteattr("'x-archive-meta-originalurl:'" + wikiurl),
+                    '> /dev/null'
                 ]
             
             curl += ['--upload-file', "%s" % (dump),
@@ -212,12 +214,13 @@ def upload(wikis):
             ]
             #now also to update the metadata
             #TODO: not needed for the second file in an item
-            curlmeta = ['curl',
+            curlmeta = ['curl --silent',
                 '--data-urlencode -target=metadata',
                 """--data-urlencode -patch='{"replace":"/last-updated-date", "value":"%s"}'""" % (wikidate_text),
                 '--data-urlencode access=' + accesskey,
                 '--data-urlencode secret=' + secretkey,
-                'http://archive.org/metadata/wiki-' + wikiname > /dev/null
+                'http://archive.org/metadata/wiki-' + wikiname,
+                '> /dev/null'
             ]
             curlline = ' '.join(curl)
             curlmetaline = ' '.join(curlmeta)
