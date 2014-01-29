@@ -25,7 +25,7 @@ import exceptions
 import re
 
 # Configuration
-delay = 10 # Seconds before timing out on request
+delay = 30 # Seconds before timing out on request
 limit = 100
 
 def printapi(api):
@@ -46,6 +46,8 @@ def checkcore(api):
     # Sometimes they're missing though, this should catch the rest but goes out of <head>
     login = re.search(r'(?:<li id="pt-login"><a href="/)([^>]*index.php)', raw)
     domain = re.search(r'(https?://.[^/]+/)', api)
+    # TODO: Simplistic check for API. The docs page can be returned even if everything else
+    # is choking on database or PHP errors (hundreds online wikis fatal on every request).
     if 'This is an auto-generated MediaWiki API documentation page' in raw:
         printapi(api)
     elif rsd:
