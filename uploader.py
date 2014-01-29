@@ -210,10 +210,21 @@ def upload(wikis):
             curl += ['--upload-file', "%s" % (dump),
                     "http://s3.us.archive.org/wiki-%s/%s" % (wikiname, dump), # It could happen that the identifier is taken by another user; only wikiteam collection admins will be able to upload more files to it, curl will fail immediately and get a permissions error by s3.
             ]
+            #now also to update the metadata
+            #TODO: not needed for the second file in an item
+            curlmeta = ['curl',
+                '--data-urlencode -target=metadata',
+                """--data-urlencode -patch='{"replace":"/last-updated-date", "value":"%s"}'""" % (wikidate_text),
+                '--data-urlencode access=' + accesskey,
+                '--data-urlencode secret=' + secretkey,
+                'http://archive.org/metadata/wiki-' + wikiname > /dev/null
+            ]
             curlline = ' '.join(curl)
-            if os.system(curlline):
+            curlmetaline = ' '.join(curlmeta)
+            if not os.system(curlline):
                 uploadeddumps.append(dump)
                 log(wiki, dump, 'ok')
+                os.system(curlmetaline)
             c += 1
 
 def main():
