@@ -198,19 +198,20 @@ def upload(wikis):
             if c == 0:
                 curl += ['--header', "'x-archive-meta-mediatype:web'",
                     '--header', "'x-archive-meta-collection:%s'" % (collection),
-                    '--header', quoteattr("'x-archive-meta-title:'" + wikititle),
-                    '--header', quoteattr("'x-archive-meta-description:'" + wikidesc),
-                    '--header', quoteattr("'x-archive-meta-language:'" + lang),
+                    '--header', quoteattr('x-archive-meta-title:' + wikititle),
+                    '--header', "'x-archive-meta-description:%s'" % wikidesc.replace("'", r"\'"),
+                    '--header', quoteattr('x-archive-meta-language:' + lang),
                     '--header', "'x-archive-meta-last-updated-date:%s'" % (wikidate_text),
                     '--header', "'x-archive-meta-subject:%s'" % ('; '.join(wikikeys)), # Keywords should be separated by ; but it doesn't matter much; the alternative is to set one per field with subject[0], subject[1], ...
-                    '--header', quoteattr("'x-archive-meta-licenseurl:'" + wikilicenseurl),
-                    '--header', quoteattr("'x-archive-meta-rights:'" + wikirights),
-                    '--header', quoteattr("'x-archive-meta-originalurl:'" + wikiurl),
-                    '> /dev/null'
+                    '--header', quoteattr('x-archive-meta-licenseurl:' + wikilicenseurl),
+                    '--header', "'x-archive-meta-rights:%s'" % wikirights.replace("'", r"\'"),
+                    '--header', quoteattr('x-archive-meta-originalurl:' + wikiurl),
                 ]
             
             curl += ['--upload-file', "%s" % (dump),
                     "http://s3.us.archive.org/wiki-%s/%s" % (wikiname, dump), # It could happen that the identifier is taken by another user; only wikiteam collection admins will be able to upload more files to it, curl will fail immediately and get a permissions error by s3.
+                    '> /dev/null',
+                    #FIXME: Must be NUL instead on Windows, how to make compatible?
             ]
             #now also to update the metadata
             #TODO: not needed for the second file in an item
