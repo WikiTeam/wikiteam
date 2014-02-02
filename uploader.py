@@ -6,12 +6,12 @@
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
@@ -92,107 +92,125 @@ def upload(wikis):
             if dump in uploadeddumps:
                 print '%s was uploaded before, skipping...' % (dump)
                 continue
-            
+
             time.sleep(0.1)
             wikidate = dump.split('-')[1]
             wikidate_text = wikidate[0:4]+'-'+wikidate[4:6]+'-'+wikidate[6:8]
             print wiki, wikiname, wikidate, dump
-            
-            #get metadata from api.php
-            #first sitename and base url
+
+            # Does the item exist already?
             headers = {'User-Agent': dumpgenerator.getUserAgent()}
-            params = {'action': 'query', 'meta': 'siteinfo', 'format': 'xml'}
-            data = urllib.urlencode(params)
-            req = urllib2.Request(url=wiki, data=data, headers=headers)
-            xml = ''
-            try:
-                f = urllib2.urlopen(req)
-                xml = f.read()
-                f.close()
-            except:
-                pass
-            
-            sitename = ''
-            baseurl = ''
-            lang = ''
-            try:
-                sitename = re.findall(ur"sitename=\"([^\"]+)\"", xml)[0]
-            except:
-                pass
-            try:
-                baseurl = re.findall(ur"base=\"([^\"]+)\"", xml)[0]
-            except:
-                pass
-            try:
-                lang = re.findall(ur"lang=\"([^\"]+)\"", xml)[0]
-            except:
-                pass
-            
-            if not sitename:
-                sitename = wikiname
-            if not baseurl:
-                baseurl = re.sub(ur"(?im)/api\.php", ur"", wiki)
-            if lang:
-                lang = convertlang.has_key(lang.lower()) and convertlang[lang.lower()] or lang.lower()
-            
-            #now copyright info from API
-            params = {'action': 'query', 'siprop': 'general|rightsinfo', 'format': 'xml'}
-            data = urllib.urlencode(params)
-            req = urllib2.Request(url=wiki, data=data, headers=headers)
-            xml = ''
-            try:
-                f = urllib2.urlopen(req)
-                xml = f.read()
-                f.close()
-            except:
-                pass
-            
-            rightsinfourl = ''
-            rightsinfotext = ''
-            try:
-                rightsinfourl = re.findall(ur"rightsinfo url=\"([^\"]+)\"", xml)[0]
-                rightsinfotext = re.findall(ur"text=\"([^\"]+)\"", xml)[0]
-            except:
-                pass
-            
-            #or copyright info from #footer in mainpage
-            if baseurl and not rightsinfourl and not rightsinfotext:
-                raw = ''
+            itemdata = urllib2.Request(url='http://archive.org/metadata/wiki-' + wikiname, headers=headers)
+            if urllib2.urlopen(itemdata).read() == '{}':
+                ismissingitem = True
+            else:
+                ismissingitem = False
+
+            # We don't know a way to fix/overwrite metadata if item exists already:
+            # just pass bogus data and save some time
+            if ismissingitem:
+                #get metadata from api.php
+                #first sitename and base url
+                params = {'action': 'query', 'meta': 'siteinfo', 'format': 'xml'}
+                data = urllib.urlencode(params)
+                req = urllib2.Request(url=wiki, data=data, headers=headers)
+                xml = ''
                 try:
-                    f = urllib.urlopen(baseurl)
-                    raw = f.read()
+                    f = urllib2.urlopen(req)
+                    xml = f.read()
                     f.close()
                 except:
                     pass
-                rightsinfotext = ''
+
+                sitename = ''
+                baseurl = ''
+                lang = ''
+                try:
+                    sitename = re.findall(ur"sitename=\"([^\"]+)\"", xml)[0]
+                except:
+                    pass
+                try:
+                    baseurl = re.findall(ur"base=\"([^\"]+)\"", xml)[0]
+                except:
+                    pass
+                try:
+                    lang = re.findall(ur"lang=\"([^\"]+)\"", xml)[0]
+                except:
+                    pass
+
+                if not sitename:
+                    sitename = wikiname
+                if not baseurl:
+                    baseurl = re.sub(ur"(?im)/api\.php", ur"", wiki)
+                if lang:
+                    lang = convertlang.has_key(lang.lower()) and convertlang[lang.lower()] or lang.lower()
+
+                #now copyright info from API
+                params = {'action': 'query', 'siprop': 'general|rightsinfo', 'format': 'xml'}
+                data = urllib.urlencode(params)
+                req = urllib2.Request(url=wiki, data=data, headers=headers)
+                xml = ''
+                try:
+                    f = urllib2.urlopen(req)
+                    xml = f.read()
+                    f.close()
+                except:
+                    pass
+
                 rightsinfourl = ''
+                rightsinfotext = ''
                 try:
-                    rightsinfourl = re.findall(ur"<link rel=\"copyright\" href=\"([^\"]+)\" />", raw)[0]
+                    rightsinfourl = re.findall(ur"rightsinfo url=\"([^\"]+)\"", xml)[0]
+                    rightsinfotext = re.findall(ur"text=\"([^\"]+)\"", xml)[0]
                 except:
                     pass
-                try:
-                    rightsinfotext = re.findall(ur"<li id=\"copyright\">([^\n\r]*?)</li>", raw)[0]
-                except:
-                    pass
-                if rightsinfotext and not rightsinfourl:
-                    rightsinfourl = baseurl + '#footer'
-            
-            #retrieve some info from the wiki
-            wikititle = "Wiki - %s" % (sitename) # Wiki - ECGpedia
-            wikidesc = "<a href=\"%s\">%s</a> dumped with <a href=\"http://code.google.com/p/wikiteam/\" rel=\"nofollow\">WikiTeam</a> tools." % (baseurl, sitename)# "<a href=\"http://en.ecgpedia.org/\" rel=\"nofollow\">ECGpedia,</a>: a free electrocardiography (ECG) tutorial and textbook to which anyone can contribute, designed for medical professionals such as cardiac care nurses and physicians. Dumped with <a href=\"http://code.google.com/p/wikiteam/\" rel=\"nofollow\">WikiTeam</a> tools."
-            wikikeys = ['wiki', 'wikiteam', 'MediaWiki', sitename, wikiname] # ecg; ECGpedia; wiki; wikiteam; MediaWiki
-            if not rightsinfourl and not rightsinfotext:
-                wikikeys.append('unknowncopyright')
-            
-            wikilicenseurl = rightsinfourl # http://creativecommons.org/licenses/by-nc-sa/3.0/
-            wikirights = rightsinfotext # e.g. http://en.ecgpedia.org/wiki/Frequently_Asked_Questions : hard to fetch automatically, could be the output of API's rightsinfo if it's not a usable licenseurl or "Unknown copyright status" if nothing is found.
-            wikiurl = wiki # we use api here http://en.ecgpedia.org/api.php
-                        
+
+                #or copyright info from #footer in mainpage
+                if baseurl and not rightsinfourl and not rightsinfotext:
+                    raw = ''
+                    try:
+                        f = urllib.urlopen(baseurl)
+                        raw = f.read()
+                        f.close()
+                    except:
+                        pass
+                    rightsinfotext = ''
+                    rightsinfourl = ''
+                    try:
+                        rightsinfourl = re.findall(ur"<link rel=\"copyright\" href=\"([^\"]+)\" />", raw)[0]
+                    except:
+                        pass
+                    try:
+                        rightsinfotext = re.findall(ur"<li id=\"copyright\">([^\n\r]*?)</li>", raw)[0]
+                    except:
+                        pass
+                    if rightsinfotext and not rightsinfourl:
+                        rightsinfourl = baseurl + '#footer'
+
+                #retrieve some info from the wiki
+                wikititle = "Wiki - %s" % (sitename) # Wiki - ECGpedia
+                wikidesc = "<a href=\"%s\">%s</a> dumped with <a href=\"http://code.google.com/p/wikiteam/\" rel=\"nofollow\">WikiTeam</a> tools." % (baseurl, sitename)# "<a href=\"http://en.ecgpedia.org/\" rel=\"nofollow\">ECGpedia,</a>: a free electrocardiography (ECG) tutorial and textbook to which anyone can contribute, designed for medical professionals such as cardiac care nurses and physicians. Dumped with <a href=\"http://code.google.com/p/wikiteam/\" rel=\"nofollow\">WikiTeam</a> tools."
+                wikikeys = ['wiki', 'wikiteam', 'MediaWiki', sitename, wikiname] # ecg; ECGpedia; wiki; wikiteam; MediaWiki
+                if not rightsinfourl and not rightsinfotext:
+                    wikikeys.append('unknowncopyright')
+
+                wikilicenseurl = rightsinfourl # http://creativecommons.org/licenses/by-nc-sa/3.0/
+                wikirights = rightsinfotext # e.g. http://en.ecgpedia.org/wiki/Frequently_Asked_Questions : hard to fetch automatically, could be the output of API's rightsinfo if it's not a usable licenseurl or "Unknown copyright status" if nothing is found.
+                wikiurl = wiki # we use api here http://en.ecgpedia.org/api.php
+            else:
+                lang = 'foo'
+                wikititle = 'foo'
+                wikidesc = 'foo'
+                wikikeys = 'foo'
+                wikilicenseurl = 'foo'
+                wikirights = 'foo'
+                wikiurl = 'foo'
+
             #creates curl command
-            curl = ['curl', '--location', 
+            curl = ['curl', '--location',
                 '--header', "'x-amz-auto-make-bucket:1'", # Creates the item automatically, need to give some time for the item to correctly be created on archive.org, or everything else will fail, showing "bucket not found" error
                 '--header', "'x-archive-queue-derive:0'",
-                '--header', "'x-archive-size-hint:%d'" % (os.path.getsize(dump)), 
+                '--header', "'x-archive-size-hint:%d'" % (os.path.getsize(dump)),
                 '--header', "'authorization: LOW %s:%s'" % (accesskey, secretkey),
             ]
             if c == 0:
@@ -207,7 +225,7 @@ def upload(wikis):
                     '--header', "'x-archive-meta-rights:%s'" % wikirights.replace("'", r"\'"),
                     '--header', quoteattr('x-archive-meta-originalurl:' + wikiurl),
                 ]
-            
+
             curl += ['--upload-file', "%s" % (dump),
                     "http://s3.us.archive.org/wiki-%s/%s" % (wikiname, dump), # It could happen that the identifier is taken by another user; only wikiteam collection admins will be able to upload more files to it, curl will fail immediately and get a permissions error by s3.
                     '> /dev/null',
@@ -228,7 +246,8 @@ def upload(wikis):
             if not os.system(curlline):
                 uploadeddumps.append(dump)
                 log(wiki, dump, 'ok')
-                os.system(curlmetaline)
+                if not ismissingitem:
+                    os.system(curlmetaline)
             c += 1
 
 def main():
