@@ -959,7 +959,7 @@ def checkIndexphp(indexphp, config={}):
     f.close()
     delay(config=config)
     print 'Checking index.php...', indexphp
-    if re.search(r'(Special:Badtitle</a>|class="permissions-errors"|"wgCanonicalSpecialPageName":"Badtitle")', raw) and not config['cookies']: # Workaround for issue 71
+    if re.search(r'(Special:Badtitle</a>|class="permissions-errors"|"wgCanonicalSpecialPageName":"Badtitle"|Login Required</h1>)', raw) and not config['cookies']: # Workaround for issue 71
          print "ERROR: This wiki requires login and we are not authenticated"
          return False
     if re.search(r'(This wiki is powered by|<h2 id="mw-version-license">|meta name="generator" content="MediaWiki)', raw):
