@@ -108,7 +108,8 @@ for wiki in wikis:
         # Basic integrity check for the xml. The script doesn't actually do anything, so you should check if it's broken. Nothing can be done anyway, but redownloading.
         subprocess.call('grep "<title>" *.xml -c;grep "<page>" *.xml -c;grep "</page>" *.xml -c;grep "<revision>" *.xml -c;grep "</revision>" *.xml -c', shell=True)
         # Make a non-solid archive with all the text and metadata at default compression. You can also add config.txt if you don't care about your computer and user names being published or you don't use full paths so that they're not stored in it.
-        subprocess.call('7z' + ' a -ms=off ../%s-history.xml.7z %s-history.xml %s-titles.txt index.html Special:Version.html errors.log' % (prefix, prefix, prefix), shell=True)
+        subprocess.call('7z' + ' a -ms=off ../%s-history.xml.7z.tmp %s-history.xml %s-titles.txt index.html Special:Version.html errors.log' % (prefix, prefix, prefix), shell=True)
+        subprocess.call('mv' + ' ../%s-history.xml.7z.tmp ../%s-history.7z' % (prefix, prefix), shell=True)
         # Now we add the images, if there are some, to create another archive, without recompressing everything, at the min compression rate, higher doesn't compress images much more.
         subprocess.call('cp' + ' ../%s-history.xml.7z ../%s-wikidump.7z.tmp' % (prefix, prefix), shell=True)
         subprocess.call('7z' + ' a -ms=off -mx=1 ../%s-wikidump.7z.tmp %s-images.txt images/' % (prefix, prefix), shell=True)
