@@ -16,7 +16,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import getopt
-import hashlib
 import os
 import re
 import subprocess
@@ -116,7 +115,7 @@ def upload(wikis, config={}):
                     if not os.system(rmline):
                         print 'DELETED %s-%s-wikidump/' % (wikiname, wikidate)
                 if config['prune-wikidump'] and dump.endswith('wikidump.7z'):
-                        # Simplistic quick&dirty to check for the presence of this file in the item
+                        # Simplistic quick&dirty check for the presence of this file in the item
                         stdout, stderr = subprocess.Popen(["md5sum", dump], stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
                         dumphash = re.sub(' +.+\n?', '', stdout)
 
@@ -127,11 +126,15 @@ def upload(wikis, config={}):
                             rmline='rm -rf %s' % dump
                             if not os.system(rmline):
                                 print 'DELETED ' + dump
+                            print '%s was uploaded before, skipping...' % (dump)
+                            continue
                         else:
                             print 'ERROR: The online item misses ' + dump
                             log(wiki, dump, 'missing')
-                print '%s was uploaded before, skipping...' % (dump)
-                continue
+                            # We'll exit this if and go upload the dump
+                else:
+                    print '%s was uploaded before, skipping...' % (dump)
+                    continue
 
             time.sleep(0.1)
             wikidate_text = wikidate[0:4]+'-'+wikidate[4:6]+'-'+wikidate[6:8]
