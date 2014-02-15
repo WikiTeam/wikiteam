@@ -39,11 +39,9 @@ http://academics.skidmore.edu/wikis/NorthWoods/api.php
 http://academy.nescent.org/wg/academy/api.php
 http://accesoabierto.saber.ula.ve/openaccesswiki/index.php
 http://ackspace.nl/w/api.php
-http://ackspace.nl/w/index.php
 http://acm.sjtu.edu.cn/ppca/w/api.php
 http://acornhelp.acadiau.ca/help/api.php
 http://activities.tjhsst.edu/vmt/wiki/api.php
-http://activities.tjhsst.edu/vmt/wiki/index.php
 http://adapt2.sis.pitt.edu/w/index.php
 http://adminkuhn.ch/adminkuhn/api.php
 http://adn.bioinfo.uqam.ca/armadillo/wiki/index.php
@@ -159,7 +157,6 @@ http://arig.org.il/mediawiki/index.php
 http://aripedia.org.au/api.php
 http://arkiv.opensource.dk/samarbejde/api.php
 http://armor.kiev.ua/wiki/api.php
-http://armor.kiev.ua/wiki/index.php
 http://army.ca/wiki/api.php
 http://arnulf.us/api.php
 http://arthapedia.in/api.php
@@ -224,7 +221,6 @@ http://bdik.ch/mediawiki/index.php
 http://bdvoe.ns2.8es.at/mediawiki/api.php
 http://be-alive.ru/index.php
 http://beast.bio.ed.ac.uk/w/api.php
-http://beast.bio.ed.ac.uk/w/index.php
 http://bee.mif.pg.gda.pl/Oktoda/api.php
 http://beliv.cs.univie.ac.at/mediawiki/api.php
 http://bepo.fr/wiki/api.php
@@ -240,7 +236,6 @@ http://biblioteca.milagro.gob.ec/index.php
 http://bibliowiki.com.pt/api.php
 http://bibus-biblio.sourceforge.net/wiki/api.php
 http://bicep.dei.uc.pt/api.php
-http://bicep.dei.uc.pt/index.php
 http://bidb.omu.edu.tr/viki/api.php
 http://bigbangtheory.wikia.com/api.php
 http://bighead.poli.usp.br/cadernoteca/index.php
@@ -306,11 +301,8 @@ http://boyle.che.rpi.edu/mediawiki/api.php
 http://bpi.org.il/en/wiki/index.php
 http://bpk.jpkn.sabah.gov.my/ciotoolkit/api.php
 http://brain.fei.tuke.sk/wiki/api.php
-http://brain.fei.tuke.sk/wiki/index.php
 http://brain.fuw.edu.pl/edu-wiki/api.php
-http://brain.fuw.edu.pl/edu-wiki/index.php
 http://brainvis.wustl.edu/wiki/api.php
-http://brainvis.wustl.edu/wiki/index.php
 http://braukaiser.com/wiki/api.php
 http://breathoffire.neoseeker.com/w/api.php
 http://brion.inria.fr/gallium/index.php
@@ -352,7 +344,6 @@ http://calcul-wiki.univ-lille1.fr/mediawiki/api.php
 http://calvinisme.ch/index.php
 http://cancer.jpl.nasa.gov/standards/wiki/index.php
 http://capricorn.jedi.net.nz/wiki/api.php
-http://capricorn.jedi.net.nz/wiki/index.php
 http://cardiff.hackspace.org.uk/w/api.php
 http://career.tspppa.gwu.edu/wiki/api.php
 http://caringbetweenthelines.ca/w/api.php
@@ -470,7 +461,6 @@ http://cms.unige.ch/lettres/philo/wp/api.php
 http://cmw-cms.ru/api.php
 http://cn.18dao.net/index.php
 http://cnls.lanl.gov/q-bio/wiki/api.php
-http://cnls.lanl.gov/q-bio/wiki/index.php
 http://cnwiki.iha.dk/mediawiki/index.php
 http://cocnm.computerisms.ca/api.php
 http://codelyoko.it/wiki/api.php
@@ -489,7 +479,6 @@ http://comailab.genomecenter.ucdavis.edu/api.php
 http://comicwiki.dk/index.php
 http://commenterra.com/w/index.php
 http://commodore64.se/wiki/api.php
-http://commodore64.se/wiki/index.php
 http://commons.gc.cuny.edu/wiki/index.php
 http://commons.oreilly.com/wiki/api.php
 http://commons-sommerschule.webcoach.at/w16/commons/index.php
@@ -611,7 +600,6 @@ http://darwin.di.uminho.pt/optfluxwiki/api.php
 http://darwin.eeb.uconn.edu/wiki/api.php
 http://dasl.mem.drexel.edu/wiki/api.php
 http://databank.stjohn.ab.ca/api.php
-http://databank.stjohn.ab.ca/index.php
 http://datafedwiki.wustl.edu/index.php
 http://data-gov.tw.rpi.edu/w/index.php
 http://datamin.ubbcluj.ro/wiki/api.php
@@ -652,7 +640,6 @@ http://deskovehry.cz/index.php
 http://deti.mostinfo.ru/index.php
 http://dev.elcomercio.pe/wiki/index.php
 http://devel.cs.stolaf.edu/projects/bw/wiki.real/api.php
-http://devel.cs.stolaf.edu/projects/bw/wiki.real/index.php
 http://developer.boxee.tv/index.php
 http://developer.mtel.bg/wiki/api.php
 http://developersarea.b-op.be/api.php
@@ -698,7 +685,6 @@ http://diq.wikipedia.org/w/api.php
 http://dirac.ruc.dk/wiki/api.php
 http://directory.fsf.org/w/api.php
 http://dirndlwiki.at/api.php
-http://dirndlwiki.at/index.php
 http://disciplesoflight.eu/wiki/index.php
 http://discoursedb.org/w/api.php
 http://discus.voidwarranties.be/api.php
@@ -777,7 +763,6 @@ http://dwsim.inforside.com.br/wiki/api.php
 http://dya-knowledge.sogeti.nl/dirsrc/api.php
 http://dynamo.iro.umontreal.ca/~gambit/wiki/api.php
 http://dynamo.iro.umontreal.ca/wiki/api.php
-http://dynamo.iro.umontreal.ca/wiki/index.php
 http://dynastywarriors.neoseeker.com/w/api.php
 http://eagle.datornatverk.se/wiki/index.php
 http://eastnet.ca/mediawiki/api.php
@@ -788,7 +773,6 @@ http://ecdav.cuc.edu.cn/wiki/index.php
 http://eclipse.ime.usp.br/wiki/index.php
 http://eclipse.or.kr/api.php
 http://ec.mit.edu/wiki/api.php
-http://ec.mit.edu/wiki/index.php
 http://ecoinfo.iacoos.kz/mediawiki/index.php
 http://ecoliwiki.net/colipedia/api.php
 http://econophysics.fudan.edu.cn/mwiki/api.php
@@ -829,7 +813,6 @@ http://elearn.cs.man.ac.uk/studact/api.php
 http://e-learning.csc.ku.ac.th/wiki/index.php
 http://e-learning.ilei.sch.gr/wiki/api.php
 http://elec.otago.ac.nz/w/api.php
-http://elec.otago.ac.nz/w/index.php
 http://electropoli.fi/w/api.php
 http://elektromotus.lt/wiki/api.php
 http://elementalgames.org/w/api.php
@@ -855,7 +838,6 @@ http://end.translatum.gr/w/index.php
 http://en.ea-geier.at/api.php
 http://en.encyclopedia.kz/index.php
 http://energiwiki.dk/api.php
-http://energiwiki.dk/index.php
 http://energy.epfl.ch/w/index.php
 http://energy.wikidb.info/api.php
 http://en.gentoo-wiki.civilian.su/api.php
@@ -892,7 +874,6 @@ http://en.wiki.ehive.com/w/api.php
 http://en.wiki.fs.uni-lj.si/api.php
 http://en.wiki.galaxytool.eu/api.php
 http://en.wiki.lib.unideb.hu/api.php
-http://en.wiki.lib.unideb.hu/index.php
 http://en.wiki.lp.edu.ua/api.php
 http://en.wiki.mumb1e.de/w/api.php
 http://en.wikinews.org/w/api.php
@@ -911,7 +892,6 @@ http://episteme.hin.no/wiki/index.php
 http://eplmediawiki.di.uminho.pt/api.php
 http://epltt.coe.uga.edu/api.php
 http://eprl.korinthos.uop.gr/wiki/api.php
-http://eprl.korinthos.uop.gr/wiki/index.php
 http://epsa-projects.eu/api.php
 http://epsmg.jkr.gov.my/api.php
 http://eq2.ogregaming.com/wiki/api.php
@@ -978,7 +958,6 @@ http://fausac.usac.edu.gt/GPublica/api.php
 http://fcqi.tij.uabc.mx/usuarios/mydci/wiki/api.php
 http://fcsalzburgwiki.at/api.php
 http://fdogs.free.fr/wiki/api.php
-http://fdogs.free.fr/wiki/index.php
 http://fedora.or.id/wiki/api.php
 http://fedoraproject.org/w/api.php
 http://fermi.pharm.hokudai.ac.jp/olivia/api/index.php
@@ -1154,7 +1133,6 @@ http://goldway.ru/wiki/api.php
 http://golem.linux.it/wiki/api.php
 http://gomediawiki.com/w/index.php
 http://goplett.co.za/wiki2/api.php
-http://goplett.co.za/wiki2/index.php
 http://go-wiki.de/index.php
 http://gowiki.tamu.edu/wiki/api.php
 http://gpms.in/gpmswiki/api.php
@@ -1255,7 +1233,6 @@ http://help.webloganalyzer.biz/index.php
 http://hemonc.org/w/api.php
 http://hendrix.ei.dtu.dk/w/api.php
 http://hendrix.imm.dtu.dk/w/api.php
-http://hendrix.imm.dtu.dk/w/index.php
 http://henny-savenije.com/mediawiki/api.php
 http://heritage.apegm.mb.ca/api.php
 http://heustory.apsc.ubc.ca/wiki/api.php
@@ -1298,7 +1275,6 @@ http://hpseewiki.ipb.ac.rs/index.php
 http://hpux.ch/api.php
 http://hq.apf.asn.au/index.php
 http://hr.modot.mo.gov/api.php
-http://hr.modot.mo.gov/index.php
 http://hscc.cs.nthu.edu.tw/~sheujp/wiki/api.php
 http://htcaas.kisti.re.kr/wiki/api.php
 http://htk.tlu.ee/kpata/index.php
@@ -1337,7 +1313,6 @@ http://ichscotlandwiki.org/index.php
 http://icl.cs.utk.edu/projects/papi/repository/index.php
 http://icme.hpc.msstate.edu/mediawiki/api.php
 http://icommas.ou.nl/lru/OWLwikiForms/api.php
-http://icommas.ou.nl/lru/OWLwikiForms/index.php
 http://icpc.ch/mediawikifr/api.php
 http://icsd-linux.samos.aegean.gr/mediawiki/index.php
 http://icsl.gatech.edu/aa/api.php
@@ -1374,7 +1349,6 @@ http://igem.bio-x.cn/wiki/index.php
 http://igem.ym.edu.tw/igem2009/index.php
 http://igos-nusantara.or.id/wiki/api.php
 http://ihewiki.wustl.edu/wiki/api.php
-http://ihewiki.wustl.edu/wiki/index.php
 http://ii.tudelft.nl/AffectiveGaming/api.php
 http://ii.tudelft.nl/ecce2010_3D/api.php
 http://ii.tudelft.nl/ecce2010_mentalhealth/api.php
@@ -1415,7 +1389,6 @@ http://innersea.sulkesligaen.no/api.php
 http://innovation.teilam.gr/jva/mediawiki/api.php
 http://innovattion.ch/mediawiki/api.php
 http://insecta.idv.tw/wiki/api.php
-http://insecta.idv.tw/wiki/index.php
 http://insemtives-wiki.sti2.at/api.php
 http://inspire.eun.org/api.php
 http://instigate-training-center.am/index.php
@@ -1472,7 +1445,6 @@ http://it.gcd.ie/index.php
 http://it.memory-alpha.org/api.php
 http://it.noswiki.org/api.php
 http://itpedia.nyu.edu/mediawiki/api.php
-http://itpedia.nyu.edu/mediawiki/index.php
 http://itp.tu-graz.ac.at/mediawiki/api.php
 http://itp.tugraz.at/mediawiki/api.php
 http://itp.tugraz.at/wiki/api.php
@@ -1533,7 +1505,6 @@ http://jsug.at/w/api.php
 http://jsxgraph.uni-bayreuth.de/wiki/index.php
 http://judstyle.jp/jswiki/api.php
 http://jupiter.ba.cmu.ac.th/mediawiki/api.php
-http://jupiter.ba.cmu.ac.th/mediawiki/index.php
 http://jurawiki.dk/wiki/api.php
 http://jurispedia.wiki.ub.rug.nl/api.php
 http://justdone.co.za/saffer/api.php
@@ -1622,12 +1593,10 @@ http://lab.gsi.dit.upm.es/semanticwiki/index.php
 http://labitat.dk/w/api.php
 http://labraj.uni-mb.si/api.php
 http://labraj.uni-mb.si/en/api.php
-http://labraj.uni-mb.si/en/index.php
 http://labs21.lbl.gov/wiki/equipment/api.php
 http://labs.isee.biz/index.php
 http://labs.ndhu.edu.tw/api.php
 http://labs.physics.berkeley.edu/mediawiki/api.php
-http://labs.physics.berkeley.edu/mediawiki/index.php
 http://lacquer.fi/conduitwiki/index.php
 http://lacquer.fi/radiwiki/index.php
 http://l-a.fi/api.php
@@ -1671,7 +1640,6 @@ http://legion.pucp.edu.pe/wiki/api.php
 http://leksikon.speidermuseet.no/w/api.php
 http://lem.pl/wiki/index.php
 http://leniwiki.epfl.ch/api.php
-http://leniwiki.epfl.ch/index.php
 http://lens-ese.cos.ufrj.br/wikiese/index.php
 http://leopedia.ec-lille.fr/wiki/api.php
 http://letsplej.pl/w/api.php
@@ -1694,7 +1662,6 @@ http://licealisci.icm.edu.pl/mediawiki/index.php
 http://lichenchecklists.lias.net/metawiki/api.php
 http://lietuvai.lt/w/api.php
 http://lifesci.tau.ac.il/wiki/it/api.php
-http://lifesci.tau.ac.il/wiki/it/index.php
 http://lihuen.info.unlp.edu.ar/api.php
 http://lihuen.linti.unlp.edu.ar/api.php
 http://lilab.isys.ucl.ac.be/WikiDeb/api.php
@@ -1785,7 +1752,6 @@ http://manna.tau.ac.il/index.php
 http://manual.audacityteam.org/m/api.php
 http://manualgrpfor.sefin.fortaleza.ce.gov.br/mediawiki/index.php
 http://manual.recoup.educ.cam.ac.uk/wiki/api.php
-http://manual.recoup.educ.cam.ac.uk/wiki/index.php
 http://maplestory.neoseeker.com/w/api.php
 http://maplibrary5.ly.usm.maine.edu/wiki/api.php
 http://mapping.referata.com/w/api.php
@@ -1807,7 +1773,6 @@ http://mathieu.carbou.free.fr/wiki/index.php
 http://mathjuniorwiki.dbs.edu.hk/api.php
 http://math.nyu.edu/student_resources/wwiki/api.php
 http://matrix.zhr.pl/wiki/api.php
-http://matrix.zhr.pl/wiki/index.php
 http://maverick.inria.fr/Membres/Xavier.Decoret/resources/qt/eclipse/wiki/index.php
 http://maxthon-fr.com/wiki/api.php
 http://mayaweb.upr.clu.edu/micro2/index.php
@@ -1850,7 +1815,6 @@ http://megatron.iiia.csic.es/mediawiki/index.php
 http://mehmet.oktener.nl/mediawiki/index.php
 http://members.wikimedia.ch/api.php
 http://memoria.ul.pt/api.php
-http://memoria.ul.pt/index.php
 http://memory.psych.upenn.edu/mediawiki/api.php
 http://mendelonline.be/wiki/api.php
 http://mereviki.vta.ee/mediawiki/index.php
@@ -1891,7 +1855,6 @@ http://minecraftwiki.es/w/api.php
 http://mineserver.be/wiki/index.php
 http://minipaulus.arc.uniroma1.it/index.php
 http://minsky.gsi.dit.upm.es/semanticwiki/api.php
-http://minsky.gsi.dit.upm.es/semanticwiki/index.php
 http://mintoc.de/api.php
 http://mipal.snu.ac.kr/api.php
 http://mipav.cit.nih.gov/pubwiki/index.php
@@ -1937,7 +1900,6 @@ http://motorwayservicesonline.co.uk/wiki/api.php
 http://mott.edu.ee/mottwiki/index.php
 http://movahistory.org.ua/index.php
 http://moving-pictures.tv/w/api.php
-http://moving-pictures.tv/w/index.php
 http://movis.nr.no/movis/index.php
 http://mozilla-mexico.org/w/api.php
 http://mozilla.org.il/wiki/api.php
@@ -2024,7 +1986,6 @@ http://nmr2.buffalo.edu/enter/NMRWiki/index.php
 http://nmrwiki.org/wiki/index.php
 http://nms.fjfi.cvut.cz/wiki/api.php
 http://nnov.ec/api.php
-http://nnov.ec/index.php
 http://noel.feld.cvut.cz/vyu/a2b31hpm/api.php
 http://noel.feld.cvut.cz/vyu/a2m99mam/index.php
 http://nolife-wiki.fr/api.php
@@ -2191,12 +2152,10 @@ http://physics.lbl.gov/NuclearEnergy/index.php
 http://physics.lbl.gov/wiki/index.php
 http://physics.mines.edu/mediawiki/api.php
 http://physicspmb.ukzn.ac.za/api.php
-http://physicspmb.ukzn.ac.za/index.php
 http://physlab.lums.edu.pk/index.php
 http://physlib.by/api.php
 http://physwiki.apps01.yorku.ca/index.php
 http://phyweb.lbl.gov/atlaswiki/api.php
-http://phyweb.lbl.gov/atlaswiki/index.php
 http://picframe.spritesserver.nl/wiki/api.php
 http://pihackwiki.saao.ac.za/index.php
 http://pim.famnit.upr.si/wiki/api.php
@@ -2205,7 +2164,6 @@ http://pio2pio.vot.pl/wiki2/api.php
 http://pipeline.lco.cl/site/mediawiki/index.php
 http://pipelines.sanbi.ac.za/api.php
 http://pirateparty.org.nz/w/api.php
-http://pirateparty.org.nz/w/index.php
 http://pixar.wikia.com/api.php
 http://pk.idi.ntnu.no/api.php
 http://pkp.sfu.ca/wiki/api.php
@@ -2218,7 +2176,6 @@ http://plg.lrn.ru/wiki/index.php
 http://plinnovation.se/index.php
 http://pmarques.dei.uc.pt/api.php
 http://pmis.biz/mediawiki/api.php
-http://pmis.biz/mediawiki/index.php
 http://pmt.sakura.ne.jp/wiki/index.php
 http://poisson.phc.unipi.it/wiki/api.php
 http://pokelife.pl/pokedex/api.php
@@ -2270,7 +2227,6 @@ http://psweb.mp.qub.ac.uk/pesstowiki_old/api.php
 http://ptasieogrody.pl/w/api.php
 http://pt.organicdesign.co.nz/wiki/api.php
 http://pt.protopia.at/api.php
-http://pt.protopia.at/index.php
 http://pt.wikipedia.org/w/api.php
 http://public.kitware.com/Wiki/index.php
 http://public-software.in/PSwiki/index.php
@@ -2330,7 +2286,6 @@ http://rerc.skku.ac.kr/rerc/index.php
 http://rerdm.hyperbody.nl/api.php
 http://research.digitalarts.wits.ac.za/index.php
 http://research.m1stereo.tv/wiki/api.php
-http://research.m1stereo.tv/wiki/index.php
 http://research.ng-london.org.uk/wiki/api.php
 http://resipsa.eu/digitedit/api.php
 http://restauth.net/api.php
@@ -2418,7 +2373,6 @@ http://saber.sapo.pt/w/index.php
 https://ackspace.nl/w/index.php
 https://acm.umn.edu/wiki/index.php
 http://saemc.cmm.uchile.cl/wiki/api.php
-http://saemc.cmm.uchile.cl/wiki/index.php
 http://safeland.iiasa.ac.at/index.php
 http://sah.hr/sahopedia/api.php
 http://sakaiwiki.cet.uct.ac.za/index.php
@@ -2426,7 +2380,6 @@ http://saleve.iit.bme.hu/w/api.php
 https://alfinnur.hi.is/api.php
 https://alpha.fp7-ofelia.eu/doc/index.php
 https://alps.ethz.ch/mediawiki/api.php
-https://alps.ethz.ch/mediawiki/index.php
 http://salva.sbsnet.es/wiki/api.php
 http://saman.co.uk/esw/index.php
 http://samaraoffline.ru/api.php
@@ -2480,9 +2433,7 @@ http://scyphozoan.ucmerced.edu/w/api.php
 https://defensemetawiki.cape.osd.mil/Training/index.php
 https://defensemetawiki.pae.osd.mil/Training/index.php
 https://demo-itec.uni-klu.ac.at/api.php
-https://demo-itec.uni-klu.ac.at/index.php
 https://developer.valvesoftware.com/w/api.php
-https://developer.valvesoftware.com/w/index.php
 https://dev.hacker.lu/w/api.php
 https://dirac.ruc.dk/wiki/api.php
 https://dpdak.desy.de/index.php
@@ -2509,7 +2460,6 @@ http://seismology.astron.s.u-tokyo.ac.jp/Fujihara_seminar2012/index.php
 http://selab.iyte.edu.tr/wiki/index.php
 http://selavo.lv/wiki/index.php
 https://elearning.ufp.pt/wiki/api.php
-https://elearning.ufp.pt/wiki/index.php
 https://elearn.jku.at/wiki/index.php
 http://semaforek.kolej.org.pl/wiki/api.php
 http://semantic-mediawiki.org/w/api.php
@@ -2520,7 +2470,6 @@ http://semanticweb.org/api.php
 http://semantiki.fr/api.php
 https://encrypteverything.ca/api.php
 https://encyclopediadramatica.es/api.php
-https://encyclopediadramatica.es/index.php
 https://engineering.purdue.edu/elab/wiki/api.php
 https://ensiwiki.ensimag.fr/index.php
 http://sensor.seas.upenn.edu/api.php
@@ -2557,14 +2506,12 @@ https://fusionforge.zih.tu-dresden.de/plugins/mediawiki/wiki/amdis/index.php
 http://sgd.cs.colorado.edu/wiki/api.php
 https://gecad.isep.ipp.pt:7070/wiki/index.php
 https://geo-ide.noaa.gov/wiki/api.php
-https://geo-ide.noaa.gov/wiki/index.php
 https://gforge.enseeiht.fr/plugins/mediawiki/wiki/topcased-exmpls/index.php
 https://gforge.inria.fr/plugins/mediawiki/api.php
 https://gforge.inria.fr/plugins/mediawiki/wiki/ceps/index.php
 https://gforge.inria.fr/plugins/mediawiki/wiki/contiki-senslab/index.php
 https://gforge.inria.fr/plugins/mediawiki/wiki/fti/index.php
 https://gforge.inria.fr/plugins/mediawiki/wiki/logolexec/api.php
-https://gforge.inria.fr/plugins/mediawiki/wiki/logolexec/index.php
 https://gforge.inria.fr/plugins/mediawiki/wiki/manband/index.php
 https://gforge.inria.fr/plugins/mediawiki/wiki/melinda/index.php
 https://gforge.inria.fr/plugins/mediawiki/wiki/pequi/index.php
@@ -2586,7 +2533,6 @@ http://shg.phys.msu.ru/wiki/api.php
 http://shinkirou.koumakan.jp/w/api.php
 http://shiraz.dyndns.biz/mediawiki/index.php
 http://shiulab.plantbiology.msu.edu/wiki/api.php
-http://shiulab.plantbiology.msu.edu/wiki/index.php
 http://shmmy.ntua.gr/wiki/api.php
 http://shmups.co.uk/index.php
 https://hpcforge.org/plugins/mediawiki/wiki/pracewp8/index.php
@@ -2628,7 +2574,6 @@ https://ip-viope.metropolia.fi/wiki/api.php
 https://isem.math.kit.edu/index.php
 https://issa.org.pl/wiki/index.php
 http://sites.uclouvain.be/sgsi-mail/wiki/api.php
-http://sites.uclouvain.be/sgsi-mail/wiki/index.php
 http://sitola.cz/hci/api.php
 http://sitola.fi.muni.cz/igrid/api.php
 https://it.uib.no/api.php
@@ -2661,7 +2606,6 @@ http://sliderule.mraiow.com/w/index.php
 https://linux-sup.cs.technion.ac.il/wiki/index.php
 https://lis.dyndns.biz:5443/w/index.php
 http://slugmath.ucsc.edu/mediawiki/api.php
-http://slugmath.ucsc.edu/mediawiki/index.php
 http://sl.wiki.fs.uni-lj.si/api.php
 http://smackdown.neoseeker.com/w/api.php
 http://smallbusiness.com/w/api.php
@@ -3012,7 +2956,6 @@ http://spivey.oriel.ox.ac.uk/wiki/api.php
 http://splight.idi.ntnu.no/index.php
 http://spongebob.neoseeker.com/w/api.php
 https://projectwiki.sis.uta.fi/w/api.php
-https://projectwiki.sis.uta.fi/w/index.php
 http://sps.nus.edu.sg/w/api.php
 https://pyrocleaner.mulcyber.toulouse.inra.fr/plugins/mediawiki/wiki/pyrocleaner/index.php
 https://qa.l2f.inesc-id.pt/wiki/index.php
@@ -3041,7 +2984,6 @@ http://ssl.yeshiva.org.il/wiki/api.php
 http://ssmj.oxon.sch.uk/wiki/api.php
 https://snicdocs.nsc.liu.se/w/index.php
 https://supercomp.cuni.cz/wiki/api.php
-https://supercomp.cuni.cz/wiki/index.php
 https://support.bluetechnix.at/mediawiki/index.php
 https://support.planningportal.gov.uk/wiki/index.php
 https://support.rc.nectar.org.au/mediawiki/index.php
@@ -3083,7 +3025,6 @@ http://strucbio.biologie.uni-konstanz.de/xdswiki/api.php
 http://sts.thss.tsinghua.edu.cn/api.php
 http://student.opengate.cz/ogwiki/api.php
 http://studento.vikis.lt/wiki/api.php
-http://studento.vikis.lt/wiki/index.php
 http://students.ee.sun.ac.za/wiki/api.php
 http://students.info.uaic.ro/~teodor.bodnarescu/tw/api.php
 http://studentwikin.se/api.php
@@ -3109,12 +3050,10 @@ http://support.nuuo.com/mediawiki/api.php
 http://support.ornth.sk/api.php
 http://support.scinet.utoronto.ca/wiki/api.php
 http://support.scoilnet.ie/w/api.php
-http://support.scoilnet.ie/w/index.php
 http://support.sd28.bc.ca/wiki//api.php
 http://support.suso.com/w/api.php
 http://support.tixati.com/api.php
 http://support.uakron.edu/wiki/api.php
-http://support.uakron.edu/wiki/index.php
 http://support.zcu.cz/index.php
 http://supremacy.square7.ch/wiki/api.php
 http://surf.ist.psu.edu/wiki/index.php
@@ -3200,7 +3139,6 @@ https://workinggroups.wiki.dlorg.eu/index.php
 https://ws-dl.cs.odu.edu/wiki/api.php
 https://www0.sun.ac.za/hpc/index.php
 https://www.1prukopnicka.cz/wiki/api.php
-https://www.1prukopnicka.cz/wiki/index.php
 https://www.ag.bka.gv.at/at.gv.bka.wiki-bka/api.php
 https://www.agentgroup.unimore.it/wiki/index.php
 https://www.ami-communities.eu/w/index.php
@@ -3226,14 +3164,12 @@ https://www.lama.univ-savoie.fr/mediawiki/index.php
 https://www.maxplanck.it/wiki/index.php
 https://www.mgkk.hu/wiki/index.php
 https://www.ngdc.noaa.gov/wiki/api.php
-https://www.ngdc.noaa.gov/wiki/index.php
 https://www.pathosting.co.th/knowledgebase/index.php
 https://www.pvv.ntnu.no/w/index.php
 https://www.sbg.ac.at/alien/api.php
 https://www.securenet.cz/wiki/index.php
 https://www.semantic-apps.com/mediawiki.en/index.php
 https://www.sit.auckland.ac.nz/wiki/api.php
-https://www.sit.auckland.ac.nz/wiki/index.php
 https://www.slicer.org/slicerWiki/index.php
 https://www.stanford.edu/dept/its/communications/webservices/wiki/index.php
 https://www.stanford.edu/group/bmr/cgi-bin/mediawiki/index.php
@@ -3258,9 +3194,7 @@ http://systemdesign.ch/api.php
 http://systems.cs.colorado.edu/w/index.php
 http://systems.wiki.cs.st-andrews.ac.uk/api.php
 https://zenit.senecac.on.ca/wiki/api.php
-https://zenit.senecac.on.ca/wiki/index.php
 http://tabitha.phas.ubc.ca/wiki/api.php
-http://tabitha.phas.ubc.ca/wiki/index.php
 http://tactics.ieis.tue.nl/wiki/index.php
 http://taikofinder.asdf.hk/index.php
 http://taisen.co/encyclopedia/api.php
@@ -3403,7 +3337,6 @@ http://ulita.leeds.ac.uk/wiki/mediawiki-1.10.1/index.php
 http://ultima-alianza.com/wiki/index.php
 http://umes.mb.ca/wiki/api.php
 http://umit.cs.umu.se/w/api.php
-http://umit.cs.umu.se/w/index.php
 http://uncyclopedia.hk/api.php
 http://uncyclopedia.kr/w/api.php
 http://uncyclopedia.tw/api.php
@@ -3461,7 +3394,6 @@ http://vip.gatech.edu/wiki/api.php
 http://virca.hu/vircapedia/current/api.php
 http://virtualcampuses.eu/api.php
 http://virtuallab.kar.elf.stuba.sk/robowiki/api.php
-http://virtuallab.kar.elf.stuba.sk/robowiki/index.php
 http://virtuallab.kar.fei.stuba.sk/robowiki/index.php
 http://vis1.calit2.net/mediawiki/api.php
 http://viteboka.studentersamfundet.no/w/api.php
@@ -3503,7 +3435,6 @@ http://waze.jp/wiki/index.php
 http://weather2.ap.polyu.edu.hk/cowinwiki/api.php
 http://web2.uwindsor.ca/clew/index.php
 http://webapps.fundp.ac.be/umdb/wiki-bioscope/api.php
-http://webapps.fundp.ac.be/umdb/wiki-bioscope/index.php
 http://web.chem.ucsb.edu/~plaxcogroup/wiki/index.php
 http://webcoach.webcoach.at/w16/webcoach/index.php
 http://webcomputing.iit.bme.hu/wiki/api.php
@@ -3649,7 +3580,6 @@ http://wiki.bio.dtu.dk/documentation/index.php
 http://wiki.bio.dtu.dk/teaching/index.php
 http://wiki.bioinformatics.northwestern.edu/wiki/api.php
 http://wiki.biomine.skelleftea.se/wiki/api.php
-http://wiki.biomine.skelleftea.se/wiki/index.php
 http://wiki.bireme.org/es/api.php
 http://wiki.bitlair.nl/api.php
 http://wiki.bits.vib.be/api.php
@@ -3657,7 +3587,6 @@ http://wiki.bk.tudelft.nl/mw_toi-pedia/api.php
 http://wiki.bluelight.org/api.php
 http://wikiboria.sd.org.ua/api.php
 http://wiki.bosslinux.in/wiki/api.php
-http://wiki.bosslinux.in/wiki/index.php
 http://wiki.boulder.swri.edu/mediawiki/index.php
 http://wiki.bowler.io/api.php
 http://wiki.britishspiders.org.uk/index.php
@@ -3668,7 +3597,6 @@ http://wiki.bvlg.be/index.php
 http://wiki.c2b2.columbia.edu/califanolab/index.php
 http://wiki.c2b2.columbia.edu/honiglab_public/index.php
 http://wiki.c2b2.columbia.edu/informatics/api.php
-http://wiki.c2b2.columbia.edu/informatics/index.php
 http://wiki.cabal.mx/api.php
 http://wikicab.mameitalia.net/api.php
 http://wiki.cab.unipd.it/wiki-dlp/api.php
@@ -3730,7 +3658,6 @@ http://wiki.cre.jp/api.php
 http://wiki.cre.jp/SRW/api.php
 http://wiki.cresis.ku.edu/cresis-wiki/api.php
 http://wiki.cricyt.edu.ar/api.php
-http://wiki.cricyt.edu.ar/index.php
 http://wiki.crin.org/mediawiki/index.php
 http://wiki.crisiscommons.eu/w/api.php
 http://wiki.crossmedianetwork.de/index.php
@@ -3776,7 +3703,6 @@ http://wiki.diebin.at/api.php
 http://wiki.digidone3d.com/api.php
 http://wiki.digiterra.hu/en/api.php
 http://wiki.digit.fi/wiki/api.php
-http://wiki.digit.fi/wiki/index.php
 http://wiki.dis-danmark.dk/index.php
 http://wiki.diskusjon.no/api.php
 http://wiki.diyfaq.org.uk/api.php
@@ -4205,7 +4131,6 @@ http://wiki.ntch.edu.tw/api.php
 http://wiki.nutex.jp/index.php
 http://wiki.nyasama.com/api.php
 http://wiki-oar.imag.fr/api.php
-http://wiki-oar.imag.fr/index.php
 http://wiki.objectvision.nl/index.php
 http://wiki.obsnev.es/api.php
 http://wiki.occupyboston.org/api.php
@@ -4387,7 +4312,6 @@ http://wiki.salzburger-piratenpartei.at/api.php
 http://wiki.samba.gr.jp/mediawiki/index.php
 http://wiki.sams-server.de/w/index.php
 http://wiki.samygo.tv/api.php
-http://wiki.samygo.tv/index.php
 http://wiki.sapienti.ae/index.php
 http://wiki.sapo.pt/w/index.php
 http://wiki.scarlet.nl/api.php
@@ -4404,7 +4328,6 @@ http://wiki.scinethpc.ca/wiki/api.php
 http://wiki.scinet.utoronto.ca/wiki/api.php
 http://wiki.scouts.ca/English/api.php
 http://wiki.scramble.nl/api.php
-http://wiki.scramble.nl/index.php
 http://wiki.scratch.mit.edu/w/api.php
 http://wiki.scribus.net/wiki/api.php
 http://wiki.seafoodinnovations.co.nz/mediawiki/api.php
@@ -4645,7 +4568,6 @@ http://wiki.usni.org/api.php
 http://wiki.uva.nl/kb-oa/index.php
 http://wiki.vagasestacio.com.br/api.php
 http://wiki.valimar.ir/api.php
-http://wiki.valimar.ir/index.php
 http://wiki.varhoo.cz/index.php
 http://wikivarium.nl/api.php
 http://wiki.vcmi.eu/api.php
@@ -4751,7 +4673,6 @@ http://wwdeb.crdp.ac-caen.fr/LcsDoc/api.php
 http://wwi.lib.byu.edu/api.php
 http://www.0x20.be/smw/api.php
 http://www.1cb.kz/wiki/api.php
-http://www.1cb.kz/wiki/index.php
 http://www1.ee.nthu.edu.tw/jennyliu/wiki/api.php
 http://www1.imtech.res.in/drugpedia/index.php
 http://www.1point3acres.com/wiki/index.php
@@ -4850,7 +4771,6 @@ http://www.arndaleboard.org/wiki/api.php
 http://www.arthapedia.in/api.php
 http://www.artistconnection.co.za/wiki/index.php
 http://www.artofproblemsolving.com/Wiki/api.php
-http://www.artofproblemsolving.com/Wiki/index.php
 http://www.as30950.net/api.php
 http://www.asc.tuwien.ac.at/~schoeberl/wiki/index.php
 http://www.asexuality.org/wiki/api.php
@@ -4865,7 +4785,6 @@ http://www.astronet.se/wiki/api.php
 http://www.astronomia.gr/wiki/api.php
 http://www.astrophysics.su/api.php
 http://www.astro.princeton.edu/wiki/api.php
-http://www.astro.princeton.edu/wiki/index.php
 http://www.astro.uni-wuerzburg.de/wikineu/api.php
 http://www.astro.up.pt/w/index.php
 http://www.astrouw.edu.pl/w/api.php
@@ -4876,7 +4795,6 @@ http://www.atlantis-ro.com/wiki/api.php
 http://www.atomicheritage.org/mediawiki/api.php
 http://www.atsep.eu/api.php
 http://www.auby.no/wiki/api.php
-http://www.auby.no/wiki/index.php
 http://www.audi-belarus.by/wiki/api.php
 http://www.aussagenlogik.de/index.php
 http://www.autismpedia.org/wiki/api.php
@@ -4908,7 +4826,6 @@ http://www.beeldengeluidwiki.nl/api.php
 http://www.bembook.ibpsa.us/api.php
 http://www.bencastricum.nl/wiki/api.php
 http://www.bendigo-orienteers.com.au/mediawiki/api.php
-http://www.bendigo-orienteers.com.au/mediawiki/index.php
 http://www.benning.milnet.ca/wiki/api.php
 http://www.beo-doc.de/opentm2wiki/index.php
 http://www.berzsenyi.hu/mediawiki/index.php
@@ -4972,10 +4889,8 @@ http://www.calao-systems.com/mediawiki/api.php
 http://www.canadianriversafety.ca/w/api.php
 http://www.cantigneaux.be/OutWiki/api.php
 http://www.cap.by/w/api.php
-http://www.cap.by/w/index.php
 http://www.cascadilla.com/wiki/api.php
 http://www.castlegobs.nl/wiki/api.php
-http://www.castlegobs.nl/wiki/index.php
 http://www.catholicpedia.bg/index.php
 http://www.catholicwiki.us/wiki/api.php
 http://www.cazypedia.org/api.php
@@ -4983,7 +4898,6 @@ http://www.cbradio.ee/wiki/index.php
 http://www.cccp-project.net/wiki/api.php
 http://www.ccczh.ch/w/api.php
 http://www.ccmst.gatech.edu/wiki/api.php
-http://www.ccmst.gatech.edu/wiki/index.php
 http://www.cctbio.ece.umn.edu/wiki/api.php
 http://www.cdavis.us/wiki/api.php
 http://www.cds.caltech.edu/~doyle/wiki/api.php
@@ -4991,12 +4905,10 @@ http://www.cds.caltech.edu/~macmardg/wiki/api.php
 http://www.cds.caltech.edu/~murray/amwiki/api.php
 http://www.celebatheists.com/edit/index.php
 http://www.celica-club.co.uk/wiki/api.php
-http://www.celica-club.co.uk/wiki/index.php
 http://www.cg.tuwien.ac.at/events/EG06/volunteers/api.php
 http://www.chaoseed.com/wiki/api.php
 http://www.chaostreff.ch/wiki//api.php
 http://www.chessvideos.tv/wiki/api.php
-http://www.chessvideos.tv/wiki/index.php
 http://www.chibi.ubc.ca/faculty/hansen/wiki/api.php
 http://www.chilebosque.cl/wiki/api.php
 http://www.chill.colostate.edu/wiki/api.php
@@ -5096,7 +5008,6 @@ http://www.dailyweekee.com/w/api.php
 http://www.dalescott.net/mediawiki/api.php
 http://www.damn.dk/api.php
 http://www.dardpi.ca/wiki/api.php
-http://www.dardpi.ca/wiki/index.php
 http://www.darkforge.eu/wiki/api.php
 http://www.darksouls2wiki.org/api.php
 http://www.darwinproject.mit.edu/wiki/api.php
@@ -5123,7 +5034,6 @@ http://www.df.lth.se/api.php
 http://www.dfwk.ru/api.php
 http://www.dharmakaya.ru/mediawiki/index.php
 http://www.dhhu.dk/wiki/api.php
-http://www.dhhu.dk/wiki/index.php
 http://www.dhpforum.nl/wiki/api.php
 http://www.diablowiki.net/api.php
 http://www.diatessaron.ir/w/index.php
@@ -5186,7 +5096,6 @@ http://www.egodiplomat.de/index.php
 http://www.ehu.es/ccwintco/api.php
 http://www.ehu.es/hirigintza/api.php
 http://www.eistec.se/docs/wiki/api.php
-http://www.eistec.se/docs/wiki/index.php
 http://www.eleceng.adelaide.edu.au/groups/thz/wiki/api.php
 http://www.eleceng.adelaide.edu.au/personal/dabbott/wiki/api.php
 http://www.elektromotus.lt/wiki/api.php
@@ -5195,11 +5104,9 @@ http://www.eltabacoapesta.com/wiki/api.php
 http://www.emelia.fi/wiki/api.php
 http://www.emgu.com/wiki/api.php
 http://www.emn.fr/z-info/atlanmod/api.php
-http://www.emn.fr/z-info/atlanmod/index.php
 http://www.emn.fr/z-info/idmpp/index.php
 http://www.emn.fr/z-subatech/skin/index.php
 http://www.empaatia.ee/empaatia/api.php
-http://www.empaatia.ee/empaatia/index.php
 http://www.enciclopediaguatemala.org.gt/api.php
 http://www.enci.ru/w/index.php
 http://www.encrypteverything.ca/api.php
@@ -5272,7 +5179,6 @@ http://www.foodbill.org.nz/api.php
 http://www.fordwiki.co.uk/index.php
 http://www.formahetice.ulg.ac.be/wiki/api.php
 http://www.formavia.fr/wiki/api.php
-http://www.formavia.fr/wiki/index.php
 http://www.forwiki.ro/index.php
 http://www.fotodok.ch/api.php
 http://www.fountainpen.it/api.php
@@ -5287,7 +5193,6 @@ http://www.ftf10.com/wiki/api.php
 http://www.fuerthwiki.de/wiki/api.php
 http://www.functor.be/wiki/index.php
 http://www.fungalgenomics.ca/mediawiki/api.php
-http://www.fungalgenomics.ca/mediawiki/index.php
 http://www-fusion.ciemat.es/fusionwiki/api.php
 http://www.futureofmankind.co.uk/w/api.php
 http://www.futureworlds.eu/w/index.php
@@ -5348,7 +5253,6 @@ http://www.grazitumano.lt/w/index.php
 http://www.grazwiki.at/api.php
 http://www.greennetfinland.fi/en/index.php
 http://www.grengscouten.lu/api.php
-http://www.grengscouten.lu/index.php
 http://www.grid5000.fr/mediawiki/api.php
 http://www.grid.am/api.php
 http://www.groupux.ir/wiki/api.php
@@ -5368,7 +5272,6 @@ http://www.hackslashmine.net/hsmwiki/api.php
 http://www.hackspace.org.uk/w/api.php
 http://www.hafenwiki.ch/api.php
 http://www.halfface.se/wiki/api.php
-http://www.halfface.se/wiki/index.php
 http://www.halmstadlivinglab.se/sociall/index.php
 http://www.hamewiki.fi/api.php
 http://www.hamspirit.nl/mediawiki/api.php
@@ -5432,7 +5335,6 @@ http://www.ikuantao.liho.tw/wiki/index.php
 http://www.ilmondodeidoppiatori.it/api.php
 http://www.imaginet.co.za/kb/api.php
 http://www.imagwiki.nibib.nih.gov/mediawiki/api.php
-http://www.imagwiki.nibib.nih.gov/mediawiki/index.php
 http://www.imareal.oeaw.ac.at/animalwiki2/index.php
 http://www.imareal.sbg.ac.at/animalwiki2/index.php
 http://www.imfdb.org/api.php
@@ -5481,7 +5383,6 @@ http://www.itrs.tw/mediawiki/api.php
 http://www.itshare.org.au/api.php
 http://www.itu.dk/research/models/wiki/api.php
 http://www.itu.dk/research/pls/wiki/api.php
-http://www.itu.dk/research/pls/wiki/index.php
 http://www.itu.dk/sysadm/itoogle/wiki/index.php
 http://www.iurispedia.ro/api.php
 http://www.ivaraasen.no/wiki/index.php
@@ -5513,7 +5414,6 @@ http://www.kabeliit.ee/api.php
 http://www.kaisiadoriumuziejus.lt/enciklopedija/api.php
 http://www.katopedia.cz/index.php
 http://www.kcli.ch/w/api.php
-http://www.kcli.ch/w/index.php
 http://www.keili-online.de/index.php
 http://www.kennel17.co.uk/testwiki/index.php
 http://www.keytonature.eu/w/api.php
@@ -5521,7 +5421,6 @@ http://www.khugnews.co.kr/w/index.php
 http://www.killrob.de/api.php
 http://www.king-na.com/wiki/api.php
 http://www.kippenencyclopedie.nl/php/api.php
-http://www.kippenencyclopedie.nl/php/index.php
 http://www.kittycats.biz/manual/index.php
 http://www.kiwibiker.co.nz/w/api.php
 http://www.kiwix.org/w/api.php
@@ -5554,7 +5453,6 @@ http://www.l2f.inesc-id.pt/~david/wiki/pt/index.php
 http://www.lab.ac.cn/wiki/api.php
 http://www.labdegaragem.com.br/wiki/index.php
 http://www.lacerta.be/w/api.php
-http://www.lacerta.be/w/index.php
 http://www.lacl.fr/~matran/wiki/index.php
 http://www.lacompta.ch/MITIC/Wikiadbd/index.php
 http://www.lacompta.ch/MITIC/Wikiadbp/index.php
@@ -5667,9 +5565,7 @@ http://www.mentalhealthlaw.co.uk/api.php
 http://www.meteo.uv.cl/lma/index.php
 http://www.mfs.org.au/members/index.php
 http://www.mfs.org.au/wiki/api.php
-http://www.mfs.org.au/wiki/index.php
 http://www.microlighters.co.za/wiki/api.php
-http://www.microlighters.co.za/wiki/index.php
 http://www.micronations.eu/wiki/api.php
 http://www.midwestspirit.com.au/w/api.php
 http://www.miggiano.ch/mediawiki/index.php
@@ -5690,7 +5586,6 @@ http://www.moreslowly.jp/mw/index.php
 http://www.morrissey-solo.com/w/api.php
 http://www.most-wiki.at/index.php
 http://www.motorsportworld.tv/wiki/api.php
-http://www.motorsportworld.tv/wiki/index.php
 http://www.mrqwiki.com/wiki/api.php
 http://www.mrsozluk.gen.tr/MRWiki/index.php
 http://www.msppedia.org.uk/index.php
@@ -5872,7 +5767,6 @@ http://www.quantum-physics.polytechnique.fr/physix/wiki/api.php
 http://www.quantumwiki.co.uk/index.php
 http://www.qub.buffalo.edu/wiki/api.php
 http://www.queenstown.net.nz/api.php
-http://www.queenstown.net.nz/index.php
 http://www.quisqueyavirtual.edu.do/api.php
 http://www.radio-kol.net/wiki/api.php
 http://www.radiologia.hu/radiwiki/index.php
@@ -5963,7 +5857,6 @@ http://www.scubapedia.ca/api.php
 http://www.scuola3d.eu/wiki/index.php
 http://www.sd73.bc.ca/esis-wiki/index.php
 http://www.seafarerstrust.org.nz/wiki/api.php
-http://www.seafarerstrust.org.nz/wiki/index.php
 http://www.sea.org.ar/index.php
 http://www.secure-computing.net/wiki/api.php
 http://www.securenet.cz/wiki/index.php
@@ -6005,7 +5898,6 @@ http://www.skynet.ie/~zilog/w/index.php
 http://www.skywatch24.com/wiki/en/api.php
 http://www.slacky.eu/wikislack/api.php
 http://www.slovensk.su/wiki/api.php
-http://www.slovensk.su/wiki/index.php
 http://www.smooks.org/mediawiki/index.php
 http://wwwsnmp.cs.utwente.nl/w/api.php
 http://www.snpedia.com/api.php
@@ -6054,7 +5946,6 @@ http://www.stellarnet.eu/d/6/3/api.php
 http://www.stephane-brunner.ch/mediawiki/index.php
 http://www.stevebrookes.id.au/mediawiki/index.php
 http://www.stevens.edu/itwiki/w/api.php
-http://www.stevens.edu/itwiki/w/index.php
 http://www.stichtingvertellen.nl/mediawiki/api.php
 http://www.stilogames.com.py/wiki/api.php
 http://www.stix.id.au/wiki/api.php
@@ -6152,7 +6043,6 @@ http://www.turistautak.hu/wiki/index.php
 http://www.twcenter.net/w/index.php
 http://www.tw-h.de/wiki/api.php
 http://www.twofo.co.uk/wiki/api.php
-http://www.twofo.co.uk/wiki/index.php
 http://www.tyrc.ncu.edu.tw/index.php
 http://www.tzm.gr/wiki/index.php
 http://www.ub.uit.no/wiki/noap/api.php
@@ -6191,7 +6081,6 @@ http://www-utheal.phys.s.u-tokyo.ac.jp/~yuasa/wiki/api.php
 http://www.uvm.edu/~conserve/wiki/index.php
 http://www.uwars.com/wiki/api.php
 http://www.uz.zgora.pl/~amarcini/wiki/api.php
-http://www.uz.zgora.pl/~amarcini/wiki/index.php
 http://www.v0id.com.br/api.php
 http://www.vacs.fr/wiki/api.php
 http://www.valentinfrechaud.fr/GuiWiki/index.php
@@ -6208,7 +6097,6 @@ http://www.verwaltungskooperation.at/api.php
 http://www.vexrobotics.com/wiki/api.php
 http://www.vfr-heilbronn.de/wiki/index.php
 http://www.vicos.si/api.php
-http://www.vicos.si/index.php
 http://www.victorespina.com.ve/hs/es/index.php
 http://www.victorespina.com.ve/wiki/api.php
 http://www.vinopedia.hr/wiki/api.php
@@ -6338,7 +6226,6 @@ http://www.wingfield.gr.jp/cgi-bin/mediawiki/api.php
 http://www.winterfell.co.il/wiki/index.php
 http://www.wirmo-seura.fi/wiki/api.php
 http://www.wiz-life.eu/api.php
-http://www.wiz-life.eu/index.php
 http://www.wiz-life.eu/wiki/api.php
 http://www.wna.gr/wikiR/index.php
 http://www.wowroster.net/MediaWiki/api.php
@@ -6379,7 +6266,6 @@ http://www.zeilersforum.nl/mediawiki//api.php
 http://www.zelenite.bg/mediawiki/api.php
 http://www.zerovm.org/wiki/api.php
 http://www.zfn.at/wiki/api.php
-http://www.zfn.at/wiki/index.php
 http://www.zfs.fi/wiki/index.php
 http://www.zoneminder.com/wiki/api.php
 http://www.zwaves.dk/wiki/api.php
@@ -6401,11 +6287,9 @@ http://xn--cckacd9c8a6ing0g5b.biz/api.php
 http://xover.mud.at/~tramway/stvkr-a-wiki/api.php
 http://xplproject.org.uk/wiki/api.php
 http://x-ray.ucsd.edu/mediawiki/api.php
-http://x-ray.ucsd.edu/mediawiki/index.php
 http://xsmokyx.ddo.jp/smokewiki/api.php
 http://yam-hasefer.co.il/api.php
 http://yan.clot.free.fr/wiki/api.php
-http://yan.clot.free.fr/wiki/index.php
 http://yangtze.hku.hk/gwiki/index.php
 http://yarel.toreadorvampire.co.uk/api.php
 http://ycat.org.au/EWL_CIS/api.php
@@ -6424,7 +6308,6 @@ http://zeitgeist.fi/w/index.php
 http://zeldawiki.org/api.php
 http://zelenite.bg/mediawiki/api.php
 http://zenit.senecac.on.ca/wiki/api.php
-http://zenit.senecac.on.ca/wiki/index.php
 http://zephyr.ucd.ie/mediawiki/index.php
 http://zeppelin.elation.co/wiki/api.php
 http://zerlot.cse.nd.edu/mediawiki/index.php
