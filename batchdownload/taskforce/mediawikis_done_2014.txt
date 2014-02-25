@@ -418,7 +418,6 @@ http://compbio.korea.ac.kr/wiki/index.php
 http://compgenomics2010.biology.gatech.edu/wiki/index.php
 http://comphy.mju.ac.kr/mwiki/index.php
 http://compsoc.dur.ac.uk/mediawiki/api.php
-http://compsoc.dur.ac.uk/mediawiki/api.php
 http://compulab.co.il/workspace/mediawiki/index.php
 http://computemode.imag.fr/mediawiki/api.php
 http://concat.wiki.xs4all.nl/index.php
@@ -483,7 +482,6 @@ http://datamin.ubbcluj.ro/wiki/api.php
 http://davidmiscavige.wikiscientology.org/index.php
 http://davinci.asu.edu/api.php
 http://dazuko.dnsalias.org/wiki/index.php
-http://db.desertbiofuels.org/wikiroot/api.php
 http://db.desertbiofuels.org/wikiroot/api.php
 http://dbic.dartmouth.edu/wiki/api.php
 http://dbshelp.devio.at/api.php
@@ -1297,7 +1295,6 @@ http://john.bryntze.net/jbkb/index.php
 http://johngegnatoff.ca/wiki/index.php
 http://johnit.se/wiki/index.php
 http://john.kua.fm/classes/kdc/wiki/index.php
-http://john.kua.fm/classes/kdc/wiki/index.php
 http://jopsen.dk/wiki/api.php
 http://jpaliowikien.torn.com.pl/index.php
 http://jsmart.web.id/index.php
@@ -1654,7 +1651,6 @@ http://northantscamra.referata.com/w/api.php
 http://northshore.vacc.bc.ca/api.php
 http://nosi-training.aspirationtech.org/api.php
 http://notam02.no/projects/api.php
-http://notatwiki.dk/api.php
 http://notatwiki.dk/api.php
 http://novelwiki.intodust.org/api.php
 http://nrgl.techlib.cz/api.php
@@ -2380,7 +2376,6 @@ http://sourceforge.net/apps/mediawiki/ikvm/index.php
 http://sourceforge.net/apps/mediawiki/image2/index.php
 http://sourceforge.net/apps/mediawiki/in-folio/index.php
 http://sourceforge.net/apps/mediawiki/intelligid/index.php
-http://sourceforge.net/apps/mediawiki/intelligid/index.php
 http://sourceforge.net/apps/mediawiki/iscsitarget/index.php
 http://sourceforge.net/apps/mediawiki/italc/index.php
 http://sourceforge.net/apps/mediawiki/jasonrescue/index.php
@@ -2746,10 +2741,8 @@ https://www.mgkk.hu/wiki/index.php
 https://www.moonlightdesign.org/wiki/api.php
 https://www.mrt.uni-jena.de/simbio/index.php
 https://www.myroms.org/wiki/api.php
-https://www.myroms.org/wiki/api.php
 https://www.nacs.uci.edu/rcs/mediawiki-1.5.8/index.php
 https://www.nescent.org/wg/evoviz/api.php
-https://www.noname-ev.de/wiki/api.php
 https://www.noname-ev.de/wiki/api.php
 https://www.openbrainstem.net/w/api.php
 https://www.openproofs.org/index.php
@@ -2907,8 +2900,6 @@ http://vle-models.wur.nl/wiki/index.php
 http://voidwarranties.be/api.php
 http://vowi.fsinf.at/api.php
 http://v.pynchonwiki.com/wiki/api.php
-http://v.pynchonwiki.com/wiki/api.php
-http://vrt.ala.org/wiki/api.php
 http://vrt.ala.org/wiki/api.php
 http://vsfp.byu.edu/api.php
 http://vsociety.net/api.php
@@ -2993,8 +2984,6 @@ http://wiki.aligni.com/api.php
 http://wiki.alioth.net/api.php
 http://wiki.allegro.cc/api.php
 http://wiki.almasd.net/api.php
-http://wiki.almasd.net/api.php
-http://wiki.almasd.net/api.php
 http://wiki.alpha-command.com/api.php
 http://wiki.alpine-geckos.at/api.php
 http://wiki.alpinelinux.org/w/api.php
@@ -3053,7 +3042,6 @@ http://wiki.barcampboston.org//api.php
 http://wiki.barix.com/index.php
 http://wiki.basecampone.com/api.php
 http://wiki.basvrak.se/api.php
-http://wiki.bcrps.co.uk/index.php
 http://wiki.bcrps.co.uk/index.php
 http://wiki.bc-team.org/api.php
 http://wiki.bdtnrm.org.au/api.php
@@ -3200,7 +3188,6 @@ http://wiki.diskusjon.no/api.php
 http://wiki.disorient.info/api.php
 http://wiki.district87.org/index.php
 http://wiki.diyfaq.org.uk/api.php
-http://wiki.dkk.org.uk/api.php
 http://wiki.dkk.org.uk/api.php
 http://wiki.dmi.unict.it/mediawiki/index.php
 http://wiki.dnf.tw/api.php
@@ -3907,7 +3894,6 @@ http://wiki.shartak.com/api.php
 http://wiki.shinobilegends.com/api.php
 http://wiki.shop.by/api.php
 http://wiki.shopfitter.com/index.php
-http://wiki.shopfitter.com/index.php
 http://wiki.shoutirc.com/api.php
 http://wiki.siduction.de/api.php
 http://wiki.sietdobra.sk/api.php
@@ -4066,12 +4052,9 @@ http://wiki.transmission.cc/api.php
 http://wikitronica.labc.usb.ve/api.php
 http://wiki.trustafrica.org/api.php
 http://wiki.tsheets.com/w/api.php
-http://wiki.tsheets.com/w/api.php
 http://wiki.tsolife.org/mediawiki/api.php
 http://wiki.ttime.no/api.php
 http://wiki.tudos.org/ikiw/api.php
-http://wiki.tudos.org/ikiw/api.php
-http://wiki.tuxbox.org/wiki/api.php
 http://wiki.tuxbox.org/wiki/api.php
 http://wiki.tvbrowser.org/index.php
 http://wiki.tweakness.net/w/api.php
@@ -4737,7 +4720,6 @@ http://www.catholicwiki.us/wiki/api.php
 http://www.catsoutofthebag.org/ucwiki/api.php
 http://www.cazypedia.org/api.php
 http://www.cbabaseball.com/rules/api.php
-http://www.cbabaseball.com/rules/api.php
 http://www.cbwiki.net/wiki/api.php
 http://www.ccchb.de/w/api.php
 http://www.cccp-project.net/wiki/api.php
@@ -4765,7 +4747,6 @@ http://www.chickennoodlehammer.com/wiki/index.php
 http://www.chinatravelguide.com/ctgmediawiki/index.php
 http://www.chinatravelguide.org/ctgmediawiki/index.php
 http://www.chips-tv.com/wiki/api.php
-http://www.chironweb.org/wiki/api.php
 http://www.chironweb.org/wiki/api.php
 http://www.chnep.wateratlas.usf.edu/wiki/api.php
 http://www.chocolate-doom.org/wiki/api.php
@@ -4816,7 +4797,6 @@ http://www.cobaltfaqs.com/api.php
 http://www.cocopedia.com/wiki/api.php
 http://www.codecodex.com/wiki/api.php
 http://www.codecoop.com/wiki/index.php
-http://www.codecoop.com/wiki/index.php
 http://www.codesrc.com/mediawiki/api.php
 http://www.coginfocom.hu/api.php
 http://www.cogneuro.ca/wiki/api.php
@@ -4848,8 +4828,6 @@ http://www.conbledegook.org.uk/api.php
 http://www.concretepumping.com/dictionary/index.php
 http://www.confusingconversations.de/mediawiki/index.php
 http://www.confusticate.com/7thsea/wiki/api.php
-http://www.conjurer.org//w/api.php
-http://www.conjurer.org/w/api.php
 http://www.conjurer.org//w/api.php
 http://www.conjurer.org/w/api.php
 http://www-connexe.univ-brest.fr/geosciences/wiki/petralga/index.php
@@ -5099,11 +5077,9 @@ http://www.emergiwiki.com/emergiwiki/mediawiki-1.11.1/api.php
 http://www.emgu.com/wiki/api.php
 http://www.emn.fr/z-info/atlanmod/api.php
 http://www.emn.fr/z-info/atlanmod/index.php
-http://www.emn.fr/z-info/atlanmod/index.php
 http://www.emn.fr/z-info/idmpp/index.php
 http://www.empaatia.ee/empaatia/api.php
 http://www.empirical-industries.com/wiki/api.php
-http://www.emu.edu/is/wiki/api.php
 http://www.emu.edu/is/wiki/api.php
 http://www.emulysianfields.com/w/api.php
 http://www.encrypteverything.ca/api.php
@@ -5387,10 +5363,7 @@ http://www.greennetfinland.fi/en/index.php
 http://www.grendonvillage.org/mediawiki-1.5.6/index.php
 http://www.grengscouten.lu/api.php
 http://www.grepped.org/wiki/api.php
-http://www.grepped.org/wiki/api.php
 http://www.greycellgreen.net/ufo/api.php
-http://www.greycellgreen.net/ufo/api.php
-http://www.greyduck.net/wiki/api.php
 http://www.greyduck.net/wiki/api.php
 http://www.grid.am/api.php
 http://www.grid-appliance.org/wiki/api.php
@@ -5917,7 +5890,6 @@ http://www.mikomos.com/w/api.php
 http://www.militarwiki.org/w/api.php
 http://www.milnet.ca/wiki/api.php
 http://www.mindgazer.org/wiki/api.php
-http://www.mindgazer.org/wiki/api.php
 http://www.minesweeper.info/wiki/index.php
 http://www.miniatures-workshop.com/lostminiswiki/index.php
 http://www.mintoc.de/api.php
@@ -6045,8 +6017,6 @@ http://www.newkai.com/gbg/wiki/api.php
 http://www.newlondonrocks.com/wiki/api.php
 http://www.newshare.com/wiki/api.php
 http://www.next-era.net/mhw/api.php
-http://www.next-era.net/mhw/api.php
-http://www.nexusdb.com/wiki/api.php
 http://www.nexusdb.com/wiki/api.php
 http://www.nexuswiki.com/w/api.php
 http://www.nfbr.org.uk/wiki/api.php
@@ -6341,8 +6311,6 @@ http://www.radiowiki.org.nz/api.php
 http://www.rafaelrobles.com/wiki/api.php
 http://www.raglanpedia.org.uk/mediawiki/api.php
 http://www.raingamers.org/wiki/api.php
-http://www.raingamers.org/wiki/api.php
-http://www.rakotoarivony.com/wiki/api.php
 http://www.rakotoarivony.com/wiki/api.php
 http://www.randomdata.nl/wiki/api.php
 http://www.random-generator.com/api.php
@@ -6759,7 +6727,6 @@ http://www.theinfosphere.org/api.php
 http://www.thejabberwock.org/wiki/api.php
 http://www.thelas.dk/api.php
 http://www.themehacks.com/index.php
-http://www.themetwiki.com/api.php
 http://www.themetwiki.com/api.php
 http://www.thenakedwriter.com/api.php
 http://www.theonlysheet.com/wiki/api.php
