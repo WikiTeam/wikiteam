@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python2
 # -*- coding: utf8 -*-
 
 # Copyright (C) 2012 WikiTeam
