@@ -1,13 +1,13 @@
 #!/usr/bin/perl
 
-# Name: checkalive.pl v2.0
+# Name: checkalive.pl v2.01
 # Description: This script will go thru a list of URLs & determine if they are online & if they are Mediawiki wikis.
 # It should work with: "/index.php/Main_Page", "index.php", "api.php" and even pages such as: "/wiki/Pagina_principale".
 # If the URl is not "api.php", it will look for it, check it, and output it if found to be a valid api.php. If not found,
 # it will output the URL with "index.php" if that's available.
 #
 # Created: 12/14/2013
-# Most recently updated: 02/25/2014
+# Most recently updated: 04/11/2014
 # Copyright (c) 2013-2014 by Scott D. Boyd - scottdb56@gmail.com
 #
 # ===========================================================================================================================
@@ -187,14 +187,14 @@ sub Check4api {
                    }elsif ($doc=~/$genmw/i) {				# if the content generator is MediaWiki
                       print ALIVEFILE "$indexurl\n";
                    }else{
-                      print "There is no api.php OR index.php for $url\n";
+                      print "There is no api.php OR index.php for this URL\n";
                       print ALIVEFILE "$url\n";
                    }
                  }else{ 
                     print ALIVEFILE "$url\n";
                  }
                }else{
-                  print "There is no api.php for $url\n";
+                  print "There is no api.php for this URL\n";
                   print ALIVEFILE "$url\n";
                }
               }
@@ -212,11 +212,12 @@ sub Fetch_api {
 }
 
 sub Parse_api {
-   print "Parsing the document...\n ";
+   print "Parsing the document...\n";
    if ($doc=~/$mwapi/i) {				# if the api.php contains: "MediaWiki API documentation page"
+      print "Found a valid api.php and writing it to the list\n";
       print ALIVEFILE "$apiurl\n";			# then it's a MediaWiki wiki - print it to the list
    }elsif ($doc=~/$mwapi2/i) {				# if the api.php contains: "API Home Page" (older version)
-      print "Found a valid api.php and writing it to the list\n"; # delete this line after testing
+      print "Found a valid api.php and writing it to the list\n"; 
       print ALIVEFILE "$apiurl\n";			# then it's a MediaWiki wiki - print it to the list
    }else{
       print "This api.php is not valid.\n";  		# then try to get index.php
@@ -228,8 +229,10 @@ sub Parse_api {
       if ($res->is_success) {
         $doc=$res->content;
         if (($doc=~/$pwrdby1/i) || ($doc=~/$pwrdby2/i)) { # if the page contains: "Powered by MediaWiki"
+          print "Found a good index.php and writing it to the list\n";
           print ALIVEFILE "$indexurl\n";   		  # or: "poweredby_mediawiki"
         }elsif ($doc=~/$genmw/i) {			  # if the content generator is MediaWiki
+           print "Found a good index.php and writing it to the list\n";
            print ALIVEFILE "$indexurl\n";
         }else{
            print "There is no api.php OR index.php for $url\n"; 
