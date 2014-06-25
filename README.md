@@ -27,15 +27,29 @@ This is a very quick guide for the most used features of WikiTeam tools. For fur
 
 ### Download any wiki
 
-For downloading any wiki, including the complete XML history and all images, use:
+For downloading any wiki, use one of the following options:
 
-`python dumpgenerator.py --api=http://wiki.domain.org/w/api.php --xml --images`
+`python dumpgenerator.py --api=http://wiki.domain.org/w/api.php --xml --images` (complete XML histories and images)
+
+`python dumpgenerator.py --api=http://wiki.domain.org/w/api.php --xml` (complete XML histories)
+
+`python dumpgenerator.py --api=http://wiki.domain.org/w/api.php --xml --curonly` (only current version of every page)
+
+You can resume an aborted download:
+
+`python dumpgenerator.py --api=http://wiki.domain.org/w/api.php --xml --images --resume --path=/path/to/incomplete-dump`
+
+See more options:
+
+`python dumpgenerator.py --help`
 
 ### Download Wikimedia dumps
 
 For downloading [Wikimedia XML dumps](http://dumps.wikimedia.org/backup-index.html) (Wikipedia, Wikibooks, Wikinews, etc), use:
 
 `python wikipediadownloader.py` (download all projects)
+
+See more options with: `python wikipediadownloader.py --help`
 
 ### Download Wikimedia Commons images
 
