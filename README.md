@@ -31,7 +31,7 @@ For downloading any wiki, including the complete XML history and all images, use
 
 ### Download Wikimedia dumps
 
-For downloading Wikimedia XML dumps (Wikipedia, Wikibooks, Wikinews, etc), use:
+For downloading [Wikimedia XML dumps](http://dumps.wikimedia.org/backup-index.html) (Wikipedia, Wikibooks, Wikinews, etc), use:
 
 `python wikipediadownloader.py` (download all projects)
 
