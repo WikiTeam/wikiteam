@@ -1,7 +1,8 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2011-2013 WikiTeam
+# dumpgenerator.py A generator of dumps of wikis
+# Copyright (C) 2011-2014 WikiTeam developers
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
@@ -15,11 +16,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#######################################################################
-# dumpgenerator.py is a script to generate backups of MediaWiki wikis #
-# To learn more, read the documentation:                              #
-#        http://code.google.com/p/wikiteam/wiki/NewTutorial           #
-#######################################################################
+# To learn more, read the documentation:
+#     https://github.com/WikiTeam/wikiteam/wiki
 
 import cookielib
 import cPickle
