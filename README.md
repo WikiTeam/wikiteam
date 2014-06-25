@@ -45,11 +45,13 @@ See more options:
 
 ### Download Wikimedia dumps
 
-For downloading [Wikimedia XML dumps](http://dumps.wikimedia.org/backup-index.html) (Wikipedia, Wikibooks, Wikinews, etc), use:
+For downloading [Wikimedia XML dumps](http://dumps.wikimedia.org/backup-index.html) (Wikipedia, Wikibooks, Wikinews, etc):
 
 `python wikipediadownloader.py` (download all projects)
 
-See more options with: `python wikipediadownloader.py --help`
+See more options:
+
+`python wikipediadownloader.py --help`
 
 ### Download Wikimedia Commons images
 
