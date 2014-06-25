@@ -930,7 +930,7 @@ def getParameters(params=[]):
         else:
             print 'Error in index.php, please, provide a correct path to index.php'
             sys.exit()
-    
+
     #calculating path, if not defined by user with --path=
     if not config['path']:
         config['path'] = './%s-%s-wikidump' % (domain2prefix(config=config), config['date'])
@@ -939,13 +939,13 @@ def getParameters(params=[]):
 
 def checkAPI(api, config={}):
     """ Checking API availability """
-    req = urllib2.Request(url=api, headers={'User-Agent': getUserAgent()})
+    req = urllib2.Request(url=api, data=urllib.urlencode({'action': 'query', 'meta': 'siteinfo', 'format': 'xml'}), headers={'User-Agent': getUserAgent()})
     f = urllib2.urlopen(req)
     raw = f.read()
     f.close()
     delay(config=config)
     print 'Checking api.php...', api
-    if re.search(r'action=query', raw):
+    if re.search(r'<general', raw):
         return True
     return False
 
