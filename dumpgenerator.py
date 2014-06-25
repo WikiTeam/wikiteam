@@ -35,6 +35,27 @@ import time
 import urllib
 import urllib2
 
+# This class is from https://github.com/crustymonkey/py-sonic/blob/master/libsonic/connection.py#L50
+class POSTHTTPRedirectHandler(urllib2.HTTPRedirectHandler):
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        m = req.get_method()
+        if (code in (301, 302, 303, 307) and m in ("GET", "HEAD")
+            or code in (301, 302, 303, 307) and m == "POST"):
+            newurl = newurl.replace(' ', '%20')
+            newheaders = dict((k,v) for k,v in req.headers.items()
+                              if k.lower() not in ("content-length", "content-type")
+                             )
+            data = None
+            if req.has_data():
+                data = req.get_data()
+            return urllib2.Request(newurl,
+                           data=data,
+                           headers=newheaders,
+                           origin_req_host=req.get_origin_req_host(),
+                           unverifiable=True)
+        else:
+            raise urllib2.HTTPError(req.get_full_url(), code, msg, headers, fp)
+
 def truncateFilename(other={}, filename=''):
     """ Truncate filenames when downloading images with large filenames """
     return filename[:other['filenamelimit']] + md5(filename).hexdigest() + '.' + filename.split('.')[-1]
@@ -902,6 +923,10 @@ def getParameters(params=[]):
         usage()
         sys.exit()
     
+    #override redirect handler to properly handle POSTs with redirect
+    opener = urllib2.build_opener(POSTHTTPRedirectHandler)
+    urllib2.install_opener(opener)
+
     #user chose --api, but --index it is necessary for special:export: we generate it
     if config['api'] and not config['index']:
         config['index'] = config['api'].split('api.php')[0] + 'index.php'
@@ -911,7 +936,7 @@ def getParameters(params=[]):
     if config['cookies']:
         cj = cookielib.MozillaCookieJar()
         cj.load(config['cookies'])
-        opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj))
+        opener = urllib2.build_opener(POSTHTTPRedirectHandler, urllib2.HTTPCookieProcessor(cj))
         urllib2.install_opener(opener)
         print 'Using cookies from %s' % config['cookies']
 
