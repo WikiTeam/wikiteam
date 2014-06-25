@@ -20,3 +20,9 @@ There are [thousands](http://wikiindex.org) of [wikis](https://wikiapiary.com) i
 <a href="http://twitter.com/#!/_WikiTeam"><img src="http://upload.wikimedia.org/wikipedia/commons/e/eb/Twitter_logo_initial.png" width=90px alt="Follow us on Twitter" title="Follow us on Twitter"/></a>
 </td></tr>
 </table>
+
+## Quick guide
+
+For downloading a wiki, including the complete XML history and all images, use:
+
+`python dumpgenerator.py --api=http://en.wikipedia.org/w/api.php --xml --images`
