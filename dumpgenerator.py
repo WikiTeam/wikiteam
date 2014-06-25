@@ -131,25 +131,28 @@ def getNamespacesAPI(config={}):
     namespaces = config['namespaces']
     namespacenames = {0:''} # main is 0, no prefix
     if namespaces:
-        req = urllib2.Request(url=config['api'], data=urllib.urlencode({'action': 'query', 'meta': 'siteinfo', 'siprop': 'namespaces', 'format': 'xml'}), headers={'User-Agent': getUserAgent()})
+        req = urllib2.Request(url=config['api'], data=urllib.urlencode({'action': 'query', 'meta': 'siteinfo', 'siprop': 'namespaces', 'format': 'json'}), headers={'User-Agent': getUserAgent()})
         f = urllib2.urlopen(req)
-        raw = f.read()
+        result = json.loads(f.read())
         f.close()
         delay(config=config)
 
-        m = re.compile(r'<ns id="(?P<namespaceid>\d+)"[^>]*?/?>(?P<namespacename>[^<]+)?(</ns>)?').finditer(raw) # [^>]*? to include case="first-letter" canonical= etc.
         if 'all' in namespaces:
             namespaces = []
-            for i in m:
-                namespaces.append(int(i.group("namespaceid")))
-                namespacenames[int(i.group("namespaceid"))] = i.group("namespacename")
+            for i in result['query']['namespaces'].keys():
+                if int(i) < 0: # -1: Special, -2: Media, excluding
+                    continue
+                namespaces.append(int(i))
+                namespacenames[int(i)] = result['query']['namespaces'][i]['*']
         else:
             #check if those namespaces really exist in this wiki
             namespaces2 = []
-            for i in m:
-                if int(i.group("namespaceid")) in namespaces:
-                    namespaces2.append(int(i.group("namespaceid")))
-                    namespacenames[int(i.group("namespaceid"))] = i.group("namespacename")
+            for i in result['query']['namespaces'].keys():
+                if int(i) < 0: # -1: Special, -2: Media, excluding
+                    continue
+                if int(i) in namespaces:
+                    namespaces2.append(int(i))
+                    namespacenames[int(i)] = result['query']['namespaces'][i]['*']
             namespaces = namespaces2
     else:
         namespaces = [0]
