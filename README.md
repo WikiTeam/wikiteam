@@ -23,6 +23,18 @@ There are [thousands](http://wikiindex.org) of [wikis](https://wikiapiary.com) i
 
 ## Quick guide
 
-For downloading a wiki, including the complete XML history and all images, use:
+### Download any wiki
 
-`python dumpgenerator.py --api=http://en.wikipedia.org/w/api.php --xml --images`
+For downloading any wiki, including the complete XML history and all images, use:
+
+`python dumpgenerator.py --api=http://wiki.domain.org/w/api.php --xml --images`
+
+### Download Wikimedia dumps
+
+For downloading Wikimedia XML dumps (Wikipedia, Wikibooks, Wikinews, etc), use:
+
+`python wikipediadownloader.py` (download all projects)
+
+### Download Wikimedia Commons images
+
+There is a script for this, but we have [uploaded the tarballs](https://archive.org/details/wikimediacommons) to Internet Archive, so perhaps it is a better option download them from IA instead re-generating them with the script.
