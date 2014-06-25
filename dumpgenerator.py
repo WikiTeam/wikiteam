@@ -1,7 +1,7 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 
-# dumpgenerator.py A generator of dumps of wikis
+# dumpgenerator.py A generator of dumps for wikis
 # Copyright (C) 2011-2014 WikiTeam developers
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -23,6 +23,7 @@ import cookielib
 import cPickle
 import datetime
 import getopt
+import json
 try:
     from hashlib import md5
 except ImportError:             # Python 2.4 compatibility
@@ -34,6 +35,11 @@ import sys
 import time
 import urllib
 import urllib2
+
+__VERSION__ = '0.2.1'
+
+def printVersion():
+    print __VERSION__
 
 def truncateFilename(other={}, filename=''):
     """ Truncate filenames when downloading images with large filenames """
@@ -137,7 +143,7 @@ def getPageTitlesAPI(config={}):
     namespaces, namespacenames = getNamespacesAPI(config=config)
     for namespace in namespaces:
         if namespace in config['exnamespaces']:
-            print '    Skipping namespace =', namespace
+            print '    Skipping namespace = %d' % (namespace)
             continue
         
         c = 0
@@ -146,7 +152,7 @@ def getPageTitlesAPI(config={}):
         apfrom = '!'
         while apfrom:
             sys.stderr.write('.') #progress
-            params = {'action': 'query', 'list': 'allpages', 'apnamespace': namespace, 'apfrom': apfrom, 'format': 'xml', 'aplimit': 500}
+            params = {'action': 'query', 'list': 'allpages', 'apnamespace': namespace, 'apfrom': apfrom.encode('utf-8'), 'format': 'json', 'aplimit': 500}
             data = urllib.urlencode(params)
             req = urllib2.Request(url=config['api'], data=data, headers=headers)
             try:
@@ -160,16 +166,23 @@ def getPageTitlesAPI(config={}):
                     print 'An error has occurred while retrieving page titles with API'
                     print 'Please, resume the dump, --resume'
                     sys.exit()
-            xml = f.read()
+            jsontitles = json.loads(unicode(f.read(), 'utf-8'))
             f.close()
-            m = re.findall(r'<allpages (?:apfrom|apcontinue)="([^>]+)" />', xml)
-            if m:
-                apfrom = undoHTMLEntities(text=m[0]) #&quot; = ", etc
-            else:
+            apfrom = ''
+            if jsontitles.has_key('query-continue') and jsontitles['query-continue'].has_key('allpages'):
+                if jsontitles['query-continue']['allpages'].has_key('apcontinue'):
+                    apfrom = jsontitles['query-continue']['allpages']['apcontinue'] 
+                elif jsontitles['query-continue']['allpages'].has_key('apfrom'):
+                    apfrom = jsontitles['query-continue']['allpages']['apfrom']
+            #print apfrom
+            #print jsontitles
+            titles += [page['title'] for page in jsontitles['query']['allpages']]
+            if len(titles) != len(set(titles)):
+                #probably we are in a loop, server returning dupe titles, stop it
+                print 'Probably a loop, finishing'
+                titles = list(set(titles))
                 apfrom = ''
-            m = re.findall(r'title="([^>]+)" />', xml)
-            titles += [undoHTMLEntities(title) for title in m]
-            c += len(m)
+            c += len(jsontitles['query']['allpages'])
             delay(config=config)
         print '    %d titles retrieved in the namespace %d' % (c, namespace)
     return titles
@@ -238,7 +251,7 @@ def getPageTitlesScraper(config={}):
     return titles
 
 def getPageTitles(config={}):
-    """  """
+    """ Get list of page titles """
     #http://en.wikipedia.org/wiki/Special:AllPages
     #http://archiveteam.org/index.php?title=Special:AllPages
     #http://www.wikanda.es/wiki/Especial:Todas
@@ -283,7 +296,8 @@ def logerror(config={}, text=''):
     """ Log error in file """
     if text:
         f = open('%s/errors.log' % (config['path']), 'a')
-        f.write('%s: %s\n' % (datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'), text))
+        output = u'%s: %s\n' % (datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'), text)
+        f.write(output.encode('utf-8'))
         f.close()
 
 def getXMLPageCore(headers={}, params={}, config={}):
@@ -350,7 +364,7 @@ def getXMLPage(config={}, title='', verbose=True):
     title_ = re.sub(' ', '_', title_)
     #do not convert & into %26, title_ = re.sub('&', '%26', title_)
     headers = {'User-Agent': getUserAgent()}
-    params = {'title': 'Special:Export', 'pages': title_, 'action': 'submit', }
+    params = {'title': 'Special:Export', 'pages': title_.encode('utf-8'), 'action': 'submit', }
     if config['curonly']:
         params['curonly'] = 1
         params['limit'] = 1
@@ -460,7 +474,7 @@ def generateXMLDump(config={}, titles=[], start=''):
         xml = getXMLPage(config=config, title=title)
         xml = cleanXML(xml=xml)
         if not xml:
-            logerror(config=config, text='The page "%s" was missing in the wiki (probably deleted)' % (title))
+            logerror(config=config, text=u'The page "%s" was missing in the wiki (probably deleted)' % (title))
         #here, XML is a correct <page> </page> chunk or 
         #an empty string due to a deleted page (logged in errors log) or
         #an empty string due to an error while retrieving the page from server (logged in errors log)
@@ -475,8 +489,8 @@ def saveTitles(config={}, titles=[]):
     #save titles in a txt for resume if needed
     titlesfilename = '%s-%s-titles.txt' % (domain2prefix(config=config), config['date'])
     titlesfile = open('%s/%s' % (config['path'], titlesfilename), 'w')
-    titlesfile.write('\n'.join(titles))
-    titlesfile.write('\n--END--')
+    output = u"%s\n--END--" % ('\n'.join(titles))
+    titlesfile.write(output.encode('utf-8'))
     titlesfile.close()
     print 'Titles saved at...', titlesfilename
 
@@ -750,11 +764,11 @@ def welcome():
     """ Opening message """
     print "#"*73
     print """# Welcome to DumpGenerator 0.2 by WikiTeam (GPL v3)                     #
-# More info at: http://code.google.com/p/wikiteam/                      #"""
+# More info at: https://github.com/WikiTeam/wikiteam                    #"""
     print "#"*73
     print ''
     print "#"*73
-    print """# Copyright (C) 2011-2013 WikiTeam                                      #
+    print """# Copyright (C) 2011-2014 WikiTeam                                      #
 # This program is free software: you can redistribute it and/or modify  #
 # it under the terms of the GNU General Public License as published by  #
 # the Free Software Foundation, either version 3 of the License, or     #
@@ -774,7 +788,7 @@ def bye():
     """ Closing message """
     print "---> Congratulations! Your dump is complete <---"
     print "If you found any bug, report a new issue here (Google account required): http://code.google.com/p/wikiteam/issues/list"
-    print "If this is a public wiki, please, consider publishing this dump. Do it yourself as explained in http://code.google.com/p/wikiteam/wiki/NewTutorial#Publishing_the_dump or contact us at http://code.google.com/p/wikiteam"
+    print "If this is a public wiki, please, consider publishing this dump. Do it yourself as explained in https://github.com/WikiTeam/wikiteam/wiki/New-Tutorial#Publishing_the_dump or contact us at https://github.com/WikiTeam/wikiteam"
     print "Good luck! Bye!"
 
 def usage():
@@ -825,7 +839,7 @@ def getParameters(params=[]):
     }
     #console params
     try:
-        opts, args = getopt.getopt(params, "", ["h", "help", "path=", "api=", "index=", "images", "logs", "xml", "curonly", "resume", "cookies=", "delay=", "namespaces=", "exnamespaces=", "force", ])
+        opts, args = getopt.getopt(params, "", ["h", "help", "path=", "api=", "index=", "images", "logs", "xml", "curonly", "resume", "cookies=", "delay=", "namespaces=", "exnamespaces=", "force", "v", "version"])
     except getopt.GetoptError, err:
         # print help information and exit:
         print str(err) # will print something like "option -a not recognized"
@@ -835,6 +849,8 @@ def getParameters(params=[]):
         if o in ("-h","--help"):
             usage()
             sys.exit()
+        elif o in ("-v","--version"):
+            printVersion()
         elif o in ("--path"):
             config["path"] = a
             while len(config["path"])>0:
@@ -1036,7 +1052,7 @@ def resumePreviousDump(config={}, other={}):
         lasttitle = ''
         try:
             f = open('%s/%s-%s-titles.txt' % (config['path'], domain2prefix(config=config), config['date']), 'r')
-            raw = f.read()
+            raw = unicode(f.read(), 'utf-8')
             titles = raw.split('\n')
             lasttitle = titles[-1]
             if not lasttitle: #empty line at EOF ?
