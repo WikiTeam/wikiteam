@@ -980,13 +980,13 @@ def getParameters(params=[]):
 
 def checkAPI(api, config={}):
     """ Checking API availability """
-    req = urllib2.Request(url=api, data=urllib.urlencode({'action': 'query', 'meta': 'siteinfo', 'format': 'xml'}), headers={'User-Agent': getUserAgent()})
+    req = urllib2.Request(url=api, data=urllib.urlencode({'action': 'query', 'meta': 'siteinfo', 'format': 'json'}), headers={'User-Agent': getUserAgent()})
     f = urllib2.urlopen(req)
-    raw = f.read()
+    result = json.loads(f.read())
     f.close()
     delay(config=config)
     print 'Checking api.php...', api
-    if re.search(r'<general', raw):
+    if result.has_key('query'):
         return True
     return False
 
