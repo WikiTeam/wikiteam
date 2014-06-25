@@ -23,7 +23,7 @@ There are [thousands](http://wikiindex.org) of [wikis](https://wikiapiary.com) i
 
 ## Quick guide
 
-This is a very quick guide for the most used features of WikiTeam tools. For further information, read the [documentation](https://github.com/WikiTeam/wikiteam/wiki/New-Tutorial). You can also ask in the [mailing list](http://groups.google.com/group/wikiteam-discuss).
+This is a very quick guide for the most used features of WikiTeam tools. For further information, read the [tutorial](https://github.com/WikiTeam/wikiteam/wiki/New-Tutorial) and the rest of the [documentation](https://github.com/WikiTeam/wikiteam/wiki). You can also ask in the [mailing list](http://groups.google.com/group/wikiteam-discuss).
 
 ### Download any wiki
 
