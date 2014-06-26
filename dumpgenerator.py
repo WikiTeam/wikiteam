@@ -1240,18 +1240,19 @@ def saveIndexPHP(config={}):
 def saveSiteInfo(config={}):
     """ Save a file with site info """
     
-    if os.path.exists('%s/siteinfo.json' % (config['path'])):
-        print 'siteinfo.json exists, do not overwrite'
-    else:
-        print 'Downloading site info'
-        req = urllib2.Request(url=config['api'], data=urllib.urlencode({'action': 'query', 'meta': 'siteinfo', 'format': 'json'}), headers={'User-Agent': getUserAgent()})
-        f = urllib2.urlopen(req)
-        result = f.read()
-        f.close()
-        delay(config=config)
-        f = open('%s/siteinfo.json' % (config['path']), 'w')
-        f.write(result)
-        f.close()
+    if config['api']:
+        if os.path.exists('%s/siteinfo.json' % (config['path'])):
+            print 'siteinfo.json exists, do not overwrite'
+        else:
+            print 'Downloading site info'
+            req = urllib2.Request(url=config['api'], data=urllib.urlencode({'action': 'query', 'meta': 'siteinfo', 'format': 'json'}), headers={'User-Agent': getUserAgent()})
+            f = urllib2.urlopen(req)
+            result = f.read()
+            f.close()
+            delay(config=config)
+            f = open('%s/siteinfo.json' % (config['path']), 'w')
+            f.write(result)
+            f.close()
 
 def avoidWikimediaProjects(config={}):
     """ Skip Wikimedia projects and redirect to the dumps website """
