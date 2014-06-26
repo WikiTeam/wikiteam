@@ -381,8 +381,8 @@ def getXMLPageCore(headers={}, params={}, config={}):
     return xml
 
 def getXMLPage(config={}, title='', verbose=True):
-    """  """
-    #return the full history (or current only) of a page
+    """ Get the full history (or current only) of a page """
+
     #if server errors occurs while retrieving the full page history, it may return [oldest OK versions] + last version, excluding middle revisions, so it would be partialy truncated
     #http://www.mediawiki.org/wiki/Manual_talk:Parameters_to_Special:Export#Parameters_no_longer_in_use.3F
     
@@ -436,11 +436,11 @@ def getXMLPage(config={}, title='', verbose=True):
                 params['offset'] = '' #no more edits in this page history
     
     if verbose:
-    	numberofedits = len(re.findall(r_timestamp, xml))
-    	if (numberofedits == 1):
-    		print '    %s, 1 edit' % (title)
-    	else:
-	        print '    %s, %d edits' % (title, numberofedits)
+        numberofedits = len(re.findall(r_timestamp, xml))
+        if (numberofedits == 1):
+            print '    %s, 1 edit' % (title)
+        else:
+            print '    %s, %d edits' % (title, numberofedits)
     
     return xml
 
