@@ -453,7 +453,8 @@ def cleanXML(xml=''):
     return xml
 
 def generateXMLDump(config={}, titles=[], start=''):
-    """  """
+    """ Generates a XML dump for a list of titles """
+    
     print 'Retrieving the XML for every page from "%s"' % (start and start or 'start')
     header = getXMLHeader(config=config)
     footer = '</mediawiki>\n' #new line at the end
@@ -514,26 +515,29 @@ def generateXMLDump(config={}, titles=[], start=''):
 
 def saveTitles(config={}, titles=[]):
     """ Save title list in a file """
-    #save titles in a txt for resume if needed
+
     titlesfilename = '%s-%s-titles.txt' % (domain2prefix(config=config), config['date'])
     titlesfile = open('%s/%s' % (config['path'], titlesfilename), 'w')
     output = u"%s\n--END--" % ('\n'.join(titles))
     titlesfile.write(output.encode('utf-8'))
     titlesfile.close()
+    
     print 'Titles saved at...', titlesfilename
 
 def saveImageFilenamesURL(config={}, images=[]):
-    """ Save image list in a file """
-    #save list of images and their urls
+    """ Save image list in a file, including filename, url and uploader """
+
     imagesfilename = '%s-%s-images.txt' % (domain2prefix(config=config), config['date'])
     imagesfile = open('%s/%s' % (config['path'], imagesfilename), 'w')
     imagesfile.write('\n'.join(['%s\t%s\t%s' % (filename, url, uploader) for filename, url, uploader in images]))
     imagesfile.write('\n--END--')
     imagesfile.close()
+    
     print 'Image filenames and URLs saved at...', imagesfilename
 
 def getImageFilenamesURL(config={}):
     """ Retrieve file list: filename, url, uploader """
+    
     print 'Retrieving image filenames'
     r_next = r'(?<!&amp;dir=prev)&amp;offset=(?P<offset>\d+)&amp;' # (?<! http://docs.python.org/library/re.html
     images = []
@@ -617,6 +621,7 @@ def getImageFilenamesURL(config={}):
 
 def getImageFilenamesURLAPI(config={}):
     """ Retrieve file list: filename, url, uploader """
+    
     print 'Retrieving image filenames'
     headers = {'User-Agent': getUserAgent()}
     aifrom = '!'
@@ -675,15 +680,18 @@ def getImageFilenamesURLAPI(config={}):
 
 def undoHTMLEntities(text=''):
     """ Undo some HTML codes """
+    
     text = re.sub('&lt;', '<', text) # i guess only < > & " ' need conversion http://www.w3schools.com/html/html_entities.asp
     text = re.sub('&gt;', '>', text)
     text = re.sub('&amp;', '&', text)
     text = re.sub('&quot;', '"', text)
     text = re.sub('&#039;', '\'', text)
+    
     return text
 
 def generateImageDump(config={}, other={}, images=[], start=''):
     """ Save files and descriptions using a file list """
+    
     #fix use subdirectories md5
     print 'Retrieving images from "%s"' % (start and start or 'start')
     imagepath = '%s/images' % (config['path'])
@@ -732,6 +740,7 @@ def generateImageDump(config={}, other={}, images=[], start=''):
         c += 1
         if c % 10 == 0:
             print '    Downloaded %d images' % (c)
+    
     print 'Downloaded %d images' % (c)
     
 def saveLogs(config={}):
@@ -756,9 +765,9 @@ def saveLogs(config={}):
 
 def domain2prefix(config={}):
     """ Convert domain name to a valid prefix filename. """
+    
     # At this point, both api and index are supposed to be defined
     domain = ''
-
     if config['api']:
         domain = config['api']
     elif config['index']:
@@ -769,10 +778,12 @@ def domain2prefix(config={}):
     domain = re.sub(r'/', '_', domain)
     domain = re.sub(r'\.', '', domain)
     domain = re.sub(r'[^A-Za-z0-9]', '_', domain)
+    
     return domain
 
 def loadConfig(config={}, configfilename=''):
     """ Load config file """
+    
     try:
         f = open('%s/%s' % (config['path'], configfilename), 'r')
     except:
@@ -780,10 +791,12 @@ def loadConfig(config={}, configfilename=''):
         sys.exit()
     config = cPickle.load(f)
     f.close()
+    
     return config
 
 def saveConfig(config={}, configfilename=''):
     """ Save config file """
+    
     f = open('%s/%s' % (config['path'], configfilename), 'w')
     cPickle.dump(config, f)
     f.close()
@@ -987,6 +1000,7 @@ def getParameters(params=[]):
 
 def checkAPI(api, config={}):
     """ Checking API availability """
+    
     req = urllib2.Request(url=api, data=urllib.urlencode({'action': 'query', 'meta': 'siteinfo', 'format': 'json'}), headers={'User-Agent': getUserAgent()})
     f = urllib2.urlopen(req)
     result = json.loads(f.read())
@@ -999,6 +1013,7 @@ def checkAPI(api, config={}):
 
 def checkIndexphp(indexphp, config={}):
     """ Checking index.php availability """
+    
     req = urllib2.Request(url=indexphp, data=urllib.urlencode({'title': 'Special:Version', }), headers={'User-Agent': getUserAgent()})
     f = urllib2.urlopen(req)
     raw = f.read()
@@ -1014,10 +1029,12 @@ def checkIndexphp(indexphp, config={}):
 
 def removeIP(raw=''):
     """ Remove IP from HTML comments <!-- --> """
+    
     raw = re.sub(r'\d+\.\d+\.\d+\.\d+', '0.0.0.0', raw)
     #http://www.juniper.net/techpubs/software/erx/erx50x/swconfig-routing-vol1/html/ipv6-config5.html
     #weird cases as :: are not included
     raw = re.sub(r'(?i)[\da-f]{0,4}:[\da-f]{0,4}:[\da-f]{0,4}:[\da-f]{0,4}:[\da-f]{0,4}:[\da-f]{0,4}:[\da-f]{0,4}:[\da-f]{0,4}', '0:0:0:0:0:0:0:0', raw)
+    
     return raw
 
 def checkXMLIntegrity(config={}):
@@ -1187,7 +1204,8 @@ def resumePreviousDump(config={}, other={}):
         pass
 
 def saveSpecialVersion(config={}):
-    #save Special:Version as .html, to preserve extensions details
+    """ Save Special:Version as .html, to preserve extensions details """
+    
     if os.path.exists('%s/Special:Version.html' % (config['path'])):
         print 'Special:Version.html exists, do not overwrite'
     else:
@@ -1203,7 +1221,8 @@ def saveSpecialVersion(config={}):
         f.close()
 
 def saveIndexPHP(config={}):
-    #save index.php as .html, to preserve license details available at the botom of the page
+    """ Save index.php as .html, to preserve license details available at the botom of the page """
+    
     if os.path.exists('%s/index.html' % (config['path'])):
         print 'index.html exists, do not overwrite'
     else:
@@ -1220,6 +1239,7 @@ def saveIndexPHP(config={}):
 
 def avoidWikimediaProjects(config={}):
     """ Skip Wikimedia projects and redirect to the dumps website """
+    
     #notice about wikipedia dumps
     if re.findall(r'(?i)(wikipedia|wikisource|wiktionary|wikibooks|wikiversity|wikimedia|wikispecies|wikiquote|wikinews|wikidata|wikivoyage)\.org', config['api']+config['index']):
         print 'PLEASE, DO NOT USE THIS SCRIPT TO DOWNLOAD WIKIMEDIA PROJECTS!'
@@ -1230,6 +1250,7 @@ def avoidWikimediaProjects(config={}):
 
 def main(params=[]):
     """ Main function """
+    
     welcome()
     configfilename = 'config.txt'
     config, other = getParameters(params=params)
