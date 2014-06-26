@@ -313,7 +313,11 @@ def getXMLFileDesc(config={}, title=''):
 
 def getUserAgent():
     """ Return a cool user-agent to hide Python user-agent """
-    useragents = ['Mozilla/5.0 (X11; Linux i686; rv:24.0) Gecko/20100101 Firefox/24.0']
+    useragents = [
+        #firefox
+        'Mozilla/5.0 (X11; Linux i686; rv:24.0) Gecko/20100101 Firefox/24.0', 
+        'Mozilla/5.0 (X11; Linux x86_64; rv:28.0) Gecko/20100101  Firefox/28.0',
+        ]
     return useragents[0]
 
 def logerror(config={}, text=''):
