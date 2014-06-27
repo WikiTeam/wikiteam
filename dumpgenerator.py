@@ -271,7 +271,7 @@ def getPageTitlesScraper(config={}):
                     checked_suballpages.append(name) #to avoid reload dupe subpages links
                     delay(config=config)
                     req2 = urllib2.Request(url=url, headers={'User-Agent': getUserAgent(), 'Accept-Encoding': 'gzip'})
-                    f = urllib2.urlopen(req)
+                    f = urllib2.urlopen(req2)
                     if f.headers.get('Content-Encoding') and 'gzip' in f.headers.get('Content-Encoding'):
                         raw2 = gzip.GzipFile(fileobj=StringIO.StringIO(f.read())).read()
                     else:
