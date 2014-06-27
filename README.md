@@ -55,4 +55,4 @@ See more options:
 
 ### Download Wikimedia Commons images
 
-There is a script for this, but we have [uploaded the tarballs](https://archive.org/details/wikimediacommons) to Internet Archive, so perhaps it is a better option download them from IA instead re-generating them with the script.
+There is a script for this, but we have [uploaded the tarballs](https://archive.org/details/wikimediacommons) to Internet Archive, so it's more useful to reseed their torrents than to re-generate old ones with the script.
