@@ -271,7 +271,7 @@ def getPageTitlesScraper(config={}):
                     checked_suballpages.append(name) #to avoid reload dupe subpages links
                     delay(config=config)
                     req2 = urllib2.Request(url=url, headers={'User-Agent': getUserAgent(), 'Accept-Encoding': 'gzip'})
-                    f = urllib2.urlopen(req)
+                    f = urllib2.urlopen(req2)
                     if f.headers.get('Content-Encoding') and 'gzip' in f.headers.get('Content-Encoding'):
                         raw2 = gzip.GzipFile(fileobj=StringIO.StringIO(f.read())).read()
                     else:
@@ -286,9 +286,10 @@ def getPageTitlesScraper(config={}):
         c = 0
         m = re.compile(r_title).finditer(rawacum)
         for i in m:
-            if not i.group('title').startswith('Special:'):
-                if not i.group('title') in titles:
-                    titles.append(undoHTMLEntities(text=i.group('title')))
+            t = undoHTMLEntities(text=unicode(i.group('title'), 'utf-8'))
+            if not t.startswith('Special:'):
+                if not t in titles:
+                    titles.append(t)
                     c += 1
         print '    %d titles retrieved in the namespace %d' % (c, namespace)
     return titles
