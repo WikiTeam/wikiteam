@@ -4,3 +4,5 @@ Last update: unknown
 Details:
 
 There is a category of wikis http://www.shoutwiki.com/wiki/Category:Flat_list_of_all_wikis
+
+Run script: python shoutwiki-spider.py > newlist
