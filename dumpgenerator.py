@@ -1032,12 +1032,15 @@ def checkAPI(api, config={}):
     req = urllib2.Request(url=api, data=urllib.urlencode({'action': 'query', 'meta': 'siteinfo', 'format': 'json'}), headers={'User-Agent': getUserAgent(), 'Accept-Encoding': 'gzip'})
     f = urllib2.urlopen(req)
     if f.headers.get('Content-Encoding') and 'gzip' in f.headers.get('Content-Encoding'):
-        result = json.loads(gzip.GzipFile(fileobj=StringIO.StringIO(f.read())).read())
+        resultText = gzip.GzipFile(fileobj=StringIO.StringIO(f.read())).read()
     else:
-        result = json.loads(f.read())
+        resultText = f.read()
     f.close()
-    delay(config=config)
     print 'Checking api.php...', api
+    if "MediaWiki API is not enabled for this site." in resultText:
+        return False
+    result = json.loads(resultText)
+    delay(config=config)
     if result.has_key('query'):
         return True
     return False
