@@ -52,7 +52,6 @@ http://actabe.wikkii.com
 http://activatumente.wikkii.com
 http://acuvueoasys.wikkii.com
 http://ac.wikkii.com
-http://ac.wikkii.net
 http://acworld.wikkii.com
 http://addward.wikkii.com
 http://adivo.wikkii.com
@@ -610,7 +609,6 @@ http://ctaahr.wikkii.com
 http://ctcgroupproject.wikkii.com
 http://cuarento.wikkii.com
 http://cubicopedia.wikkii.com
-http://cubipedia.wikkii.com
 http://cuppedia.wikkii.com
 http://cure.wikkii.com
 http://curiosityshop.wikkii.com
@@ -1110,7 +1108,6 @@ http://gigipedia.wikkii.com
 http://gijinka.wikkii.com
 http://gikopedia.wikkii.com
 http://gintama.wikkii.com
-http://gintama.wikkii.net
 http://gknova6wiki.wikkii.com
 http://gkwiki.wikkii.com
 http://glacierwolf.wikkii.com
@@ -1167,6 +1164,7 @@ http://gruposlcc.wikkii.com
 http://gsdiam.wikkii.com
 http://gsuphilosophy.wikkii.com
 http://gs.wikkii.com
+http://gta.wikkii.com
 http://gtmdms.wikkii.com
 http://gudrapdija.wikkii.com
 http://gudrapedia.wikkii.com
@@ -1302,7 +1300,6 @@ http://iatr.wikkii.com
 http://iatw.wikkii.com
 http://ibizahotel.wikkii.com
 http://iceclimber.wikkii.com
-http://icehockey.wikkii.com
 http://iceman311.wikkii.com
 http://icewedge.wikkii.com
 http://ichatroom.wikkii.com
@@ -1464,7 +1461,6 @@ http://kacperix.wikkii.com
 http://kaidan.wikkii.com
 http://kainon.wikkii.com
 http://kaktopedia.wikkii.com
-http://kala.wikkii.com
 http://kaleidos.wikkii.com
 http://kangaroophysics.wikkii.com
 http://kanithoshigh.wikkii.com
@@ -2021,7 +2017,6 @@ http://omwarch.wikkii.com
 http://oncechosendev.wikkii.com
 http://onepiecewiki.wikkii.com
 http://onepiece.wikkii.com
-http://onepiece.wikkii.net
 http://oneshotrpg.wikkii.com
 http://onfan.wikkii.com
 http://onionleaks.wikkii.com
@@ -2335,7 +2330,6 @@ http://recette.wikkii.com
 http://reduction12.wikkii.com
 http://redzero.wikkii.com
 http://regularshow.wikkii.com
-http://rejuveverse.wikkii.com
 http://remnantknights.wikkii.com
 http://rengine.wikkii.com
 http://reno.wikkii.com
@@ -2607,7 +2601,6 @@ http://sr50.wikkii.com
 http://sraven.wikkii.com
 http://sroinfo.wikkii.com
 http://srtolkien.wikkii.com
-http://sr.wikkii.com
 http://ssklearningcentre.wikkii.com
 http://ssr.wikkii.com
 http://staffchristmas.wikkii.com
@@ -2618,6 +2611,7 @@ http://stargatefanon.wikkii.com
 http://stargate.wikkii.com
 http://starjunky.wikkii.com
 http://starship.wikkii.com
+http://starsreach.wikkii.com
 http://stasikosarticles.wikkii.com
 http://statnice.wikkii.com
 http://stavba.wikkii.com
