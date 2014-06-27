@@ -1,9 +1,8 @@
 Wikifarm: http://www.referata.com/wiki/Main_Page
-Last update: unknown
+Last update: 2014-06-27
 
 Details:
 
-The list is incomplete. A search in Google (allinurl:api.php site:referata.com -www.referata.com) returns missing wikis:
+Updated using referata-spider.py
 
-* http://lost.referata.com
-* http://overlord.referata.com
+https://github.com/WikiTeam/wikiteam/blob/7a6ef183393c0a5e777a3fa7db4527d4d7fcdbe6/listsofwikis/referata-spider.py
