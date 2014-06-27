@@ -24,12 +24,14 @@ import cPickle
 import datetime
 import getopt
 import json
+import gzip
 try:
     from hashlib import md5
 except ImportError:             # Python 2.4 compatibility
     from md5 import new as md5
 import os
 import re
+import StringIO
 import subprocess
 import sys
 import time
@@ -99,9 +101,12 @@ def getNamespacesScraper(config={}):
     namespaces = config['namespaces']
     namespacenames = {0:''} # main is 0, no prefix
     if namespaces:
-        req = urllib2.Request(url=config['index'], data=urllib.urlencode({'title': 'Special:Allpages', }), headers={'User-Agent': getUserAgent()})
+        req = urllib2.Request(url=config['index'], data=urllib.urlencode({'title': 'Special:Allpages', }), headers={'User-Agent': getUserAgent(), 'Accept-Encoding': 'gzip'})
         f = urllib2.urlopen(req)
-        raw = f.read()
+        if f.headers.get('Content-Encoding') and 'gzip' in f.headers.get('Content-Encoding'):
+            raw = gzip.GzipFile(fileobj=StringIO.StringIO(f.read())).read()
+        else:
+            raw = f.read()
         f.close()
         delay(config=config)
 
@@ -131,9 +136,12 @@ def getNamespacesAPI(config={}):
     namespaces = config['namespaces']
     namespacenames = {0:''} # main is 0, no prefix
     if namespaces:
-        req = urllib2.Request(url=config['api'], data=urllib.urlencode({'action': 'query', 'meta': 'siteinfo', 'siprop': 'namespaces', 'format': 'json'}), headers={'User-Agent': getUserAgent()})
+        req = urllib2.Request(url=config['api'], data=urllib.urlencode({'action': 'query', 'meta': 'siteinfo', 'siprop': 'namespaces', 'format': 'json'}), headers={'User-Agent': getUserAgent(), 'Accept-Encoding': 'gzip'})
         f = urllib2.urlopen(req)
-        result = json.loads(f.read())
+        if f.headers.get('Content-Encoding') and 'gzip' in f.headers.get('Content-Encoding'):
+            result = json.loads(gzip.GzipFile(fileobj=StringIO.StringIO(f.read())).read())
+        else:
+            result = json.loads(f.read())
         f.close()
         delay(config=config)
 
@@ -172,7 +180,7 @@ def getPageTitlesAPI(config={}):
         
         c = 0
         print '    Retrieving titles in the namespace %d' % (namespace)
-        headers = {'User-Agent': getUserAgent()}
+        headers = {'User-Agent': getUserAgent(), 'Accept-Encoding': 'gzip'}
         apfrom = '!'
         while apfrom:
             sys.stderr.write('.') #progress
@@ -190,7 +198,10 @@ def getPageTitlesAPI(config={}):
                     print 'An error has occurred while retrieving page titles with API'
                     print 'Please, resume the dump, --resume'
                     sys.exit()
-            jsontitles = json.loads(unicode(f.read(), 'utf-8'))
+            if f.headers.get('Content-Encoding') and 'gzip' in f.headers.get('Content-Encoding'):
+                jsontitles = json.loads(unicode(gzip.GzipFile(fileobj=StringIO.StringIO(f.read())).read(), 'utf-8'))
+            else:
+                jsontitles = json.loads(unicode(f.read(), 'utf-8'))
             f.close()
             apfrom = ''
             if jsontitles.has_key('query-continue') and jsontitles['query-continue'].has_key('allpages'):
@@ -218,8 +229,12 @@ def getPageTitlesScraper(config={}):
     for namespace in namespaces:
         print '    Retrieving titles in the namespace', namespace
         url = '%s?title=Special:Allpages&namespace=%s' % (config['index'], namespace)
-        req = urllib2.Request(url=url, headers={'User-Agent': getUserAgent()})
-        raw = urllib2.urlopen(req).read()
+        req = urllib2.Request(url=url, headers={'User-Agent': getUserAgent(), 'Accept-Encoding': 'gzip'})
+        f = urllib2.urlopen(req)
+        if f.headers.get('Content-Encoding') and 'gzip' in f.headers.get('Content-Encoding'):
+            raw = gzip.GzipFile(fileobj=StringIO.StringIO(f.read())).read()
+        else:
+            raw = f.read()
         raw = cleanHTML(raw)
         
         r_title = r'title="(?P<title>[^>]+)">'
@@ -255,8 +270,12 @@ def getPageTitlesScraper(config={}):
                 if not name in checked_suballpages:
                     checked_suballpages.append(name) #to avoid reload dupe subpages links
                     delay(config=config)
-                    req2 = urllib2.Request(url=url, headers={'User-Agent': getUserAgent()})
-                    raw2 = urllib2.urlopen(req).read()
+                    req2 = urllib2.Request(url=url, headers={'User-Agent': getUserAgent(), 'Accept-Encoding': 'gzip'})
+                    f = urllib2.urlopen(req)
+                    if f.headers.get('Content-Encoding') and 'gzip' in f.headers.get('Content-Encoding'):
+                        raw2 = gzip.GzipFile(fileobj=StringIO.StringIO(f.read())).read()
+                    else:
+                        raw2 = f.read()
                     raw2 = cleanHTML(raw2)
                     rawacum += raw2 #merge it after removed junk
                     print '    Reading', name, len(raw2), 'bytes', len(re.findall(r_suballpages, raw2)), 'subpages', len(re.findall(r_title, raw2)), 'pages'
@@ -375,7 +394,10 @@ def getXMLPageCore(headers={}, params={}, config={}):
                 print 'Please, resume the dump, --resume'
                 sys.exit()
                 # The error is usually temporary, but we exit the dump altogether.
-        xml = f.read()
+        if f.headers.get('Content-Encoding') and 'gzip' in f.headers.get('Content-Encoding'):
+            xml = gzip.GzipFile(fileobj=StringIO.StringIO(f.read())).read()
+        else:
+            xml = f.read()
         c += 1
     
     return xml
@@ -391,7 +413,7 @@ def getXMLPage(config={}, title='', verbose=True):
     title_ = title
     title_ = re.sub(' ', '_', title_)
     #do not convert & into %26, title_ = re.sub('&', '%26', title_)
-    headers = {'User-Agent': getUserAgent()}
+    headers = {'User-Agent': getUserAgent(), 'Accept-Encoding': 'gzip'}
     params = {'title': 'Special:Export', 'pages': title_.encode('utf-8'), 'action': 'submit', }
     if config['curonly']:
         params['curonly'] = 1
@@ -546,9 +568,12 @@ def getImageFilenamesURL(config={}):
     retries = 5
     while offset:
         #5000 overload some servers, but it is needed for sites like this with no next links http://www.memoryarchive.org/en/index.php?title=Special:Imagelist&sort=byname&limit=50&wpIlMatch=
-        req = urllib2.Request(url=config['index'], data=urllib.urlencode({'title': 'Special:Imagelist', 'limit': limit, 'offset': offset, }), headers={'User-Agent': getUserAgent()})
+        req = urllib2.Request(url=config['index'], data=urllib.urlencode({'title': 'Special:Imagelist', 'limit': limit, 'offset': offset, }), headers={'User-Agent': getUserAgent(), 'Accept-Encoding': 'gzip'})
         f = urllib2.urlopen(req)
-        raw = f.read()
+        if f.headers.get('Content-Encoding') and 'gzip' in f.headers.get('Content-Encoding'):
+            raw = gzip.GzipFile(fileobj=StringIO.StringIO(f.read())).read()
+        else:
+            raw = f.read()
         f.close()
         delay(config=config)
         if re.search(ur'(?i)(allowed memory size of \d+ bytes exhausted|Call to a member function getURL)', raw): # delicate wiki
@@ -623,7 +648,7 @@ def getImageFilenamesURLAPI(config={}):
     """ Retrieve file list: filename, url, uploader """
     
     print 'Retrieving image filenames'
-    headers = {'User-Agent': getUserAgent()}
+    headers = {'User-Agent': getUserAgent(), 'Accept-Encoding': 'gzip'}
     aifrom = '!'
     images = []
     while aifrom:
@@ -642,7 +667,10 @@ def getImageFilenamesURLAPI(config={}):
                 print 'An error has occurred while retrieving page titles with API'
                 print 'Please, resume the dump, --resume'
                 sys.exit()
-        xml = f.read()
+        if f.headers.get('Content-Encoding') and 'gzip' in f.headers.get('Content-Encoding'):
+            xml = gzip.GzipFile(fileobj=StringIO.StringIO(f.read())).read()
+        else:
+            xml = f.read()
         f.close()
         delay(config=config)
         # Match the query-continue, old and new format
@@ -1000,10 +1028,12 @@ def getParameters(params=[]):
 
 def checkAPI(api, config={}):
     """ Checking API availability """
-    
-    req = urllib2.Request(url=api, data=urllib.urlencode({'action': 'query', 'meta': 'siteinfo', 'format': 'json'}), headers={'User-Agent': getUserAgent()})
+    req = urllib2.Request(url=api, data=urllib.urlencode({'action': 'query', 'meta': 'siteinfo', 'format': 'json'}), headers={'User-Agent': getUserAgent(), 'Accept-Encoding': 'gzip'})
     f = urllib2.urlopen(req)
-    result = json.loads(f.read())
+    if f.headers.get('Content-Encoding') and 'gzip' in f.headers.get('Content-Encoding'):
+        result = json.loads(gzip.GzipFile(fileobj=StringIO.StringIO(f.read())).read())
+    else:
+        result = json.loads(f.read())
     f.close()
     delay(config=config)
     print 'Checking api.php...', api
@@ -1014,9 +1044,12 @@ def checkAPI(api, config={}):
 def checkIndexphp(indexphp, config={}):
     """ Checking index.php availability """
     
-    req = urllib2.Request(url=indexphp, data=urllib.urlencode({'title': 'Special:Version', }), headers={'User-Agent': getUserAgent()})
+    req = urllib2.Request(url=indexphp, data=urllib.urlencode({'title': 'Special:Version', }), headers={'User-Agent': getUserAgent(), 'Accept-Encoding': 'gzip'})
     f = urllib2.urlopen(req)
-    raw = f.read()
+    if f.headers.get('Content-Encoding') and 'gzip' in f.headers.get('Content-Encoding'):
+        raw = gzip.GzipFile(fileobj=StringIO.StringIO(f.read())).read()
+    else:
+        raw = f.read()
     f.close()
     delay(config=config)
     print 'Checking index.php...', indexphp
@@ -1210,9 +1243,12 @@ def saveSpecialVersion(config={}):
         print 'Special:Version.html exists, do not overwrite'
     else:
         print 'Downloading Special:Version with extensions and other related info'
-        req = urllib2.Request(url=config['index'], data=urllib.urlencode({'title': 'Special:Version', }), headers={'User-Agent': getUserAgent()})
+        req = urllib2.Request(url=config['index'], data=urllib.urlencode({'title': 'Special:Version', }), headers={'User-Agent': getUserAgent(), 'Accept-Encoding': 'gzip'})
         f = urllib2.urlopen(req)
-        raw = f.read()
+        if f.headers.get('Content-Encoding') and 'gzip' in f.headers.get('Content-Encoding'):
+            raw = gzip.GzipFile(fileobj=StringIO.StringIO(f.read())).read()
+        else:
+            raw = f.read()
         f.close()
         delay(config=config)
         raw = removeIP(raw=raw)
@@ -1227,9 +1263,12 @@ def saveIndexPHP(config={}):
         print 'index.html exists, do not overwrite'
     else:
         print 'Downloading index.php (Main Page) as index.html'
-        req = urllib2.Request(url=config['index'], data=urllib.urlencode({}), headers={'User-Agent': getUserAgent()})
+        req = urllib2.Request(url=config['index'], data=urllib.urlencode({}), headers={'User-Agent': getUserAgent(), 'Accept-Encoding': 'gzip'})
         f = urllib2.urlopen(req)
-        raw = f.read()
+        if f.headers.get('Content-Encoding') and 'gzip' in f.headers.get('Content-Encoding'):
+            raw = gzip.GzipFile(fileobj=StringIO.StringIO(f.read())).read()
+        else:
+            raw = f.read()
         f.close()
         delay(config=config)
         raw = removeIP(raw=raw)
