@@ -1283,10 +1283,13 @@ def saveSiteInfo(config={}):
         if os.path.exists('%s/siteinfo.json' % (config['path'])):
             print 'siteinfo.json exists, do not overwrite'
         else:
-            print 'Downloading site info'
-            req = urllib2.Request(url=config['api'], data=urllib.urlencode({'action': 'query', 'meta': 'siteinfo', 'format': 'json'}), headers={'User-Agent': getUserAgent()})
+            print 'Downloading site info as siteinfo.json'
+            req = urllib2.Request(url=config['api'], data=urllib.urlencode({'action': 'query', 'meta': 'siteinfo', 'format': 'json'}), headers={'User-Agent': getUserAgent(), 'Accept-Encoding': 'gzip'})
             f = urllib2.urlopen(req)
-            result = json.loads(f.read())
+            if f.headers.get('Content-Encoding') and 'gzip' in f.headers.get('Content-Encoding'):
+                result = json.loads(gzip.GzipFile(fileobj=StringIO.StringIO(f.read())).read())
+            else:
+                result = json.loads(f.read())
             f.close()
             delay(config=config)
             f = open('%s/siteinfo.json' % (config['path']), 'w')
