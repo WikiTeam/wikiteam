@@ -654,7 +654,7 @@ def getImageFilenamesURLAPI(config={}):
     images = []
     while aifrom:
         sys.stderr.write('.') #progress
-        params = {'action': 'query', 'list': 'allimages', 'aiprop': 'url|user', 'aifrom': aifrom, 'format': 'xml', 'ailimit': 500}
+        params = {'action': 'query', 'list': 'allimages', 'aiprop': 'url|user', 'aifrom': aifrom, 'format': 'json', 'ailimit': 500}
         data = urllib.urlencode(params)
         req = urllib2.Request(url=config['api'], data=data, headers=headers)
         try:
@@ -669,35 +669,31 @@ def getImageFilenamesURLAPI(config={}):
                 print 'Please, resume the dump, --resume'
                 sys.exit()
         if f.headers.get('Content-Encoding') and 'gzip' in f.headers.get('Content-Encoding'):
-            xml = gzip.GzipFile(fileobj=StringIO.StringIO(f.read())).read()
+            jsonimages = json.loads(gzip.GzipFile(fileobj=StringIO.StringIO(f.read())).read())
         else:
-            xml = f.read()
+            jsonimages = json.loads(f.read())
         f.close()
+        print jsonimages
         delay(config=config)
-        # Match the query-continue, old and new format
-        m = re.findall(r'<allimages (?:aicontinue|aifrom)="([^>]+)" />', xml)
-        if m:
-            aifrom = undoHTMLEntities(text=m[0]) #&quot; = ", etc
-        else:
-            aifrom = ''
-        m = re.compile(r'(?im)<img name="(?P<filename>[^"]+)"[^>]*user="(?P<uploader>[^"]+)"[^>]* url="(?P<url>[^"]+)"[^>]*/>').finditer(xml) # Retrieves a filename, uploader, url triple from the name, user, url field of the xml line; space before url needed to avoid getting the descriptionurl field instead.
-        for i in m:
-            url = i.group('url')
+        aifrom = ''
+        if jsonimages.has_key('query-continue') and jsonimages['query-continue'].has_key('allimages'):
+            if jsontitles['query-continue']['allimages'].has_key('aicontinue'):
+                aifrom = jsonimages['query-continue']['allimages']['aicontinue'] 
+            elif jsontitles['query-continue']['allimages'].has_key('aifrom'):
+                aifrom = jsonimages['query-continue']['allimages']['aifrom']
+        #print aifrom
+        
+        for image in jsonimages['query']['allimages']:
+            url = image['url']
             if url[0] == '/' or (not url.startswith('http://') and not url.startswith('https://')): #is it a relative URL?
                 if url[0] == '/': #slash is added later
                     url = url[1:]
                 domainalone = config['index'].split('://')[1].split('/')[0] #remove from :// (http or https) until the first / after domain
                 url = '%s://%s/%s' % (config['index'].split('://')[0], domainalone, url) # concat http(s) + domain + relative url
-            url = undoHTMLEntities(text=url)
-            #url = urllib.unquote(url) #do not use unquote with url, it break some urls with odd chars
             url = re.sub(' ', '_', url)
-            filename = re.sub('_', ' ', i.group('filename'))
-            filename = undoHTMLEntities(text=filename)
-            filename = urllib.unquote(filename)
-            uploader = re.sub('_', ' ', i.group('uploader'))
-            uploader = undoHTMLEntities(text=uploader)
-            uploader = urllib.unquote(uploader)
-            images.append([filename, url, uploader])           
+            filename = re.sub('_', ' ', url.split('/')[-1])
+            uploader = re.sub('_', ' ', image['user'])
+            images.append([filename, url, uploader])
 
     if (len(images) == 1):
         print '    Found 1 image'
