@@ -1286,11 +1286,11 @@ def saveSiteInfo(config={}):
             print 'Downloading site info'
             req = urllib2.Request(url=config['api'], data=urllib.urlencode({'action': 'query', 'meta': 'siteinfo', 'format': 'json'}), headers={'User-Agent': getUserAgent()})
             f = urllib2.urlopen(req)
-            result = f.read()
+            result = json.loads(f.read())
             f.close()
             delay(config=config)
             f = open('%s/siteinfo.json' % (config['path']), 'w')
-            f.write(result)
+            f.write(json.dumps(result, indent=4, sort_keys=True))
             f.close()
 
 def avoidWikimediaProjects(config={}):
