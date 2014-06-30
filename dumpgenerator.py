@@ -552,8 +552,8 @@ def saveImageFilenamesURL(config={}, images=[]):
 
     imagesfilename = '%s-%s-images.txt' % (domain2prefix(config=config), config['date'])
     imagesfile = open('%s/%s' % (config['path'], imagesfilename), 'w')
-    imagesfile.write('\n'.join(['%s\t%s\t%s' % (filename, url, uploader) for filename, url, uploader in images]))
-    imagesfile.write('\n--END--')
+    output = u"%s\n--END--" % (u'\n'.join([u'%s\t%s\t%s' % (filename, url, uploader) for filename, url, uploader in images]))
+    imagesfile.write(output.encode('utf-8'))
     imagesfile.close()
     
     print 'Image filenames and URLs saved at...', imagesfilename
@@ -572,9 +572,9 @@ def getImageFilenamesURL(config={}):
         req = urllib2.Request(url=config['index'], data=urllib.urlencode({'title': 'Special:Imagelist', 'limit': limit, 'offset': offset, }), headers={'User-Agent': getUserAgent(), 'Accept-Encoding': 'gzip'})
         f = urllib2.urlopen(req)
         if f.headers.get('Content-Encoding') and 'gzip' in f.headers.get('Content-Encoding'):
-            raw = gzip.GzipFile(fileobj=StringIO.StringIO(f.read())).read()
+            raw = unicode(gzip.GzipFile(fileobj=StringIO.StringIO(f.read())).read(), 'utf-8')
         else:
-            raw = f.read()
+            raw = unicode(f.read(), 'utf-8')
         f.close()
         delay(config=config)
         if re.search(ur'(?i)(allowed memory size of \d+ bytes exhausted|Call to a member function getURL)', raw): # delicate wiki
@@ -618,7 +618,7 @@ def getImageFilenamesURL(config={}):
                 if url[0] == '/': #slash is added later
                     url = url[1:]
                 domainalone = config['index'].split('://')[1].split('/')[0] #remove from :// (http or https) until the first / after domain
-                url = '%s://%s/%s' % (config['index'].split('://')[0], domainalone, url) # concat http(s) + domain + relative url
+                url = u'%s://%s/%s' % (config['index'].split('://')[0], domainalone, url) # concat http(s) + domain + relative url
             url = undoHTMLEntities(text=url)
             #url = urllib.unquote(url) #do not use unquote with url, it break some urls with odd chars
             url = re.sub(' ', '_', url)
@@ -669,17 +669,17 @@ def getImageFilenamesURLAPI(config={}):
                 print 'Please, resume the dump, --resume'
                 sys.exit()
         if f.headers.get('Content-Encoding') and 'gzip' in f.headers.get('Content-Encoding'):
-            jsonimages = json.loads(gzip.GzipFile(fileobj=StringIO.StringIO(f.read())).read())
+            jsonimages = json.loads(unicode(gzip.GzipFile(fileobj=StringIO.StringIO(f.read())).read(), 'utf-8'))
         else:
-            jsonimages = json.loads(f.read())
+            jsonimages = json.loads(unicode(f.read(), 'utf-8'))
         f.close()
-        print jsonimages
+        #print jsonimages
         delay(config=config)
         aifrom = ''
         if jsonimages.has_key('query-continue') and jsonimages['query-continue'].has_key('allimages'):
-            if jsontitles['query-continue']['allimages'].has_key('aicontinue'):
+            if jsonimages['query-continue']['allimages'].has_key('aicontinue'):
                 aifrom = jsonimages['query-continue']['allimages']['aicontinue'] 
-            elif jsontitles['query-continue']['allimages'].has_key('aifrom'):
+            elif jsonimages['query-continue']['allimages'].has_key('aifrom'):
                 aifrom = jsonimages['query-continue']['allimages']['aifrom']
         #print aifrom
         
@@ -689,9 +689,13 @@ def getImageFilenamesURLAPI(config={}):
                 if url[0] == '/': #slash is added later
                     url = url[1:]
                 domainalone = config['index'].split('://')[1].split('/')[0] #remove from :// (http or https) until the first / after domain
-                url = '%s://%s/%s' % (config['index'].split('://')[0], domainalone, url) # concat http(s) + domain + relative url
+                url = u'%s://%s/%s' % (config['index'].split('://')[0], domainalone, url) # concat http(s) + domain + relative url
             url = re.sub(' ', '_', url)
-            filename = re.sub('_', ' ', url.split('/')[-1])
+            if image.has_key('name'):
+                filename = re.sub('_', ' ', image['name'])
+            else:
+                #some tips http://stackoverflow.com/questions/5139249/python-url-unquote-unicode
+                filename = re.sub('_', ' ', unicode(urllib2.unquote(url.encode('ascii')).split('/')[-1], 'utf-8'))
             uploader = re.sub('_', ' ', image['user'])
             images.append([filename, url, uploader])
 
@@ -750,11 +754,12 @@ def generateImageDump(config={}, other={}, images=[], start=''):
         class URLopenerUserAgent(urllib.FancyURLopener):
             version = "%s" % getUserAgent()
         urllib._urlopener = URLopenerUserAgent()
-        urllib.urlretrieve(url=url, filename='%s/%s' % (imagepath, filename2) )
+        filename3 = u'%s/%s' % (imagepath, filename2)
+        urllib.urlretrieve(url=url, filename=filename3.encode('utf-8'))
         # TODO: data=urllib.urlencode({}) removed image; request fails on wikipedia and POST neither works?
         
         #saving description if any
-        xmlfiledesc = getXMLFileDesc(config=config, title='Image:%s' % (filename)) # use Image: for backwards compatibility
+        xmlfiledesc = getXMLFileDesc(config=config, title=u'Image:%s' % (filename)) # use Image: for backwards compatibility
         f = open('%s/%s.desc' % (imagepath, filename2), 'w')
         if not re.search(r'</mediawiki>', xmlfiledesc): #<text xml:space="preserve" bytes="36">Banner featuring SG1, SGA, SGU teams</text>
             #failure when retrieving desc? then save it as empty .desc
@@ -1185,7 +1190,7 @@ def resumePreviousDump(config={}, other={}):
         lastimage = ''
         try:
             f = open('%s/%s-%s-images.txt' % (config['path'], domain2prefix(config=config), config['date']), 'r')
-            raw = f.read()
+            raw = unicode(f.read(), 'utf-8').strip()
             lines = raw.split('\n')
             for l in lines:
                 if re.search(r'\t', l):
@@ -1194,7 +1199,7 @@ def resumePreviousDump(config={}, other={}):
             f.close()
         except:
             pass #probably file doesnot exists
-        if lastimage == '--END--':
+        if lastimage == u'--END--':
             print 'Image list was completed in the previous session'
         else:
             print 'Image list is incomplete. Reloading...'
