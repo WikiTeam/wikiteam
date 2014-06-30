@@ -692,9 +692,11 @@ def getImageFilenamesURLAPI(config={}):
                 url = u'%s://%s/%s' % (config['index'].split('://')[0], domainalone, url) # concat http(s) + domain + relative url
             url = re.sub(' ', '_', url)
             if image.has_key('name'):
+                #some API returns image name http://hastur.net/w/api.php?action=query&list=allimages&aiprop=user|url&ailimit=10
                 filename = re.sub('_', ' ', image['name'])
             else:
-                #some tips http://stackoverflow.com/questions/5139249/python-url-unquote-unicode
+                #other not http://wiki.annotation.jp/api.php?action=query&list=allimages&aiprop=user|url&ailimit=10
+                #tips for dealing with unquote http://stackoverflow.com/questions/5139249/python-url-unquote-unicode
                 filename = re.sub('_', ' ', unicode(urllib2.unquote(url.encode('ascii')).split('/')[-1], 'utf-8'))
             uploader = re.sub('_', ' ', image['user'])
             images.append([filename, url, uploader])
