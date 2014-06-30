@@ -56,3 +56,25 @@ See more options:
 ### Download Wikimedia Commons images
 
 There is a script for this, but we have [uploaded the tarballs](https://archive.org/details/wikimediacommons) to Internet Archive, so it's more useful to reseed their torrents than to re-generate old ones with the script.
+
+## Developers
+
+You can run tests easily by using the [tox](https://pypi.python.org/pypi/tox) command.  It is probably present in your operating system distribution, you would need version 1.6.  At worth, you can download it from pypi with: `pip install tox`.
+
+Example usage:
+
+    $ tox
+    py27 runtests: commands[0] | nosetests --nocapture --nologcapture
+    Checking http://wiki.annotation.jp/api.php
+    Trying to parse かずさアノテーション - ソーシャル・ゲノム・アノテーション.jpg from API
+    Retrieving image filenames
+    .    Found 266 images
+    .
+    -------------------------------------------
+    Ran 1 test in 2.253s
+
+    OK
+    _________________ summary _________________
+      py27: commands succeeded
+      congratulations :)
+    $
