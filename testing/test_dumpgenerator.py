@@ -31,8 +31,13 @@ class TestDumpgenerator(unittest.TestCase):
             'api': 'http://wiki.annotation.jp/api.php', 
             'delay': 0, 
         }
+        japaneseFilename = u'かずさアノテーション - ソーシャル・ゲノム・アノテーション.jpg'
+        print 'Checking', config['api']
+        print 'Trying to parse', japaneseFilename, 'from API'
         result = getImageFilenamesURLAPI(config=config)
-        self.assertTrue(u'かずさアノテーション - ソーシャル・ゲノム・アノテーション.jpg' in [filename for filename, url, uploader in result])
+        
+        self.assertTrue(len(result) > 250)
+        self.assertTrue(japaneseFilename in [filename for filename, url, uploader in result])
 
 if __name__ == '__main__':
     #copying dumpgenerator.py to this directory
