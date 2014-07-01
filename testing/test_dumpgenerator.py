@@ -15,10 +15,14 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import json
+import requests
 import shutil
 import time
 import unittest
-from dumpgenerator import delay, getImageFilenamesURL, getImageFilenamesURLAPI
+import urllib
+import urllib2
+from dumpgenerator import delay, getImageFilenamesURL, getImageFilenamesURLAPI, getUserAgent
 
 class TestDumpgenerator(unittest.TestCase):
     #Documentation
@@ -26,49 +30,48 @@ class TestDumpgenerator(unittest.TestCase):
     #https://docs.python.org/2/library/unittest.html
     
     def test_delay(self):
-        # 0 delay
-        config = {'delay': 0}
-        t1 = time.time()
-        delay(config=config)
-        t2 = time.time() - t1
-        self.assertTrue(t2 > 0 and t2 < 0.001)
-        
-        # 3 sec delay
-        config = {'delay': 3}
-        t1 = time.time()
-        delay(config=config)
-        t2 = time.time() - t1
-        self.assertTrue(t2 > 3 and t2 < 3.001)
+        print '#'*73, '\n', 'test_delay', '\n', '#'*73
+        for i in [0, 1, 2, 3]:
+            print 'Testing delay:', i
+            config = {'delay': i}
+            t1 = time.time()
+            delay(config=config)
+            t2 = time.time() - t1
+            self.assertTrue(t2 > i and t2 < i + 1)
     
-    def test_getImageFilenamesURL(self):
-        #Checks if this filename かずさアノテーション_-_ソーシャル・ゲノム・アノテーション.jpg is well parsed from API
-        #http://wiki.annotation.jp/images/0/02/%E3%81%8B%E3%81%9A%E3%81%95%E3%82%A2%E3%83%8E%E3%83%86%E3%83%BC%E3%82%B7%E3%83%A7%E3%83%B3_-_%E3%82%BD%E3%83%BC%E3%82%B7%E3%83%A3%E3%83%AB%E3%83%BB%E3%82%B2%E3%83%8E%E3%83%A0%E3%83%BB%E3%82%A2%E3%83%8E%E3%83%86%E3%83%BC%E3%82%B7%E3%83%A7%E3%83%B3.jpg
-        config = {
-            'index': 'http://wiki.annotation.jp/index.php', 
-            'delay': 0, 
-        }
-        japaneseFilename = u'かずさアノテーション - ソーシャル・ゲノム・アノテーション.jpg'
-        print 'Checking', config['index']
-        print 'Trying to parse', japaneseFilename, 'without API'
-        result = getImageFilenamesURL(config=config)
-        
-        self.assertTrue(len(result) > 250)
-        self.assertTrue(japaneseFilename in [filename for filename, url, uploader in result])
-
-    def test_getImageFilenamesURLAPI(self):
-        #Checks if this filename かずさアノテーション_-_ソーシャル・ゲノム・アノテーション.jpg is well parsed from API
-        #http://wiki.annotation.jp/images/0/02/%E3%81%8B%E3%81%9A%E3%81%95%E3%82%A2%E3%83%8E%E3%83%86%E3%83%BC%E3%82%B7%E3%83%A7%E3%83%B3_-_%E3%82%BD%E3%83%BC%E3%82%B7%E3%83%A3%E3%83%AB%E3%83%BB%E3%82%B2%E3%83%8E%E3%83%A0%E3%83%BB%E3%82%A2%E3%83%8E%E3%83%86%E3%83%BC%E3%82%B7%E3%83%A7%E3%83%B3.jpg
-        config = {
-            'api': 'http://wiki.annotation.jp/api.php', 
-            'delay': 0, 
-        }
-        japaneseFilename = u'かずさアノテーション - ソーシャル・ゲノム・アノテーション.jpg'
-        print 'Checking', config['api']
-        print 'Trying to parse', japaneseFilename, 'from API'
-        result = getImageFilenamesURLAPI(config=config)
-        
-        self.assertTrue(len(result) > 250)
-        self.assertTrue(japaneseFilename in [filename for filename, url, uploader in result])
+    def test_getImages(self):
+        print '#'*73, '\n', 'test_getImages', '\n', '#'*73
+        tests = [
+            ['http://wiki.annotation.jp/index.php', 'http://wiki.annotation.jp/api.php', u'かずさアノテーション - ソーシャル・ゲノム・アノテーション.jpg'], 
+            ['http://archiveteam.org/index.php', 'http://archiveteam.org/api.php', u'Archive-is 2013-07-02 17-05-40.png'],
+        ]
+        for index, api, filetocheck in tests:
+            print '\n'
+            #testing with API
+            config_api = {'api': api, 'delay': 0}
+            req = urllib2.Request(url=api, data=urllib.urlencode({'action': 'query', 'meta': 'siteinfo', 'siprop': 'statistics', 'format': 'json'}), headers={'User-Agent': getUserAgent()})
+            f = urllib2.urlopen(req)
+            imagecount = int(json.loads(f.read())['query']['statistics']['images'])
+            f.close()
+    
+            print 'Testing', config_api['api']
+            print 'Trying to parse', filetocheck, 'with API'
+            result_api = getImageFilenamesURLAPI(config=config_api)
+            self.assertTrue(len(result_api) == imagecount)
+            self.assertTrue(filetocheck in [filename for filename, url, uploader in result_api])
+            
+            #testing with index
+            config_index = {'index': index, 'delay': 0}
+            req = urllib2.Request(url=api, data=urllib.urlencode({'action': 'query', 'meta': 'siteinfo', 'siprop': 'statistics', 'format': 'json'}), headers={'User-Agent': getUserAgent()})
+            f = urllib2.urlopen(req)
+            imagecount = int(json.loads(f.read())['query']['statistics']['images'])
+            f.close()
+    
+            print 'Testing', config_index['index']
+            print 'Trying to parse', filetocheck, 'with index'
+            result_index = getImageFilenamesURL(config=config_index)
+            self.assertTrue(len(result_index) == imagecount)
+            self.assertTrue(filetocheck in [filename for filename, url, uploader in result_index])
 
 if __name__ == '__main__':
     #copying dumpgenerator.py to this directory
