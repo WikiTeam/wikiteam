@@ -16,13 +16,29 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import shutil
+import time
 import unittest
-from dumpgenerator import getImageFilenamesURLAPI
+from dumpgenerator import delay, getImageFilenamesURLAPI
 
 class TestDumpgenerator(unittest.TestCase):
     #Documentation
     #http://revista.python.org.ar/1/html/unittest.html
     #https://docs.python.org/2/library/unittest.html
+    
+    def test_delay(self):
+        # 0 delay
+        config = {'delay': 0}
+        t1 = time.time()
+        delay(config=config)
+        t2 = time.time() - t1
+        self.assertTrue(t2 > 0 and t2 < 0.001)
+        
+        # 3 sec delay
+        config = {'delay': 3}
+        t1 = time.time()
+        delay(config=config)
+        t2 = time.time() - t1
+        self.assertTrue(t2 > 3 and t2 < 3.001)
     
     def test_getImageFilenamesURLAPI(self):
         #Checks if this filename かずさアノテーション_-_ソーシャル・ゲノム・アノテーション.jpg is well parsed from API
