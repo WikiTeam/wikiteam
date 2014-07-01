@@ -22,7 +22,12 @@
 import cookielib
 import cPickle
 import datetime
-import argparse
+import sys
+try:
+    import argparse
+except ImportError:
+    print "Please install the argparse module."
+    sys.exit(1)
 import json
 try:
     from hashlib import md5
@@ -30,9 +35,12 @@ except ImportError:             # Python 2.4 compatibility
     from md5 import new as md5
 import os
 import re
-import requests
+try:
+    import requests
+except ImportError:
+    print "Please install or update the Requests module."
+    sys.exit(1)
 import subprocess
-import sys
 import time
 import urllib
 
@@ -73,13 +81,45 @@ def cleanHTML(raw=''):
         sys.exit()
     return raw
 
+def handleStatusCode(response):
+    statuscode = response.status_code
+    if statuscode >= 200 and statuscode < 300:
+        return
+
+    print "HTTP Error %d." % statuscode
+    if statuscode >= 300 and statuscode < 400:
+        print "Redirect should happen automatically: please report this as a bug."
+        print response.url
+
+    elif statuscode == 400:
+        print "Bad Request: The wiki may be malfunctioning."
+        print "Please try again later."
+        print response.url
+        sys.exit(1)
+
+    elif statuscode == 401 or statuscode == 403:
+        print "Authentication required."
+        print "Please use --userpass."
+        print response.url
+
+    elif statuscode == 404:
+        print "Not found. Is Special:Export enabled for this wiki?"
+        print response.url
+        sys.exit(1)
+
+    elif statuscode == 429 or (statuscode >= 500 and statuscode < 600):
+        print "Server error, max retries exceeded."
+        print "Please resume the dump later."
+        print response.url
+        sys.exit(1)
+
 def getNamespacesScraper(config={}, session=None):
     """ Hackishly gets the list of namespaces names and ids from the dropdown in the HTML of Special:AllPages """
     """ Function called if no API is available """
     namespaces = config['namespaces']
     namespacenames = {0:''} # main is 0, no prefix
     if namespaces:
-        r = session.post(url=config['index'], data={'title': 'Special:Allpages', }, headers={'User-Agent': getUserAgent()})
+        r = session.post(url=config['index'], data={'title': 'Special:Allpages'})
         raw = r.text
         delay(config=config, session=session)
 
@@ -109,7 +149,7 @@ def getNamespacesAPI(config={}, session=None):
     namespaces = config['namespaces']
     namespacenames = {0:''} # main is 0, no prefix
     if namespaces:
-        r = session.post(url=config['api'], data={'action': 'query', 'meta': 'siteinfo', 'siprop': 'namespaces', 'format': 'json'}, headers={'User-Agent': getUserAgent()})
+        r = session.post(url=config['api'], data={'action': 'query', 'meta': 'siteinfo', 'siprop': 'namespaces', 'format': 'json'})
         result = json.loads(r.text)
         delay(config=config, session=session)
 
@@ -148,12 +188,12 @@ def getPageTitlesAPI(config={}, session=None):
         
         c = 0
         print '    Retrieving titles in the namespace %d' % (namespace)
-        headers = {'User-Agent': getUserAgent()}
         apfrom = '!'
         while apfrom:
             sys.stderr.write('.') #progress
             params = {'action': 'query', 'list': 'allpages', 'apnamespace': namespace, 'apfrom': apfrom.encode('utf-8'), 'format': 'json', 'aplimit': 500}
-            r = session.post(url=config['api'], data=params, headers=headers)
+            r = session.post(url=config['api'], data=params)
+            handleStatusCode(r)
             #FIXME Handle HTTP errors here!
             jsontitles = json.loads(r.text)
             apfrom = ''
@@ -182,7 +222,7 @@ def getPageTitlesScraper(config={}, session=None):
     for namespace in namespaces:
         print '    Retrieving titles in the namespace', namespace
         url = '%s?title=Special:Allpages&namespace=%s' % (config['index'], namespace)
-        r = session.get(url=url, headers={'User-Agent': getUserAgent()})
+        r = session.get(url=url)
         raw = r.text
         raw = cleanHTML(raw)
         
@@ -219,7 +259,7 @@ def getPageTitlesScraper(config={}, session=None):
                 if not name in checked_suballpages:
                     checked_suballpages.append(name) #to avoid reload dupe subpages links
                     delay(config=config, session=session)
-                    r2 = session.get(url=url, headers={'User-Agent': getUserAgent()})
+                    r2 = session.get(url=url)
                     raw2 = r2.text
                     raw2 = cleanHTML(raw2)
                     rawacum += raw2 #merge it after removed junk
@@ -327,6 +367,7 @@ def getXMLPageCore(headers={}, params={}, config={}, session=None):
                 return '' # empty xml
         #FIXME HANDLE HTTP Errors HERE
         r = session.post(url=config['index'], data=params, headers=headers)
+        handleStatusCode(r)
         xml = r.text
         c += 1
     
@@ -343,8 +384,7 @@ def getXMLPage(config={}, title='', verbose=True, session=None):
     title_ = title
     title_ = re.sub(' ', '_', title_)
     #do not convert & into %26, title_ = re.sub('&', '%26', title_)
-    headers = {'User-Agent': getUserAgent()}
-    params = {'title': 'Special:Export', 'pages': title_, 'action': 'submit', }
+    params = {'title': 'Special:Export', 'pages': title_, 'action': 'submit'}
     if config['curonly']:
         params['curonly'] = 1
         params['limit'] = 1
@@ -354,7 +394,7 @@ def getXMLPage(config={}, title='', verbose=True, session=None):
     if config.has_key('templates') and config['templates']: #in other case, do not set params['templates']
         params['templates'] = 1
     
-    xml = getXMLPageCore(headers=headers, params=params, config=config, session=session)
+    xml = getXMLPageCore(params=params, config=config, session=session)
 
     #if complete history, check if this page history has > limit edits, if so, retrieve all using offset if available
     #else, warning about Special:Export truncating large page histories
@@ -362,7 +402,7 @@ def getXMLPage(config={}, title='', verbose=True, session=None):
     if not config['curonly'] and re.search(r_timestamp, xml): # search for timestamps in xml to avoid analysing empty pages like Special:Allpages and the random one
         while not truncated and params['offset']: #next chunk
             params['offset'] = re.findall(r_timestamp, xml)[-1] #get the last timestamp from the acum XML
-            xml2 = getXMLPageCore(headers=headers, params=params, config=config, session=session)
+            xml2 = getXMLPageCore(params=params, config=config, session=session)
             
             if re.findall(r_timestamp, xml2): #are there more edits in this next XML chunk or no <page></page>?
                 if re.findall(r_timestamp, xml2)[-1] == params['offset']:
@@ -498,7 +538,7 @@ def getImageFilenamesURL(config={}, session=None):
     retries = 5
     while offset:
         #5000 overload some servers, but it is needed for sites like this with no next links http://www.memoryarchive.org/en/index.php?title=Special:Imagelist&sort=byname&limit=50&wpIlMatch=
-        r = session.post(url=config['index'], data={'title': 'Special:Imagelist', 'limit': limit, 'offset': offset, }, headers={'User-Agent': getUserAgent()})
+        r = session.post(url=config['index'], data={'title': 'Special:Imagelist', 'limit': limit, 'offset': offset})
         raw = r.text
         delay(config=config, session=session)
         if re.search(ur'(?i)(allowed memory size of \d+ bytes exhausted|Call to a member function getURL)', raw): # delicate wiki
@@ -573,14 +613,14 @@ def getImageFilenamesURLAPI(config={}, session=None):
     """ Retrieve file list: filename, url, uploader """
     
     print 'Retrieving image filenames'
-    headers = {'User-Agent': getUserAgent()}
     aifrom = '!'
     images = []
     while aifrom:
         sys.stderr.write('.') #progress
         params = {'action': 'query', 'list': 'allimages', 'aiprop': 'url|user', 'aifrom': aifrom, 'format': 'json', 'ailimit': 500}
         #FIXME Handle HTTP Errors HERE
-        r = session.post(url=config['api'], data=params, headers=headers)
+        r = session.post(url=config['api'], data=params)
+        handleStatusCode(r)
         jsonimages = json.loads(r.text)
         delay(config=config, session=session)
         aifrom = ''
@@ -651,18 +691,11 @@ def generateImageDump(config={}, other={}, images=[], start='', session=None):
             # split last . (extension) and then merge
             filename2 = truncateFilename(other=other, filename=filename2)
             print 'Filename is too long, truncating. Now it is:', filename2
-        # We need to set the user agent for urlretrieve but we can't do it in its call
-        # so we just override the class here; all I know about this method comes from
-        # http://docs.python.org/2/library/urllib.html#urllib._urlopener ,
-        # http://docs.python.org/2/tutorial/classes.html#class-definition-syntax .
-        # TODO: Override the user agent for all functions in a more sensible place.
-        class URLopenerUserAgent(urllib.FancyURLopener):
-            version = "%s" % getUserAgent()
-        urllib._urlopener = URLopenerUserAgent()
         filename3 = u'%s/%s' % (imagepath, filename2)
-        urllib.urlretrieve(url=url, filename=filename3.encode('utf-8'))
-        # TODO: data=urllib.urlencode({}) removed image; request fails on wikipedia and POST neither works?
-        
+        imagefile = open(filename3, 'wb')
+        r = requests.get(url=url)
+        imagefile.write(r.content)
+        imagefile.close()
         #saving description if any
         xmlfiledesc = getXMLFileDesc(config=config, title=u'Image:%s' % (filename), session=session) # use Image: for backwards compatibility
         f = open('%s/%s.desc' % (imagepath, filename2), 'w')
@@ -787,8 +820,9 @@ def getParameters(params=[]):
     parser.add_argument('-v', '--version', action='version', version=getVersion())
     parser.add_argument('--cookies', metavar="cookies.txt", help="path to a cookies.txt file")
     parser.add_argument('--delay', metavar=5, default=0, help="adds a delay (in seconds)")
+    parser.add_argument('--retries', metavar=5, default=5, help="Maximum number of retries for ")
     parser.add_argument('--get-wiki-engine', action='store_true', help="returns the wiki engine")
-    
+
     groupWikiOrAPIOrIndex = parser.add_mutually_exclusive_group(required=True)
     groupWikiOrAPIOrIndex.add_argument('wiki', default='', nargs='?', help="URL to wiki")
     groupWikiOrAPIOrIndex.add_argument('--api', help="URL to api.php")
@@ -805,6 +839,9 @@ def getParameters(params=[]):
     parser.add_argument('--force', action='store_true', help='')
     parser.add_argument('--namespaces', metavar="1,2,3", help='comma-separated value of namespaces to include (all by default)')
     parser.add_argument('--exnamespaces', metavar="1,2,3", help='comma-separated value of namespaces to exclude')
+    
+    parser.add_argument('--user', help='Username if authentication is required.')
+    parser.add_argument('--pass', dest='password', help='Password if authentication is required.')
     
     args = parser.parse_args()
     #print args
@@ -825,6 +862,12 @@ def getParameters(params=[]):
     # check index URL
     if args.index and (not args.index.startswith('http://') and not args.index.startswith('https://')):
         print 'ERROR: URL to index.php must start with http:// or https://\n'
+        parser.print_usage()
+        sys.exit(1)
+        
+    # check user and pass (one requires both)
+    if (args.user and not args.password) or (args.password and not args.user):
+        print 'Both --user and --pass are required for authentication.'
         parser.print_usage()
         sys.exit(1)
 
@@ -877,6 +920,9 @@ def getParameters(params=[]):
     session = requests.Session()
     session.cookies = cj
     session.headers = {'User-Agent': getUserAgent()}
+    if args.user and args.password:
+        session.auth = (args.user, args.password)
+    #session.mount(args.api.split('/api.php')[0], HTTPAdapter(max_retries=max_ret))
 
     config = {
         'curonly': args.curonly,
@@ -924,7 +970,7 @@ def getParameters(params=[]):
 def checkAPI(api, config={}, session=None):
     """ Checking API availability """
     global cj
-    r = session.post(url=api, data={'action': 'query', 'meta': 'siteinfo', 'format': 'json'}, headers={'User-Agent': getUserAgent()})
+    r = session.post(url=api, data={'action': 'query', 'meta': 'siteinfo', 'format': 'json'})
     resultText = r.text
     print 'Checking api.php...', api
     if "MediaWiki API is not enabled for this site." in resultText:
@@ -937,7 +983,7 @@ def checkAPI(api, config={}, session=None):
 
 def checkIndexphp(indexphp, config={}, session=None):
     """ Checking index.php availability """
-    r = session.post(url=indexphp, data={'title': 'Special:Version'}, headers={'User-Agent': getUserAgent()})
+    r = session.post(url=indexphp, data={'title': 'Special:Version'})
     raw = r.text
     delay(config=config, session=session)
     print 'Checking index.php...', indexphp
@@ -1021,7 +1067,7 @@ def resumePreviousDump(config={}, other={}):
         #load titles
         lasttitle = ''
         try:
-            f = open('%s/%s-%s-titles.txt' % (config['path'], domain2prefix(config=config, session=session), config['date']), 'r')
+            f = open('%s/%s-%s-titles.txt' % (config['path'], domain2prefix(config=config, session=other['session']), config['date']), 'r')
             raw = unicode(f.read(), 'utf-8')
             titles = raw.split('\n')
             lasttitle = titles[-1]
@@ -1042,7 +1088,7 @@ def resumePreviousDump(config={}, other={}):
         xmliscomplete = False
         lastxmltitle = ''
         try:
-            f = open('%s/%s-%s-%s.xml' % (config['path'], domain2prefix(config=config, session=session), config['date'], config['curonly'] and 'current' or 'history'), 'r')
+            f = open('%s/%s-%s-%s.xml' % (config['path'], domain2prefix(config=config, session=other['session']), config['date'], config['curonly'] and 'current' or 'history'), 'r')
             for l in f:
                 if re.findall('</mediawiki>', l):
                     #xml dump is complete
@@ -1062,17 +1108,17 @@ def resumePreviousDump(config={}, other={}):
         elif lastxmltitle:
             #resuming...
             print 'Resuming XML dump from "%s"' % (lastxmltitle)
-            generateXMLDump(config=config, titles=titles, start=lastxmltitle)
+            generateXMLDump(config=config, titles=titles, start=lastxmltitle, session=other['session'])
         else:
             #corrupt? only has XML header?
             print 'XML is corrupt? Regenerating...'
-            generateXMLDump(config=config, titles=titles)
+            generateXMLDump(config=config, titles=titles, session=other['session'])
     
     if config['images']:
         #load images
         lastimage = ''
         try:
-            f = open('%s/%s-%s-images.txt' % (config['path'], domain2prefix(config=config, session=session), config['date']), 'r')
+            f = open('%s/%s-%s-images.txt' % (config['path'], domain2prefix(config=config), config['date']), 'r')
             raw = unicode(f.read(), 'utf-8').strip()
             lines = raw.split('\n')
             for l in lines:
@@ -1088,9 +1134,9 @@ def resumePreviousDump(config={}, other={}):
             print 'Image list is incomplete. Reloading...'
             #do not resume, reload, to avoid inconsistences, deleted images or so
             if config['api']:
-                images=getImageFilenamesURLAPI(config=config, session=session)
+                images=getImageFilenamesURLAPI(config=config, session=other['session'])
             else:
-                images = getImageFilenamesURL(config=config, session=session)
+                images = getImageFilenamesURL(config=config, session=other['session'])
             saveImageFilenamesURL(config=config, images=images)
         #checking images directory
         listdir = []
@@ -1118,7 +1164,7 @@ def resumePreviousDump(config={}, other={}):
             #image dump is complete
             print 'Image dump was completed in the previous session'
         else:
-            generateImageDump(config=config, other=other, images=images, start=lastfilename2) # we resume from previous image, which may be corrupted (or missing .desc)  by the previous session ctrl-c or abort
+            generateImageDump(config=config, other=other, images=images, start=lastfilename2, session=other['session']) # we resume from previous image, which may be corrupted (or missing .desc)  by the previous session ctrl-c or abort
     
     if config['logs']:
         #fix
@@ -1131,7 +1177,7 @@ def saveSpecialVersion(config={}, session=None):
         print 'Special:Version.html exists, do not overwrite'
     else:
         print 'Downloading Special:Version with extensions and other related info'
-        r = session.post(url=config['index'], data={'title': 'Special:Version', }, headers={'User-Agent': getUserAgent()})
+        r = session.post(url=config['index'], data={'title': 'Special:Version'})
         raw = r.text
         delay(config=config, session=session)
         raw = removeIP(raw=raw)
@@ -1146,7 +1192,7 @@ def saveIndexPHP(config={}, session=None):
         print 'index.html exists, do not overwrite'
     else:
         print 'Downloading index.php (Main Page) as index.html'
-        r = session.post(url=config['index'], data={}, headers={'User-Agent': getUserAgent()})
+        r = session.post(url=config['index'], data={})
         raw = r.text
         delay(config=config, session=session)
         raw = removeIP(raw=raw)
@@ -1162,7 +1208,7 @@ def saveSiteInfo(config={}, session=None):
             print 'siteinfo.json exists, do not overwrite'
         else:
             print 'Downloading site info as siteinfo.json'
-            r = session.post(url=config['api'], data = {'action': 'query', 'meta': 'siteinfo', 'format': 'json'}, headers={'User-Agent': getUserAgent()})
+            r = session.post(url=config['api'], data = {'action': 'query', 'meta': 'siteinfo', 'format': 'json'})
             result = json.loads(r.text)
             delay(config=config, session=session)
             f = open('%s/siteinfo.json' % (config['path']), 'w')
@@ -1205,7 +1251,6 @@ def main(params=[]):
     """ Main function """
     
     configfilename = 'config.txt'
-    session = requests.Session()
     config, other = getParameters(params=params)
     avoidWikimediaProjects(config=config, other=other)
     
