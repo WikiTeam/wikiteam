@@ -1,7 +1,8 @@
 Wikifarm: http://meta.orain.org/wiki/Main_Page
-Last update: unknown
+Last update: 2014-07-02
 
 Details:
 
 There is a dynamic list http://meta.orain.org/wiki/Special:SiteMatrix
 
+Run script: python orain-spider.py > newlist
