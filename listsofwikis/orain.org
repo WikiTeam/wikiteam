@@ -59,3 +59,4 @@ http://wikinambas.orain.org/w/api.php
 http://wikiteam.orain.org/w/api.php
 http://worldpedia.orain.org/w/api.php
 http://yuewikivoyage.orain.org/w/api.php
+
