@@ -38,7 +38,7 @@ import time
 import urllib
 import urllib2
 
-__VERSION__ = '0.2.1'
+__VERSION__ = '0.2.2' #major, minor, micro
 
 def getVersion():
     return(__VERSION__)
@@ -837,17 +837,17 @@ def welcome():
     message = ''
     """ Opening message """
     message += "#"*73
-    message += '\n'
-    message += """# Welcome to DumpGenerator 0.2 by WikiTeam (GPL v3)                     #
-# More info at: https://github.com/WikiTeam/wikiteam                    #"""
+    message += """
+# Welcome to DumpGenerator %s by WikiTeam (GPL v3)                   #
+# More info at: https://github.com/WikiTeam/wikiteam                    #""" % (getVersion())
     message += "\n"
     message += "#"*73
     message += "\n"
     message += ''
     message += "\n" 
     message += "#"*73
-    message += "\n"
-    message += """# Copyright (C) 2011-2014 WikiTeam                                      #
+    message += """
+# Copyright (C) 2011-2014 WikiTeam                                      #
 # This program is free software: you can redistribute it and/or modify  #
 # it under the terms of the GNU General Public License as published by  #
 # the Free Software Foundation, either version 3 of the License, or     #
@@ -879,27 +879,27 @@ def getParameters(params=[]):
     if not params:
         params = sys.argv
 
-    parser = argparse.ArgumentParser(description=welcome())
+    parser = argparse.ArgumentParser(description='')
     
     parser.add_argument('-v', '--version', action='version', version=(params[0] + " version " + getVersion()))
-    parser.add_argument('--cookies', metavar="cookies.txt", help="Path to a cookies.txt file.")
+    parser.add_argument('--cookies', metavar="cookies.txt", help="path to a cookies.txt file")
     parser.add_argument('--delay', metavar=5, default=0, help="adds a delay (in seconds)")
     
     groupAPIOrIndex = parser.add_mutually_exclusive_group(required=True)
-    groupAPIOrIndex.add_argument('--api', help="URL to api.php.")
-    groupAPIOrIndex.add_argument('--index', help="URL to index.php.")
+    groupAPIOrIndex.add_argument('--api', help="URL to api.php")
+    groupAPIOrIndex.add_argument('--index', help="URL to index.php")
     
     groupXMLOrImages = parser.add_argument_group()
-    groupXMLOrImages.add_argument('--xml', action='store_true', help="Generates an XML dump. Retrieves full history of all pages (if you want only the current version use --xml --curonly)")
-    parser.add_argument('--curonly', action='store_true', help='Store only the current version of pages.')
+    groupXMLOrImages.add_argument('--xml', action='store_true', help="generates a full history XML dump (--xml --curonly for current revisions only)")
+    parser.add_argument('--curonly', action='store_true', help='store only the current version of pages')
 
-    groupXMLOrImages.add_argument('--images', action='store_true', help="Generates an image dump")
+    groupXMLOrImages.add_argument('--images', action='store_true', help="generates an image dump")
     
-    parser.add_argument('--path', help='Path to store wiki dump at.')
-    parser.add_argument('--resume', action='store_true', help='Resumes previous incomplete dump. Requires --path.')
-    parser.add_argument('--force', action='store_true')
-    parser.add_argument('--namespaces', metavar="1,2,3", help='Comma-separated value of namespaces to include (all by default)')
-    parser.add_argument('--exnamespaces', metavar="1,2,3", help='Comma-separated value of namespaces to exclude')
+    parser.add_argument('--path', help='path to store wiki dump at')
+    parser.add_argument('--resume', action='store_true', help='resumes previous incomplete dump (requires --path)')
+    parser.add_argument('--force', action='store_true', help='')
+    parser.add_argument('--namespaces', metavar="1,2,3", help='comma-separated value of namespaces to include (all by default)')
+    parser.add_argument('--exnamespaces', metavar="1,2,3", help='comma-separated value of namespaces to exclude')
     
     args = parser.parse_args()
     
