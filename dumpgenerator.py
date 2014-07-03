@@ -22,53 +22,39 @@
 import cookielib
 import cPickle
 import datetime
-import argparse
+import sys
+try:
+    import argparse
+except ImportError:
+    print "Please install the argparse module."
+    sys.exit(1)
 import json
-import gzip
 try:
     from hashlib import md5
 except ImportError:             # Python 2.4 compatibility
     from md5 import new as md5
 import os
 import re
-import StringIO
+try:
+    import requests
+except ImportError:
+    print "Please install or update the Requests module."
+    sys.exit(1)
 import subprocess
-import sys
 import time
 import urllib
-import urllib2
 
 __VERSION__ = '0.2.2' #major, minor, micro
 
 def getVersion():
     return(__VERSION__)
 
-# This class is from https://github.com/crustymonkey/py-sonic/blob/master/libsonic/connection.py#L50
-class POSTHTTPRedirectHandler(urllib2.HTTPRedirectHandler):
-    def redirect_request(self, req, fp, code, msg, headers, newurl):
-        m = req.get_method()
-        if (code in (301, 302, 303, 307) and m in ("GET", "HEAD")
-            or code in (301, 302, 303, 307) and m == "POST"):
-            newurl = newurl.replace(' ', '%20')
-            newheaders = dict((k,v) for k,v in req.headers.items()
-                              if k.lower() not in ("content-length", "content-type")
-                             )
-            data = None
-            if req.has_data():
-                data = req.get_data()
-            return urllib2.Request(newurl,
-                           data=data,
-                           headers=newheaders,
-                           origin_req_host=req.get_origin_req_host(),
-                           unverifiable=True)
-        else:
-            raise urllib2.HTTPError(req.get_full_url(), code, msg, headers, fp)
 
 def truncateFilename(other={}, filename=''):
     """ Truncate filenames when downloading images with large filenames """
     return filename[:other['filenamelimit']] + md5(filename).hexdigest() + '.' + filename.split('.')[-1]
 
-def delay(config={}):
+def delay(config={}, session=None):
     """ Add a delay if configured for that """
     if config['delay'] > 0:
         print 'Sleeping... %d seconds...' % (config['delay'])
@@ -95,20 +81,47 @@ def cleanHTML(raw=''):
         sys.exit()
     return raw
 
-def getNamespacesScraper(config={}):
+def handleStatusCode(response):
+    statuscode = response.status_code
+    if statuscode >= 200 and statuscode < 300:
+        return
+
+    print "HTTP Error %d." % statuscode
+    if statuscode >= 300 and statuscode < 400:
+        print "Redirect should happen automatically: please report this as a bug."
+        print response.url
+
+    elif statuscode == 400:
+        print "Bad Request: The wiki may be malfunctioning."
+        print "Please try again later."
+        print response.url
+        sys.exit(1)
+
+    elif statuscode == 401 or statuscode == 403:
+        print "Authentication required."
+        print "Please use --userpass."
+        print response.url
+
+    elif statuscode == 404:
+        print "Not found. Is Special:Export enabled for this wiki?"
+        print response.url
+        sys.exit(1)
+
+    elif statuscode == 429 or (statuscode >= 500 and statuscode < 600):
+        print "Server error, max retries exceeded."
+        print "Please resume the dump later."
+        print response.url
+        sys.exit(1)
+
+def getNamespacesScraper(config={}, session=None):
     """ Hackishly gets the list of namespaces names and ids from the dropdown in the HTML of Special:AllPages """
     """ Function called if no API is available """
     namespaces = config['namespaces']
     namespacenames = {0:''} # main is 0, no prefix
     if namespaces:
-        req = urllib2.Request(url=config['index'], data=urllib.urlencode({'title': 'Special:Allpages', }), headers={'User-Agent': getUserAgent(), 'Accept-Encoding': 'gzip'})
-        f = urllib2.urlopen(req)
-        if f.headers.get('Content-Encoding') and 'gzip' in f.headers.get('Content-Encoding'):
-            raw = gzip.GzipFile(fileobj=StringIO.StringIO(f.read())).read()
-        else:
-            raw = f.read()
-        f.close()
-        delay(config=config)
+        r = session.post(url=config['index'], data={'title': 'Special:Allpages'})
+        raw = r.text
+        delay(config=config, session=session)
 
         m = re.compile(r'<option [^>]*?value="(?P<namespaceid>\d+)"[^>]*?>(?P<namespacename>[^<]+)</option>').finditer(raw) # [^>]*? to include selected="selected"
         if 'all' in namespaces:
@@ -131,19 +144,14 @@ def getNamespacesScraper(config={}):
     print '%d namespaces found' % (len(namespaces))
     return namespaces, namespacenames
     
-def getNamespacesAPI(config={}):
+def getNamespacesAPI(config={}, session=None):
     """ Uses the API to get the list of namespaces names and ids """
     namespaces = config['namespaces']
     namespacenames = {0:''} # main is 0, no prefix
     if namespaces:
-        req = urllib2.Request(url=config['api'], data=urllib.urlencode({'action': 'query', 'meta': 'siteinfo', 'siprop': 'namespaces', 'format': 'json'}), headers={'User-Agent': getUserAgent(), 'Accept-Encoding': 'gzip'})
-        f = urllib2.urlopen(req)
-        if f.headers.get('Content-Encoding') and 'gzip' in f.headers.get('Content-Encoding'):
-            result = json.loads(gzip.GzipFile(fileobj=StringIO.StringIO(f.read())).read())
-        else:
-            result = json.loads(f.read())
-        f.close()
-        delay(config=config)
+        r = session.post(url=config['api'], data={'action': 'query', 'meta': 'siteinfo', 'siprop': 'namespaces', 'format': 'json'})
+        result = json.loads(r.text)
+        delay(config=config, session=session)
 
         if 'all' in namespaces:
             namespaces = []
@@ -169,10 +177,10 @@ def getNamespacesAPI(config={}):
     print '%d namespaces found' % (len(namespaces))
     return namespaces, namespacenames
 
-def getPageTitlesAPI(config={}):
+def getPageTitlesAPI(config={}, session=None):
     """ Uses the API to get the list of page titles """
     titles = []
-    namespaces, namespacenames = getNamespacesAPI(config=config)
+    namespaces, namespacenames = getNamespacesAPI(config=config, session=session)
     for namespace in namespaces:
         if namespace in config['exnamespaces']:
             print '    Skipping namespace = %d' % (namespace)
@@ -180,29 +188,14 @@ def getPageTitlesAPI(config={}):
         
         c = 0
         print '    Retrieving titles in the namespace %d' % (namespace)
-        headers = {'User-Agent': getUserAgent(), 'Accept-Encoding': 'gzip'}
         apfrom = '!'
         while apfrom:
             sys.stderr.write('.') #progress
             params = {'action': 'query', 'list': 'allpages', 'apnamespace': namespace, 'apfrom': apfrom.encode('utf-8'), 'format': 'json', 'aplimit': 500}
-            data = urllib.urlencode(params)
-            req = urllib2.Request(url=config['api'], data=data, headers=headers)
-            try:
-                f = urllib2.urlopen(req)
-            except:
-                try:
-                    print '(1) Server is slow... Waiting some seconds and retrying...'
-                    time.sleep(10)
-                    f = urllib2.urlopen(req)
-                except:
-                    print 'An error has occurred while retrieving page titles with API'
-                    print 'Please, resume the dump, --resume'
-                    sys.exit()
-            if f.headers.get('Content-Encoding') and 'gzip' in f.headers.get('Content-Encoding'):
-                jsontitles = json.loads(unicode(gzip.GzipFile(fileobj=StringIO.StringIO(f.read())).read(), 'utf-8'))
-            else:
-                jsontitles = json.loads(unicode(f.read(), 'utf-8'))
-            f.close()
+            r = session.post(url=config['api'], data=params)
+            handleStatusCode(r)
+            #FIXME Handle HTTP errors here!
+            jsontitles = json.loads(r.text)
             apfrom = ''
             if jsontitles.has_key('query-continue') and jsontitles['query-continue'].has_key('allpages'):
                 if jsontitles['query-continue']['allpages'].has_key('apcontinue'):
@@ -218,23 +211,19 @@ def getPageTitlesAPI(config={}):
                 titles = list(set(titles))
                 apfrom = ''
             c += len(jsontitles['query']['allpages'])
-            delay(config=config)
+            delay(config=config, session=session)
         print '    %d titles retrieved in the namespace %d' % (c, namespace)
     return titles
 
-def getPageTitlesScraper(config={}):
+def getPageTitlesScraper(config={}, session=None):
     """  """
     titles = []
-    namespaces, namespacenames = getNamespacesScraper(config=config)
+    namespaces, namespacenames = getNamespacesScraper(config=config, session=session)
     for namespace in namespaces:
         print '    Retrieving titles in the namespace', namespace
         url = '%s?title=Special:Allpages&namespace=%s' % (config['index'], namespace)
-        req = urllib2.Request(url=url, headers={'User-Agent': getUserAgent(), 'Accept-Encoding': 'gzip'})
-        f = urllib2.urlopen(req)
-        if f.headers.get('Content-Encoding') and 'gzip' in f.headers.get('Content-Encoding'):
-            raw = gzip.GzipFile(fileobj=StringIO.StringIO(f.read())).read()
-        else:
-            raw = f.read()
+        r = session.get(url=url)
+        raw = r.text
         raw = cleanHTML(raw)
         
         r_title = r'title="(?P<title>[^>]+)">'
@@ -269,24 +258,20 @@ def getPageTitlesScraper(config={}):
                 
                 if not name in checked_suballpages:
                     checked_suballpages.append(name) #to avoid reload dupe subpages links
-                    delay(config=config)
-                    req2 = urllib2.Request(url=url, headers={'User-Agent': getUserAgent(), 'Accept-Encoding': 'gzip'})
-                    f = urllib2.urlopen(req2)
-                    if f.headers.get('Content-Encoding') and 'gzip' in f.headers.get('Content-Encoding'):
-                        raw2 = gzip.GzipFile(fileobj=StringIO.StringIO(f.read())).read()
-                    else:
-                        raw2 = f.read()
+                    delay(config=config, session=session)
+                    r2 = session.get(url=url)
+                    raw2 = r2.text
                     raw2 = cleanHTML(raw2)
                     rawacum += raw2 #merge it after removed junk
                     print '    Reading', name, len(raw2), 'bytes', len(re.findall(r_suballpages, raw2)), 'subpages', len(re.findall(r_title, raw2)), 'pages'
 
-                delay(config=config)
+                delay(config=config, session=session)
             c += 1
         
         c = 0
         m = re.compile(r_title).finditer(rawacum)
         for i in m:
-            t = undoHTMLEntities(text=unicode(i.group('title'), 'utf-8'))
+            t = undoHTMLEntities(text=i.group('title'))
             if not t.startswith('Special:'):
                 if not t in titles:
                     titles.append(t)
@@ -294,7 +279,7 @@ def getPageTitlesScraper(config={}):
         print '    %d titles retrieved in the namespace %d' % (c, namespace)
     return titles
 
-def getPageTitles(config={}):
+def getPageTitles(config={}, session=None):
     """ Get list of page titles """
     #http://en.wikipedia.org/wiki/Special:AllPages
     #http://archiveteam.org/index.php?title=Special:AllPages
@@ -304,9 +289,9 @@ def getPageTitles(config={}):
     
     titles = []
     if config['api']:
-        titles = getPageTitlesAPI(config=config)
+        titles = getPageTitlesAPI(config=config, session=session)
     elif config['index']:
-        titles = getPageTitlesScraper(config=config)
+        titles = getPageTitlesScraper(config=config, session=session)
     
     titles = list(set(titles)) #removing dupes (e.g. in CZ appears Widget:AddThis two times (main namespace and widget namespace))
     titles.sort() #sorting
@@ -314,22 +299,22 @@ def getPageTitles(config={}):
     print '%d page titles loaded' % (len(titles))
     return titles
 
-def getXMLHeader(config={}):
+def getXMLHeader(config={}, session=None):
     """ Retrieve a random page to extract XML headers (namespace info, etc) """
     #get the header of a random page, to attach it in the complete XML backup
     #similar to: <mediawiki xmlns="http://www.mediawiki.org/xml/export-0.3/" xmlns:x....
     randomtitle = 'Main_Page' #previously AMF5LKE43MNFGHKSDMRTJ
-    xml = getXMLPage(config=config, title=randomtitle, verbose=False)
+    xml = getXMLPage(config=config, title=randomtitle, verbose=False, session=session)
     header = xml.split('</mediawiki>')[0]
     if not xml:
         print 'XML export on this wiki is broken, quitting.'
         sys.exit()
     return header
 
-def getXMLFileDesc(config={}, title=''):
+def getXMLFileDesc(config={}, title='', session=None):
     """ Get XML for image description page """
     config['curonly'] = 1 #tricky to get only the most recent desc
-    return getXMLPage(config=config, title=title, verbose=False)
+    return getXMLPage(config=config, title=title, verbose=False, session=session)
 
 def getUserAgent():
     """ Return a cool user-agent to hide Python user-agent """
@@ -348,7 +333,7 @@ def logerror(config={}, text=''):
         f.write(output.encode('utf-8'))
         f.close()
 
-def getXMLPageCore(headers={}, params={}, config={}):
+def getXMLPageCore(headers={}, params={}, config={}, session=None):
     """  """
     #returns a XML containing params['limit'] revisions (or current only), ending in </mediawiki>
     #if retrieving params['limit'] revisions fails, returns a current only version
@@ -380,30 +365,15 @@ def getXMLPageCore(headers={}, params={}, config={}):
                 print '    Saving in the errors log, and skipping...'
                 logerror(config=config, text='Error while retrieving the last revision of "%s". Skipping.' % (params['pages']))
                 return '' # empty xml
-        
-        data = urllib.urlencode(params)
-        req = urllib2.Request(url=config['index'], data=data, headers=headers)
-        try:
-            f = urllib2.urlopen(req)
-        except:
-            try:
-                print '(2) Server is slow... Waiting some seconds and retrying...'
-                time.sleep(15)
-                f = urllib2.urlopen(req)
-            except:
-                print 'An error has occurred while retrieving "%s"' % (params['pages'])
-                print 'Please, resume the dump, --resume'
-                sys.exit()
-                # The error is usually temporary, but we exit the dump altogether.
-        if f.headers.get('Content-Encoding') and 'gzip' in f.headers.get('Content-Encoding'):
-            xml = gzip.GzipFile(fileobj=StringIO.StringIO(f.read())).read()
-        else:
-            xml = f.read()
+        #FIXME HANDLE HTTP Errors HERE
+        r = session.post(url=config['index'], data=params, headers=headers)
+        handleStatusCode(r)
+        xml = r.text
         c += 1
     
     return xml
 
-def getXMLPage(config={}, title='', verbose=True):
+def getXMLPage(config={}, title='', verbose=True, session=None):
     """ Get the full history (or current only) of a page """
 
     #if server errors occurs while retrieving the full page history, it may return [oldest OK versions] + last version, excluding middle revisions, so it would be partialy truncated
@@ -414,8 +384,7 @@ def getXMLPage(config={}, title='', verbose=True):
     title_ = title
     title_ = re.sub(' ', '_', title_)
     #do not convert & into %26, title_ = re.sub('&', '%26', title_)
-    headers = {'User-Agent': getUserAgent(), 'Accept-Encoding': 'gzip'}
-    params = {'title': 'Special:Export', 'pages': title_.encode('utf-8'), 'action': 'submit', }
+    params = {'title': 'Special:Export', 'pages': title_, 'action': 'submit'}
     if config['curonly']:
         params['curonly'] = 1
         params['limit'] = 1
@@ -425,7 +394,7 @@ def getXMLPage(config={}, title='', verbose=True):
     if config.has_key('templates') and config['templates']: #in other case, do not set params['templates']
         params['templates'] = 1
     
-    xml = getXMLPageCore(headers=headers, params=params, config=config)
+    xml = getXMLPageCore(params=params, config=config, session=session)
 
     #if complete history, check if this page history has > limit edits, if so, retrieve all using offset if available
     #else, warning about Special:Export truncating large page histories
@@ -433,7 +402,7 @@ def getXMLPage(config={}, title='', verbose=True):
     if not config['curonly'] and re.search(r_timestamp, xml): # search for timestamps in xml to avoid analysing empty pages like Special:Allpages and the random one
         while not truncated and params['offset']: #next chunk
             params['offset'] = re.findall(r_timestamp, xml)[-1] #get the last timestamp from the acum XML
-            xml2 = getXMLPageCore(headers=headers, params=params, config=config)
+            xml2 = getXMLPageCore(params=params, config=config, session=session)
             
             if re.findall(r_timestamp, xml2): #are there more edits in this next XML chunk or no <page></page>?
                 if re.findall(r_timestamp, xml2)[-1] == params['offset']:
@@ -475,11 +444,11 @@ def cleanXML(xml=''):
         xml = xml.split('</mediawiki>')[0]
     return xml
 
-def generateXMLDump(config={}, titles=[], start=''):
+def generateXMLDump(config={}, titles=[], start='', session=None):
     """ Generates a XML dump for a list of titles """
     
     print 'Retrieving the XML for every page from "%s"' % (start and start or 'start')
-    header = getXMLHeader(config=config)
+    header = getXMLHeader(config=config, session=session)
     footer = '</mediawiki>\n' #new line at the end
     xmlfilename = '%s-%s-%s.xml' % (domain2prefix(config=config), config['date'], config['curonly'] and 'current' or 'history')
     xmlfile = ''
@@ -508,7 +477,7 @@ def generateXMLDump(config={}, titles=[], start=''):
         #requested complete xml dump
         lock = False
         xmlfile = open('%s/%s' % (config['path'], xmlfilename), 'w')
-        xmlfile.write(header)
+        xmlfile.write(header.encode('utf-8'))
         xmlfile.close()
     
     xmlfile = open('%s/%s' % (config['path'], xmlfilename), 'a')
@@ -520,17 +489,17 @@ def generateXMLDump(config={}, titles=[], start=''):
             lock = False
         if lock:
             continue
-        delay(config=config)
+        delay(config=config, session=session)
         if c % 10 == 0:
             print 'Downloaded %d pages' % (c)
-        xml = getXMLPage(config=config, title=title)
+        xml = getXMLPage(config=config, title=title, session=session)
         xml = cleanXML(xml=xml)
         if not xml:
             logerror(config=config, text=u'The page "%s" was missing in the wiki (probably deleted)' % (title))
         #here, XML is a correct <page> </page> chunk or 
         #an empty string due to a deleted page (logged in errors log) or
         #an empty string due to an error while retrieving the page from server (logged in errors log)
-        xmlfile.write(xml)
+        xmlfile.write(xml.encode('utf-8'))
         c += 1
     xmlfile.write(footer)
     xmlfile.close()
@@ -547,18 +516,18 @@ def saveTitles(config={}, titles=[]):
     
     print 'Titles saved at...', titlesfilename
 
-def saveImageFilenamesURL(config={}, images=[]):
+def saveImageFilenamesURL(config={}, images=[], session=None):
     """ Save image list in a file, including filename, url and uploader """
 
     imagesfilename = '%s-%s-images.txt' % (domain2prefix(config=config), config['date'])
     imagesfile = open('%s/%s' % (config['path'], imagesfilename), 'w')
-    output = u"%s\n--END--" % (u'\n'.join([u'%s\t%s\t%s' % (filename, url, uploader) for filename, url, uploader in images]))
-    imagesfile.write(output.encode('utf-8'))
+    imagesfile.write(('\n'.join(['%s\t%s\t%s' % (filename, url, uploader) for filename, url, uploader in images]).encode('utf-8')))
+    imagesfile.write('\n--END--')
     imagesfile.close()
     
     print 'Image filenames and URLs saved at...', imagesfilename
 
-def getImageFilenamesURL(config={}):
+def getImageFilenamesURL(config={}, session=None):
     """ Retrieve file list: filename, url, uploader """
     
     print 'Retrieving image filenames'
@@ -569,14 +538,9 @@ def getImageFilenamesURL(config={}):
     retries = 5
     while offset:
         #5000 overload some servers, but it is needed for sites like this with no next links http://www.memoryarchive.org/en/index.php?title=Special:Imagelist&sort=byname&limit=50&wpIlMatch=
-        req = urllib2.Request(url=config['index'], data=urllib.urlencode({'title': 'Special:Imagelist', 'limit': limit, 'offset': offset, }), headers={'User-Agent': getUserAgent(), 'Accept-Encoding': 'gzip'})
-        f = urllib2.urlopen(req)
-        if f.headers.get('Content-Encoding') and 'gzip' in f.headers.get('Content-Encoding'):
-            raw = unicode(gzip.GzipFile(fileobj=StringIO.StringIO(f.read())).read(), 'utf-8')
-        else:
-            raw = unicode(f.read(), 'utf-8')
-        f.close()
-        delay(config=config)
+        r = session.post(url=config['index'], data={'title': 'Special:Imagelist', 'limit': limit, 'offset': offset})
+        raw = r.text
+        delay(config=config, session=session)
         if re.search(ur'(?i)(allowed memory size of \d+ bytes exhausted|Call to a member function getURL)', raw): # delicate wiki
             if limit > 10:
                 print 'Error: listing %d images in a chunk is not possible, trying tiny chunks' % (limit)
@@ -645,36 +609,20 @@ def getImageFilenamesURL(config={}):
     images.sort()
     return images
 
-def getImageFilenamesURLAPI(config={}):
+def getImageFilenamesURLAPI(config={}, session=None):
     """ Retrieve file list: filename, url, uploader """
     
     print 'Retrieving image filenames'
-    headers = {'User-Agent': getUserAgent(), 'Accept-Encoding': 'gzip'}
     aifrom = '!'
     images = []
     while aifrom:
         sys.stderr.write('.') #progress
         params = {'action': 'query', 'list': 'allimages', 'aiprop': 'url|user', 'aifrom': aifrom, 'format': 'json', 'ailimit': 500}
-        data = urllib.urlencode(params)
-        req = urllib2.Request(url=config['api'], data=data, headers=headers)
-        try:
-            f = urllib2.urlopen(req)
-        except:
-            try:
-                print '(3) Server is slow... Waiting some seconds and retrying...'
-                time.sleep(10)
-                f = urllib2.urlopen(req)
-            except:
-                print 'An error has occurred while retrieving page titles with API'
-                print 'Please, resume the dump, --resume'
-                sys.exit()
-        if f.headers.get('Content-Encoding') and 'gzip' in f.headers.get('Content-Encoding'):
-            jsonimages = json.loads(unicode(gzip.GzipFile(fileobj=StringIO.StringIO(f.read())).read(), 'utf-8'))
-        else:
-            jsonimages = json.loads(unicode(f.read(), 'utf-8'))
-        f.close()
-        #print jsonimages
-        delay(config=config)
+        #FIXME Handle HTTP Errors HERE
+        r = session.post(url=config['api'], data=params)
+        handleStatusCode(r)
+        jsonimages = json.loads(r.text)
+        delay(config=config, session=session)
         aifrom = ''
         if jsonimages.has_key('query-continue') and jsonimages['query-continue'].has_key('allimages'):
             if jsonimages['query-continue']['allimages'].has_key('aicontinue'):
@@ -691,13 +639,8 @@ def getImageFilenamesURLAPI(config={}):
                 domainalone = config['index'].split('://')[1].split('/')[0] #remove from :// (http or https) until the first / after domain
                 url = u'%s://%s/%s' % (config['index'].split('://')[0], domainalone, url) # concat http(s) + domain + relative url
             url = re.sub(' ', '_', url)
-            if image.has_key('name'):
-                #some API returns image name http://hastur.net/w/api.php?action=query&list=allimages&aiprop=user|url&ailimit=10
-                filename = re.sub('_', ' ', image['name'])
-            else:
-                #other not http://wiki.annotation.jp/api.php?action=query&list=allimages&aiprop=user|url&ailimit=10
-                #tips for dealing with unquote http://stackoverflow.com/questions/5139249/python-url-unquote-unicode
-                filename = re.sub('_', ' ', unicode(urllib2.unquote(url.encode('ascii')).split('/')[-1], 'utf-8'))
+            # encoding to ascii is needed to work around this horrible bug: http://bugs.python.org/issue8136
+            filename = unicode(urllib.unquote((re.sub('_', ' ', url.split('/')[-1])).encode('ascii','ignore')), 'utf-8')
             uploader = re.sub('_', ' ', image['user'])
             images.append([filename, url, uploader])
 
@@ -720,7 +663,7 @@ def undoHTMLEntities(text=''):
     
     return text
 
-def generateImageDump(config={}, other={}, images=[], start=''):
+def generateImageDump(config={}, other={}, images=[], start='', session=None):
     """ Save files and descriptions using a file list """
     
     #fix use subdirectories md5
@@ -739,43 +682,36 @@ def generateImageDump(config={}, other={}, images=[], start=''):
             lock = False
         if lock:
             continue
-        delay(config=config)
+        delay(config=config, session=session)
         
         #saving file
         #truncate filename if length > 100 (100 + 32 (md5) = 132 < 143 (crash limit). Later .desc is added to filename, so better 100 as max)
-        filename2 = filename
+        filename2 = urllib.unquote(filename)
         if len(filename2) > other['filenamelimit']:
             # split last . (extension) and then merge
             filename2 = truncateFilename(other=other, filename=filename2)
             print 'Filename is too long, truncating. Now it is:', filename2
-        # We need to set the user agent for urlretrieve but we can't do it in its call
-        # so we just override the class here; all I know about this method comes from
-        # http://docs.python.org/2/library/urllib.html#urllib._urlopener ,
-        # http://docs.python.org/2/tutorial/classes.html#class-definition-syntax .
-        # TODO: Override the user agent for all functions in a more sensible place.
-        class URLopenerUserAgent(urllib.FancyURLopener):
-            version = "%s" % getUserAgent()
-        urllib._urlopener = URLopenerUserAgent()
         filename3 = u'%s/%s' % (imagepath, filename2)
-        urllib.urlretrieve(url=url, filename=filename3.encode('utf-8'))
-        # TODO: data=urllib.urlencode({}) removed image; request fails on wikipedia and POST neither works?
-        
+        imagefile = open(filename3, 'wb')
+        r = requests.get(url=url)
+        imagefile.write(r.content)
+        imagefile.close()
         #saving description if any
-        xmlfiledesc = getXMLFileDesc(config=config, title=u'Image:%s' % (filename)) # use Image: for backwards compatibility
+        xmlfiledesc = getXMLFileDesc(config=config, title=u'Image:%s' % (filename), session=session) # use Image: for backwards compatibility
         f = open('%s/%s.desc' % (imagepath, filename2), 'w')
         if not re.search(r'</mediawiki>', xmlfiledesc): #<text xml:space="preserve" bytes="36">Banner featuring SG1, SGA, SGU teams</text>
             #failure when retrieving desc? then save it as empty .desc
             xmlfiledesc = ''
-        f.write(xmlfiledesc)
+        f.write(xmlfiledesc.encode('utf-8'))
         f.close()
-        delay(config=config)
+        delay(config=config, session=session)
         c += 1
         if c % 10 == 0:
             print '    Downloaded %d images' % (c)
     
     print 'Downloaded %d images' % (c)
     
-def saveLogs(config={}):
+def saveLogs(config={}, session=None):
     """ Save Special:Log """
     #get all logs from Special:Log
     """parse
@@ -793,9 +729,9 @@ def saveLogs(config={}):
     <option value="">Todos los registros</option>
     </select>
     """
-    delay(config=config)
+    delay(config=config, session=session)
 
-def domain2prefix(config={}):
+def domain2prefix(config={}, session=None):
     """ Convert domain name to a valid prefix filename. """
     
     # At this point, both api and index are supposed to be defined
@@ -884,8 +820,9 @@ def getParameters(params=[]):
     parser.add_argument('-v', '--version', action='version', version=getVersion())
     parser.add_argument('--cookies', metavar="cookies.txt", help="path to a cookies.txt file")
     parser.add_argument('--delay', metavar=5, default=0, help="adds a delay (in seconds)")
+    parser.add_argument('--retries', metavar=5, default=5, help="Maximum number of retries for ")
     parser.add_argument('--get-wiki-engine', action='store_true', help="returns the wiki engine")
-    
+
     groupWikiOrAPIOrIndex = parser.add_mutually_exclusive_group(required=True)
     groupWikiOrAPIOrIndex.add_argument('wiki', default='', nargs='?', help="URL to wiki")
     groupWikiOrAPIOrIndex.add_argument('--api', help="URL to api.php")
@@ -902,6 +839,9 @@ def getParameters(params=[]):
     parser.add_argument('--force', action='store_true', help='')
     parser.add_argument('--namespaces', metavar="1,2,3", help='comma-separated value of namespaces to include (all by default)')
     parser.add_argument('--exnamespaces', metavar="1,2,3", help='comma-separated value of namespaces to exclude')
+    
+    parser.add_argument('--user', help='Username if authentication is required.')
+    parser.add_argument('--pass', dest='password', help='Password if authentication is required.')
     
     args = parser.parse_args()
     #print args
@@ -922,6 +862,12 @@ def getParameters(params=[]):
     # check index URL
     if args.index and (not args.index.startswith('http://') and not args.index.startswith('https://')):
         print 'ERROR: URL to index.php must start with http:// or https://\n'
+        parser.print_usage()
+        sys.exit(1)
+        
+    # check user and pass (one requires both)
+    if (args.user and not args.password) or (args.password and not args.user):
+        print 'Both --user and --pass are required for authentication.'
         parser.print_usage()
         sys.exit(1)
 
@@ -966,6 +912,18 @@ def getParameters(params=[]):
     else:
         index = args.index
 
+    cj = cookielib.MozillaCookieJar()
+    if args.cookies:
+        cj.load(args.cookies)
+        print 'Using cookies from %s' % args.cookies
+
+    session = requests.Session()
+    session.cookies = cj
+    session.headers = {'User-Agent': getUserAgent()}
+    if args.user and args.password:
+        session.auth = (args.user, args.password)
+    #session.mount(args.api.split('/api.php')[0], HTTPAdapter(max_retries=max_ret))
+
     config = {
         'curonly': args.curonly,
         'date': datetime.datetime.now().strftime('%Y%m%d'),
@@ -984,18 +942,12 @@ def getParameters(params=[]):
         'resume': args.resume,
         'filenamelimit': 100, #do not change
         'force': args.force,
+        'session': session
     }
-    
-    if config['cookies']:
-        cj = cookielib.MozillaCookieJar()
-        cj.load(config['cookies'])
-        opener = urllib2.build_opener(POSTHTTPRedirectHandler, urllib2.HTTPCookieProcessor(cj))
-        urllib2.install_opener(opener)
-        print 'Using cookies from %s' % config['cookies']
         
     if config['api']:
         #check api.php
-        if checkAPI(config['api'], config):
+        if checkAPI(config['api'], config, session=other['session']):
             print 'api.php is OK'
         else:
             print 'Error in api.php, please, provide a correct path to api.php'
@@ -1003,7 +955,7 @@ def getParameters(params=[]):
     
     if config['index']:
         #check index.php
-        if checkIndexphp(config['index'], config):
+        if checkIndexphp(config['index'], config, session=other['session']):
             print 'index.php is OK'
         else:
             print 'Error in index.php, please, provide a correct path to index.php'
@@ -1011,39 +963,29 @@ def getParameters(params=[]):
     
     #calculating path, if not defined by user with --path=
     if not config['path']:
-        config['path'] = './%s-%s-wikidump' % (domain2prefix(config=config), config['date'])
+        config['path'] = './%s-%s-wikidump' % (domain2prefix(config=config, session=session), config['date'])
 
     return config, other
     
-def checkAPI(api, config={}):
+def checkAPI(api, config={}, session=None):
     """ Checking API availability """
-    req = urllib2.Request(url=api, data=urllib.urlencode({'action': 'query', 'meta': 'siteinfo', 'format': 'json'}), headers={'User-Agent': getUserAgent(), 'Accept-Encoding': 'gzip'})
-    f = urllib2.urlopen(req)
-    if f.headers.get('Content-Encoding') and 'gzip' in f.headers.get('Content-Encoding'):
-        resultText = gzip.GzipFile(fileobj=StringIO.StringIO(f.read())).read()
-    else:
-        resultText = f.read()
-    f.close()
+    global cj
+    r = session.post(url=api, data={'action': 'query', 'meta': 'siteinfo', 'format': 'json'})
+    resultText = r.text
     print 'Checking api.php...', api
     if "MediaWiki API is not enabled for this site." in resultText:
         return False
     result = json.loads(resultText)
-    delay(config=config)
+    delay(config=config, session=session)
     if result.has_key('query'):
         return True
     return False
 
-def checkIndexphp(indexphp, config={}):
+def checkIndexphp(indexphp, config={}, session=None):
     """ Checking index.php availability """
-    
-    req = urllib2.Request(url=indexphp, data=urllib.urlencode({'title': 'Special:Version', }), headers={'User-Agent': getUserAgent(), 'Accept-Encoding': 'gzip'})
-    f = urllib2.urlopen(req)
-    if f.headers.get('Content-Encoding') and 'gzip' in f.headers.get('Content-Encoding'):
-        raw = gzip.GzipFile(fileobj=StringIO.StringIO(f.read())).read()
-    else:
-        raw = f.read()
-    f.close()
-    delay(config=config)
+    r = session.post(url=indexphp, data={'title': 'Special:Version'})
+    raw = r.text
+    delay(config=config, session=session)
     print 'Checking index.php...', indexphp
     if re.search(r'(Special:Badtitle</a>|class="permissions-errors"|"wgCanonicalSpecialPageName":"Badtitle"|Login Required</h1>)', raw) and not config['cookies']: # Workaround for issue 71
          print "ERROR: This wiki requires login and we are not authenticated"
@@ -1062,7 +1004,7 @@ def removeIP(raw=''):
     
     return raw
 
-def checkXMLIntegrity(config={}):
+def checkXMLIntegrity(config={}, session=None):
     """ Check XML dump integrity, to detect broken XML chunks """
     return 
     
@@ -1072,7 +1014,7 @@ def checkXMLIntegrity(config={}):
     checkpageclose = 0
     checkrevisionopen = 0
     checkrevisionclose = 0
-    for line in file('%s/%s-%s-%s.xml' % (config['path'], domain2prefix(config=config), config['date'], config['curonly'] and 'current' or 'history'), 'r').read().splitlines():
+    for line in file('%s/%s-%s-%s.xml' % (config['path'], domain2prefix(config=config, session=session), config['date'], config['curonly'] and 'current' or 'history'), 'r').read().splitlines():
         if "<revision>" in line:
             checkrevisionopen += 1
         elif "</revision>" in line:
@@ -1103,19 +1045,19 @@ def createNewDump(config={}, other={}):
     images = []
     print 'Trying generating a new dump into a new directory...'
     if config['xml']:
-        titles += getPageTitles(config=config)
+        titles += getPageTitles(config=config, session=other['session'])
         saveTitles(config=config, titles=titles)
-        generateXMLDump(config=config, titles=titles)
+        generateXMLDump(config=config, titles=titles, session=other['session'])
         checkXMLIntegrity(config=config)
     if config['images']:
         if config['api']:
-            images += getImageFilenamesURLAPI(config=config)
+            images += getImageFilenamesURLAPI(config=config, session=other['session'])
         else:
-            images += getImageFilenamesURL(config=config)
-        saveImageFilenamesURL(config=config, images=images)
-        generateImageDump(config=config, other=other, images=images)
+            images += getImageFilenamesURL(config=config, session=other['session'])
+        saveImageFilenamesURL(config=config, images=images, session=other['session'])
+        generateImageDump(config=config, other=other, images=images, session=other['session'])
     if config['logs']:
-        saveLogs(config=config)
+        saveLogs(config=config, session=session)
 
 def resumePreviousDump(config={}, other={}):
     titles = []
@@ -1125,7 +1067,7 @@ def resumePreviousDump(config={}, other={}):
         #load titles
         lasttitle = ''
         try:
-            f = open('%s/%s-%s-titles.txt' % (config['path'], domain2prefix(config=config), config['date']), 'r')
+            f = open('%s/%s-%s-titles.txt' % (config['path'], domain2prefix(config=config, session=other['session']), config['date']), 'r')
             raw = unicode(f.read(), 'utf-8')
             titles = raw.split('\n')
             lasttitle = titles[-1]
@@ -1140,13 +1082,13 @@ def resumePreviousDump(config={}, other={}):
         else:
             print 'Title list is incomplete. Reloading...'
             #do not resume, reload, to avoid inconsistences, deleted pages or so
-            titles = getPageTitles(config=config)
+            titles = getPageTitles(config=config, session=other['session'])
             saveTitles(config=config, titles=titles)
         #checking xml dump
         xmliscomplete = False
         lastxmltitle = ''
         try:
-            f = open('%s/%s-%s-%s.xml' % (config['path'], domain2prefix(config=config), config['date'], config['curonly'] and 'current' or 'history'), 'r')
+            f = open('%s/%s-%s-%s.xml' % (config['path'], domain2prefix(config=config, session=other['session']), config['date'], config['curonly'] and 'current' or 'history'), 'r')
             for l in f:
                 if re.findall('</mediawiki>', l):
                     #xml dump is complete
@@ -1166,11 +1108,11 @@ def resumePreviousDump(config={}, other={}):
         elif lastxmltitle:
             #resuming...
             print 'Resuming XML dump from "%s"' % (lastxmltitle)
-            generateXMLDump(config=config, titles=titles, start=lastxmltitle)
+            generateXMLDump(config=config, titles=titles, start=lastxmltitle, session=other['session'])
         else:
             #corrupt? only has XML header?
             print 'XML is corrupt? Regenerating...'
-            generateXMLDump(config=config, titles=titles)
+            generateXMLDump(config=config, titles=titles, session=other['session'])
     
     if config['images']:
         #load images
@@ -1192,9 +1134,9 @@ def resumePreviousDump(config={}, other={}):
             print 'Image list is incomplete. Reloading...'
             #do not resume, reload, to avoid inconsistences, deleted images or so
             if config['api']:
-                images=getImageFilenamesURLAPI(config=config)
+                images=getImageFilenamesURLAPI(config=config, session=other['session'])
             else:
-                images = getImageFilenamesURL(config=config)
+                images = getImageFilenamesURL(config=config, session=other['session'])
             saveImageFilenamesURL(config=config, images=images)
         #checking images directory
         listdir = []
@@ -1222,53 +1164,43 @@ def resumePreviousDump(config={}, other={}):
             #image dump is complete
             print 'Image dump was completed in the previous session'
         else:
-            generateImageDump(config=config, other=other, images=images, start=lastfilename2) # we resume from previous image, which may be corrupted (or missing .desc)  by the previous session ctrl-c or abort
+            generateImageDump(config=config, other=other, images=images, start=lastfilename2, session=other['session']) # we resume from previous image, which may be corrupted (or missing .desc)  by the previous session ctrl-c or abort
     
     if config['logs']:
         #fix
         pass
 
-def saveSpecialVersion(config={}):
+def saveSpecialVersion(config={}, session=None):
     """ Save Special:Version as .html, to preserve extensions details """
     
     if os.path.exists('%s/Special:Version.html' % (config['path'])):
         print 'Special:Version.html exists, do not overwrite'
     else:
         print 'Downloading Special:Version with extensions and other related info'
-        req = urllib2.Request(url=config['index'], data=urllib.urlencode({'title': 'Special:Version', }), headers={'User-Agent': getUserAgent(), 'Accept-Encoding': 'gzip'})
-        f = urllib2.urlopen(req)
-        if f.headers.get('Content-Encoding') and 'gzip' in f.headers.get('Content-Encoding'):
-            raw = gzip.GzipFile(fileobj=StringIO.StringIO(f.read())).read()
-        else:
-            raw = f.read()
-        f.close()
-        delay(config=config)
+        r = session.post(url=config['index'], data={'title': 'Special:Version'})
+        raw = r.text
+        delay(config=config, session=session)
         raw = removeIP(raw=raw)
         f = open('%s/Special:Version.html' % (config['path']), 'w')
-        f.write(raw)
+        f.write(raw.encode('utf-8'))
         f.close()
 
-def saveIndexPHP(config={}):
+def saveIndexPHP(config={}, session=None):
     """ Save index.php as .html, to preserve license details available at the botom of the page """
     
     if os.path.exists('%s/index.html' % (config['path'])):
         print 'index.html exists, do not overwrite'
     else:
         print 'Downloading index.php (Main Page) as index.html'
-        req = urllib2.Request(url=config['index'], data=urllib.urlencode({}), headers={'User-Agent': getUserAgent(), 'Accept-Encoding': 'gzip'})
-        f = urllib2.urlopen(req)
-        if f.headers.get('Content-Encoding') and 'gzip' in f.headers.get('Content-Encoding'):
-            raw = gzip.GzipFile(fileobj=StringIO.StringIO(f.read())).read()
-        else:
-            raw = f.read()
-        f.close()
-        delay(config=config)
+        r = session.post(url=config['index'], data={})
+        raw = r.text
+        delay(config=config, session=session)
         raw = removeIP(raw=raw)
         f = open('%s/index.html' % (config['path']), 'w')
-        f.write(raw)
+        f.write(raw.encode('utf-8'))
         f.close()
 
-def saveSiteInfo(config={}):
+def saveSiteInfo(config={}, session=None):
     """ Save a file with site info """
     
     if config['api']:
@@ -1276,14 +1208,9 @@ def saveSiteInfo(config={}):
             print 'siteinfo.json exists, do not overwrite'
         else:
             print 'Downloading site info as siteinfo.json'
-            req = urllib2.Request(url=config['api'], data=urllib.urlencode({'action': 'query', 'meta': 'siteinfo', 'format': 'json'}), headers={'User-Agent': getUserAgent(), 'Accept-Encoding': 'gzip'})
-            f = urllib2.urlopen(req)
-            if f.headers.get('Content-Encoding') and 'gzip' in f.headers.get('Content-Encoding'):
-                result = json.loads(gzip.GzipFile(fileobj=StringIO.StringIO(f.read())).read())
-            else:
-                result = json.loads(f.read())
-            f.close()
-            delay(config=config)
+            r = session.post(url=config['api'], data = {'action': 'query', 'meta': 'siteinfo', 'format': 'json'})
+            result = json.loads(r.text)
+            delay(config=config, session=session)
             f = open('%s/siteinfo.json' % (config['path']), 'w')
             f.write(json.dumps(result, indent=4, sort_keys=True))
             f.close()
@@ -1364,9 +1291,9 @@ def main(params=[]):
     else:
         createNewDump(config=config, other=other)
 
-    saveIndexPHP(config=config)    
-    saveSpecialVersion(config=config)
-    saveSiteInfo(config=config)
+    saveIndexPHP(config=config, session=session)
+    saveSpecialVersion(config=config, session=session)
+    saveSiteInfo(config=config, session=session)
     bye()
 
 if __name__ == "__main__":
