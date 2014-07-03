@@ -328,10 +328,9 @@ def getUserAgent():
 def logerror(config={}, text=''):
     """ Log error in file """
     if text:
-        f = open('%s/errors.log' % (config['path']), 'a')
-        output = u'%s: %s\n' % (datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'), text)
-        f.write(output.encode('utf-8'))
-        f.close()
+        with open('%s/errors.log' % (config['path']), 'a') as outfile:
+            output = u'%s: %s\n' % (datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'), text)
+            outfile.write(output.encode('utf-8'))
 
 def getXMLPageCore(headers={}, params={}, config={}, session=None):
     """  """
@@ -753,21 +752,19 @@ def loadConfig(config={}, configfilename=''):
     """ Load config file """
     
     try:
-        f = open('%s/%s' % (config['path'], configfilename), 'r')
+        with open('%s/%s' % (config['path'], configfilename), 'r') as infile:
+            config = cPickle.load(infile)
     except:
         print 'There is no config file. we can\'t resume. Start a new dump.'
         sys.exit()
-    config = cPickle.load(f)
-    f.close()
     
     return config
 
 def saveConfig(config={}, configfilename=''):
     """ Save config file """
     
-    f = open('%s/%s' % (config['path'], configfilename), 'w')
-    cPickle.dump(config, f)
-    f.close()
+    with open('%s/%s' % (config['path'], configfilename), 'w') as outfile:
+        cPickle.dump(config, outfile)
     
 def welcome():
     message = ''
@@ -1181,9 +1178,8 @@ def saveSpecialVersion(config={}, session=None):
         raw = r.text
         delay(config=config, session=session)
         raw = removeIP(raw=raw)
-        f = open('%s/Special:Version.html' % (config['path']), 'w')
-        f.write(raw.encode('utf-8'))
-        f.close()
+        with open('%s/Special:Version.html' % (config['path']), 'w') as outfile:
+            outfile.write(raw.encode('utf-8'))
 
 def saveIndexPHP(config={}, session=None):
     """ Save index.php as .html, to preserve license details available at the botom of the page """
@@ -1196,9 +1192,8 @@ def saveIndexPHP(config={}, session=None):
         raw = r.text
         delay(config=config, session=session)
         raw = removeIP(raw=raw)
-        f = open('%s/index.html' % (config['path']), 'w')
-        f.write(raw.encode('utf-8'))
-        f.close()
+        with open('%s/index.html' % (config['path']), 'w') as outfile:
+            outfile.write(raw.encode('utf-8'))
 
 def saveSiteInfo(config={}, session=None):
     """ Save a file with site info """
@@ -1211,9 +1206,8 @@ def saveSiteInfo(config={}, session=None):
             r = session.post(url=config['api'], data = {'action': 'query', 'meta': 'siteinfo', 'format': 'json'})
             result = json.loads(r.text)
             delay(config=config, session=session)
-            f = open('%s/siteinfo.json' % (config['path']), 'w')
-            f.write(json.dumps(result, indent=4, sort_keys=True))
-            f.close()
+            with open('%s/siteinfo.json' % (config['path']), 'w') as outfile:
+                outfile.write(json.dumps(result, indent=4, sort_keys=True))
 
 def avoidWikimediaProjects(config={}, other={}):
     """ Skip Wikimedia projects and redirect to the dumps website """
