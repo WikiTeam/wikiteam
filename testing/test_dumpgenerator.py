@@ -22,7 +22,7 @@ import time
 import unittest
 import urllib
 import urllib2
-from dumpgenerator import delay, getImageFilenamesURL, getImageFilenamesURLAPI, getUserAgent
+from dumpgenerator import delay, getImageFilenamesURL, getImageFilenamesURLAPI, getUserAgent, getWikiEngine
 
 class TestDumpgenerator(unittest.TestCase):
     #Documentation
@@ -72,9 +72,20 @@ class TestDumpgenerator(unittest.TestCase):
             result_index = getImageFilenamesURL(config=config_index)
             self.assertTrue(len(result_index) == imagecount)
             self.assertTrue(filetocheck in [filename for filename, url, uploader in result_index])
+    
+    def test_getWikiEngine(self):
+        tests = [
+            ['https://www.dokuwiki.org', 'DokuWiki'],
+            ['http://wiki.openwrt.org', 'DokuWiki'],
+            ['http://moinmo.in', 'MoinMoin'],
+            ['https://wiki.debian.org', 'MoinMoin'],
+        ]
+        for wiki, engine in tests:
+            print 'Testing', wiki
+            self.assertTrue(getWikiEngine(wiki) == engine)
 
 if __name__ == '__main__':
     #copying dumpgenerator.py to this directory
-    shutil.copy2('../dumpgenerator.py', './dumpgenerator.py')
+    #shutil.copy2('../dumpgenerator.py', './dumpgenerator.py')
     
     unittest.main()

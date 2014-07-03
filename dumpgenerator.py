@@ -881,13 +881,15 @@ def getParameters(params=[]):
 
     parser = argparse.ArgumentParser(description='')
     
-    parser.add_argument('-v', '--version', action='version', version=(params[0] + " version " + getVersion()))
+    parser.add_argument('-v', '--version', action='version', version=getVersion())
     parser.add_argument('--cookies', metavar="cookies.txt", help="path to a cookies.txt file")
     parser.add_argument('--delay', metavar=5, default=0, help="adds a delay (in seconds)")
+    parser.add_argument('--get-wiki-engine', action='store_true', help="returns the wiki engine")
     
-    groupAPIOrIndex = parser.add_mutually_exclusive_group(required=True)
-    groupAPIOrIndex.add_argument('--api', help="URL to api.php")
-    groupAPIOrIndex.add_argument('--index', help="URL to index.php")
+    groupWikiOrAPIOrIndex = parser.add_mutually_exclusive_group(required=True)
+    groupWikiOrAPIOrIndex.add_argument('wiki', default='', nargs='?', help="URL to wiki")
+    groupWikiOrAPIOrIndex.add_argument('--api', help="URL to api.php")
+    groupWikiOrAPIOrIndex.add_argument('--index', help="URL to index.php")
     
     groupXMLOrImages = parser.add_argument_group()
     groupXMLOrImages.add_argument('--xml', action='store_true', help="generates a full history XML dump (--xml --curonly for current revisions only)")
@@ -902,16 +904,24 @@ def getParameters(params=[]):
     parser.add_argument('--exnamespaces', metavar="1,2,3", help='comma-separated value of namespaces to exclude')
     
     args = parser.parse_args()
+    #print args
+    
+    # Execute excluding args
+    if args.get_wiki_engine and args.wiki and (args.wiki.startswith('http://') or args.wiki.startswith('https://')):
+        print getWikiEngine(url=args.wiki)
+        sys.exit()
+    # End execute excluding args
     
     # check API URL
     if args.api and (not args.api.startswith('http://') and not args.api.startswith('https://')):
-        print 'api.php must start with http:// or https://\n'
+        print args.api
+        print 'ERROR: URL to api.php must start with http:// or https://\n'
         parser.print_usage()
         sys.exit(1)
         
     # check index URL
     if args.index and (not args.index.startswith('http://') and not args.index.startswith('https://')):
-        print 'index.php must start with http:// or https://\n'
+        print 'ERROR: URL to index.php must start with http:// or https://\n'
         parser.print_usage()
         sys.exit(1)
 
@@ -998,7 +1008,6 @@ def getParameters(params=[]):
         else:
             print 'Error in index.php, please, provide a correct path to index.php'
             sys.exit()
-
     
     #calculating path, if not defined by user with --path=
     if not config['path']:
@@ -1290,13 +1299,35 @@ def avoidWikimediaProjects(config={}, other={}):
             print 'Thanks!'
             sys.exit()
 
+def getWikiEngine(url=''):
+    """ Returns the wiki engine of a URL, if known """
+    
+    req = urllib2.Request(url=url, headers={'User-Agent': getUserAgent(), 'Accept-Encoding': 'gzip'})
+    f = urllib2.urlopen(req)
+    if f.headers.get('Content-Encoding') and 'gzip' in f.headers.get('Content-Encoding'):
+        raw = gzip.GzipFile(fileobj=StringIO.StringIO(f.read())).read()
+    else:
+        raw = f.read()
+    f.close()
+    
+    wikiengine = 'Unknown'
+    if re.search(ur'(?im)(<meta name="generator" content="DokuWiki)', raw):
+        wikiengine = 'DokuWiki'
+    elif re.search(ur'(?im)(alt="Powered by MediaWiki"|<meta name="generator" content="MediaWiki)', raw):
+        wikiengine = 'MediaWiki'
+    elif re.search(ur'(?im)(>MoinMoin Powered</a>)', raw):
+        wikiengine = 'MoinMoin'
+    
+    return wikiengine
+
 def main(params=[]):
     """ Main function """
     
-    print welcome()
     configfilename = 'config.txt'
     config, other = getParameters(params=params)
     avoidWikimediaProjects(config=config, other=other)
+    
+    print welcome()
     print 'Analysing %s' % (config['api'] and config['api'] or config['index'])
     
     #creating path or resuming if desired
