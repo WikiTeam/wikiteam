@@ -22,7 +22,7 @@
 import cookielib
 import cPickle
 import datetime
-import getopt
+import argparse
 import json
 import gzip
 try:
@@ -40,8 +40,8 @@ import urllib2
 
 __VERSION__ = '0.2.1'
 
-def printVersion():
-    print __VERSION__
+def getVersion():
+    return(__VERSION__)
 
 # This class is from https://github.com/crustymonkey/py-sonic/blob/master/libsonic/connection.py#L50
 class POSTHTTPRedirectHandler(urllib2.HTTPRedirectHandler):
@@ -191,7 +191,7 @@ def getPageTitlesAPI(config={}):
                 f = urllib2.urlopen(req)
             except:
                 try:
-                    print 'Server is slow... Waiting some seconds and retrying...'
+                    print '(1) Server is slow... Waiting some seconds and retrying...'
                     time.sleep(10)
                     f = urllib2.urlopen(req)
                 except:
@@ -387,7 +387,7 @@ def getXMLPageCore(headers={}, params={}, config={}):
             f = urllib2.urlopen(req)
         except:
             try:
-                print 'Server is slow... Waiting some seconds and retrying...'
+                print '(2) Server is slow... Waiting some seconds and retrying...'
                 time.sleep(15)
                 f = urllib2.urlopen(req)
             except:
@@ -661,7 +661,7 @@ def getImageFilenamesURLAPI(config={}):
             f = urllib2.urlopen(req)
         except:
             try:
-                print 'Server is slow... Waiting some seconds and retrying...'
+                print '(3) Server is slow... Waiting some seconds and retrying...'
                 time.sleep(10)
                 f = urllib2.urlopen(req)
             except:
@@ -834,14 +834,20 @@ def saveConfig(config={}, configfilename=''):
     f.close()
     
 def welcome():
+    message = ''
     """ Opening message """
-    print "#"*73
-    print """# Welcome to DumpGenerator 0.2 by WikiTeam (GPL v3)                     #
+    message += "#"*73
+    message += '\n'
+    message += """# Welcome to DumpGenerator 0.2 by WikiTeam (GPL v3)                     #
 # More info at: https://github.com/WikiTeam/wikiteam                    #"""
-    print "#"*73
-    print ''
-    print "#"*73
-    print """# Copyright (C) 2011-2014 WikiTeam                                      #
+    message += "\n"
+    message += "#"*73
+    message += "\n"
+    message += ''
+    message += "\n" 
+    message += "#"*73
+    message += "\n"
+    message += """# Copyright (C) 2011-2014 WikiTeam                                      #
 # This program is free software: you can redistribute it and/or modify  #
 # it under the terms of the GNU General Public License as published by  #
 # the Free Software Foundation, either version 3 of the License, or     #
@@ -854,8 +860,12 @@ def welcome():
 #                                                                       #
 # You should have received a copy of the GNU General Public License     #
 # along with this program.  If not, see <http://www.gnu.org/licenses/>. #"""
-    print "#"*73
-    print ''
+    message += "\n"
+    message += "#"*73
+    message += "\n"
+    message += ''
+    
+    return message
 
 def bye():
     """ Closing message """
@@ -864,142 +874,107 @@ def bye():
     print "If this is a public wiki, please, consider publishing this dump. Do it yourself as explained in https://github.com/WikiTeam/wikiteam/wiki/New-Tutorial#Publishing_the_dump or contact us at https://github.com/WikiTeam/wikiteam"
     print "Good luck! Bye!"
 
-def usage():
-    """  """
-    print """Error. You forget mandatory parameters:
-    --api or --index: URL to api.php or to index.php, one of them. Examples: --api=http://archiveteam.org/api.php or --index=http://archiveteam.org/index.php
-    
-And one of these at least:
-    --xml: It generates a XML dump. It retrieves full history of all pages (if you want only the current version use --xml --curonly)
-           If you want filter by namespace, use the parameter --namespaces=0,1,2,3...
-    --images: It generates an image dump
-
-You can resume previous incomplete dumps:
-    --resume: It resumes previous incomplete dump. When using --resume, --path is mandatory (path to directory where incomplete dump is).
-
-You can exclude namespaces:
-    --exnamespaces: Write the number of the namespaces you want to exclude, split by commas.
-
-You can use authenticaton cookies from a Mozilla cookies.txt file:
-    --cookies: Path to a cookies.txt file. Example: --cookies=$HOME/.netscape/cookies.txt
-
-You can be nice with servers using a delay:
-    --delay: It adds a delay (in seconds, adding 5 seconds between requests: --delay=5)
-
-Write --help for help."""
 
 def getParameters(params=[]):
     if not params:
-        params = sys.argv[1:]
+        params = sys.argv
+
+    parser = argparse.ArgumentParser(description=welcome())
+    
+    parser.add_argument('-v', '--version', action='version', version=(params[0] + " version " + getVersion()))
+    parser.add_argument('--cookies', metavar="cookies.txt", help="Path to a cookies.txt file.")
+    parser.add_argument('--delay', metavar=5, default=0, help="adds a delay (in seconds)")
+    
+    groupAPIOrIndex = parser.add_mutually_exclusive_group(required=True)
+    groupAPIOrIndex.add_argument('--api', help="URL to api.php.")
+    groupAPIOrIndex.add_argument('--index', help="URL to index.php.")
+    
+    groupXMLOrImages = parser.add_argument_group()
+    groupXMLOrImages.add_argument('--xml', action='store_true', help="Generates an XML dump. Retrieves full history of all pages (if you want only the current version use --xml --curonly)")
+    parser.add_argument('--curonly', action='store_true', help='Store only the current version of pages.')
+
+    groupXMLOrImages.add_argument('--images', action='store_true', help="Generates an image dump")
+    
+    parser.add_argument('--path', help='Path to store wiki dump at.')
+    parser.add_argument('--resume', action='store_true', help='Resumes previous incomplete dump. Requires --path.')
+    parser.add_argument('--force', action='store_true')
+    parser.add_argument('--namespaces', metavar="1,2,3", help='Comma-separated value of namespaces to include (all by default)')
+    parser.add_argument('--exnamespaces', metavar="1,2,3", help='Comma-separated value of namespaces to exclude')
+    
+    args = parser.parse_args()
+    
+    # check API URL
+    if args.api and (not args.api.startswith('http://') and not args.api.startswith('https://')):
+        print 'api.php must start with http:// or https://\n'
+        parser.print_usage()
+        sys.exit(1)
+        
+    # check index URL
+    if args.index and (not args.index.startswith('http://') and not args.index.startswith('https://')):
+        print 'index.php must start with http:// or https://\n'
+        parser.print_usage()
+        sys.exit(1)
+
+    namespaces = ['all']
+    exnamespaces = []
+    # Process namespace inclusions
+    if args.namespaces:
+        if re.search(r'[^\d, \-]', args.namespaces) and args.namespaces.lower() != 'all': #fix, why - ?  and... --namespaces= all with a space works?
+            print "Invalid namespace values.\nValid format is integer(s) separated by commas"
+            sys.exit()
+        else:
+            ns = re.sub(' ', '', args.namespaces)
+            if ns.lower() == 'all':
+                namespaces = ['all']
+            else:
+                namespaces = [int(i) for i in ns.split(',')]
+
+    # Process namespace exclusions
+    if args.exnamespaces:
+        if re.search(r'[^\d, \-]', args.exnamespaces):
+            print "Invalid namespace values.\nValid format is integer(s) separated by commas"
+            sys.exit(1)
+        else:
+            ns = re.sub(' ', '', args.exnamespaces)
+            if ns.lower() == 'all':
+                print 'You cannot exclude all namespaces.'
+                sys.exit(1)
+            else:
+                exnamespaces = [int(i) for i in ns.split(',')]
+
+    # --curonly requires --xml
+    if args.curonly and not args.xml:
+        print "--curonly requires --xml\n"
+        parser.print_usage()
+        sys.exit(1)
+        
+    #user chose --api, but --index it is necessary for special:export: we generate it
+    if args.api and not args.index:
+        index = args.api.split('api.php')[0] + 'index.php'
+        # WARNING: remove index.php here for misconfigured sites like editthis.info, or provide --index directly
+        print 'You didn\'t provide a path for index.php, using ', index
+    else:
+        index = args.index
+
     config = {
-        'curonly': False,
+        'curonly': args.curonly,
         'date': datetime.datetime.now().strftime('%Y%m%d'),
-        'api': '',
-        'index': '',
-        'images': False,
+        'api': args.api or '',
+        'index': index,
+        'images': args.images,
         'logs': False,
-        'xml': False,
-        'namespaces': ['all'],
-        'exnamespaces': [],
-        'path': '',
-        'cookies': '',
-        'delay': 0,
+        'xml': args.xml,
+        'namespaces': namespaces,
+        'exnamespaces': exnamespaces,
+        'path': args.path or '',
+        'cookies': args.cookies or '',
+        'delay': args.delay
     }
     other = {
-        'resume': False,
+        'resume': args.resume,
         'filenamelimit': 100, #do not change
-        'force': False,
+        'force': args.force,
     }
-    #console params
-    try:
-        opts, args = getopt.getopt(params, "", ["h", "help", "path=", "api=", "index=", "images", "logs", "xml", "curonly", "resume", "cookies=", "delay=", "namespaces=", "exnamespaces=", "force", "v", "version"])
-    except getopt.GetoptError, err:
-        # print help information and exit:
-        print str(err) # will print something like "option -a not recognized"
-        usage()
-        sys.exit(2)
-    for o, a in opts:
-        if o in ("-h","--help"):
-            usage()
-            sys.exit()
-        elif o in ("-v","--version"):
-            printVersion()
-        elif o in ("--path"):
-            config["path"] = a
-            while len(config["path"])>0:
-                if config["path"][-1] == '/': #dará problemas con rutas windows?
-                    config["path"] = config["path"][:-1]
-                else:
-                    break
-        elif o in ("--api"):
-            if not a.startswith('http://') and not a.startswith('https://'):
-                print 'api.php must start with http:// or https://'
-                sys.exit()
-            config['api'] = a
-        elif o in ("--index"):
-            if not a.startswith('http://') and not a.startswith('https://'):
-                print 'index.php must start with http:// or https://'
-                sys.exit()
-            config["index"] = a
-        elif o in ("--images"):
-            config["images"] = True
-        elif o in ("--logs"):
-            config["logs"] = True
-        elif o in ("--xml"):
-            config["xml"] = True
-        elif o in ("--curonly"):
-            if not config["xml"]:
-                print "If you select --curonly, you must use --xml too"
-                sys.exit()
-            config["curonly"] = True
-        elif o in ("--resume"):
-            other["resume"] = True
-        elif o in ("--cookies"):
-            config["cookies"] = a
-        elif o in ("--delay"):
-            config["delay"] = int(a)
-        elif o in ("--namespaces"):
-            if re.search(r'[^\d, \-]', a) and a.lower() != 'all': #fix, why - ?  and... --namespaces= all with a space works?
-                print "Invalid namespaces values.\nValid format is integer(s) splitted by commas"
-                sys.exit()
-            a = re.sub(' ', '', a)
-            if a.lower() == 'all':
-                config["namespaces"] = ['all']
-            else:
-                config["namespaces"] = [int(i) for i in a.split(',')]
-        elif o in ("--exnamespaces"):
-            if re.search(r'[^\d, \-]', a):
-                print "Invalid exnamespaces values.\nValid format is integer(s) splitted by commas"
-                sys.exit()
-            a = re.sub(' ', '', a)
-            if a.lower() == 'all':
-                print 'You have excluded all namespaces. Error.'
-                sys.exit()
-            else:
-                config["exnamespaces"] = [int(i) for i in a.split(',')]
-        elif o in ("--force"):
-            other["force"] = True
-        else:
-            assert False, "unhandled option"
-
-    #missing mandatory params
-    #(config['index'] and not re.search('/index\.php', config['index'])) or \ # in EditThis there is no index.php, it is empty editthis.info/mywiki/?title=...
-    if (not config['api'] and not config['index']) or \
-       (config['api'] and not re.search('/api\.php', config['api'])) or \
-       not (config["xml"] or config["images"] or config["logs"]) or \
-       (other['resume'] and not config['path']):
-        usage()
-        sys.exit()
-    
-    #override redirect handler to properly handle POSTs with redirect
-    opener = urllib2.build_opener(POSTHTTPRedirectHandler)
-    urllib2.install_opener(opener)
-
-    #user chose --api, but --index it is necessary for special:export: we generate it
-    if config['api'] and not config['index']:
-        config['index'] = config['api'].split('api.php')[0] + 'index.php'
-        # WARNING: remove index.php here for misconfigured sites like editthis.info, or provide --index directly
-        print 'You didn\'t provide a path for index.php, we try this one:', config['index']
     
     if config['cookies']:
         cj = cookielib.MozillaCookieJar()
@@ -1007,7 +982,7 @@ def getParameters(params=[]):
         opener = urllib2.build_opener(POSTHTTPRedirectHandler, urllib2.HTTPCookieProcessor(cj))
         urllib2.install_opener(opener)
         print 'Using cookies from %s' % config['cookies']
-
+        
     if config['api']:
         #check api.php
         if checkAPI(config['api'], config):
@@ -1024,12 +999,13 @@ def getParameters(params=[]):
             print 'Error in index.php, please, provide a correct path to index.php'
             sys.exit()
 
+    
     #calculating path, if not defined by user with --path=
     if not config['path']:
         config['path'] = './%s-%s-wikidump' % (domain2prefix(config=config), config['date'])
-    
-    return config, other
 
+    return config, other
+    
 def checkAPI(api, config={}):
     """ Checking API availability """
     req = urllib2.Request(url=api, data=urllib.urlencode({'action': 'query', 'meta': 'siteinfo', 'format': 'json'}), headers={'User-Agent': getUserAgent(), 'Accept-Encoding': 'gzip'})
@@ -1303,7 +1279,7 @@ def saveSiteInfo(config={}):
             f.write(json.dumps(result, indent=4, sort_keys=True))
             f.close()
 
-def avoidWikimediaProjects(config={}):
+def avoidWikimediaProjects(config={}, other={}):
     """ Skip Wikimedia projects and redirect to the dumps website """
     
     #notice about wikipedia dumps
@@ -1317,10 +1293,10 @@ def avoidWikimediaProjects(config={}):
 def main(params=[]):
     """ Main function """
     
-    welcome()
+    print welcome()
     configfilename = 'config.txt'
     config, other = getParameters(params=params)
-    avoidWikimediaProjects(config=config)
+    avoidWikimediaProjects(config=config, other=other)
     print 'Analysing %s' % (config['api'] and config['api'] or config['index'])
     
     #creating path or resuming if desired
