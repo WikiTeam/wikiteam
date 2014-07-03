@@ -1223,20 +1223,17 @@ def avoidWikimediaProjects(config={}, other={}):
 def getWikiEngine(url=''):
     """ Returns the wiki engine of a URL, if known """
     
-    req = urllib2.Request(url=url, headers={'User-Agent': getUserAgent(), 'Accept-Encoding': 'gzip'})
-    f = urllib2.urlopen(req)
-    if f.headers.get('Content-Encoding') and 'gzip' in f.headers.get('Content-Encoding'):
-        raw = gzip.GzipFile(fileobj=StringIO.StringIO(f.read())).read()
-    else:
-        raw = f.read()
-    f.close()
+    session = requests.Session()
+    session.headers = {'User-Agent': getUserAgent()}
+    r = session.post(url=url)
+    result = r.text
     
     wikiengine = 'Unknown'
-    if re.search(ur'(?im)(<meta name="generator" content="DokuWiki)', raw):
+    if re.search(ur'(?im)(<meta name="generator" content="DokuWiki)', result):
         wikiengine = 'DokuWiki'
-    elif re.search(ur'(?im)(alt="Powered by MediaWiki"|<meta name="generator" content="MediaWiki)', raw):
+    elif re.search(ur'(?im)(alt="Powered by MediaWiki"|<meta name="generator" content="MediaWiki)', result):
         wikiengine = 'MediaWiki'
-    elif re.search(ur'(?im)(>MoinMoin Powered</a>)', raw):
+    elif re.search(ur'(?im)(>MoinMoin Powered</a>)', result):
         wikiengine = 'MoinMoin'
     
     return wikiengine
