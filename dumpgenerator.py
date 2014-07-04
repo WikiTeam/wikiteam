@@ -321,18 +321,35 @@ def getPageTitles(config={}, session=None):
     print 'Excluding titles from namespaces = %s' % (config['exnamespaces'] and ','.join([str(i) for i in config['exnamespaces']]) or 'None')
 
     titles = []
-    if config['api']:
+    if 'api' in config:
         titles = getPageTitlesAPI(config=config, session=session)
-    elif config['index']:
+    elif 'index' in config:
         titles = getPageTitlesScraper(config=config, session=session)
 
     # removing dupes (e.g. in CZ appears Widget:AddThis two times (main
     # namespace and widget namespace))
     titles = list(set(titles))
-    titles.sort()  # sorting
+    titles.sort()
 
     print '%d page titles loaded' % (len(titles))
     return titles
+
+
+def getImageNames(config={}, session=None):
+    """ Get list of image names """
+    
+    print 'Retrieving image filenames'
+    images = []
+    if 'api' in config:
+        images = getImageNamesAPI(config=config, session=session)
+    elif 'index' in config:
+        images = getImageNamesScraper(config=config, session=session)
+
+    #images = list(set(images)) # it is a list of lists
+    images.sort()
+
+    print '%d image names loaded' % (len(images))
+    return images
 
 
 def getXMLHeader(config={}, session=None):
@@ -588,7 +605,7 @@ def saveTitles(config={}, titles=[]):
     print 'Titles saved at...', titlesfilename
 
 
-def saveImageFilenamesURL(config={}, images=[], session=None):
+def saveImageNames(config={}, images=[], session=None):
     """ Save image list in a file, including filename, url and uploader """
 
     imagesfilename = '%s-%s-images.txt' % (
@@ -627,10 +644,9 @@ def curateImageURL(config={}, url=''):
     return url
 
 
-def getImageFilenamesURL(config={}, session=None):
+def getImageNamesScraper(config={}, session=None):
     """ Retrieve file list: filename, url, uploader """
 
-    print 'Retrieving image filenames'
     # (?<! http://docs.python.org/library/re.html
     r_next = r'(?<!&amp;dir=prev)&amp;offset=(?P<offset>\d+)&amp;'
     images = []
@@ -720,10 +736,8 @@ def getImageFilenamesURL(config={}, session=None):
     return images
 
 
-def getImageFilenamesURLAPI(config={}, session=None):
+def getImageNamesAPI(config={}, session=None):
     """ Retrieve file list: filename, url, uploader """
-
-    print 'Retrieving image filenames'
     oldAPI = False
     aifrom = '!'
     images = []
@@ -792,7 +806,6 @@ def getImageFilenamesURLAPI(config={}, session=None):
     else:
         print '    Found %d images' % (len(images))
 
-    images.sort()
     return images
 
 
@@ -1228,16 +1241,9 @@ def createNewDump(config={}, other={}):
         generateXMLDump(config=config, titles=titles, session=other['session'])
         checkXMLIntegrity(config=config, titles=titles, session=other['session'])
     if config['images']:
-        if config['api']:
-            images += getImageFilenamesURLAPI(config=config,
-                                              session=other['session'])
-        else:
-            images += getImageFilenamesURL(config=config,
-                                           session=other['session'])
-        saveImageFilenamesURL(
-            config=config, images=images, session=other['session'])
-        generateImageDump(
-            config=config, other=other, images=images, session=other['session'])
+        images += getImageNames(config=config, session=other['session'])
+        saveImageNames(config=config, images=images, session=other['session'])
+        generateImageDump(config=config, other=other, images=images, session=other['session'])
     if config['logs']:
         saveLogs(config=config, session=other['session'])
 
@@ -1324,13 +1330,8 @@ def resumePreviousDump(config={}, other={}):
             print 'Image list is incomplete. Reloading...'
             # do not resume, reload, to avoid inconsistences, deleted images or
             # so
-            if config['api']:
-                images = getImageFilenamesURLAPI(
-                    config=config, session=other['session'])
-            else:
-                images = getImageFilenamesURL(
-                    config=config, session=other['session'])
-            saveImageFilenamesURL(config=config, images=images)
+            images = getImageNames(config=config, session=other['session'])
+            saveImageNames(config=config, images=images)
         # checking images directory
         listdir = []
         try:
