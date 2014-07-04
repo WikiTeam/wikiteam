@@ -26,7 +26,7 @@ import time
 import unittest
 import urllib
 import urllib2
-from dumpgenerator import delay, getImageFilenamesURL, getImageFilenamesURLAPI, getUserAgent, getWikiEngine
+from dumpgenerator import delay, getImageNames, getPageTitles, getUserAgent, getWikiEngine
 
 class TestDumpgenerator(unittest.TestCase):
     # Documentation
@@ -37,6 +37,8 @@ class TestDumpgenerator(unittest.TestCase):
     # - Check one wiki per wikifarm at least (page titles & images, with/out API)
     
     def test_delay(self):
+        """ This test checks several delays """
+        
         print '#'*73, '\n', 'test_delay', '\n', '#'*73
         for i in [0, 1, 2, 3]:
             print 'Testing delay:', i
@@ -49,8 +51,8 @@ class TestDumpgenerator(unittest.TestCase):
     def test_getImages(self):
         """ This test download the image list using API and index.php """
         """ Compare both lists in length and file by file """
-        """ Check the presence of some spcial files, like odd chars filenames """
-        """ The tested wikis are one for every wikifarm and some alone """
+        """ Check the presence of some special files, like odd chars filenames """
+        """ The tested wikis are from different wikifarms and some alone """
         
         print '#'*73, '\n', 'test_getImages', '\n', '#'*73
         tests = [
@@ -98,8 +100,8 @@ class TestDumpgenerator(unittest.TestCase):
     
             print 'Testing', config_api['api']
             print 'Trying to parse', filetocheck, 'with API'
-            result_api = getImageFilenamesURLAPI(config=config_api, session=session)
-            self.assertTrue(len(result_api) == imagecount)
+            result_api = getImageNames(config=config_api, session=session)
+            self.assertEqual(len(result_api), imagecount)
             self.assertTrue(filetocheck in [filename for filename, url, uploader in result_api])
             
             # Testing with index
@@ -111,11 +113,9 @@ class TestDumpgenerator(unittest.TestCase):
     
             print 'Testing', config_index['index']
             print 'Trying to parse', filetocheck, 'with index'
-            result_index = getImageFilenamesURL(config=config_index, session=session)
-            
+            result_index = getImageNames(config=config_index, session=session)
             #print 111, set([filename for filename, url, uploader in result_api]) - set([filename for filename, url, uploader in result_index])
-            
-            self.assertTrue(len(result_index) == imagecount)
+            self.assertEqual(len(result_index), imagecount)
             self.assertTrue(filetocheck in [filename for filename, url, uploader in result_index])
             
             # Compare every image in both lists, with/without API
@@ -126,6 +126,43 @@ class TestDumpgenerator(unittest.TestCase):
                 self.assertEqual(uploader_api, result_index[c][2], u'{0} and {1} are different'.format(uploader_api, result_index[c][2]))
                 c += 1
     
+    def test_getPageTitles(self):
+        """ This test download the title list using API and index.php """
+        """ Compare both lists in length and title by title """
+        """ Check the presence of some special titles, like odd chars """
+        """ The tested wikis are from different wikifarms and some alone """
+        
+        print '#'*73, '\n', 'test_getImages', '\n', '#'*73
+        tests = [
+            # Alone wikis
+            ['http://archiveteam.org/index.php', 'http://archiveteam.org/api.php', u'April Fools\' Day'], 
+        ]
+        
+        session = requests.Session()
+        session.headers = {'User-Agent': getUserAgent()}
+        for index, api, pagetocheck in tests:
+            print '\n'
+            # Testing with API
+            config_api = {'api': api, 'delay': 0, 'namespaces': ['all'], 'exnamespaces': []}
+            print 'Testing', config_api['api']
+            print 'Trying to parse', pagetocheck, 'with API'
+            result_api = getPageTitles(config=config_api, session=session)
+            self.assertTrue(pagetocheck in result_api)
+            
+            # Testing with index
+            config_index = {'index': index, 'delay': 0, 'namespaces': ['all'], 'exnamespaces': []}
+            print 'Testing', config_index['index']
+            print 'Trying to parse', pagetocheck, 'with index'
+            result_index = getPageTitles(config=config_index, session=session)
+            self.assertTrue(pagetocheck in result_index)
+            self.assertEqual(len(result_api), len(result_index))
+            
+            # Compare every page in both lists, with/without API
+            c = 0
+            for pagename_api in result_api:
+                self.assertEqual(pagename_api, result_index[c], u'{0} and {1} are different'.format(pagename_api, result_index[c]))
+                c += 1
+            
     def test_getWikiEngine(self):
         tests = [
             ['https://www.dokuwiki.org', 'DokuWiki'],
@@ -140,5 +177,5 @@ class TestDumpgenerator(unittest.TestCase):
 if __name__ == '__main__':
     #copying dumpgenerator.py to this directory
     #shutil.copy2('../dumpgenerator.py', './dumpgenerator.py')
-    
+
     unittest.main()
