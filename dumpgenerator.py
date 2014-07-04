@@ -75,6 +75,8 @@ def cleanHTML(raw=''):
         raw = raw.split('<!-- content -->')[1].split('<!-- mw_content -->')[0]
     elif re.search('<article id="WikiaMainContent" class="WikiaMainContent">', raw):
         raw = raw.split('<article id="WikiaMainContent" class="WikiaMainContent">')[1].split('</article>')[0]
+    elif re.search('<body class=', raw):
+        raw = raw.split('<body class=')[1].split('<div class="printfooter">')[0]
     else:
         print raw[:250]
         print 'This wiki doesn\'t use marks to split content'
@@ -526,6 +528,30 @@ def saveImageFilenamesURL(config={}, images=[], session=None):
     
     print 'Image filenames and URLs saved at...', imagesfilename
 
+def curateImageURL(config={}, url=''):
+    """ Returns an absolute URL for an image, adding the domain if missing """
+    
+    if 'index' in config:
+        #remove from :// (http or https) until the first / after domain
+        domainalone = config['index'].split('://')[0] + '://' + config['index'].split('://')[1].split('/')[0]
+    elif 'api' in config:
+        domainalone = config['api'].split('://')[0] + '://' + config['api'].split('://')[1].split('/')[0]
+    else:
+        print 'ERROR: no index nor API'
+        sys.exit()
+        
+    if url.startswith('//'): # Orain wikifarm returns URLs starting with //
+        url = u'%s:%s' % (domainalone.split('://')[0], url)
+    elif url[0] == '/' or (not url.startswith('http://') and not url.startswith('https://')): #is it a relative URL?
+        if url[0] == '/': #slash is added later
+            url = url[1:]
+        url = u'%s/%s' % (domainalone, url) # concat http(s) + domain + relative url
+    url = undoHTMLEntities(text=url)
+    #url = urllib.unquote(url) #do not use unquote with url, it break some urls with odd chars
+    url = re.sub(' ', '_', url)
+    
+    return url
+
 def getImageFilenamesURL(config={}, session=None):
     """ Retrieve file list: filename, url, uploader """
     
@@ -564,27 +590,27 @@ def getImageFilenamesURL(config={}, session=None):
         #http://www.memoryarchive.org/en/index.php?title=Special:Imagelist&sort=byname&limit=50&wpIlMatch=
         #(<a href="/en/Image:109_0923.JPG" title="Image:109 0923.JPG">desc</a>) <a href="/en/upload/c/cd/109_0923.JPG">109 0923.JPG</a> . . 885,713 bytes . . <a href="/en/User:Bfalconer" title="User:Bfalconer">Bfalconer</a> . . 18:44, 17 November 2005<br />
         r_images4 = r'(?im)<a href=[^>]+ title="[^:>]+:(?P<filename>[^>]+)">[^<]+</a>[^<]+<a href="(?P<url>[^>]+)">[^<]+</a>[^<]+<a[^>]+>(?P<uploader>[^<]+)</a>'
-        m = []
-        #different mediawiki versions
-        if re.search(r_images1, raw):
-            m = re.compile(r_images1).finditer(raw)
-        elif re.search(r_images2, raw):
-            m = re.compile(r_images2).finditer(raw)
-        elif re.search(r_images3, raw):
-            m = re.compile(r_images3).finditer(raw)
-        elif re.search(r_images4, raw):
-            m = re.compile(r_images4).finditer(raw)
+        r_images5 = (r'(?im)<td class="TablePager_col_img_name">\s*<a href[^>]*?>(?P<filename>[^>]+)</a>\s*\(<a href="(?P<url>[^>]+)">[^<]*?</a>\s*\)\s*</td>\s*'
+        '<td class="TablePager_col_thumb">[^\n\r]*?</td>\s*'
+        '<td class="TablePager_col_img_size">[^<]*?</td>\s*'
+        '<td class="TablePager_col_img_user_text">\s*(<a href="[^>]*?" title="[^>]*?">)?(?P<uploader>[^<]+?)(</a>)?\s*</td>')
         
+        # Select the regexp that returns more results
+        regexps = [r_images1, r_images2, r_images3, r_images4, r_images5]
+        count = 0
+        i = 0
+        regexp_best = 0
+        for regexp in regexps:
+            if len(re.findall(regexp, raw)) > count:
+                count = len(re.findall(regexp, raw))
+                regexp_best = i
+            i += 1
+        m = re.compile(regexps[regexp_best]).finditer(raw)
+        
+        # Iter the image results
         for i in m:
             url = i.group('url')
-            if url[0] == '/' or (not url.startswith('http://') and not url.startswith('https://')): #is it a relative URL?
-                if url[0] == '/': #slash is added later
-                    url = url[1:]
-                domainalone = config['index'].split('://')[1].split('/')[0] #remove from :// (http or https) until the first / after domain
-                url = u'%s://%s/%s' % (config['index'].split('://')[0], domainalone, url) # concat http(s) + domain + relative url
-            url = undoHTMLEntities(text=url)
-            #url = urllib.unquote(url) #do not use unquote with url, it break some urls with odd chars
-            url = re.sub(' ', '_', url)
+            url = curateImageURL(config=config, url=url)
             filename = re.sub('_', ' ', i.group('filename'))
             filename = undoHTMLEntities(text=filename)
             filename = urllib.unquote(filename)
@@ -612,6 +638,7 @@ def getImageFilenamesURLAPI(config={}, session=None):
     """ Retrieve file list: filename, url, uploader """
     
     print 'Retrieving image filenames'
+    oldAPI = False
     aifrom = '!'
     images = []
     while aifrom:
@@ -622,26 +649,56 @@ def getImageFilenamesURLAPI(config={}, session=None):
         handleStatusCode(r)
         jsonimages = json.loads(r.text)
         delay(config=config, session=session)
-        aifrom = ''
-        if jsonimages.has_key('query-continue') and jsonimages['query-continue'].has_key('allimages'):
-            if jsonimages['query-continue']['allimages'].has_key('aicontinue'):
-                aifrom = jsonimages['query-continue']['allimages']['aicontinue'] 
-            elif jsonimages['query-continue']['allimages'].has_key('aifrom'):
-                aifrom = jsonimages['query-continue']['allimages']['aifrom']
-        #print aifrom
         
-        for image in jsonimages['query']['allimages']:
-            url = image['url']
-            if url[0] == '/' or (not url.startswith('http://') and not url.startswith('https://')): #is it a relative URL?
-                if url[0] == '/': #slash is added later
-                    url = url[1:]
-                domainalone = config['index'].split('://')[1].split('/')[0] #remove from :// (http or https) until the first / after domain
-                url = u'%s://%s/%s' % (config['index'].split('://')[0], domainalone, url) # concat http(s) + domain + relative url
-            url = re.sub(' ', '_', url)
-            # encoding to ascii is needed to work around this horrible bug: http://bugs.python.org/issue8136
-            filename = unicode(urllib.unquote((re.sub('_', ' ', url.split('/')[-1])).encode('ascii','ignore')), 'utf-8')
-            uploader = re.sub('_', ' ', image['user'])
-            images.append([filename, url, uploader])
+        if 'query' in jsonimages:
+            aifrom = ''
+            if jsonimages.has_key('query-continue') and jsonimages['query-continue'].has_key('allimages'):
+                if jsonimages['query-continue']['allimages'].has_key('aicontinue'):
+                    aifrom = jsonimages['query-continue']['allimages']['aicontinue'] 
+                elif jsonimages['query-continue']['allimages'].has_key('aifrom'):
+                    aifrom = jsonimages['query-continue']['allimages']['aifrom']
+            #print aifrom
+            
+            for image in jsonimages['query']['allimages']:
+                url = image['url']
+                url = curateImageURL(config=config, url=url)
+                # encoding to ascii is needed to work around this horrible bug: http://bugs.python.org/issue8136
+                filename = unicode(urllib.unquote((re.sub('_', ' ', url.split('/')[-1])).encode('ascii','ignore')), 'utf-8')
+                uploader = re.sub('_', ' ', image['user'])
+                images.append([filename, url, uploader])
+        else:
+            oldAPI = True
+            break
+    
+    if oldAPI:
+        gapfrom = '!'
+        images = []
+        while gapfrom:
+            sys.stderr.write('.') #progress
+            # Some old APIs doesn't have allimages query
+            # In this case use allpages (in nm=6) as generator for imageinfo
+            # Example: http://minlingo.wiki-site.com/api.php?action=query&generator=allpages&gapnamespace=6 &gaplimit=500&prop=imageinfo&iiprop=user|url&gapfrom=!
+            params = {'action': 'query', 'generator': 'allpages', 'gapnamespace': 6, 'gaplimit': 500, 'gapfrom': gapfrom, 'prop': 'imageinfo', 'iiprop': 'user|url', 'format': 'json'}
+            #FIXME Handle HTTP Errors HERE
+            r = session.post(url=config['api'], data=params)
+            handleStatusCode(r)
+            jsonimages = json.loads(r.text)
+            delay(config=config, session=session)
+            
+            if 'query' in jsonimages:
+                gapfrom = ''
+                if jsonimages.has_key('query-continue') and jsonimages['query-continue'].has_key('allpages'):
+                    if jsonimages['query-continue']['allpages'].has_key('gapfrom'):
+                        gapfrom = jsonimages['query-continue']['allpages']['gapfrom'] 
+                #print gapfrom
+                #print jsonimages['query']
+                
+                for image, props in jsonimages['query']['pages'].items():
+                    url = props['imageinfo'][0]['url']
+                    url = curateImageURL(config=config, url=url)
+                    filename = re.sub('_', ' ', ':'.join(props['title'].split(':')[1:]))
+                    uploader = re.sub('_', ' ', props['imageinfo'][0]['user'])
+                    images.append([filename, url, uploader])
 
     if (len(images) == 1):
         print '    Found 1 image'
