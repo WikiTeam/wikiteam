@@ -43,7 +43,7 @@ except ImportError:
 import time
 import urllib
 
-__VERSION__ = '0.2.2'  # major, minor, micro
+__VERSION__ = '0.3.0-alpha'  # major, minor, micro: semver.org
 
 
 def getVersion():
