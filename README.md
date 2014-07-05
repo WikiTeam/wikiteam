@@ -27,7 +27,15 @@ This is a very quick guide for the most used features of WikiTeam tools. For fur
 
 ### Download any wiki
 
-For downloading any wiki, use one of the following options:
+To download any wiki, first of all confirm you satisfy requirements:
+
+`pip install --upgrade -r requirements.txt`
+
+or, if you don't have enough permissions for the above, 
+
+`pip install --user --upgrade -r requirements.txt`
+
+Then use one of the following options:
 
 `python dumpgenerator.py --api=http://wiki.domain.org/w/api.php --xml --images` (complete XML histories and images)
 
