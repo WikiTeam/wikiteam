@@ -59,6 +59,7 @@ class TestDumpgenerator(unittest.TestCase):
             # Alone wikis
             #['http://wiki.annotation.jp/index.php', 'http://wiki.annotation.jp/api.php', u'かずさアノテーション - ソーシャル・ゲノム・アノテーション.jpg'], 
             ['http://archiveteam.org/index.php', 'http://archiveteam.org/api.php', u'Archive-is 2013-07-02 17-05-40.png'], 
+            ['http://skilledtests.com/wiki/index.php5', 'http://skilledtests.com/wiki/api.php', u'Benham\'s disc (animated).gif'], 
             
             # Editthis wikifarm
             # It has a page view limit
@@ -132,10 +133,14 @@ class TestDumpgenerator(unittest.TestCase):
         """ Check the presence of some special titles, like odd chars """
         """ The tested wikis are from different wikifarms and some alone """
         
-        print '#'*73, '\n', 'test_getImages', '\n', '#'*73
+        print '#'*73, '\n', 'test_getPageTitles', '\n', '#'*73
         tests = [
             # Alone wikis
             ['http://archiveteam.org/index.php', 'http://archiveteam.org/api.php', u'April Fools\' Day'], 
+            ['http://skilledtests.com/wiki/index.php5', 'http://skilledtests.com/wiki/api.php', u'Conway\'s Game of Life'], 
+            
+            # Gentoo wikifarm
+            ['http://wiki.gentoo.org/index.php', 'http://wiki.gentoo.org/api.php', u'/usr move'], 
         ]
         
         session = requests.Session()
@@ -167,6 +172,7 @@ class TestDumpgenerator(unittest.TestCase):
         tests = [
             ['https://www.dokuwiki.org', 'DokuWiki'],
             #['http://wiki.openwrt.org', 'DokuWiki'],
+            ['http://skilledtests.com/wiki/', 'MediaWiki'],
             ['http://moinmo.in', 'MoinMoin'],
             ['https://wiki.debian.org', 'MoinMoin'],
         ]
