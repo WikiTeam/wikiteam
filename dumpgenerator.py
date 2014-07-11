@@ -974,7 +974,7 @@ def bye():
     """ Closing message """
     print "---> Congratulations! Your dump is complete <---"
     print "If you found any bug, report a new issue here: https://github.com/WikiTeam/wikiteam/issues"
-    print "If this is a public wiki, please, consider publishing this dump. Do it yourself as explained in https://github.com/WikiTeam/wikiteam/wiki/New-Tutorial#Publishing_the_dump or contact us at https://github.com/WikiTeam/wikiteam"
+    print "If this is a public wiki, please, consider publishing this dump. Do it yourself as explained in https://github.com/WikiTeam/wikiteam/wiki/Tutorial#Publishing_the_dump or contact us at https://github.com/WikiTeam/wikiteam"
     print "Good luck! Bye!"
 
 
