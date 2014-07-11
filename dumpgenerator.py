@@ -43,7 +43,7 @@ except ImportError:
 import time
 import urllib
 
-__VERSION__ = '0.2.2'  # major, minor, micro
+__VERSION__ = '0.3.0-alpha'  # major, minor, micro: semver.org
 
 
 def getVersion():
@@ -321,9 +321,9 @@ def getPageTitles(config={}, session=None):
     print 'Excluding titles from namespaces = %s' % (config['exnamespaces'] and ','.join([str(i) for i in config['exnamespaces']]) or 'None')
 
     titles = []
-    if 'api' in config:
+    if 'api' in config and config['api']:
         titles = getPageTitlesAPI(config=config, session=session)
-    elif 'index' in config:
+    elif 'index' in config and config['index']:
         titles = getPageTitlesScraper(config=config, session=session)
 
     # removing dupes (e.g. in CZ appears Widget:AddThis two times (main
@@ -340,9 +340,9 @@ def getImageNames(config={}, session=None):
     
     print 'Retrieving image filenames'
     images = []
-    if 'api' in config:
+    if 'api' in config and config['api']:
         images = getImageNamesAPI(config=config, session=session)
-    elif 'index' in config:
+    elif 'index' in config and config['index']:
         images = getImageNamesScraper(config=config, session=session)
 
     #images = list(set(images)) # it is a list of lists
@@ -622,10 +622,10 @@ def saveImageNames(config={}, images=[], session=None):
 def curateImageURL(config={}, url=''):
     """ Returns an absolute URL for an image, adding the domain if missing """
     
-    if 'index' in config:
+    if 'index' in config and config['index']:
         #remove from :// (http or https) until the first / after domain
         domainalone = config['index'].split('://')[0] + '://' + config['index'].split('://')[1].split('/')[0]
-    elif 'api' in config:
+    elif 'api' in config and config['api']:
         domainalone = config['api'].split('://')[0] + '://' + config['api'].split('://')[1].split('/')[0]
     else:
         print 'ERROR: no index nor API'
