@@ -425,7 +425,7 @@ def getXMLPageCore(headers={}, params={}, config={}, session=None):
                 params['curonly'] = 1
                 logerror(config=config, text='Error while retrieving the full history of "%s". Trying to save only the last revision for this page' % (
                     params['pages']))
-                return getXMLPageCore(headers=headers, params=params, config=config)
+                return getXMLPageCore(headers=headers, params=params, config=config, session=session)
             else:
                 print '    Saving in the errors log, and skipping...'
                 logerror(config=config, text='Error while retrieving the last revision of "%s". Skipping.' % (
