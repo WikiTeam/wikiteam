@@ -1447,6 +1447,31 @@ def getWikiEngine(url=''):
     return wikiengine
 
 
+def mwGetAPIAndIndex(config={}, url=''):
+    """ Returns the MediaWiki API and Index.php """
+    
+    api = ''
+    index = ''
+    session = requests.Session()
+    session.headers = {'User-Agent': getUserAgent()}
+    r = session.post(url=url)
+    result = r.text
+    
+    m = re.findall(ur'(?im)<link rel="EditURI" type="application/rsd+xml" href="([^>]+?)\?action=rsd" />', result)
+    if m:
+        api = m[0]
+    
+    m = re.findall(ur'<li id="ca-viewsource"><a href="([^\?]+?)\?', result)
+    if m:
+        index = m[0]
+    else:
+        m = re.findall(ur'<li id="ca-history"><a href="([^\?]+?)\?', result)
+        if m:
+            index = m[0]
+                
+    return api, index
+    
+
 def main(params=[]):
     """ Main function """
 
