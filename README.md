@@ -47,7 +47,7 @@ If the script can't find itself the API and/or index.php paths, then you can pro
 
 `python dumpgenerator.py --api=http://wiki.domain.org/w/api.php --index=http://wiki.domain.org/w/index.php --xml --images`
 
-If you only want the XML histories use `--xml`. For only the images, just `--images`. For only the current version of every page, `--xml --curonly`.
+If you only want the XML histories, just use `--xml`. For only the images, just `--images`. For only the current version of every page, `--xml --curonly`.
 
 You can resume an aborted download:
 
