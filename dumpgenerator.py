@@ -1091,6 +1091,8 @@ def getParameters(params=[]):
             elif index == '':
                 index = '/'.join(api.split('/')[:-1]) + '/index.php'
     
+    #print api
+    #print index
     if api and checkAPI(api=api, session=session):
         print 'API is OK'
     else:
@@ -1491,8 +1493,15 @@ def mwGetAPIAndIndex(url=''):
         m = re.findall(ur'<li id="ca-history"[^>]*?>\s*(?:<span>)?\s*<a href="([^\?]+?)\?', result)
         if m:
             index = m[0]
-    if index.startswith('/'):
-        index = '/'.join(api.split('/')[:-1]) + '/' + index.split('/')[-1]
+    if index:
+        if index.startswith('/'):
+            index = '/'.join(api.split('/')[:-1]) + '/' + index.split('/')[-1]
+    else:
+        if api:
+            if len(re.findall(ur'/index\.php5\?', result)) > len(re.findall(ur'/index\.php\?', result)):
+                index = '/'.join(api.split('/')[:-1]) + '/index.php5'
+            else:
+                index = '/'.join(api.split('/')[:-1]) + '/index.php'
     
     return api, index
     
