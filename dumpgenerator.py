@@ -983,7 +983,8 @@ def getParameters(params=[]):
         params = sys.argv
 
     parser = argparse.ArgumentParser(description='')
-
+    
+    # General params
     parser.add_argument(
         '-v', '--version', action='version', version=getVersion())
     parser.add_argument(
@@ -992,64 +993,120 @@ def getParameters(params=[]):
         '--delay', metavar=5, default=0, help="adds a delay (in seconds)")
     parser.add_argument(
         '--retries', metavar=5, default=5, help="Maximum number of retries for ")
-    parser.add_argument(
-        '--get-wiki-engine', action='store_true', help="returns the wiki engine")
-
-    groupWikiOrAPIOrIndex = parser.add_mutually_exclusive_group(required=True)
-    groupWikiOrAPIOrIndex.add_argument(
-        'wiki', default='', nargs='?', help="URL to wiki")
-    groupWikiOrAPIOrIndex.add_argument('--api', help="URL to api.php")
-    groupWikiOrAPIOrIndex.add_argument('--index', help="URL to index.php")
-
-    groupXMLOrImages = parser.add_argument_group()
-    groupXMLOrImages.add_argument(
-        '--xml', action='store_true', help="generates a full history XML dump (--xml --curonly for current revisions only)")
-    parser.add_argument('--curonly', action='store_true',
-                        help='store only the current version of pages')
-
-    groupXMLOrImages.add_argument(
-        '--images', action='store_true', help="generates an image dump")
-
     parser.add_argument('--path', help='path to store wiki dump at')
     parser.add_argument('--resume', action='store_true',
                         help='resumes previous incomplete dump (requires --path)')
     parser.add_argument('--force', action='store_true', help='')
-    parser.add_argument('--namespaces', metavar="1,2,3",
-                        help='comma-separated value of namespaces to include (all by default)')
-    parser.add_argument('--exnamespaces', metavar="1,2,3",
-                        help='comma-separated value of namespaces to exclude')
-
     parser.add_argument(
         '--user', help='Username if authentication is required.')
     parser.add_argument(
         '--pass', dest='password', help='Password if authentication is required.')
 
+    # URL params
+    groupWikiOrAPIOrIndex = parser.add_argument_group()
+    groupWikiOrAPIOrIndex.add_argument(
+        'wiki', default='', nargs='?', help="URL to wiki")
+    groupWikiOrAPIOrIndex.add_argument('--api', help="URL to API")
+    groupWikiOrAPIOrIndex.add_argument('--index', help="URL to index.php")
+    
+    # Download params
+    groupDownload = parser.add_argument_group('Data to download', 'What info download from the wiki')
+    groupDownload.add_argument(
+        '--xml', action='store_true', help="generates a full history XML dump (--xml --curonly for current revisions only)")
+    groupDownload.add_argument('--curonly', action='store_true',
+                        help='store only the current version of pages')
+    groupDownload.add_argument(
+        '--images', action='store_true', help="generates an image dump")
+    groupDownload.add_argument('--namespaces', metavar="1,2,3",
+                        help='comma-separated value of namespaces to include (all by default)')
+    groupDownload.add_argument('--exnamespaces', metavar="1,2,3",
+                        help='comma-separated value of namespaces to exclude')
+    
+    # Meta info params
+    groupMeta = parser.add_argument_group('Meta info', 'What meta info to retrieve from the wiki')
+    groupMeta.add_argument(
+        '--get-wiki-engine', action='store_true', help="returns the wiki engine")
+    
     args = parser.parse_args()
     # print args
-
-    # Execute excluding args
-    if args.get_wiki_engine and args.wiki and (args.wiki.startswith('http://') or args.wiki.startswith('https://')):
-        print getWikiEngine(url=args.wiki)
-        sys.exit()
-    # End execute excluding args
-
-    # check API URL
-    if args.api and (not args.api.startswith('http://') and not args.api.startswith('https://')):
-        print args.api
-        print 'ERROR: URL to api.php must start with http:// or https://\n'
-        parser.print_usage()
+    
+    # Don't mix download params and meta info params
+    if (args.xml or args.images) and \
+        (args.get_wiki_engine):
+        print 'ERROR: Don\'t mix download params and meta info params'
+        parser.print_help()
         sys.exit(1)
-
-    # check index URL
-    if args.index and (not args.index.startswith('http://') and not args.index.startswith('https://')):
-        print 'ERROR: URL to index.php must start with http:// or https://\n'
-        parser.print_usage()
+    
+    # No download params and no meta info params? Exit
+    if (not args.xml and not args.images) and \
+        (not args.get_wiki_engine):
+        print 'ERROR: Use at least one download param or meta info param'
+        parser.print_help()
         sys.exit(1)
+    
+    # Execute meta info params
+    if args.wiki:
+        if args.get_wiki_engine:
+            print getWikiEngine(url=args.wiki)
+            sys.exit()
+    
+    # Create session
+    cj = cookielib.MozillaCookieJar()
+    if args.cookies:
+        cj.load(args.cookies)
+        print 'Using cookies from %s' % args.cookies
 
+    session = requests.Session()
+    session.cookies = cj
+    session.headers = {'User-Agent': getUserAgent()}
+    if args.user and args.password:
+        session.auth = (args.user, args.password)
+    # session.mount(args.api.split('/api.php')[0], HTTPAdapter(max_retries=max_ret))
+    
+    # check URLs
+    for url in [args.api, args.index, args.wiki]:
+        if url and (not url.startswith('http://') and not url.startswith('https://')):
+            print url
+            print 'ERROR: URLs must start with http:// or https://\n'
+            parser.print_help()
+            sys.exit(1)
+    
+    # Get API and index and verify
+    api = args.api and args.api or ''
+    index = args.index and args.index or ''
+    if api == '' or index == '':
+        if args.wiki:
+            if getWikiEngine(args.wiki) == 'MediaWiki':
+                api2, index2 = mwGetAPIAndIndex(args.wiki)
+                if not api:
+                    api = api2
+                if not index:
+                    index = index2
+            else:
+                print 'ERROR: Unsupported wiki. Wiki engines supported are: MediaWiki'
+                sys.exit(1)
+        else:
+            if api == '':
+                pass
+            elif index == '':
+                index = '/'.join(api.split('/')[:-1]) + '/index.php'
+    
+    if api and checkAPI(api=api, session=session):
+        print 'API is OK'
+    else:
+        print 'Error in API, please, provide a correct path to API'
+        sys.exit(1)
+    
+    if index and checkIndex(index=index, cookies=args.cookies, session=session):
+        print 'index.php is OK'
+    else:
+        print 'Error in index.php, please, provide a correct path to index.php'
+        sys.exit(1)
+    
     # check user and pass (one requires both)
     if (args.user and not args.password) or (args.password and not args.user):
-        print 'Both --user and --pass are required for authentication.'
-        parser.print_usage()
+        print 'ERROR: Both --user and --pass are required for authentication.'
+        parser.print_help()
         sys.exit(1)
 
     namespaces = ['all']
@@ -1083,35 +1140,13 @@ def getParameters(params=[]):
     # --curonly requires --xml
     if args.curonly and not args.xml:
         print "--curonly requires --xml\n"
-        parser.print_usage()
+        parser.print_help()
         sys.exit(1)
-
-    # user chose --api, but --index it is necessary for special:export: we
-    # generate it
-    if args.api and not args.index:
-        index = args.api.split('api.php')[0] + 'index.php'
-        # WARNING: remove index.php here for misconfigured sites like
-        # editthis.info, or provide --index directly
-        print 'You didn\'t provide a path for index.php, using ', index
-    else:
-        index = args.index
-
-    cj = cookielib.MozillaCookieJar()
-    if args.cookies:
-        cj.load(args.cookies)
-        print 'Using cookies from %s' % args.cookies
-
-    session = requests.Session()
-    session.cookies = cj
-    session.headers = {'User-Agent': getUserAgent()}
-    if args.user and args.password:
-        session.auth = (args.user, args.password)
-    # session.mount(args.api.split('/api.php')[0], HTTPAdapter(max_retries=max_ret))
 
     config = {
         'curonly': args.curonly,
         'date': datetime.datetime.now().strftime('%Y%m%d'),
-        'api': args.api or '',
+        'api': api,
         'index': index,
         'images': args.images,
         'logs': False,
@@ -1129,22 +1164,6 @@ def getParameters(params=[]):
         'session': session
     }
 
-    if config['api']:
-        # check api.php
-        if checkAPI(config['api'], config, session=other['session']):
-            print 'api.php is OK'
-        else:
-            print 'Error in api.php, please, provide a correct path to api.php'
-            sys.exit()
-
-    if config['index']:
-        # check index.php
-        if checkIndexphp(config['index'], config, session=other['session']):
-            print 'index.php is OK'
-        else:
-            print 'Error in index.php, please, provide a correct path to index.php'
-            sys.exit()
-
     # calculating path, if not defined by user with --path=
     if not config['path']:
         config['path'] = './%s-%s-wikidump' % (domain2prefix(config=config, session=session), config['date'])
@@ -1152,30 +1171,28 @@ def getParameters(params=[]):
     return config, other
 
 
-def checkAPI(api, config={}, session=None):
+def checkAPI(api=None, session=None):
     """ Checking API availability """
     global cj
     r = session.post(
         url=api, data={'action': 'query', 'meta': 'siteinfo', 'format': 'json'})
     resultText = r.text
-    print 'Checking api.php...', api
+    print 'Checking API...', api
     if "MediaWiki API is not enabled for this site." in resultText:
         return False
     result = json.loads(resultText)
-    delay(config=config, session=session)
     if 'query' in result:
         return True
     return False
 
 
-def checkIndexphp(indexphp, config={}, session=None):
+def checkIndex(index=None, cookies=None, session=None):
     """ Checking index.php availability """
-    r = session.post(url=indexphp, data={'title': 'Special:Version'})
+    r = session.post(url=index, data={'title': 'Special:Version'})
     raw = r.text
-    delay(config=config, session=session)
-    print 'Checking index.php...', indexphp
+    print 'Checking index.php...', index
     # Workaround for issue 71
-    if re.search(r'(Special:Badtitle</a>|class="permissions-errors"|"wgCanonicalSpecialPageName":"Badtitle"|Login Required</h1>)', raw) and not config['cookies']:
+    if re.search(r'(Special:Badtitle</a>|class="permissions-errors"|"wgCanonicalSpecialPageName":"Badtitle"|Login Required</h1>)', raw) and not cookies:
         print "ERROR: This wiki requires login and we are not authenticated"
         return False
     if re.search(r'(This wiki is powered by|<h2 id="mw-version-license">|meta name="generator" content="MediaWiki)', raw):
@@ -1447,7 +1464,7 @@ def getWikiEngine(url=''):
     return wikiengine
 
 
-def mwGetAPIAndIndex(config={}, url=''):
+def mwGetAPIAndIndex(url=''):
     """ Returns the MediaWiki API and Index.php """
     
     api = ''
@@ -1457,18 +1474,26 @@ def mwGetAPIAndIndex(config={}, url=''):
     r = session.post(url=url)
     result = r.text
     
-    m = re.findall(ur'(?im)<link rel="EditURI" type="application/rsd+xml" href="([^>]+?)\?action=rsd" />', result)
+    # API
+    m = re.findall(ur'(?im)<\s*link\s*rel="EditURI"\s*type="application/rsd\+xml"\s*href="([^>]+?)\?action=rsd"\s*/\s*>', result)
     if m:
         api = m[0]
+        if api.startswith('//'): # gentoo wiki
+            api = url.split('//')[0] + api
+    else:
+        pass # build API using index and check it
     
-    m = re.findall(ur'<li id="ca-viewsource"><a href="([^\?]+?)\?', result)
+    # Index.php
+    m = re.findall(ur'<li id="ca-viewsource"[^>]*?>\s*(?:<span>)?\s*<a href="([^\?]+?)\?', result)
     if m:
         index = m[0]
     else:
-        m = re.findall(ur'<li id="ca-history"><a href="([^\?]+?)\?', result)
+        m = re.findall(ur'<li id="ca-history"[^>]*?>\s*(?:<span>)?\s*<a href="([^\?]+?)\?', result)
         if m:
             index = m[0]
-                
+    if index.startswith('/'):
+        index = '/'.join(api.split('/')[:-1]) + '/' + index.split('/')[-1]
+    
     return api, index
     
 
