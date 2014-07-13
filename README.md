@@ -39,11 +39,15 @@ or, if you don't have enough permissions for the above,
 
 To download any wiki, use one of the following options:
 
-`python dumpgenerator.py --api=http://wiki.domain.org/w/api.php --xml --images` (complete XML histories and images)
+`python dumpgenerator.py http://wiki.domain.org --xml --images` (complete XML histories and images)
 
-`python dumpgenerator.py --api=http://wiki.domain.org/w/api.php --xml` (complete XML histories)
+If the script can't find itself the API and/or index.php paths, then you can provide them:
 
-`python dumpgenerator.py --api=http://wiki.domain.org/w/api.php --xml --curonly` (only current version of every page)
+`python dumpgenerator.py --api=http://wiki.domain.org/w/api.php --xml --images`
+
+`python dumpgenerator.py --api=http://wiki.domain.org/w/api.php --index=http://wiki.domain.org/w/index.php --xml --images`
+
+If you only want the XML histories use `--xml`. For only the images, just `--images`. For only the current version of every page, `--xml --curonly`.
 
 You can resume an aborted download:
 
