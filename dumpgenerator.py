@@ -1005,9 +1005,9 @@ def getParameters(params=[]):
     # URL params
     groupWikiOrAPIOrIndex = parser.add_argument_group()
     groupWikiOrAPIOrIndex.add_argument(
-        'wiki', default='', nargs='?', help="URL to wiki")
-    groupWikiOrAPIOrIndex.add_argument('--api', help="URL to API")
-    groupWikiOrAPIOrIndex.add_argument('--index', help="URL to index.php")
+        'wiki', default='', nargs='?', help="URL to wiki (e.g. http://wiki.domain.org)")
+    groupWikiOrAPIOrIndex.add_argument('--api', help="URL to API (e.g. http://wiki.domain.org/w/api.php)")
+    groupWikiOrAPIOrIndex.add_argument('--index', help="URL to index.php (e.g. http://wiki.domain.org/w/index.php)")
     
     # Download params
     groupDownload = parser.add_argument_group('Data to download', 'What info download from the wiki')
