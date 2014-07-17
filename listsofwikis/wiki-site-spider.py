@@ -23,12 +23,16 @@ def main():
         'User-Agent': 'Mozilla/5.0 (X11; Linux i686; rv:24.0) Gecko/20100101 Firefox/24.0',
     }
     
-    url = 'http://wikkii.com/wiki/Special:Farmer/list'
-    r = requests.get(url, headers=headers)
-    raw = r.text
-    m = re.findall(ur'<dt> <a href="([^>]+?)" class="extiw"', raw)
-    for i in m:
-        print i
+    urls = [
+        'http://www.wiki.co.il/active-wiki-all.html', 
+        'http://www.wiki.co.il/active-wiki-en.html',
+    ]
+    for url in urls:
+        r = requests.get(url, headers=headers)
+        raw = r.text
+        m = re.findall(ur'<td><a href="([^>]+?)"', raw)
+        for i in m:
+            print i
     
 if __name__ == '__main__':
     main()

@@ -1,0 +1,4 @@
+*.pyc
+testing/*.pyc
+testing/dumpgenerator.py
+

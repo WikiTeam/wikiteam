@@ -1,15 +1,15 @@
 # WikiTeam
 ### We archive wikis, from Wikipedia to tiniest wikis
 
-**WikiTeam software is a set of tools for archiving wikis.** They work on MediaWiki wikis, but we want to expand to other wiki engines. As of June 2014, WikiTeam has preserved more than [13,000 stand-alone wikis](https://github.com/WikiTeam/wikiteam/wiki/Available-Backups), several wikifarms, regular Wikipedia dumps and [24TB of Wikimedia Commons images](https://archive.org/details/wikimediacommons).
+**WikiTeam software is a set of tools for archiving wikis.** They work on MediaWiki wikis, but we want to expand to other wiki engines. As of June 2014, WikiTeam has preserved more than [13,000 stand-alone wikis](https://github.com/WikiTeam/wikiteam/wiki/Available-Backups), several wikifarms, regular Wikipedia dumps and [24 TB of Wikimedia Commons images](https://archive.org/details/wikimediacommons).
 
 There are [thousands](http://wikiindex.org) of [wikis](https://wikiapiary.com) in the Internet. Every day some of them are no longer publicly available and, due to lack of backups, lost forever. Millions of people download tons of media files (movies, music, books, etc) from the Internet, serving as a kind of distributed backup. Wikis, most of them under free licenses, disappear from time to time because nobody grabbed a copy of them. That is a shame that we would like to solve.
 
-**WikiTeam** is the [Archive Team](http://www.archiveteam.org) ([GitHub](https://github.com/ArchiveTeam)) subcommittee on wikis. It was founded and originally developed by [Emilio J. Rodríguez-Posada](https://github.com/emijrp), a Wikipedia veteran editor and amateur archivist. Many people have helped by sending suggestions, [reporting bugs](https://github.com/WikiTeam/wikiteam/issues), writing [documentation](https://github.com/WikiTeam/wikiteam/wiki), providing help in the [mailing list](http://groups.google.com/group/wikiteam-discuss) and making [wiki backups](https://github.com/WikiTeam/wikiteam/wiki/Available-Backups). Thanks to all, especially to: [Federico Leva](https://github.com/nemobis), [Alex Buie](https://github.com/ab2525), [Scott Boyd](http://www.sdboyd56.com), [Hydriz](https://github.com/Hydriz), Platonides, Ian McEwen, [Mike Dupont](https://github.com/h4ck3rm1k3) and [balrog](https://github.com/balr0g).
+**WikiTeam** is the [Archive Team](http://www.archiveteam.org) ([GitHub](https://github.com/ArchiveTeam)) subcommittee on wikis. It was founded and originally developed by [Emilio J. Rodríguez-Posada](https://github.com/emijrp), a Wikipedia veteran editor and amateur archivist. Many people have helped by sending suggestions, [reporting bugs](https://github.com/WikiTeam/wikiteam/issues), writing [documentation](https://github.com/WikiTeam/wikiteam/wiki), providing help in the [mailing list](http://groups.google.com/group/wikiteam-discuss) and making [wiki backups](https://github.com/WikiTeam/wikiteam/wiki/Available-Backups). Thanks to all, especially to: [Federico Leva](https://github.com/nemobis), [Alex Buie](https://github.com/ab2525), [Scott Boyd](http://www.sdboyd56.com), [Hydriz](https://github.com/Hydriz), Platonides, Ian McEwen, [Mike Dupont](https://github.com/h4ck3rm1k3) and [balr0g](https://github.com/balr0g).
 
 <table border=0 cellpadding=5px>
 <tr><td>
-<a href="https://github.com/WikiTeam/wikiteam/wiki/New-Tutorial"><img src="https://upload.wikimedia.org/wikipedia/commons/f/f3/Nuvola_apps_Wild.png" width=100px alt="Documentation" title="Documentation"/></a>
+<a href="https://github.com/WikiTeam/wikiteam/wiki/Tutorial"><img src="https://upload.wikimedia.org/wikipedia/commons/f/f3/Nuvola_apps_Wild.png" width=100px alt="Documentation" title="Documentation"/></a>
 </td><td>
 <a href="https://raw.githubusercontent.com/WikiTeam/wikiteam/master/dumpgenerator.py"><img src="http://upload.wikimedia.org/wikipedia/commons/2/2a/Nuvola_apps_kservices.png" width=100px alt="Source code" title="Source code"/></a>
 </td><td>
@@ -23,17 +23,31 @@ There are [thousands](http://wikiindex.org) of [wikis](https://wikiapiary.com) i
 
 ## Quick guide
 
-This is a very quick guide for the most used features of WikiTeam tools. For further information, read the [tutorial](https://github.com/WikiTeam/wikiteam/wiki/New-Tutorial) and the rest of the [documentation](https://github.com/WikiTeam/wikiteam/wiki). You can also ask in the [mailing list](http://groups.google.com/group/wikiteam-discuss).
+This is a very quick guide for the most used features of WikiTeam tools. For further information, read the [tutorial](https://github.com/WikiTeam/wikiteam/wiki/Tutorial) and the rest of the [documentation](https://github.com/WikiTeam/wikiteam/wiki). You can also ask in the [mailing list](http://groups.google.com/group/wikiteam-discuss).
+
+### Requirements
+
+Confirm you satisfy the requirements:
+
+`pip install --upgrade -r requirements.txt`
+
+or, if you don't have enough permissions for the above, 
+
+`pip install --user --upgrade -r requirements.txt`
 
 ### Download any wiki
 
-For downloading any wiki, use one of the following options:
+To download any wiki, use one of the following options:
 
-`python dumpgenerator.py --api=http://wiki.domain.org/w/api.php --xml --images` (complete XML histories and images)
+`python dumpgenerator.py http://wiki.domain.org --xml --images` (complete XML histories and images)
 
-`python dumpgenerator.py --api=http://wiki.domain.org/w/api.php --xml` (complete XML histories)
+If the script can't find itself the API and/or index.php paths, then you can provide them:
 
-`python dumpgenerator.py --api=http://wiki.domain.org/w/api.php --xml --curonly` (only current version of every page)
+`python dumpgenerator.py --api=http://wiki.domain.org/w/api.php --xml --images`
+
+`python dumpgenerator.py --api=http://wiki.domain.org/w/api.php --index=http://wiki.domain.org/w/index.php --xml --images`
+
+If you only want the XML histories, just use `--xml`. For only the images, just `--images`. For only the current version of every page, `--xml --curonly`.
 
 You can resume an aborted download:
 
