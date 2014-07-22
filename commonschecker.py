@@ -112,7 +112,6 @@ def main():
                     print 'No errors found'
             else:
                 print 'Error, no %s available' % (filenamezip)
-        else:
-        startdate += delta
+            startdate += delta
 if __name__ == "__main__":
     main()
