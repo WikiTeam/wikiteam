@@ -135,6 +135,8 @@ def main():
                     except OSError:
                         pass
                 else:
+                    # Issue #66 : try your.org first
+                    os.system('wget -c "http://ftpmirror.your.org/pub/wikimedia/images/wikipedia/commons/%s/%s/%s" -O "%s/%s"' % (md5hash[0], md5hash[0:2], img_name_quoted, savepath, img_saved_as_))
                     os.system('wget -c "http://upload.wikimedia.org/wikipedia/commons/%s/%s/%s" -O "%s/%s"' % (md5hash[0], md5hash[0:2], img_name_quoted, savepath, img_saved_as_))
                 
                 #curl .xml description page with full history
