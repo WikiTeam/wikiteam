@@ -1182,9 +1182,12 @@ def checkAPI(api=None, session=None):
     print 'Checking API...', api
     if "MediaWiki API is not enabled for this site." in resultText:
         return False
-    result = json.loads(resultText)
-    if 'query' in result:
-        return True
+    try:
+        result = json.loads(resultText)
+        if 'query' in result:
+            return True
+    except ValueError:
+            return False
     return False
 
 
