@@ -1093,7 +1093,11 @@ def getParameters(params=[]):
     
     #print api
     #print index
-    if api and checkAPI(api=api, session=session):
+    index2 = None
+    
+    check = api and checkAPI(api=api, session=session)
+    if check:
+        index2 = check[1]
         print 'API is OK'
     else:
         print 'Error in API, please, provide a correct path to API'
@@ -1102,8 +1106,14 @@ def getParameters(params=[]):
     if index and checkIndex(index=index, cookies=args.cookies, session=session):
         print 'index.php is OK'
     else:
-        print 'Error in index.php, please, provide a correct path to index.php'
-        sys.exit(1)
+        index = index2
+        if index and index.startswith('//'):
+                index = args.wiki.split('//')[0] + index
+        if index and checkIndex(index=index, cookies=args.cookies, session=session):
+                print 'index.php is OK'
+        else:
+            print 'Error in index.php, please, provide a correct path to index.php'
+            sys.exit(1)
     
     # check user and pass (one requires both)
     if (args.user and not args.password) or (args.password and not args.user):
@@ -1185,7 +1195,10 @@ def checkAPI(api=None, session=None):
     try:
         result = json.loads(resultText)
         if 'query' in result:
-            return True
+            if 'general' in result['query'] and 'script' in result['query']['general'] and 'server' in result['query']['general']:
+                return (True, result['query']['general']['server']+result['query']['general']['script'])
+            else: 
+                return (True, None)
     except ValueError:
             return False
     return False
