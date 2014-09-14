@@ -507,9 +507,9 @@ def getXMLPage(config={}, title='', verbose=True, session=None):
     if verbose:
         numberofedits = len(re.findall(r_timestamp, xml))
         if (numberofedits == 1):
-            print '    %s, 1 edit' % (title)
+            print '    %s, 1 edit' % (title.encode('utf-8'))
         else:
-            print '    %s, %d edits' % (title, numberofedits)
+            print '    %s, %d edits' % (title.encode('utf-8'), numberofedits)
 
     return xml
 
