@@ -226,7 +226,7 @@ def getPageTitlesAPI(config={}, session=None):
             allpages = jsontitles['query']['allpages']
             # Hack for old versions of MediaWiki API where result is dict
             if isinstance(allpages, dict):
-                allpages = set(allpages.values())
+                allpages = allpages.values()
             titles += [page['title']
                        for page in allpages]
             if len(titles) != len(set(titles)):
