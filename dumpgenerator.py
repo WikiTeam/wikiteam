@@ -223,15 +223,19 @@ def getPageTitlesAPI(config={}, session=None):
                     apfrom = jsontitles['query-continue']['allpages']['apfrom']
             # print apfrom
             # print jsontitles
+            allpages = jsontitles['query']['allpages']
+            # Hack for old versions of MediaWiki API where result is dict
+            if isinstance(allpages, dict):
+                allpages = allpages.values()
             titles += [page['title']
-                       for page in jsontitles['query']['allpages']]
+                       for page in allpages]
             if len(titles) != len(set(titles)):
                 # probably we are in a loop, server returning dupe titles, stop
                 # it
                 print 'Probably a loop, finishing'
                 titles = list(set(titles))
                 apfrom = ''
-            c += len(jsontitles['query']['allpages'])
+            c += len(allpages)
             delay(config=config, session=session)
         print '    %d titles retrieved in the namespace %d' % (c, namespace)
     return titles
