@@ -1447,8 +1447,25 @@ def saveSiteInfo(config={}, session=None):
             print 'siteinfo.json exists, do not overwrite'
         else:
             print 'Downloading site info as siteinfo.json'
+            
+            # MediaWiki 1.13+
             r = session.post(url=config['api'], data={
-                             'action': 'query', 'meta': 'siteinfo', 'format': 'json'})
+                             'action': 'query',
+                             'meta': 'siteinfo',
+                             'siprop': 'general|namespaces|statistics|dbrepllag|interwikimap|namespacealiases|specialpagealiases|usergroups|extensions|skins|magicwords|fileextensions|rightsinfo',
+                             'sinumberingroup': 1,
+                             'format': 'json'})
+            # MediaWiki 1.11-1.12
+            if not 'query' in json.loads(r.text):
+                r = session.post(url=config['api'], data={
+                                 'action': 'query',
+                                 'meta': 'siteinfo',
+                                 'siprop': 'general|namespaces|statistics|dbrepllag|interwikimap',
+                                 'format': 'json'})
+            # MediaWiki 1.8-1.10
+            if not 'query' in json.loads(r.text):
+                r = session.post(url=config['api'], data={
+                                 'action': 'query', 'meta': 'siteinfo', 'siprop': 'general|namespaces', 'format': 'json'})
             result = json.loads(r.text)
             delay(config=config, session=session)
             with open('%s/siteinfo.json' % (config['path']), 'w') as outfile:
