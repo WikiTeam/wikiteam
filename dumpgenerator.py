@@ -436,9 +436,12 @@ def getXMLPageCore(headers={}, params={}, config={}, session=None):
                     params['pages']))
                 return ''  # empty xml
         # FIXME HANDLE HTTP Errors HERE
-        r = session.post(url=config['index'], data=params, headers=headers)
-        handleStatusCode(r)
-        xml = r.text
+        try:
+            r = session.post(url=config['index'], data=params, headers=headers)
+            handleStatusCode(r)
+            xml = r.text
+        except requests.exceptions.ConnectionError, e:
+            xml = ''
         c += 1
 
     return xml
