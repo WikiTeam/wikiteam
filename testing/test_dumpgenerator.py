@@ -47,7 +47,7 @@ class TestDumpgenerator(unittest.TestCase):
             delay(config=config)
             t2 = time.time() - t1
             print 'Elapsed time in seconds (approx.):', t2
-            self.assertTrue(t2 > i and t2 < i + 1)
+            self.assertTrue(t2 + 0.01 > i and t2 < i + 1)
     
     def test_getImages(self):
         # This test download the image list using API and index.php
@@ -138,7 +138,10 @@ class TestDumpgenerator(unittest.TestCase):
             # Alone wikis
             ['http://archiveteam.org/index.php', 'http://archiveteam.org/api.php', u'April Fools\' Day'],
             ['http://skilledtests.com/wiki/index.php', 'http://skilledtests.com/wiki/api.php', u'Conway\'s Game of Life'],
-            
+
+            # Test old allpages API behaviour
+            ['http://wiki.damirsystems.com/index.php', 'http://wiki.damirsystems.com/api.php', 'SQL Server Tips'],
+
             # Gentoo wikifarm
             ['http://wiki.gentoo.org/index.php', 'http://wiki.gentoo.org/api.php', u'/usr move'],
         ]
