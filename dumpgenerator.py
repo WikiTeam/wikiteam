@@ -729,8 +729,13 @@ def getImageNamesScraper(config={}, session=None):
             # print filename, url
 
         if re.search(r_next, raw):
-            offset = re.findall(r_next, raw)[0]
-            retries += 5  # add more retries if we got a page with offset
+            new_offset = re.findall(r_next, raw)[0]
+            # Avoid infinite loop
+            if new_offset != offset:
+                offset = new_offset
+                retries += 5  # add more retries if we got a page with offset
+            else:
+                offset = ''
         else:
             offset = ''
 
