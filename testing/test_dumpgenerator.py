@@ -46,6 +46,7 @@ class TestDumpgenerator(unittest.TestCase):
             t1 = time.time()
             delay(config=config)
             t2 = time.time() - t1
+            print 'Elapsed time in seconds (approx.):', t2
             self.assertTrue(t2 > i and t2 < i + 1)
     
     def test_getImages(self):
@@ -57,21 +58,21 @@ class TestDumpgenerator(unittest.TestCase):
         print '#'*73, '\n', 'test_getImages', '\n', '#'*73
         tests = [
             # Alone wikis
-            #['http://wiki.annotation.jp/index.php', 'http://wiki.annotation.jp/api.php', u'かずさアノテーション - ソーシャル・ゲノム・アノテーション.jpg'], 
-            ['http://archiveteam.org/index.php', 'http://archiveteam.org/api.php', u'Archive-is 2013-07-02 17-05-40.png'], 
-            ['http://skilledtests.com/wiki/index.php5', 'http://skilledtests.com/wiki/api.php', u'Benham\'s disc (animated).gif'], 
+            #['http://wiki.annotation.jp/index.php', 'http://wiki.annotation.jp/api.php', u'かずさアノテーション - ソーシャル・ゲノム・アノテーション.jpg'],
+            ['http://archiveteam.org/index.php', 'http://archiveteam.org/api.php', u'Archive-is 2013-07-02 17-05-40.png'],
+            ['http://skilledtests.com/wiki/index.php', 'http://skilledtests.com/wiki/api.php', u'Benham\'s disc (animated).gif'],
             
             # Editthis wikifarm
             # It has a page view limit
             
             # Gamepedia wikifarm
-            ['http://dawngate.gamepedia.com/index.php', 'http://dawngate.gamepedia.com/api.php', u'Spell Vanquish.png'], 
+            ['http://dawngate.gamepedia.com/index.php', 'http://dawngate.gamepedia.com/api.php', u'Spell Vanquish.png'],
             
             # Gentoo wikifarm
-            ['http://wiki.gentoo.org/index.php', 'http://wiki.gentoo.org/api.php', u'Openclonk screenshot1.png'], 
+            ['http://wiki.gentoo.org/index.php', 'http://wiki.gentoo.org/api.php', u'Openclonk screenshot1.png'],
             
             # Neoseeker wikifarm
-            ['http://digimon.neoseeker.com/w/index.php', 'http://digimon.neoseeker.com/w/api.php', u'Ogremon card.png'], 
+            ['http://digimon.neoseeker.com/w/index.php', 'http://digimon.neoseeker.com/w/api.php', u'Ogremon card.png'],
             
             # Orain wikifarm
             #['http://mc.orain.org/w/index.php', 'http://mc.orain.org/w/api.php', u'Mojang logo.svg'],
@@ -80,10 +81,10 @@ class TestDumpgenerator(unittest.TestCase):
             ['http://wikipapers.referata.com/w/index.php', 'http://wikipapers.referata.com/w/api.php', u'Avbot logo.png'],
             
             # ShoutWiki wikifarm
-            ['http://commandos.shoutwiki.com/w/index.php', 'http://commandos.shoutwiki.com/w/api.php', u'Night of the Wolves loading.png'], 
+            ['http://commandos.shoutwiki.com/w/index.php', 'http://commandos.shoutwiki.com/w/api.php', u'Night of the Wolves loading.png'],
             
             # Wiki-site wikifarm
-            ['http://minlingo.wiki-site.com/index.php', 'http://minlingo.wiki-site.com/api.php', u'一 (書方灋ᅗᅩ).png'], 
+            ['http://minlingo.wiki-site.com/index.php', 'http://minlingo.wiki-site.com/api.php', u'一 (書方灋ᅗᅩ).png'],
             
             # Wikkii wikifarm
             # It seems offline
@@ -135,11 +136,11 @@ class TestDumpgenerator(unittest.TestCase):
         print '#'*73, '\n', 'test_getPageTitles', '\n', '#'*73
         tests = [
             # Alone wikis
-            ['http://archiveteam.org/index.php', 'http://archiveteam.org/api.php', u'April Fools\' Day'], 
-            ['http://skilledtests.com/wiki/index.php5', 'http://skilledtests.com/wiki/api.php', u'Conway\'s Game of Life'], 
+            ['http://archiveteam.org/index.php', 'http://archiveteam.org/api.php', u'April Fools\' Day'],
+            ['http://skilledtests.com/wiki/index.php', 'http://skilledtests.com/wiki/api.php', u'Conway\'s Game of Life'],
             
             # Gentoo wikifarm
-            ['http://wiki.gentoo.org/index.php', 'http://wiki.gentoo.org/api.php', u'/usr move'], 
+            ['http://wiki.gentoo.org/index.php', 'http://wiki.gentoo.org/api.php', u'/usr move'],
         ]
         
         session = requests.Session()
@@ -181,20 +182,20 @@ class TestDumpgenerator(unittest.TestCase):
     def test_mwGetAPIAndIndex(self):
         tests = [
             # Alone wikis
-            ['http://archiveteam.org', 'http://archiveteam.org/api.php', 'http://archiveteam.org/index.php'], 
-            ['http://skilledtests.com/wiki/', 'http://skilledtests.com/wiki/api.php', 'http://skilledtests.com/wiki/index.php5'], 
+            ['http://archiveteam.org', 'http://archiveteam.org/api.php', 'http://archiveteam.org/index.php'],
+            ['http://skilledtests.com/wiki/', 'http://skilledtests.com/wiki/api.php', 'http://skilledtests.com/wiki/index.php'],
             
             # Editthis wikifarm
             # It has a page view limit
             
             # Gamepedia wikifarm
-            ['http://dawngate.gamepedia.com', 'http://dawngate.gamepedia.com/api.php', 'http://dawngate.gamepedia.com/index.php'], 
+            ['http://dawngate.gamepedia.com', 'http://dawngate.gamepedia.com/api.php', 'http://dawngate.gamepedia.com/index.php'],
             
             # Gentoo wikifarm
-            ['http://wiki.gentoo.org', 'http://wiki.gentoo.org/api.php', 'http://wiki.gentoo.org/index.php'], 
+            ['http://wiki.gentoo.org', 'http://wiki.gentoo.org/api.php', 'http://wiki.gentoo.org/index.php'],
             
             # Neoseeker wikifarm
-            #['http://digimon.neoseeker.com', 'http://digimon.neoseeker.com/w/api.php', 'http://digimon.neoseeker.com/w/index.php'], 
+            #['http://digimon.neoseeker.com', 'http://digimon.neoseeker.com/w/api.php', 'http://digimon.neoseeker.com/w/index.php'],
             
             # Orain wikifarm
             #['http://mc.orain.org', 'http://mc.orain.org/w/api.php', 'http://mc.orain.org/w/index.php'],
@@ -203,10 +204,10 @@ class TestDumpgenerator(unittest.TestCase):
             ['http://wikipapers.referata.com', 'http://wikipapers.referata.com/w/api.php', 'http://wikipapers.referata.com/w/index.php'],
             
             # ShoutWiki wikifarm
-            ['http://commandos.shoutwiki.com', 'http://commandos.shoutwiki.com/w/api.php', 'http://commandos.shoutwiki.com/w/index.php'], 
+            ['http://commandos.shoutwiki.com', 'http://commandos.shoutwiki.com/w/api.php', 'http://commandos.shoutwiki.com/w/index.php'],
             
             # Wiki-site wikifarm
-            #['http://minlingo.wiki-site.com', 'http://minlingo.wiki-site.com/api.php', 'http://minlingo.wiki-site.com/index.php'], 
+            #['http://minlingo.wiki-site.com', 'http://minlingo.wiki-site.com/api.php', 'http://minlingo.wiki-site.com/index.php'],
             
             # Wikkii wikifarm
             # It seems offline
