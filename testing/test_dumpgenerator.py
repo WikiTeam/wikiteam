@@ -170,7 +170,7 @@ class TestDumpgenerator(unittest.TestCase):
     def test_getWikiEngine(self):
         tests = [
             ['https://www.dokuwiki.org', 'DokuWiki'],
-            #['http://wiki.openwrt.org', 'DokuWiki'],
+            ['http://wiki.openwrt.org', 'DokuWiki'],
             ['http://skilledtests.com/wiki/', 'MediaWiki'],
             ['http://moinmo.in', 'MoinMoin'],
             ['https://wiki.debian.org', 'MoinMoin'],
