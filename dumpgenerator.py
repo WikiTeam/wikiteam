@@ -227,8 +227,10 @@ def getPageTitlesAPI(config={}, session=None):
             # Hack for old versions of MediaWiki API where result is dict
             if isinstance(allpages, dict):
                 allpages = allpages.values()
+
             titles += [page['title']
-                       for page in allpages]
+                       for page in allpages
+                       if re.match(config['ignoretitle'], page['title']) is None]
             if len(titles) != len(set(titles)):
                 # probably we are in a loop, server returning dupe titles, stop
                 # it
@@ -1033,7 +1035,11 @@ def getParameters(params=[]):
                         help='comma-separated value of namespaces to include (all by default)')
     groupDownload.add_argument('--exnamespaces', metavar="1,2,3",
                         help='comma-separated value of namespaces to exclude')
-    
+    groupDownload.add_argument('--ignoretitle', dest='ignoretitle',
+                               help='a regular expression which matches titles'
+                                    'to exclude')
+
+
     # Meta info params
     groupMeta = parser.add_argument_group('Meta info', 'What meta info to retrieve from the wiki')
     groupMeta.add_argument(
@@ -1179,7 +1185,8 @@ def getParameters(params=[]):
         'exnamespaces': exnamespaces,
         'path': args.path or '',
         'cookies': args.cookies or '',
-        'delay': args.delay
+        'delay': args.delay,
+        'ignoretitle': args.ignoretitle or ''
     }
     other = {
         'resume': args.resume,
