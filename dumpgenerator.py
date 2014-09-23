@@ -1567,7 +1567,7 @@ def getWikiEngine(url=''):
     elif re.search(ur'(?im)(<div id="footer-pbwiki">|ws-nav-search|PBinfo *= *{)', result):
         # formerly PBwiki
         wikiengine = 'PBworks'
-    if wikiengine == 'Unknown': print result
+    #if wikiengine == 'Unknown': print result
 
     return wikiengine
 

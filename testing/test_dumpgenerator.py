@@ -231,7 +231,7 @@ class TestDumpgenerator(unittest.TestCase):
             print 'Testing', wiki
             guess_engine = getWikiEngine(wiki)
             print 'Got: %s, expected: %s' % (guess_engine, engine)
-            self.assertEqual(getWikiEngine(wiki), engine)
+            self.assertEqual(guess_engine, engine)
     
     def test_mwGetAPIAndIndex(self):
         tests = [
