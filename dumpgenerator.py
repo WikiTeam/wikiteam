@@ -326,7 +326,13 @@ def getPageTitles(config={}, session=None):
 
     titles = []
     if 'api' in config and config['api']:
-        titles = getPageTitlesAPI(config=config, session=session)
+        r = session.post(config['api'], {'action': 'query', 'list': 'allpages', 'format': 'json'})
+        test = json.loads(r.text)
+        if ('warnings' in test and 'allpages' in test['warnings'] and '*' in test['warnings']['allpages']
+                and test['warnings']['allpages']['*'] == 'The "allpages" module has been disabled.'):
+            titles = getPageTitlesScraper(config=config, session=session)
+        else:
+            titles = getPageTitlesAPI(config=config, session=session)
     elif 'index' in config and config['index']:
         titles = getPageTitlesScraper(config=config, session=session)
 
