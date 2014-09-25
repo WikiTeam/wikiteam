@@ -31,7 +31,7 @@ Confirm you satisfy the requirements:
 
 `pip install --upgrade -r requirements.txt`
 
-or, if you don't have enough permissions for the above, 
+or, if you don't have enough permissions for the above,
 
 `pip install --user --upgrade -r requirements.txt`
 
@@ -72,6 +72,8 @@ See more options:
 There is a script for this, but we have [uploaded the tarballs](https://archive.org/details/wikimediacommons) to Internet Archive, so it's more useful to reseed their torrents than to re-generate old ones with the script.
 
 ## Developers
+
+[![Build Status](https://travis-ci.org/WikiTeam/wikiteam.svg)](https://travis-ci.org/WikiTeam/wikiteam)
 
 You can run tests easily by using the [tox](https://pypi.python.org/pypi/tox) command.  It is probably present in your operating system distribution, you would need version 1.6.  At worth, you can download it from pypi with: `pip install tox`.
 
