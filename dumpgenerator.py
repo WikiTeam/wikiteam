@@ -1498,15 +1498,76 @@ def getWikiEngine(url=''):
     session = requests.Session()
     session.headers = {'User-Agent': getUserAgent()}
     r = session.post(url=url)
+    if r.status_code == 405 or r.text == '':
+        r = session.get(url=url)
     result = r.text
 
     wikiengine = 'Unknown'
-    if re.search(ur'(?im)(<meta name="generator" content="DokuWiki)', result):
+    if re.search(ur'(?im)(<meta name="generator" content="DokuWiki)|dokuwiki__site', result):
         wikiengine = 'DokuWiki'
     elif re.search(ur'(?im)(alt="Powered by MediaWiki"|<meta name="generator" content="MediaWiki)', result):
         wikiengine = 'MediaWiki'
-    elif re.search(ur'(?im)(>MoinMoin Powered</a>)', result):
+    elif re.search(ur'(?im)(>MoinMoin Powered</a>|<option value="LocalSiteMap">)', result):
         wikiengine = 'MoinMoin'
+    elif re.search(ur'(?im)(twikiCurrentTopicLink|twikiCurrentWebHomeLink|twikiLink)', result):
+        wikiengine = 'TWiki'
+    elif re.search(ur'(?im)(<!--PageHeaderFmt-->)', result):
+        wikiengine = 'PmWiki'
+    elif re.search(ur'(?im)(<meta name="generator" content="PhpWiki|<meta name="PHPWIKI_VERSION)', result):
+        wikiengine = 'PhpWiki'
+    elif re.search(ur'(?im)(<meta name="generator" content="Tiki Wiki|Powered by <a href="http://(www\.)?tiki\.org"| id="tiki-(top|main)")', result):
+        wikiengine = 'TikiWiki'
+    elif re.search(ur'(?im)(foswikiNoJs|<meta name="foswiki\.|foswikiTable|foswikiContentFooter)', result):
+        wikiengine = 'FosWiki'
+    elif re.search(ur'(?im)(<meta http-equiv="powered by" content="MojoMojo)', result):
+        wikiengine = 'MojoMojo'
+    elif re.search(ur'(?im)(id="xwiki(content|nav_footer|platformversion|docinfo|maincontainer|data)|/resources/js/xwiki/xwiki|XWiki\.webapppath)', result):
+        wikiengine = 'XWiki'
+    elif re.search(ur'(?im)(<meta id="confluence-(base-url|context-path)")', result):
+        wikiengine = 'Confluence'
+    elif re.search(ur'(?im)(<meta name="generator" content="Banana Dance)', result):
+        wikiengine = 'Banana Dance'
+    elif re.search(ur'(?im)(Wheeled by <a class="external-link" href="http://www\.wagn\.org">|<body id="wagn">)', result):
+        wikiengine = 'Wagn'
+    elif re.search(ur'(?im)(<meta name="generator" content="MindTouch)', result):
+        wikiengine = 'MindTouch' # formerly DekiWiki
+    elif re.search(ur'(?im)(<div class="wikiversion">\s*(<p>)?JSPWiki|xmlns:jspwiki="http://www\.jspwiki\.org")', result):
+        wikiengine = 'JSPWiki'
+    elif re.search(ur'(?im)(Powered by:?\s*(<br ?/>)?\s*<a href="http://kwiki\.org">|\bKwikiNavigation\b)', result):
+        wikiengine = 'Kwiki'
+    elif re.search(ur'(?im)(Powered by <a href="http://www\.anwiki\.com")', result):
+        wikiengine = 'Anwiki'
+    elif re.search(ur'(?im)(<meta name="generator" content="Aneuch|is powered by <em>Aneuch</em>|<!-- start of Aneuch markup -->)', result):
+        wikiengine = 'Aneuch'
+    elif re.search(ur'(?im)(<meta name="generator" content="bitweaver)', result):
+        wikiengine = 'bitweaver'
+    elif re.search(ur'(?im)(powered by <a href="[^"]*\bzwiki.org(/[^"]*)?">)', result):
+        wikiengine = 'Zwiki'
+    # WakkaWiki forks
+    elif re.search(ur'(?im)(<meta name="generator" content="WikkaWiki|<a class="ext" href="(http://wikka\.jsnx\.com/|http://wikkawiki\.org/)">)', result):
+        wikiengine = 'WikkaWiki' # formerly WikkaWakkaWiki
+    elif re.search(ur'(?im)(<meta name="generator" content="CoMa Wiki)', result):
+        wikiengine = 'CoMaWiki'
+    elif re.search(ur'(?im)(Fonctionne avec <a href="http://www\.wikini\.net)', result):
+        wikiengine = 'WikiNi'
+    elif re.search(ur'(?im)(Powered by <a href="[^"]*CitiWiki">CitiWiki</a>)', result):
+        wikiengine = 'CitiWiki'
+    elif re.search(ur'(?im)(Powered by <a href="http://wackowiki\.com/|title="WackoWiki")', result):
+        wikiengine = 'WackoWiki'
+    elif re.search(ur'(?im)(Powered by <a href="http://www\.wakkawiki\.com)', result):
+        # This may not work for heavily modded/themed installations, e.g. http://operawiki.info/
+        wikiengine = 'WakkaWiki'
+    # Custom wikis used by wiki farms
+    elif re.search(ur'(?im)(var wikispaces_page|<div class="WikispacesContent)', result):
+        wikiengine = 'Wikispaces'
+    elif re.search(ur'(?im)(Powered by <a href="http://www\.wikidot\.com">|wikidot-privacy-button-hovertip|javascript:WIKIDOT\.page)', result):
+        wikiengine = 'Wikidot'
+    elif re.search(ur'(?im)(IS_WETPAINT_USER|wetpaintLoad|WPC-bodyContentContainer)', result):
+        wikiengine = 'Wetpaint'
+    elif re.search(ur'(?im)(<div id="footer-pbwiki">|ws-nav-search|PBinfo *= *{)', result):
+        # formerly PBwiki
+        wikiengine = 'PBworks'
+    #if wikiengine == 'Unknown': print result
 
     return wikiengine
 
