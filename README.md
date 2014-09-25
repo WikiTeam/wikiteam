@@ -75,7 +75,7 @@ There is a script for this, but we have [uploaded the tarballs](https://archive.
 
 [![Build Status](https://travis-ci.org/WikiTeam/wikiteam.svg)](https://travis-ci.org/WikiTeam/wikiteam)
 
-You can run tests easily by using the [tox](https://pypi.python.org/pypi/tox) command.  It is probably present in your operating system distribution, you would need version 1.6.  If it is not, you can download it from pypi with: `pip install tox`.
+You can run tests easily by using the [tox](https://pypi.python.org/pypi/tox) command.  It is probably already present in your operating system, you would need version 1.6.  If it is not, you can download it from pypi with: `pip install tox`.
 
 Example usage:
 
