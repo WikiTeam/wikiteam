@@ -50,13 +50,13 @@ def checkcore(api):
     # is choking on database or PHP errors (hundreds online wikis fatal on every request).
     if 'This is an auto-generated MediaWiki API documentation page' in raw:
         printapi(api)
-    elif rsd:
+    elif rsd and rsd.group(1):
         api = 'http:' + rsd.group(1)
         printapi(api)
-    elif feed:
+    elif feed and feed.group(1) and domain and domain.group(1):
         index = domain.group(1) + feed.group(1)
         printapi(index)
-    elif login:
+    elif login and login.group(1) and domain and domain.group(1):
         index = domain.group(1) + login.group(1)
         printapi(index)
     else:
