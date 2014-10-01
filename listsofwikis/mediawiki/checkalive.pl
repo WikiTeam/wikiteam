@@ -67,25 +67,25 @@ while (<MYURLLIST>) {
        $doc=$res->content;				#				   |
        print "Parsing the document... ";
        if (($doc=~/$pwrdby1/i) || ($doc=~/$pwrdby2/i)) {	# if the page contains: "Powered by MediaWiki"
-          print "It's alive and powered by Mediawiki\n";	# or: "poweredby_mediawiki"
+          print "It's alive and powered by MediaWiki\n";	# or: "poweredby_mediawiki"
           $flag=1;$live++;					# then it's a MediaWiki wiki
           & Check4api;
        } elsif ($doc=~/$genmw/i) {				# if the content generator is MediaWiki
-          print "It's alive and powered by Mediawiki\n";	# then it's a MediaWiki wiki
+          print "It's alive and powered by MediaWiki\n";	# then it's a MediaWiki wiki
           $flag=1;$live++;
           & Check4api;
        } elsif ($doc=~/$mwapi/i) {				# if the api.php contains: "MediaWiki API documentation page"
-          print "It's alive and powered by Mediawiki\n";	# then it's a MediaWiki wiki
+          print "It's alive and powered by MediaWiki\n";	# then it's a MediaWiki wiki
           print ALIVEFILE "$url\n";
           $flag=1;$live++;
        } elsif ($doc=~/$mwapi2/i) {				# if the api.php contains: "API Home Page" (older version)
-          print "It's alive and powered by Mediawiki\n";	# then it's a MediaWiki wiki
+          print "It's alive and powered by MediaWiki\n";	# then it's a MediaWiki wiki
           print ALIVEFILE "$url\n";
           $flag=1;$live++;
        }
        unless ($flag) {
          print "It's alive but NOT powered by MediaWiki\n";
-         print DEADFILE "$url is alive but NOT powered by Mediawiki\n"; $dead++;
+         print DEADFILE "$url is alive but NOT powered by MediaWiki\n"; $dead++;
        }
     $flag=0;
     } else {
@@ -111,7 +111,7 @@ while (<MYURLLIST>) {
   }
 }
 close DEADFILE; close ALIVEFILE; close MYURLLIST;
-print "\nFinished! I found $live live wikis and $dead dead or non-Mediawiki wikis.\n";
+print "\nFinished! I found $live live wikis and $dead dead or non-MediaWiki wikis.\n";
 
 # Here's the sub-routines
 # =======================
