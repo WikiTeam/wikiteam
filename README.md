@@ -59,7 +59,7 @@ See more options:
 
 ### Download Wikimedia dumps
 
-For downloading [Wikimedia XML dumps](http://dumps.wikimedia.org/backup-index.html) (Wikipedia, Wikibooks, Wikinews, etc):
+To download [Wikimedia XML dumps](http://dumps.wikimedia.org/backup-index.html) (Wikipedia, Wikibooks, Wikinews, etc) you can run:
 
 `python wikipediadownloader.py` (download all projects)
 
