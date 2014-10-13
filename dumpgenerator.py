@@ -1121,6 +1121,11 @@ def getParameters(params=[]):
         '--pass',
         dest='password',
         help='Password if authentication is required.')
+    parser.add_argument(
+        '--autoconfirm',
+        metavar='y',
+        default='',
+        help='Automatically respond to inqueries asked by the script.')
 
     # URL params
     groupWikiOrAPIOrIndex = parser.add_argument_group()
@@ -1314,7 +1319,8 @@ def getParameters(params=[]):
         'exnamespaces': exnamespaces,
         'path': args.path or '',
         'cookies': args.cookies or '',
-        'delay': args.delay
+        'delay': args.delay,
+        'default_answer': args.autoconfirm or ''
     }
     other = {
         'resume': args.resume,
@@ -1427,7 +1433,7 @@ def checkXMLIntegrity(config={}, titles=[], session=None):
         pass
     else:
         print 'XML dump seems to be corrupted.'
-        reply = ''
+        reply = config['default_answer']
         while reply.lower() not in ['yes', 'y', 'no', 'n']:
             reply = raw_input('Regenerate a new dump ([yes, y], [no, n])? ')
         if reply.lower() in ['yes', 'y']:
@@ -1840,7 +1846,7 @@ def main(params=[]):
     # do not enter if resume is requested from begining
     while not other['resume'] and os.path.isdir(config['path']):
         print '\nWarning!: "%s" path exists' % (config['path'])
-        reply = ''
+        reply = config['default_answer']
         while reply.lower() not in ['yes', 'y', 'no', 'n']:
             reply = raw_input(
                 'There is a dump in "%s", probably incomplete.\nIf you choose resume, to avoid conflicts, the parameters you have chosen in the current session will be ignored\nand the parameters available in "%s/%s" will be loaded.\nDo you want to resume ([yes, y], [no, n])? ' %
