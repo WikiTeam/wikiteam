@@ -19,11 +19,17 @@
 import re
 import urllib
 
+def getdomain(wiki):
+    domain = wiki
+    domain = domain.split('://')[1].split('/')[0]
+    domain = re.sub(ur'(?im)^www\d*\.', '', domain)
+    return domain
+    
 def main():
     doneurl = 'https://wikiteam.googlecode.com/svn/trunk/batchdownload/taskforce/mediawikis_done_2014.txt'
     f = urllib.urlopen(doneurl)
-    donewikis = [wikidomain.split('//')[1].split('/')[0] for wikidomain in f.read().splitlines()]
-    print 'Loaded %d done wikis' % len(donewikis)
+    donewikis = [getdomain(wiki) for wiki in f.read().splitlines()]
+    #print 'Loaded %d done wikis' % len(donewikis)
     
     offset = 0
     limit = 500
@@ -34,8 +40,8 @@ def main():
         raw = f.read()
         m = re.findall(ur'(?im)<tr class="row-(?:odd|even)"><td class="[^<>]+?"><a href="/wiki/[^<>]+?" title="[^<>]+?">([^<>]+?)</a></td><td class="[^<>]+?"><a href="/wiki/[^<>]+?" title="[^<>]+?">[^<>]+?</a></td><td class="[^<>]+?"><a class="external" rel="nofollow" href="([^<>]+?)">[^<>]+?</a></td><td data-sort-value="([^<>]+?)" class="[^<>]+?">[^<>]+?</td><td data-sort-value="([^<>]+?)" class="[^<>]+?">[^<>]+?</td></tr>', raw)
         for i in m:
-            wikidomain = i[1].split('//')[1].split('/')[0]
-            if wikidomain not in donewikis:
+            domain = getdomain(i[1])
+            if domain not in donewikis and not domain.endswith('editthis.info'):
                 print i[0], i[1], i[2], i[3]
         
         if not re.search(ur'rel="nofollow">Next</a>', raw):
