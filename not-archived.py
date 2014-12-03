@@ -41,7 +41,7 @@ def main():
         m = re.findall(ur'(?im)<tr class="row-(?:odd|even)"><td class="[^<>]+?"><a href="/wiki/[^<>]+?" title="[^<>]+?">([^<>]+?)</a></td><td class="[^<>]+?"><a href="/wiki/[^<>]+?" title="[^<>]+?">[^<>]+?</a></td><td class="[^<>]+?"><a class="external" rel="nofollow" href="([^<>]+?)">[^<>]+?</a></td><td data-sort-value="([^<>]+?)" class="[^<>]+?">[^<>]+?</td><td data-sort-value="([^<>]+?)" class="[^<>]+?">[^<>]+?</td></tr>', raw)
         for i in m:
             domain = getdomain(i[1])
-            if domain not in donewikis and not domain.endswith('editthis.info'):
+            if domain not in donewikis and not domain.endswith('editthis.info') and not domain.endswith('wiki-site.com'):
                 print i[0], i[1], i[2], i[3]
         
         if not re.search(ur'rel="nofollow">Next</a>', raw):
