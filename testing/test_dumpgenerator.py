@@ -255,7 +255,7 @@ class TestDumpgenerator(unittest.TestCase):
             #['http://mc.orain.org', 'http://mc.orain.org/w/api.php', 'http://mc.orain.org/w/index.php'],
             
             # Referata wikifarm
-            ['http://wikipapers.referata.com', 'http://wikipapers.referata.com/w/api.php', 'http://wikipapers.referata.com/w/index.php'],
+            ['http://wikipapers.referata.com', 'http://wikipapers.referata.com/api.php', 'http://wikipapers.referata.com/w/index.php'],
             
             # ShoutWiki wikifarm
             ['http://commandos.shoutwiki.com', 'http://commandos.shoutwiki.com/w/api.php', 'http://commandos.shoutwiki.com/w/index.php'],
