@@ -59,7 +59,7 @@ def main():
             # Use this instead, and comment out the next try, to only list.
             #subprocess.check_call(['curl', '-I', full])
         except:
-            undumped += dbname
+            undumped += domains[i]['domain']
 
         try:
             subprocess.check_call(['wget', '-e', 'robots=off', '-nc', '-a', 'wikia.log', current])
