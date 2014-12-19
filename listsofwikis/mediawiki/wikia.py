@@ -3,7 +3,7 @@
 
 # wikia.py List of not archived Wikia wikis
 # Downloads Wikia's dumps and lists wikis which have none.
-# TODO: check date
+# TODO: check date, http://www.cyberciti.biz/faq/linux-unix-curl-if-modified-since-command-linux-example/
 #
 # Copyright (C) 2014 WikiTeam developers
 # This program is free software: you can redistribute it and/or modify
@@ -33,9 +33,12 @@ def getall():
     offset = 0
     limit = 1000
     domains = {}
+    # This API module has no query continuation facility
+    print 'Getting list of active domains...'
     while True:
-        list = getlist(wikia, offset, limit)
+        list = getlist(wikia, offset, offset + limit)
         if list:
+            print offset
             domains = dict(domains.items() + list.items() )
             offset += 1000
         else:
@@ -45,28 +48,40 @@ def getall():
 def main():
     domains = getall()
     undumped = []
+    # Or we could iterate over each sublist while we get it?
     for i in domains:
-        #print domains
-        dbname = domains[i]['domain'].replace('.wikia.com', '').translate('-_.')
+        dbname = re.sub('[-_.]', '', domains[i]['domain'].replace('.wikia.com', '') )
         dbname = re.escape(dbname)
-        base = 'http://s3.amazonaws.com/wikia_xml_dumps/' + dbname[0] + '/' \
-            + dbname[0] + dbname[1] + '/' + dbname
+        print dbname
+        first = dbname[0]
+        # There are one-letter dbnames; the second letter is replaced by an underscore
+        # http://s3.amazonaws.com/wikia_xml_dumps/n/n_/n_pages_full.xml.gz
+        try:
+            second = dbname[1]
+        except:
+            second = '_'
+        base = 'http://s3.amazonaws.com/wikia_xml_dumps/' + first + '/' \
+            + first + second + '/' + dbname
         full = base + '_pages_full.xml.gz'
+        print full
         current = base + '_pages_current.xml.gz'
         images = base + '_images.tar'
         try:
-            subprocess.check_call(['wget', '-e', 'robots=off', '-nc', '-a', 'wikia.log', full])
+            #subprocess.check_call(['wget', '-e', 'robots=off', '--fail', '-nc', '-a', 'wikia.log', full])
             # Use this instead, and comment out the next try, to only list.
-            #subprocess.check_call(['curl', '-I', full])
-        except:
-            undumped += domains[i]['domain']
+            subprocess.check_call(['curl', '-I', '--fail', full])
+        except subprocess.CalledProcessError as e:
+            # We added --fail for this https://superuser.com/a/854102/283120
+            if e.returncode == 22:
+                print 'Missing: ' + domains[i]['domain']
+                undumped.append( domains[i]['domain'] )
 
-        try:
-            subprocess.check_call(['wget', '-e', 'robots=off', '-nc', '-a', 'wikia.log', current])
-            subprocess.check_call(['wget', '-e', 'robots=off', '-nc', '-a', 'wikia.log', images])
-        except:
-            pass
-    print undumped
+        #try:
+        #    subprocess.check_call(['wget', '-e', 'robots=off', '-nc', '-a', 'wikia.log', current])
+        #    subprocess.check_call(['wget', '-e', 'robots=off', '-nc', '-a', 'wikia.log', images])
+        #except:
+        #    pass
+    print '\n'.join(str(dump) for dump in undumped)
 
 if __name__ == '__main__':
     main()
