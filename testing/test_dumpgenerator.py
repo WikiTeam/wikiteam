@@ -75,7 +75,7 @@ class TestDumpgenerator(unittest.TestCase):
             #['http://mc.orain.org/w/index.php', 'http://mc.orain.org/w/api.php', u'Mojang logo.svg'],
             
             # Referata wikifarm
-            ['http://wikipapers.referata.com/index.php', 'http://wikipapers.referata.com/api.php', u'Avbot logo.png'],
+            ['http://wikipapers.referata.com/w/index.php', 'http://wikipapers.referata.com/w/api.php', u'Avbot logo.png'],
             
             # ShoutWiki wikifarm
             ['http://commandos.shoutwiki.com/w/index.php', 'http://commandos.shoutwiki.com/w/api.php', u'Night of the Wolves loading.png'],
@@ -138,9 +138,6 @@ class TestDumpgenerator(unittest.TestCase):
 
             # Test old allpages API behaviour
             ['http://wiki.damirsystems.com/index.php', 'http://wiki.damirsystems.com/api.php', 'SQL Server Tips'],
-
-            # Gentoo wikifarm
-            ['http://wiki.gentoo.org/index.php', 'http://wiki.gentoo.org/api.php', u'/usr move'],
         ]
         
         session = requests.Session()
@@ -242,9 +239,6 @@ class TestDumpgenerator(unittest.TestCase):
             # Gamepedia wikifarm
             ['http://dawngate.gamepedia.com', 'http://dawngate.gamepedia.com/api.php', 'http://dawngate.gamepedia.com/index.php'],
             
-            # Gentoo wikifarm
-            ['http://wiki.gentoo.org', 'http://wiki.gentoo.org/api.php', 'http://wiki.gentoo.org/index.php'],
-            
             # Neoseeker wikifarm
             #['http://digimon.neoseeker.com', 'http://digimon.neoseeker.com/w/api.php', 'http://digimon.neoseeker.com/w/index.php'],
             
@@ -252,7 +246,7 @@ class TestDumpgenerator(unittest.TestCase):
             #['http://mc.orain.org', 'http://mc.orain.org/w/api.php', 'http://mc.orain.org/w/index.php'],
             
             # Referata wikifarm
-            ['http://wikipapers.referata.com', 'http://wikipapers.referata.com/api.php', 'http://wikipapers.referata.com/index.php'],
+            # ['http://wikipapers.referata.com', 'http://wikipapers.referata.com/w/api.php', 'http://wikipapers.referata.com/w/index.php'],
             
             # ShoutWiki wikifarm
             ['http://commandos.shoutwiki.com', 'http://commandos.shoutwiki.com/w/api.php', 'http://commandos.shoutwiki.com/w/index.php'],
