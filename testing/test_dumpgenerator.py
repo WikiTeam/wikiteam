@@ -68,9 +68,6 @@ class TestDumpgenerator(unittest.TestCase):
             # Gamepedia wikifarm
             ['http://dawngate.gamepedia.com/index.php', 'http://dawngate.gamepedia.com/api.php', u'Spell Vanquish.png'],
             
-            # Gentoo wikifarm
-            ['http://wiki.gentoo.org/index.php', 'http://wiki.gentoo.org/api.php', u'Openclonk screenshot1.png'],
-            
             # Neoseeker wikifarm
             ['http://digimon.neoseeker.com/w/index.php', 'http://digimon.neoseeker.com/w/api.php', u'Ogremon card.png'],
             
