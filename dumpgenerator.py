@@ -45,6 +45,8 @@ import urllib
 
 __VERSION__ = '0.3.0-alpha'  # major, minor, micro: semver.org
 
+class PageMissingError(Exception):
+    pass
 
 def getVersion():
     return(__VERSION__)
@@ -387,10 +389,10 @@ def getXMLHeader(config={}, session=None):
     # similar to: <mediawiki xmlns="http://www.mediawiki.org/xml/export-0.3/"
     # xmlns:x....
     randomtitle = 'Main_Page'  # previously AMF5LKE43MNFGHKSDMRTJ
-    xml = getXMLPage(
-        config=config, title=randomtitle, verbose=False, session=session)
-    header = xml.split('</mediawiki>')[0]
-    if not xml:
+    try:
+        xml = "".join([x for x in getXMLPage(config=config, title=randomtitle, verbose=False, session=session)])
+        header = xml.split('</mediawiki>')[0]
+    except PageMissingError:
         print 'XML export on this wiki is broken, quitting.'
         sys.exit()
     return header
@@ -399,12 +401,7 @@ def getXMLHeader(config={}, session=None):
 def getXMLFileDesc(config={}, title='', session=None):
     """ Get XML for image description page """
     config['curonly'] = 1  # tricky to get only the most recent desc
-    return getXMLPage(
-        config=config,
-        title=title,
-        verbose=False,
-        session=session
-    )
+    return("".join([x for x in getXMLPage( config=config, title=title, verbose=False, session=session)]))
 
 
 def getUserAgent():
@@ -510,10 +507,24 @@ def getXMLPage(config={}, title='', verbose=True, session=None):
         params['templates'] = 1
 
     xml = getXMLPageCore(params=params, config=config, session=session)
+    if not xml:
+        raise PageMissingError
+    else:
+        # strip these sha1s sums which keep showing up in the export and
+        # which are invalid for the XML schema (they only apply to
+        # revisions)
+        xml = re.sub(r'\n\s*<sha1>\w+</sha1>\s*\n', r'\n', xml)
+        xml = re.sub(r'\n\s*<sha1/>\s*\n', r'\n', xml)
+
+    yield xml.split("</page>")[0]
 
     # if complete history, check if this page history has > limit edits, if so, retrieve all using offset if available
     # else, warning about Special:Export truncating large page histories
     r_timestamp = r'<timestamp>([^<]+)</timestamp>'
+
+    numberofedits = 0
+    numberofedits += len(re.findall(r_timestamp, xml))
+
     # search for timestamps in xml to avoid analysing empty pages like
     # Special:Allpages and the random one
     if not config['curonly'] and re.search(r_timestamp, xml):
@@ -546,26 +557,27 @@ def getXMLPage(config={}, title='', verbose=True, session=None):
                     """
                     # offset is OK in this wiki, merge with the previous chunk
                     # of this page history and continue
-                    xml = xml.split(
-                        '</page>')[0] + '    <revision>' + ('<revision>'.join(xml2.split('<revision>')[1:]))
+                    xml2 = xml2.split("</page>")[0]
+                    yield '  <revision>' + ('<revision>'.join(xml2.split('<revision>')[1:]))
+                    xml = xml2
+                    numberofedits += len(re.findall(r_timestamp, xml))
             else:
                 params['offset'] = ''  # no more edits in this page history
+    yield "</page>\n"
 
     if verbose:
-        numberofedits = len(re.findall(r_timestamp, xml))
         if (numberofedits == 1):
-            print '    %s, 1 edit' % (title.encode('utf-8'))
+           print '    %s, 1 edit' % (title.encode('utf-8'))
         else:
-            print '    %s, %d edits' % (title.encode('utf-8'), numberofedits)
-
-    return xml
+           print '    %s, %d edits' % (title.encode('utf-8'), numberofedits)
 
 
 def cleanXML(xml=''):
     """ Trim redundant info """
     # do not touch XML codification, leave AS IS
-    if re.search(r'</siteinfo>\n', xml) and re.search(r'</mediawiki>', xml):
+    if re.search(r'</siteinfo>\n', xml):
         xml = xml.split('</siteinfo>\n')[1]
+    if re.search(r'</mediawiki>', xml):
         xml = xml.split('</mediawiki>')[0]
     return xml
 
@@ -627,9 +639,11 @@ def generateXMLDump(config={}, titles=[], start='', session=None):
         delay(config=config, session=session)
         if c % 10 == 0:
             print 'Downloaded %d pages' % (c)
-        xml = getXMLPage(config=config, title=title, session=session)
-        xml = cleanXML(xml=xml)
-        if not xml:
+        try:
+            for xml in getXMLPage(config=config, title=title, session=session):
+                xml = cleanXML(xml=xml)
+                xmlfile.write(xml.encode('utf-8'))
+        except PageMissingError:
             logerror(
                 config=config,
                 text=u'The page "%s" was missing in the wiki (probably deleted)' %
@@ -639,7 +653,6 @@ def generateXMLDump(config={}, titles=[], start='', session=None):
         # an empty string due to a deleted page (logged in errors log) or
         # an empty string due to an error while retrieving the page from server
         # (logged in errors log)
-        xmlfile.write(xml.encode('utf-8'))
         c += 1
     xmlfile.write(footer)
     xmlfile.close()
