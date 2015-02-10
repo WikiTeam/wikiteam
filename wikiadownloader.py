@@ -42,40 +42,41 @@ f = open('wikia.com', 'r')
 wikia = f.read().strip().split('\n')
 f.close()
 
-print len(wikia), 'wikis in Wikia'
+print >>sys.stderr, len(wikia), 'wikis in Wikia'
 
 start = '!'
 if len(sys.argv) > 1:
     start = sys.argv[1]
 
 for wiki in wikia:
+    wiki = wiki.lower()
     prefix = wiki.split('http://')[1]
     if prefix < start:
         continue
-    print wiki
-    path = '%s/%s/%s' % (prefix[0], prefix[0:2], prefix)
+    print >>sys.stderr, "Starting:", wiki
     
     f = urllib.urlopen('%s/wiki/Special:Statistics' % (wiki))
     html = f.read()
-    #print html
     f.close()
     
-    m = re.compile(r'(?i)<a href="(?P<urldump>http://[^<>]+pages_(?P<dump>current|full)\.xml\.gz)">(?P<hour>\d\d:\d\d), (?P<month>[a-z]+) (?P<day>\d+), (?P<year>\d+)</a>').finditer(html)
-    for i in m:
+    m = re.compile(r'(?i)<a href="(?P<urldump>http://[^<>]+pages_(?P<dump>current|full)\.xml\.(?P<compression>gz|7z|bz2))">(?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2}) (?P<time>\d\d:\d\d:\d\d)')
+
+    for i in m.finditer(html):
         urldump = i.group("urldump")
         dump = i.group("dump")
+        date = "%s-%s-%s" % (i.group("year"), i.group("month"), i.group("day"))
+        compression = i.group("compression")
 
-        print 'Downloading', wiki
-        if not os.path.exists(path):
-            os.makedirs(path)
+        print >>sys.stderr, 'Downloading', wiki, dump.lower()
         
-        f = urllib.urlopen('%s/index.json' % ('/'.join(urldump.split('/')[:-1])))
-        json = f.read()
-        f.close()
         #{"name":"pages_full.xml.gz","timestamp":1273755409,"mwtimestamp":"20100513125649"}
         #{"name":"pages_current.xml.gz","timestamp":1270731925,"mwtimestamp":"20100408130525"}
-        date = re.findall(r'{"name":"pages_%s.xml.gz","timestamp":\d+,"mwtimestamp":"(\d{8})\d{6}"}' % (dump.lower()), json)[0]
-        print urldump, dump, date #, hour, month, day, year
         
         #-q, turn off verbose
-        os.system('wget -q -c "%s" -O %s/%s-%s-pages-meta-%s.gz' % (urldump, path, prefix, date, dump.lower() == 'current' and 'current' or 'history'))
+        os.system('wget -q -c "%s" -O %s-%s-pages-meta-%s.%s' % (urldump, prefix, date, dump.lower() == 'current' and 'current' or 'history', compression))
+
+    if not m.search(html):
+        print >>sys.stderr, 'Failed to download:', wiki
+        print >>sys.stderr, wiki
+
+fail_file.close()
