@@ -926,6 +926,9 @@ def getImageNamesAPI(config={}, session=None):
                     filename = re.sub('_', ' ', tmp_filename)
                     uploader = re.sub('_', ' ', props['imageinfo'][0]['user'])
                     images.append([filename, url, uploader])
+            else:
+                # if the API doesn't return query data, then we're done
+                break
 
     if (len(images) == 1):
         print '    Found 1 image'
