@@ -46,7 +46,11 @@ import urllib
 __VERSION__ = '0.3.0-alpha'  # major, minor, micro: semver.org
 
 class PageMissingError(Exception):
-    pass
+    def __init__(self, title, xml):
+        self.title = title
+        self.xml = xml
+    def __str__(self):
+        return "page '%s' not found" % self.title
 
 def getVersion():
     return(__VERSION__)
@@ -391,8 +395,11 @@ def getXMLHeader(config={}, session=None):
     randomtitle = 'Main_Page'  # previously AMF5LKE43MNFGHKSDMRTJ
     try:
         xml = "".join([x for x in getXMLPage(config=config, title=randomtitle, verbose=False, session=session)])
-        header = xml.split('</mediawiki>')[0]
-    except PageMissingError:
+    except PageMissingError as pme:
+        xml = pme.xml
+
+    header = xml.split('</mediawiki>')[0]
+    if not re.match("<mediawiki", xml):
         print 'XML export on this wiki is broken, quitting.'
         sys.exit()
     return header
@@ -507,8 +514,8 @@ def getXMLPage(config={}, title='', verbose=True, session=None):
         params['templates'] = 1
 
     xml = getXMLPageCore(params=params, config=config, session=session)
-    if not xml:
-        raise PageMissingError
+    if not "</page>" in xml:
+        raise PageMissingError(params['title'], xml)
     else:
         # strip these sha1s sums which keep showing up in the export and
         # which are invalid for the XML schema (they only apply to
