@@ -202,7 +202,7 @@ class TestDumpgenerator(unittest.TestCase):
             ['http://bootbook.de/CoMa.php', 'CoMaWiki'],
             #['http://wikini.net/wakka.php', 'WikiNi'],
             ['http://wiki.raydium.org/wiki/', 'WikiNi'],
-            ['http://barry1.cityu.edu.hk/han3/7/6/9/0/0/0/1/wiki.cs.cityu.edu.hk/', 'CitiWiki'],
+            ['http://wiki.cs.cityu.edu.hk/CitiWiki/SourceCode', 'CitiWiki'],
             ['http://wackowiki.sourceforge.net/test/', 'WackoWiki'],
             ['http://www.sw4me.com/wiki/', 'WackoWiki'],
             ['http://lslwiki.net/lslwiki/wakka.php', 'WakkaWiki'],
