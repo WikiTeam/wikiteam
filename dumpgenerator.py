@@ -1585,7 +1585,7 @@ def resumePreviousDump(config={}, other={}):
         # checking images directory
         listdir = []
         try:
-            listdir = os.listdir('%s/images' % (config['path']))
+            listdir = [n.decode('utf-8') for n in os.listdir('%s/images' % (config['path']))]
         except:
             pass  # probably directory does not exist
         listdir.sort()
