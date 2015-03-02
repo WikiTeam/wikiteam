@@ -987,11 +987,19 @@ def generateImageDump(config={}, other={}, images=[], start='', session=None):
         imagefile.write(r.content)
         imagefile.close()
         # saving description if any
-        xmlfiledesc = getXMLFileDesc(
-            config=config,
-            title=u'Image:%s' %
-            (filename),
-            session=session)  # use Image: for backwards compatibility
+        try:
+            title = u'Image:%s' % (filename)
+            xmlfiledesc = getXMLFileDesc(
+                config=config,
+                title=title,
+                session=session)  # use Image: for backwards compatibility
+        except PageMissingError:
+            xmlfiledesc = ''
+            logerror(
+                config=config,
+                text=u'The page "%s" was missing in the wiki (probably deleted)' % (title)
+            )
+
         f = open('%s/%s.desc' % (imagepath, filename2), 'w')
         # <text xml:space="preserve" bytes="36">Banner featuring SG1, SGA, SGU teams</text>
         if not re.search(r'</mediawiki>', xmlfiledesc):
