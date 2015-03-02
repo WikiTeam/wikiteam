@@ -1356,14 +1356,19 @@ def getParameters(params=[]):
 def checkAPI(api=None, session=None):
     """ Checking API availability """
     global cj
-    r = session.post(
-        url=api,
-        data={
-            'action': 'query',
-            'meta': 'siteinfo',
-            'format': 'json'})
-    resultText = r.text
-    print 'Checking API...', api
+    # handle redirects
+    for i in range(4):
+        print 'Checking API...', api
+        r = session.post(
+            url=api,
+            data={
+                'action': 'query',
+                'meta': 'siteinfo',
+                'format': 'json'})
+        resultText = r.text
+        if r.url == api:
+            break
+        api = r.url
     if "MediaWiki API is not enabled for this site." in resultText:
         return False
     try:
