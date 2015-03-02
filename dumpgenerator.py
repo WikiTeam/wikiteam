@@ -408,7 +408,7 @@ def getXMLHeader(config={}, session=None):
 def getXMLFileDesc(config={}, title='', session=None):
     """ Get XML for image description page """
     config['curonly'] = 1  # tricky to get only the most recent desc
-    return("".join([x for x in getXMLPage( config=config, title=title, verbose=False, session=session)]))
+    return("".join([x for x in getXMLPage( config=config, title=title, verbose=False, session=session, accept_empty=True)]))
 
 
 def getUserAgent():
@@ -491,7 +491,7 @@ def getXMLPageCore(headers={}, params={}, config={}, session=None):
     return xml
 
 
-def getXMLPage(config={}, title='', verbose=True, session=None):
+def getXMLPage(config={}, title='', verbose=True, session=None, accept_empty=False):
     """ Get the full history (or current only) of a page """
 
     # if server errors occurs while retrieving the full page history, it may return [oldest OK versions] + last version, excluding middle revisions, so it would be partialy truncated
@@ -514,7 +514,8 @@ def getXMLPage(config={}, title='', verbose=True, session=None):
         params['templates'] = 1
 
     xml = getXMLPageCore(params=params, config=config, session=session)
-    if not "</page>" in xml:
+    if not "</page>" in xml and not accept_empty:
+        print xml
         raise PageMissingError(params['title'], xml)
     else:
         # strip these sha1s sums which keep showing up in the export and
