@@ -1172,6 +1172,12 @@ def getParameters(params=[]):
     groupDownload.add_argument(
         '--images', action='store_true', help="generates an image dump")
     groupDownload.add_argument(
+        '--resources',
+        default="html",
+        choices=["html","dir","warc"],
+        help="""generate a backup of Main Page as HTML or with resources (CSS, etc.). The dir
+ and warc options require wget and may leave your IP address in the requisites.""")
+    groupDownload.add_argument(
         '--namespaces',
         metavar="1,2,3",
         help='comma-separated value of namespaces to include (all by default)')
@@ -1335,6 +1341,7 @@ def getParameters(params=[]):
         'xml': args.xml,
         'namespaces': namespaces,
         'exnamespaces': exnamespaces,
+        'resources': args.resources,
         'path': args.path or '',
         'cookies': args.cookies or '',
         'delay': args.delay
@@ -1641,7 +1648,19 @@ def saveSpecialVersion(config={}, session=None):
 
 def saveIndexPHP(config={}, session=None):
     """ Save index.php as .html, to preserve license details available at the botom of the page """
-
+    escaped_index = "'" + config['index'].replace("'", "'\\''") + "'"
+    escaped_path = "'" + (config['path'] + '/requisites').replace("'", "'\\''") + "'"
+    wget_dir = 'wget -e robots=off -p -k -H -nd -P %s --restrict-file-names=windows'
+    wget_dir %= escaped_path
+    wget_warc = wget_dir + ' --warc-file=%s' % escaped_path
+    if config['resources'] == 'warc':
+        print 'Downloading index.php (Main Page) with all resources to requisites and requisites.warc.gz'
+        os.system(wget_warc + ' ' + escaped_index)
+        return
+    if config['resources'] == 'dir':
+        print 'Downloading index.php (Main Page) with all resources to requisites'
+        os.system(wget_dir + ' ' + escaped_index)
+        return
     if os.path.exists('%s/index.html' % (config['path'])):
         print 'index.html exists, do not overwrite'
     else:
