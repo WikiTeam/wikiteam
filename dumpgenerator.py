@@ -1280,8 +1280,15 @@ def getParameters(params=[]):
                 session=session):
             print 'index.php is OK'
         else:
-            print 'Error in index.php, please, provide a correct path to index.php'
-            sys.exit(1)
+            index = '/'.join(index.split('/')[:-1])
+            if index and checkIndex(
+                    index=index,
+                    cookies=args.cookies,
+                    session=session):
+                print 'index.php is OK'
+            else:
+                print 'Error in index.php, please, provide a correct path to index.php'
+                sys.exit(1)
 
     # check user and pass (one requires both)
     if (args.user and not args.password) or (args.password and not args.user):
@@ -1393,6 +1400,11 @@ def checkIndex(index=None, cookies=None, session=None):
             r'(Special:Badtitle</a>|class="permissions-errors"|"wgCanonicalSpecialPageName":"Badtitle"|Login Required</h1>)',
             raw) and not cookies:
         print "ERROR: This wiki requires login and we are not authenticated"
+        return False
+    if re.search(
+            r'(page-Index_php|"wgPageName":"Index.php"|"firstHeading"><span dir="auto">Index.php</span>)',
+            raw):
+        print "Looks like the page called Index.php, not index.php itself"
         return False
     if re.search(
             r'(This wiki is powered by|<h2 id="mw-version-license">|meta name="generator" content="MediaWiki)',
