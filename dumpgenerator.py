@@ -1206,7 +1206,7 @@ def getParameters(params=[]):
         sys.exit(1)
 
     # No download params and no meta info params? Exit
-    if (not args.xml and not args.images) and \
+    if (not args.xml and not args.images and args.resources == 'html') and \
             (not args.get_wiki_engine):
         print 'ERROR: Use at least one download param or meta info param'
         parser.print_help()
