@@ -1228,7 +1228,7 @@ def getParameters(params=[]):
 
     session = requests.Session()
     session.cookies = cj
-    session.headers = {'User-Agent': getUserAgent()}
+    session.headers.update({'User-Agent': getUserAgent()})
     if args.user and args.password:
         session.auth = (args.user, args.password)
     # session.mount(args.api.split('/api.php')[0], HTTPAdapter(max_retries=max_ret))
@@ -1735,7 +1735,7 @@ def getWikiEngine(url=''):
     """ Returns the wiki engine of a URL, if known """
 
     session = requests.Session()
-    session.headers = {'User-Agent': getUserAgent()}
+    session.headers.update({'User-Agent': getUserAgent()})
     r = session.post(url=url)
     if r.status_code == 405 or r.text == '':
         r = session.get(url=url)
@@ -1820,7 +1820,7 @@ def mwGetAPIAndIndex(url=''):
     api = ''
     index = ''
     session = requests.Session()
-    session.headers = {'User-Agent': getUserAgent()}
+    session.headers.update({'User-Agent': getUserAgent()})
     r = session.post(url=url)
     result = r.text
 
