@@ -1265,10 +1265,12 @@ def getParameters(params=[]):
     # print index
     index2 = None
 
-    check = api and checkAPI(api=api, session=session)
-    if check:
+    if api:
+        check = checkAPI(api=api, session=session)
+    if check[0]:
         index2 = check[1]
-        print 'API is OK'
+        api = check[2]
+        print 'API is OK: ' + api
     else:
         print 'Error in API, please, provide a correct path to API'
         sys.exit(1)
@@ -1379,26 +1381,28 @@ def checkAPI(api=None, session=None):
             data={
                 'action': 'query',
                 'meta': 'siteinfo',
-                'format': 'json'})
+                'format': 'json'}
+        )
         resultText = r.text
         if r.url == api:
             break
-        api = r.url
+        else:
+            api = r.url
     if "MediaWiki API is not enabled for this site." in resultText:
         return False
     try:
         result = json.loads(resultText)
-        if 'query' in result:
-            query = result['query']
-            general = result['query']['general']
-            if 'general' in query and 'script' in general and 'server' in general:
-                return (
-                    True,
-                    result['query']['general']['server'] +
-                    result['query']['general']['script'])
-            else:
-                return (True, None)
+        index = None
+        if result['query']:
+            try:
+                index = result['query']['general']['server'] + \
+                    result['query']['general']['script']
+                return ( True, index, api )
+            except ValueError:
+                print "MediaWiki API seems to work but returned no index URL"
+                return (True, None, api)
     except ValueError:
+        print "MediaWiki API returned data we could not parse"
         return False
     return False
 
