@@ -1267,12 +1267,12 @@ def getParameters(params=[]):
 
     if api:
         check = checkAPI(api=api, session=session)
-    if check[0]:
+    if api and check:
         index2 = check[1]
         api = check[2]
         print 'API is OK: ' + api
     else:
-        print 'Error in API, please, provide a correct path to API'
+        print 'Error in API. Please, provide a correct path to API'
         sys.exit(1)
 
     if index and checkIndex(
