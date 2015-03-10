@@ -19,6 +19,10 @@
 # To learn more, read the documentation:
 #     https://github.com/WikiTeam/wikiteam/wiki
 
+try:
+    from kitchen.text.converters import getwriter
+except ImportError:
+    print "Please install the kitchen module."
 import cookielib
 import cPickle
 import datetime
@@ -42,6 +46,8 @@ except ImportError:
     sys.exit(1)
 import time
 import urllib
+UTF8Writer = getwriter('utf8')
+sys.stdout = UTF8Writer(sys.stdout)
 
 __VERSION__ = '0.3.0-alpha'  # major, minor, micro: semver.org
 
@@ -618,9 +624,9 @@ def getXMLPage(config={}, title='', verbose=True, session=None):
 
     if verbose:
         if (numberofedits == 1):
-           print '    %s, 1 edit' % (title.encode('utf-8').strip())
+           print '    %s, 1 edit' % (title.strip())
         else:
-           print '    %s, %d edits' % (title.encode('utf-8').strip(), numberofedits)
+           print '    %s, %d edits' % (title.strip(), numberofedits)
 
 
 def cleanXML(xml=''):
