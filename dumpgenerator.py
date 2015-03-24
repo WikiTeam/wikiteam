@@ -1146,6 +1146,7 @@ def getParameters(params=[]):
         action='store_true',
         help='resumes previous incomplete dump (requires --path)')
     parser.add_argument('--force', action='store_true', help='')
+    parser.add_argument('--ignore-api-check', action='store_true', help='')
     parser.add_argument(
         '--user', help='Username if authentication is required.')
     parser.add_argument(
@@ -1271,6 +1272,8 @@ def getParameters(params=[]):
         index2 = check[1]
         api = check[2]
         print 'API is OK: ' + api
+    elif args.ignore_api_check:
+        print 'Error in API. Ignoring.'
     else:
         print 'Error in API. Please, provide a correct path to API'
         sys.exit(1)
