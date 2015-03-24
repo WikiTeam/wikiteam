@@ -399,7 +399,7 @@ def getXMLHeader(config={}, session=None):
         xml = pme.xml
 
     header = xml.split('</mediawiki>')[0]
-    if not re.match("<mediawiki", xml):
+    if not re.match(r"\s*<mediawiki", xml):
         print 'XML export on this wiki is broken, quitting.'
         sys.exit()
     return header
