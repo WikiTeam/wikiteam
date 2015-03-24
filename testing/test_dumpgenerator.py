@@ -138,6 +138,9 @@ class TestDumpgenerator(unittest.TestCase):
 
             # Test old allpages API behaviour
             ['http://wiki.damirsystems.com/index.php', 'http://wiki.damirsystems.com/api.php', 'SQL Server Tips'],
+
+            # Test BOM encoding
+            ['http://www.libreidea.org/w/index.php', 'http://www.libreidea.org/w/api.php', 'Main Page'],
         ]
         
         session = requests.Session()
