@@ -181,7 +181,7 @@ def getNamespacesAPI(config={}, session=None):
                 'siprop': 'namespaces',
                 'format': 'json'}
         )
-        result = json.loads(r.text)
+        result = getJSON(r)
         delay(config=config, session=session)
 
         if 'all' in namespaces:
@@ -236,7 +236,7 @@ def getPageTitlesAPI(config={}, session=None):
             r = session.post(url=config['api'], data=params)
             handleStatusCode(r)
             # FIXME Handle HTTP errors here!
-            jsontitles = json.loads(r.text)
+            jsontitles = getJSON(r)
             apfrom = ''
             if 'query-continue' in jsontitles and 'allpages' in jsontitles[
                     'query-continue']:
@@ -353,7 +353,7 @@ def getPageTitles(config={}, session=None):
     titles = []
     if 'api' in config and config['api']:
         r = session.post(config['api'], {'action': 'query', 'list': 'allpages', 'format': 'json'})
-        test = json.loads(r.text)
+        test = getJSON(r)
         if ('warnings' in test and 'allpages' in test['warnings'] and '*' in test['warnings']['allpages']
                 and test['warnings']['allpages']['*'] == 'The "allpages" module has been disabled.'):
             titles = getPageTitlesScraper(config=config, session=session)
@@ -483,7 +483,7 @@ def getXMLPageCore(headers={}, params={}, config={}, session=None):
         try:
             r = session.post(url=config['index'], data=params, headers=headers)
             handleStatusCode(r)
-            xml = r.text
+            xml = fixBOM(r)
         except requests.exceptions.ConnectionError as e:
             xml = ''
         c += 1
@@ -854,7 +854,7 @@ def getImageNamesAPI(config={}, session=None):
         # FIXME Handle HTTP Errors HERE
         r = session.post(url=config['api'], data=params)
         handleStatusCode(r)
-        jsonimages = json.loads(r.text)
+        jsonimages = getJSON(r)
         delay(config=config, session=session)
 
         if 'query' in jsonimages:
@@ -904,7 +904,7 @@ def getImageNamesAPI(config={}, session=None):
             # FIXME Handle HTTP Errors HERE
             r = session.post(url=config['api'], data=params)
             handleStatusCode(r)
-            jsonimages = json.loads(r.text)
+            jsonimages = getJSON(r)
             delay(config=config, session=session)
 
             if 'query' in jsonimages:
@@ -1383,15 +1383,14 @@ def checkAPI(api=None, session=None):
                 'meta': 'siteinfo',
                 'format': 'json'}
         )
-        resultText = r.text
         if r.url == api:
             break
         else:
             api = r.url
-    if "MediaWiki API is not enabled for this site." in resultText:
+    if "MediaWiki API is not enabled for this site." in r.text:
         return False
     try:
-        result = json.loads(resultText)
+        result = getJSON(r)
         index = None
         if result['query']:
             try:
@@ -1402,6 +1401,7 @@ def checkAPI(api=None, session=None):
                 print "MediaWiki API seems to work but returned no index URL"
                 return (True, None, api)
     except ValueError:
+        print repr(r.text)
         print "MediaWiki API returned data we could not parse"
         return False
     return False
@@ -1442,6 +1442,20 @@ def removeIP(raw=''):
         raw)
 
     return raw
+
+
+def getJSON(request):
+    """Strip Unicode BOM"""
+    if request.text.startswith(u'\ufeff'):
+        request.encoding = 'utf-8-sig'
+    return request.json()
+
+
+def fixBOM(request):
+    """Strip Unicode BOM"""
+    if request.text.startswith(u'\ufeff'):
+        request.encoding = 'utf-8-sig'
+    return request.text
 
 
 def checkXMLIntegrity(config={}, titles=[], session=None):
@@ -1702,7 +1716,7 @@ def saveSiteInfo(config={}, session=None):
                     'sinumberingroup': 1,
                     'format': 'json'})
             # MediaWiki 1.11-1.12
-            if not 'query' in json.loads(r.text):
+            if not 'query' in getJSON(r):
                 r = session.post(
                     url=config['api'],
                     data={
@@ -1711,7 +1725,7 @@ def saveSiteInfo(config={}, session=None):
                         'siprop': 'general|namespaces|statistics|dbrepllag|interwikimap',
                         'format': 'json'})
             # MediaWiki 1.8-1.10
-            if not 'query' in json.loads(r.text):
+            if not 'query' in getJSON(r):
                 r = session.post(
                     url=config['api'],
                     data={
@@ -1719,7 +1733,7 @@ def saveSiteInfo(config={}, session=None):
                         'meta': 'siteinfo',
                         'siprop': 'general|namespaces',
                         'format': 'json'})
-            result = json.loads(r.text)
+            result = getJSON(r)
             delay(config=config, session=session)
             with open('%s/siteinfo.json' % (config['path']), 'w') as outfile:
                 outfile.write(json.dumps(result, indent=4, sort_keys=True))
