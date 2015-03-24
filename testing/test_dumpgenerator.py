@@ -208,7 +208,7 @@ class TestDumpgenerator(unittest.TestCase):
             ['http://lslwiki.net/lslwiki/wakka.php', 'WakkaWiki'],
             ['http://kw.pm.org/wiki/index.cgi', 'Kwiki'],
             ['http://wiki.wubi.org/index.cgi', 'Kwiki'],
-            ['http://perl.bristolbath.org/index.cgi', 'Kwiki'],
+            #['http://perl.bristolbath.org/index.cgi', 'Kwiki'],
             ['http://www.anwiki.com/', 'Anwiki'],
             ['http://www.anw.fr/', 'Anwiki'],
             ['http://www.aneuch.org/', 'Aneuch'],
