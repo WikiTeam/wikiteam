@@ -59,7 +59,7 @@ def getVersion():
 def truncateFilename(other={}, filename=''):
     """ Truncate filenames when downloading images with large filenames """
     return filename[:other['filenamelimit']] + \
-        md5(filename).hexdigest() + '.' + filename.split('.')[-1]
+        md5(filename.encode('utf-8')).hexdigest() + '.' + filename.split('.')[-1]
 
 
 def delay(config={}, session=None):
