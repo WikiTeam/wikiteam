@@ -35,6 +35,7 @@ except ImportError:             # Python 2.4 compatibility
     from md5 import new as md5
 import os
 import re
+import mmap
 try:
     import requests
 except ImportError:
@@ -638,31 +639,16 @@ def generateXMLDump(config={}, titles=[], start='', session=None):
     lock = True
     if start:
         # remove the last chunk of xml dump (it is probably incomplete)
-        xmlfile = open('%s/%s' % (config['path'], xmlfilename), 'r')
-        xmlfile2 = open('%s/%s2' % (config['path'], xmlfilename), 'w')
+        xmlfile = open('%s/%s' % (config['path'], xmlfilename), 'r+b')
         prev = ''
         c = 0
-        for l in xmlfile:
-            # removing <page>\n until end of file
-            # lock to avoid write an empty line at the begining of file
-            if c != 0:
-                if not re.search(r'<title>%s</title>' % (start), l):
-                    xmlfile2.write(prev)
-                else:
-                    break
-            c += 1
-            prev = l
+        mm = mmap.mmap(xmlfile.fileno(), 0, prot=mmap.PROT_READ | mmap.PROT_WRITE)
+        # removing <page>\n until end of file
+        # lock to avoid write an empty line at the begining of file
+        xmlfile.seek(mm.rfind('<page>'))
+        xmlfile.truncate()
         xmlfile.close()
-        xmlfile2.close()
-        # subst xml with xml2
-        # remove previous xml dump
-        os.remove('%s/%s' % (config['path'], xmlfilename))
-        # move correctly truncated dump to its real name
-        os.rename(
-            '%s/%s2' %
-            (config['path'], xmlfilename), '%s/%s' %
-            (config['path'], xmlfilename)
-        )
+        mm.close()
     else:
         # requested complete xml dump
         lock = False
@@ -1602,16 +1588,15 @@ def resumePreviousDump(config={}, other={}):
                     config['date'],
                     config['curonly'] and 'current' or 'history'),
                 'r')
-            for l in f:
-                if re.findall('</mediawiki>', l):
-                    # xml dump is complete
-                    xmliscomplete = True
-                    break
-                # weird if found more than 1, but maybe
-                xmltitles = re.findall(r'<title>([^<]+)</title>', l)
-                if xmltitles:
-                    lastxmltitle = undoHTMLEntities(text=xmltitles[-1])
+            mm = mmap.mmap(f.fileno(), 0, prot=mmap.PROT_READ)
+            if mm.find("</mediawiki>", -100) > 0:
+                xmliscomplete = True
+            else:
+                pos = mm.rfind("<title>")
+                mm.seek(pos+7)
+                lastxmltitle = mm.read(mm.find("</title>",pos)-pos-7)
             f.close()
+            mm.close()
         except:
             pass  # probably file doesnot exists
         # removing --END-- before getXMLs
