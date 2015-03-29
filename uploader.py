@@ -24,7 +24,7 @@ import time
 import urllib
 import urllib2
 from xml.sax.saxutils import quoteattr
-from internetarchive import get_item, upload
+from internetarchive import get_item
 
 import dumpgenerator
 
@@ -265,7 +265,7 @@ def upload(wikis, config={}):
             #now also to update the metadata
             #TODO: not needed for the second file in an item
             try:
-                item.upload(dump, metadata=md, access_key=accesskey, secret_key=secretkey)
+                item.upload(dump, metadata=md, access_key=accesskey, secret_key=secretkey, verbose=True)
                 uploadeddumps.append(dump)
                 log(wiki, dump, 'ok')
             except:
