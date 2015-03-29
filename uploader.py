@@ -24,6 +24,7 @@ import time
 import urllib
 import urllib2
 from xml.sax.saxutils import quoteattr
+from internetarchive import get_item, upload
 
 import dumpgenerator
 
@@ -89,6 +90,8 @@ def log(wiki, dump, msg):
     f.close()
 
 def upload(wikis, config={}):
+    headers = {'User-Agent': dumpgenerator.getUserAgent()}
+
     for wiki in wikis:
         print "#"*73
         print "# Uploading", wiki
@@ -108,6 +111,8 @@ def upload(wikis, config={}):
         c = 0
         for dump in dumps:
             wikidate = dump.split('-')[1]
+            item = get_item('wiki-' + wikiname)
+
             if dump in uploadeddumps:
                 if config['prune-directories']:
                     rmline='rm -rf %s-%s-wikidump/' % (wikiname, wikidate)
@@ -119,9 +124,7 @@ def upload(wikis, config={}):
                         stdout, stderr = subprocess.Popen(["md5sum", dump], stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
                         dumphash = re.sub(' +.+\n?', '', stdout)
 
-                        headers = {'User-Agent': dumpgenerator.getUserAgent()}
-                        itemdata = urllib2.Request(url='http://archive.org/metadata/wiki-' + wikiname, headers=headers)
-                        if re.search(dumphash, urllib2.urlopen(itemdata).read()):
+                        if dumphash in map(lambda x: x['md5'], item.files):
                             log(wiki, dump, 'verified')
                             rmline='rm -rf %s' % dump
                             if not os.system(rmline):
@@ -141,12 +144,7 @@ def upload(wikis, config={}):
             print wiki, wikiname, wikidate, dump
 
             # Does the item exist already?
-            headers = {'User-Agent': dumpgenerator.getUserAgent()}
-            itemdata = urllib2.Request(url='http://archive.org/metadata/wiki-' + wikiname, headers=headers)
-            if urllib2.urlopen(itemdata).read() == '{}':
-                ismissingitem = True
-            else:
-                ismissingitem = False
+            ismissingitem = not item.exists
 
             # We don't know a way to fix/overwrite metadata if item exists already:
             # just pass bogus data and save some time
@@ -249,48 +247,29 @@ def upload(wikis, config={}):
                 wikirights = 'foo'
                 wikiurl = 'foo'
 
-            #creates curl command
-            curl = ['curl', '--location',
-                '--header', "'x-amz-auto-make-bucket:1'", # Creates the item automatically, need to give some time for the item to correctly be created on archive.org, or everything else will fail, showing "bucket not found" error
-                '--header', "'x-archive-queue-derive:0'",
-                '--header', "'x-archive-size-hint:%d'" % (os.path.getsize(dump)),
-                '--header', "'authorization: LOW %s:%s'" % (accesskey, secretkey),
-            ]
             if c == 0:
-                curl += ['--header', "'x-archive-meta-mediatype:web'",
-                    '--header', "'x-archive-meta-collection:%s'" % (config['collection']),
-                    '--header', quoteattr('x-archive-meta-title:' + wikititle),
-                    '--header', "'x-archive-meta-description:%s'" % wikidesc.replace("'", r"\'"),
-                    '--header', quoteattr('x-archive-meta-language:' + lang),
-                    '--header', "'x-archive-meta-last-updated-date:%s'" % (wikidate_text),
-                    '--header', "'x-archive-meta-subject:%s'" % ('; '.join(wikikeys)), # Keywords should be separated by ; but it doesn't matter much; the alternative is to set one per field with subject[0], subject[1], ...
-                    '--header', quoteattr('x-archive-meta-licenseurl:' + wikilicenseurl),
-                    '--header', "'x-archive-meta-rights:%s'" % wikirights.replace("'", r"\'"),
-                    '--header', quoteattr('x-archive-meta-originalurl:' + wikiurl),
-                ]
+                # Item metadata
+                md = {
+                    'mediatype': 'web',
+                    'collection': config['collection'],
+                    'title': wikititle,
+                    'description': wikidesc,
+                    'language': lang,
+                    'last-updated-date': wikidate_text,
+                    'subject': '; '.join(wikikeys), # Keywords should be separated by ; but it doesn't matter much; the alternative is to set one per field with subject[0], subject[1], ...
+                    'licenseurl': wikilicenseurl,
+                    'rights': wikirights,
+                    'originalurl': wikiurl,
+                }
 
-            curl += ['--upload-file', "%s" % (dump),
-                    "http://s3.us.archive.org/wiki-%s/%s" % (wikiname, dump), # It could happen that the identifier is taken by another user; only wikiteam collection admins will be able to upload more files to it, curl will fail immediately and get a permissions error by s3.
-                    '> /dev/null',
-                    #FIXME: Must be NUL instead on Windows, how to make compatible?
-            ]
             #now also to update the metadata
             #TODO: not needed for the second file in an item
-            curlmeta = ['curl --silent',
-                '--data-urlencode -target=metadata',
-                """--data-urlencode -patch='{"replace":"/last-updated-date", "value":"%s"}'""" % (wikidate_text),
-                '--data-urlencode access=' + accesskey,
-                '--data-urlencode secret=' + secretkey,
-                'http://archive.org/metadata/wiki-' + wikiname,
-                '> /dev/null'
-            ]
-            curlline = ' '.join(curl)
-            curlmetaline = ' '.join(curlmeta)
-            if not os.system(curlline):
+            try:
+                item.upload(dump, metadata=md, access_key=accesskey, secret_key=secretkey)
                 uploadeddumps.append(dump)
                 log(wiki, dump, 'ok')
-                if not ismissingitem:
-                    os.system(curlmetaline)
+            except:
+                log(wiki, dump, 'error?')
             c += 1
 
 def main(params=[]):
