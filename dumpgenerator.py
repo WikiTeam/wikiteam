@@ -1433,7 +1433,7 @@ def checkAPI(api=None, session=None):
                 index = result['query']['general']['server'] + \
                     result['query']['general']['script']
                 return ( True, index, api )
-            except ValueError:
+            except KeyError:
                 print "MediaWiki API seems to work but returned no index URL"
                 return (True, None, api)
     except ValueError:
