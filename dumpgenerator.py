@@ -52,6 +52,12 @@ class PageMissingError(Exception):
     def __str__(self):
         return "page '%s' not found" % self.title
 
+class ExportAbortedError(Exception):
+    def __init__(self, index):
+        self.index = index
+    def __str__(self):
+        return "Export from '%s' did not return anything." % self.index
+
 def getVersion():
     return(__VERSION__)
 
@@ -396,13 +402,36 @@ def getXMLHeader(config={}, session=None):
     try:
         xml = "".join([x for x in getXMLPage(config=config, title=randomtitle, verbose=False, session=session)])
     except PageMissingError as pme:
+        # The <page> does not exist. Not a problem, if we get the <siteinfo>.
         xml = pme.xml
+    # Issue 26: Account for missing "Special" namespace.
+    # Hope the canonical special name has not been removed.
+    # http://albens73.fr/wiki/api.php?action=query&meta=siteinfo&siprop=namespacealiases
+    except ExportAbortedError:
+        try:
+            if config['api']:
+                print "Trying the local name for the Special namespace instead"
+                r = session.post(
+                url=config['api'],
+                data={
+                    'action': 'query',
+                    'meta': 'siteinfo',
+                    'siprop': 'namespaces',
+                    'format': 'json'}
+                )
+                config['export'] = json.loads(r.text)['query']['namespaces']['-1']['*'] \
+                    + ':Export'
+                xml = "".join([x for x in getXMLPage(config=config, title=randomtitle, verbose=False, session=session)])
+        except PageMissingError as pme:
+            xml = pme.xml
+        except ExportAbortedError:
+            pass
 
     header = xml.split('</mediawiki>')[0]
     if not re.match(r"\s*<mediawiki", xml):
         print 'XML export on this wiki is broken, quitting.'
         sys.exit()
-    return header
+    return header, config
 
 
 def getXMLFileDesc(config={}, title='', session=None):
@@ -454,11 +483,11 @@ def getXMLPageCore(headers={}, params={}, config={}, session=None):
             print '    We have retried %d times' % (c)
             print '    MediaWiki error for "%s", network error or whatever...' % (params['pages'])
             # If it's not already what we tried: our last chance, preserve only the last revision...
-            # config['curonly'] means that the whole dump is configured to save nonly the last
+            # config['curonly'] means that the whole dump is configured to save only the last,
             # params['curonly'] should mean that we've already tried this
             # fallback, because it's set by the following if and passed to
             # getXMLPageCore
-            if not config['curonly']:
+            if not config['curonly'] and not 'curonly' in params:
                 print '    Trying to save only the last revision for this page...'
                 params['curonly'] = 1
                 logerror(
@@ -478,6 +507,7 @@ def getXMLPageCore(headers={}, params={}, config={}, session=None):
                     config=config,
                     text='Error while retrieving the last revision of "%s". Skipping.' %
                     (params['pages']))
+                raise ExportAbortedError(config['index'])
                 return ''  # empty xml
         # FIXME HANDLE HTTP Errors HERE
         try:
@@ -485,6 +515,7 @@ def getXMLPageCore(headers={}, params={}, config={}, session=None):
             handleStatusCode(r)
             xml = fixBOM(r)
         except requests.exceptions.ConnectionError as e:
+            raise ExportAbortedError(config['index'])
             xml = ''
         c += 1
 
@@ -502,7 +533,10 @@ def getXMLPage(config={}, title='', verbose=True, session=None):
     title_ = title
     title_ = re.sub(' ', '_', title_)
     # do not convert & into %26, title_ = re.sub('&', '%26', title_)
-    params = {'title': 'Special:Export', 'pages': title_, 'action': 'submit'}
+    try:
+        params = {'title': config['export'], 'pages': title_, 'action': 'submit'}
+    except KeyError:
+        params = {'title': 'Special:Export', 'pages': title_, 'action': 'submit'}
     if config['curonly']:
         params['curonly'] = 1
         params['limit'] = 1
@@ -514,6 +548,8 @@ def getXMLPage(config={}, title='', verbose=True, session=None):
         params['templates'] = 1
 
     xml = getXMLPageCore(params=params, config=config, session=session)
+    if xml == "":
+        raise ExportAbortedError(config['index'])
     if not "</page>" in xml:
         raise PageMissingError(params['title'], xml)
     else:
@@ -593,7 +629,7 @@ def generateXMLDump(config={}, titles=[], start='', session=None):
     """ Generates a XML dump for a list of titles """
 
     print 'Retrieving the XML for every page from "%s"' % (start and start or 'start')
-    header = getXMLHeader(config=config, session=session)
+    header, config = getXMLHeader(config=config, session=session)
     footer = '</mediawiki>\n'  # new line at the end
     xmlfilename = '%s-%s-%s.xml' % (domain2prefix(config=config),
                                     config['date'],
