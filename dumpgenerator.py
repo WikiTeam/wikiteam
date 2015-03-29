@@ -506,7 +506,7 @@ def getXMLPageCore(headers={}, params={}, config={}, session=None):
                 params['curonly'] = 1
                 logerror(
                     config=config,
-                    text='Error while retrieving the full history of "%s". Trying to save only the last revision for this page' %
+                    text=u'Error while retrieving the full history of "%s". Trying to save only the last revision for this page' %
                     (params['pages'])
                 )
                 return getXMLPageCore(
@@ -519,7 +519,7 @@ def getXMLPageCore(headers={}, params={}, config={}, session=None):
                 print '    Saving in the errors log, and skipping...'
                 logerror(
                     config=config,
-                    text='Error while retrieving the last revision of "%s". Skipping.' %
+                    text=u'Error while retrieving the last revision of "%s". Skipping.' %
                     (params['pages']))
                 raise ExportAbortedError(config['index'])
                 return ''  # empty xml
@@ -694,7 +694,7 @@ def generateXMLDump(config={}, titles=[], start=None, session=None):
             logerror(
                 config=config,
                 text=u'The page "%s" was missing in the wiki (probably deleted)' %
-                (title)
+                (title.decode('utf-8'))
             )
         # here, XML is a correct <page> </page> chunk or
         # an empty string due to a deleted page (logged in errors log) or
@@ -1077,7 +1077,7 @@ def generateImageDump(config={}, other={}, images=[], start='', session=None):
             xmlfiledesc = ''
             logerror(
                 config=config,
-                text=u'The page "%s" was missing in the wiki (probably deleted)' % (title)
+                text=u'The page "%s" was missing in the wiki (probably deleted)' % (title.decode('utf-8'))
             )
 
         f = open('%s/%s.desc' % (imagepath, filename2), 'w')
