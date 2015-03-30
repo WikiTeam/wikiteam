@@ -19,6 +19,10 @@
 # To learn more, read the documentation:
 #     https://github.com/WikiTeam/wikiteam/wiki
 
+try:
+    from kitchen.text.converters import getwriter
+except ImportError:
+    print "Please install the kitchen module."
 import cookielib
 import cPickle
 import datetime
@@ -42,6 +46,8 @@ except ImportError:
     sys.exit(1)
 import time
 import urllib
+UTF8Writer = getwriter('utf8')
+sys.stdout = UTF8Writer(sys.stdout)
 
 __VERSION__ = '0.3.0-alpha'  # major, minor, micro: semver.org
 
@@ -257,19 +263,19 @@ def getPageTitlesAPI(config={}, session=None):
             # Hack for old versions of MediaWiki API where result is dict
             if isinstance(allpages, dict):
                 allpages = allpages.values()
-            titles += [page['title']
-                       for page in allpages]
+            for page in allpages:
+                yield page['title']
+            c += len(allpages)
+
             if len(titles) != len(set(titles)):
                 # probably we are in a loop, server returning dupe titles, stop
                 # it
                 print 'Probably a loop, finishing'
                 titles = list(set(titles))
                 apfrom = ''
-            c += len(allpages)
+
             delay(config=config, session=session)
         print '    %d titles retrieved in the namespace %d' % (c, namespace)
-    return titles
-
 
 def getPageTitlesScraper(config={}, session=None):
     """  """
@@ -368,13 +374,21 @@ def getPageTitles(config={}, session=None):
     elif 'index' in config and config['index']:
         titles = getPageTitlesScraper(config=config, session=session)
 
-    # removing dupes (e.g. in CZ appears Widget:AddThis two times (main
-    # namespace and widget namespace))
-    titles = sorted(set(titles))
+    titlesfilename = '%s-%s-titles.txt' % (
+        domain2prefix(config=config), config['date'])
+    titlesfile = open('%s/%s' % (config['path'], titlesfilename), 'a')
+    c = 0
+    for title in titles:
+        titlesfile.write(title.encode('utf-8') + "\n")
+        c += 1
+    # TODO: Sort to remove dupes? In CZ, Widget:AddThis appears two times:
+    # main namespace and widget namespace.
+    # We can use sort -u in UNIX, but is it worth it?
+    titlesfile.write(u'--END--\n')
+    titlesfile.close()
+    print 'Titles saved at...', titlesfilename
 
-    print '%d page titles loaded' % (len(titles))
-    return titles
-
+    print '%d page titles loaded' % (c)
 
 def getImageNames(config={}, session=None):
     """ Get list of image names """
@@ -430,6 +444,7 @@ def getXMLHeader(config={}, session=None):
     header = xml.split('</mediawiki>')[0]
     if not re.match(r"\s*<mediawiki", xml):
         print 'XML export on this wiki is broken, quitting.'
+        logerror(u'XML export on this wiki is broken, quitting.')
         sys.exit()
     return header, config
 
@@ -492,7 +507,7 @@ def getXMLPageCore(headers={}, params={}, config={}, session=None):
                 params['curonly'] = 1
                 logerror(
                     config=config,
-                    text='Error while retrieving the full history of "%s". Trying to save only the last revision for this page' %
+                    text=u'Error while retrieving the full history of "%s". Trying to save only the last revision for this page' %
                     (params['pages'])
                 )
                 return getXMLPageCore(
@@ -505,7 +520,7 @@ def getXMLPageCore(headers={}, params={}, config={}, session=None):
                 print '    Saving in the errors log, and skipping...'
                 logerror(
                     config=config,
-                    text='Error while retrieving the last revision of "%s". Skipping.' %
+                    text=u'Error while retrieving the last revision of "%s". Skipping.' %
                     (params['pages']))
                 raise ExportAbortedError(config['index'])
                 return ''  # empty xml
@@ -601,7 +616,12 @@ def getXMLPage(config={}, title='', verbose=True, session=None):
                     # offset is OK in this wiki, merge with the previous chunk
                     # of this page history and continue
                     xml2 = xml2.split("</page>")[0]
-                    yield '  <revision>' + ('<revision>'.join(xml2.split('<revision>')[1:]))
+                    try:
+                        yield '  <revision>' + ('<revision>'.join(xml2.split('<revision>')[1:]))
+                    except MemoryError:
+                        print "The page's history exceeds our memory, halving limit."
+                        params['limit'] = params['limit'] / 2
+                        continue
                     xml = xml2
                     numberofedits += len(re.findall(r_timestamp, xml))
             else:
@@ -610,9 +630,9 @@ def getXMLPage(config={}, title='', verbose=True, session=None):
 
     if verbose:
         if (numberofedits == 1):
-           print '    %s, 1 edit' % (title.encode('utf-8'))
+           print '    %s, 1 edit' % (title.strip())
         else:
-           print '    %s, %d edits' % (title.encode('utf-8'), numberofedits)
+           print '    %s, %d edits' % (title.strip(), numberofedits)
 
 
 def cleanXML(xml=''):
@@ -625,8 +645,9 @@ def cleanXML(xml=''):
     return xml
 
 
-def generateXMLDump(config={}, titles=[], start='', session=None):
+def generateXMLDump(config={}, titles=[], start=None, session=None):
     """ Generates a XML dump for a list of titles """
+    # TODO: titles is now unused.
 
     print 'Retrieving the XML for every page from "%s"' % (start and start or 'start')
     header, config = getXMLHeader(config=config, session=session)
@@ -637,32 +658,9 @@ def generateXMLDump(config={}, titles=[], start='', session=None):
     xmlfile = ''
     lock = True
     if start:
-        # remove the last chunk of xml dump (it is probably incomplete)
-        xmlfile = open('%s/%s' % (config['path'], xmlfilename), 'r')
-        xmlfile2 = open('%s/%s2' % (config['path'], xmlfilename), 'w')
-        prev = ''
-        c = 0
-        for l in xmlfile:
-            # removing <page>\n until end of file
-            # lock to avoid write an empty line at the begining of file
-            if c != 0:
-                if not re.search(r'<title>%s</title>' % (start), l):
-                    xmlfile2.write(prev)
-                else:
-                    break
-            c += 1
-            prev = l
-        xmlfile.close()
-        xmlfile2.close()
-        # subst xml with xml2
-        # remove previous xml dump
-        os.remove('%s/%s' % (config['path'], xmlfilename))
-        # move correctly truncated dump to its real name
-        os.rename(
-            '%s/%s2' %
-            (config['path'], xmlfilename), '%s/%s' %
-            (config['path'], xmlfilename)
-        )
+        print "Removing the last chunk of past XML dump: it is probably incomplete."
+        for i in reverse_readline('%s/%s' % (config['path'], xmlfilename), truncate=True):
+            pass
     else:
         # requested complete xml dump
         lock = False
@@ -672,7 +670,7 @@ def generateXMLDump(config={}, titles=[], start='', session=None):
 
     xmlfile = open('%s/%s' % (config['path'], xmlfilename), 'a')
     c = 1
-    for title in titles:
+    for title in readTitles(config, start):
         if not title.strip():
             continue
         if title == start:  # start downloading from start, included
@@ -690,7 +688,7 @@ def generateXMLDump(config={}, titles=[], start='', session=None):
             logerror(
                 config=config,
                 text=u'The page "%s" was missing in the wiki (probably deleted)' %
-                (title)
+                (title.decode('utf-8'))
             )
         # here, XML is a correct <page> </page> chunk or
         # an empty string due to a deleted page (logged in errors log) or
@@ -701,19 +699,71 @@ def generateXMLDump(config={}, titles=[], start='', session=None):
     xmlfile.close()
     print 'XML dump saved at...', xmlfilename
 
-
-def saveTitles(config={}, titles=[]):
-    """ Save title list in a file """
+def readTitles(config={}, start=None):
+    """ Read title list from a file, from the title "start" """
 
     titlesfilename = '%s-%s-titles.txt' % (
         domain2prefix(config=config), config['date'])
-    titlesfile = open('%s/%s' % (config['path'], titlesfilename), 'w')
-    output = u"%s\n--END--" % ('\n'.join(titles))
-    titlesfile.write(output.encode('utf-8'))
-    titlesfile.close()
+    titlesfile = open('%s/%s' % (config['path'], titlesfilename), 'r')
 
-    print 'Titles saved at...', titlesfilename
+    seeking = False
+    if start:
+        seeking = True
 
+    with titlesfile as f:
+        for line in f:
+            if line.strip() == '--END--':
+                break
+            elif seeking and line.strip() != start:
+                continue
+            elif seeking and line.strip() == start:
+                seeking = False
+                yield line.strip()
+            else:
+                yield line.strip()
+
+def reverse_readline(filename, buf_size=8192, truncate=False):
+    """a generator that returns the lines of a file in reverse order"""
+    # Original code by srohde, abdus_salam: cc by-sa 3.0
+    # http://stackoverflow.com/a/23646049/718903
+    with open(filename, 'r+') as fh:
+        segment = None
+        offset = 0
+        fh.seek(0, os.SEEK_END)
+        total_size = remaining_size = fh.tell()
+        while remaining_size > 0:
+            offset = min(total_size, offset + buf_size)
+            fh.seek(-offset, os.SEEK_END)
+            buffer = fh.read(min(remaining_size, buf_size))
+            remaining_size -= buf_size
+            lines = buffer.split('\n')
+            # the first line of the buffer is probably not a complete line so
+            # we'll save it and append it to the last line of the next buffer
+            # we read
+            if segment is not None:
+                # if the previous chunk starts right from the beginning of line
+                # do not concat the segment to the last line of new chunk
+                # instead, yield the segment first 
+                if buffer[-1] is not '\n':
+                    lines[-1] += segment
+                else:
+                    if truncate and '</page>' in segment:
+                        pages = buffer.split('</page>')
+                        fh.seek(-offset+buf_size-len(pages[-1]), os.SEEK_END)
+                        fh.truncate
+                        raise StopIteration
+                    else:
+                        yield segment
+            segment = lines[0]
+            for index in range(len(lines) - 1, 0, -1):
+                if truncate and '</page>' in segment:
+                    pages = buffer.split('</page>')
+                    fh.seek(-offset-len(pages[-1]), os.SEEK_END)
+                    fh.truncate
+                    raise StopIteration
+                else:
+                    yield lines[index]
+        yield segment
 
 def saveImageNames(config={}, images=[], session=None):
     """ Save image list in a file, including filename, url and uploader """
@@ -1033,7 +1083,7 @@ def generateImageDump(config={}, other={}, images=[], start='', session=None):
             xmlfiledesc = ''
             logerror(
                 config=config,
-                text=u'The page "%s" was missing in the wiki (probably deleted)' % (title)
+                text=u'The page "%s" was missing in the wiki (probably deleted)' % (title.decode('utf-8'))
             )
 
         f = open('%s/%s.desc' % (imagepath, filename2), 'w')
@@ -1539,12 +1589,11 @@ def checkXMLIntegrity(config={}, titles=[], session=None):
 
 
 def createNewDump(config={}, other={}):
-    titles = []
     images = []
     print 'Trying generating a new dump into a new directory...'
     if config['xml']:
-        titles += getPageTitles(config=config, session=other['session'])
-        saveTitles(config=config, titles=titles)
+        getPageTitles(config=config, session=other['session'])
+        titles=readTitles(config)
         generateXMLDump(config=config, titles=titles, session=other['session'])
         checkXMLIntegrity(
             config=config,
@@ -1563,23 +1612,21 @@ def createNewDump(config={}, other={}):
 
 
 def resumePreviousDump(config={}, other={}):
-    titles = []
     images = []
     print 'Resuming previous dump process...'
     if config['xml']:
-        # load titles
-        lasttitle = ''
+        titles=readTitles(config)
         try:
-            f = open('%s/%s-%s-titles.txt' % (config['path'], domain2prefix(
-                config=config, session=other['session']), config['date']), 'r')
-            raw = unicode(f.read(), 'utf-8')
-            titles = raw.split('\n')
-            lasttitle = titles[-1]
-            if not lasttitle:  # empty line at EOF ?
-                lasttitle = titles[-2]
-            f.close()
+            lasttitles = reverse_readline('%s/%s-%s-titles.txt' %
+                ( config['path'],
+                domain2prefix( config=config, session=other['session'] ),
+                config['date'])
+                )
+            lasttitle=lasttitles.next()
+            if lasttitle == '':
+                lasttitle=lasttitles.next()
         except:
-            pass  # probably file doesnot exists
+            pass  # probably file does not exists
         if lasttitle == '--END--':
             # titles list is complete
             print 'Title list was completed in the previous session'
@@ -1587,13 +1634,13 @@ def resumePreviousDump(config={}, other={}):
             print 'Title list is incomplete. Reloading...'
             # do not resume, reload, to avoid inconsistences, deleted pages or
             # so
-            titles = getPageTitles(config=config, session=other['session'])
-            saveTitles(config=config, titles=titles)
+            getPageTitles(config=config, session=other['session'])
+
         # checking xml dump
         xmliscomplete = False
-        lastxmltitle = ''
+        lastxmltitle = None
         try:
-            f = open(
+            f = reverse_readline(
                 '%s/%s-%s-%s.xml' %
                 (config['path'],
                  domain2prefix(
@@ -1601,27 +1648,26 @@ def resumePreviousDump(config={}, other={}):
                     session=other['session']),
                     config['date'],
                     config['curonly'] and 'current' or 'history'),
-                'r')
+                )
             for l in f:
-                if re.findall('</mediawiki>', l):
+                if l == '</mediawiki>':
                     # xml dump is complete
                     xmliscomplete = True
                     break
-                # weird if found more than 1, but maybe
-                xmltitles = re.findall(r'<title>([^<]+)</title>', l)
-                if xmltitles:
-                    lastxmltitle = undoHTMLEntities(text=xmltitles[-1])
-            f.close()
+
+                xmltitle = re.search(r'<title>([^<]+)</title>', l)
+                if xmltitle:
+                    lastxmltitle = undoHTMLEntities(text=xmltitle.group(1))
+                    break
         except:
-            pass  # probably file doesnot exists
-        # removing --END-- before getXMLs
-        while titles and titles[-1] in ['', '--END--']:
-            titles = titles[:-1]
+            pass  # probably file does not exists
+
         if xmliscomplete:
             print 'XML dump was completed in the previous session'
         elif lastxmltitle:
             # resuming...
             print 'Resuming XML dump from "%s"' % (lastxmltitle)
+            titles = readTitles(config, start=lastxmltitle)
             generateXMLDump(
                 config=config,
                 titles=titles,
@@ -1630,6 +1676,7 @@ def resumePreviousDump(config={}, other={}):
         else:
             # corrupt? only has XML header?
             print 'XML is corrupt? Regenerating...'
+            titles = readTitles(config)
             generateXMLDump(
                 config=config, titles=titles, session=other['session'])
 
