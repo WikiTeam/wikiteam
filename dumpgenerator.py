@@ -444,6 +444,7 @@ def getXMLHeader(config={}, session=None):
     header = xml.split('</mediawiki>')[0]
     if not re.match("<mediawiki", xml):
         print 'XML export on this wiki is broken, quitting.'
+        logerror(u'XML export on this wiki is broken, quitting.')
         sys.exit()
     return header, config
 
@@ -615,7 +616,12 @@ def getXMLPage(config={}, title='', verbose=True, session=None):
                     # offset is OK in this wiki, merge with the previous chunk
                     # of this page history and continue
                     xml2 = xml2.split("</page>")[0]
-                    yield '  <revision>' + ('<revision>'.join(xml2.split('<revision>')[1:]))
+                    try:
+                        yield '  <revision>' + ('<revision>'.join(xml2.split('<revision>')[1:]))
+                    except MemoryError:
+                        print "The page's history exceeds our memory, halving limit."
+                        params['limit'] = params['limit'] / 2
+                        continue
                     xml = xml2
                     numberofedits += len(re.findall(r_timestamp, xml))
             else:
@@ -652,21 +658,9 @@ def generateXMLDump(config={}, titles=[], start=None, session=None):
     xmlfile = ''
     lock = True
     if start:
-        print "Removing the last chunk of past XML dump: it is probably incomplete"
-        xmlfile = reverse_readline('%s/%s' % (config['path'], xmlfilename))
-        c = 0
-        for l in xmlfile:
-            c += 1
-            if re.search(r'<title>%s</title>' % (start), l):
-                # Done searching. We try to truncate the file at this point:
-                # everything should be removed from the line before <title>,
-                # that is the last c+1 lines AKA lines from EOF - c to EOF.
-                # TODO: do something for users without GNU ed; replace os.
-                # Try file.seek and file.truncate in the generator again?
-                os.system("(echo '$-%d,$d'; echo wq ) | ed %s/%s" \
-                    % (c, config['path'], xmlfilename) )
-                print "Last %d lines removed." % (c+1)
-                break
+        print "Removing the last chunk of past XML dump: it is probably incomplete."
+        for i in reverse_readline('%s/%s' % (config['path'], xmlfilename), truncate=True):
+            pass
     else:
         # requested complete xml dump
         lock = False
@@ -728,11 +722,11 @@ def readTitles(config={}, start=None):
             else:
                 yield line.strip()
 
-def reverse_readline(filename, buf_size=8192):
+def reverse_readline(filename, buf_size=8192, truncate=False):
     """a generator that returns the lines of a file in reverse order"""
     # Original code by srohde, abdus_salam: cc by-sa 3.0
     # http://stackoverflow.com/a/23646049/718903
-    with open(filename) as fh:
+    with open(filename, 'r+') as fh:
         segment = None
         offset = 0
         fh.seek(0, os.SEEK_END)
@@ -753,10 +747,22 @@ def reverse_readline(filename, buf_size=8192):
                 if buffer[-1] is not '\n':
                     lines[-1] += segment
                 else:
-                    yield segment
+                    if truncate and '</page>' in segment:
+                        pages = buffer.split('</page>')
+                        fh.seek(-offset+buf_size-len(pages[-1]), os.SEEK_END)
+                        fh.truncate
+                        raise StopIteration
+                    else:
+                        yield segment
             segment = lines[0]
             for index in range(len(lines) - 1, 0, -1):
-                yield lines[index]
+                if truncate and '</page>' in segment:
+                    pages = buffer.split('</page>')
+                    fh.seek(-offset-len(pages[-1]), os.SEEK_END)
+                    fh.truncate
+                    raise StopIteration
+                else:
+                    yield lines[index]
         yield segment
 
 def saveImageNames(config={}, images=[], session=None):
