@@ -42,7 +42,7 @@ convertlang = {'ar': 'Arabic', 'de': 'German', 'en': 'English', 'es': 'Spanish',
 listfile = sys.argv[1]
 uploadeddumps = []
 try:
-    uploadeddumps = [l.split(';')[1] for l in open('uploader-%s.log' % (listfile), 'r').read().strip().splitlines()]
+    uploadeddumps = [l.split(';')[1] for l in open('uploader-%s.log' % (listfile), 'r').read().strip().splitlines() if len(l.split(';'))>1]
 except:
     pass
 print '%d dumps uploaded previously' % (len(uploadeddumps))
@@ -117,7 +117,6 @@ def upload(wikis, config={}):
         for dump in dumps:
             wikidate = dump.split('-')[1]
             item = get_item('wiki-' + wikiname)
-
             if dump in uploadeddumps:
                 if config['prune-directories']:
                     rmline='rm -rf %s-%s-wikidump/' % (wikiname, wikidate)
@@ -271,7 +270,7 @@ def upload(wikis, config={}):
                     'language': lang,
                     'last-updated-date': wikidate_text,
                     'subject': '; '.join(wikikeys), # Keywords should be separated by ; but it doesn't matter much; the alternative is to set one per field with subject[0], subject[1], ...
-                    'licenseurl': urlparse.urljoin(wiki, wikilicenseurl),
+                    'licenseurl': wikilicenseurl and urlparse.urljoin(wiki, wikilicenseurl),
                     'rights': wikirights,
                     'originalurl': wikiurl,
                 }
@@ -288,7 +287,7 @@ def upload(wikis, config={}):
                 uploadeddumps.append(dump)
                 log(wiki, dump, 'ok')
             except:
-                log(wiki, dump, 'error?')
+                print wiki, dump, 'error when uploading?'
 
             c += 1
 
