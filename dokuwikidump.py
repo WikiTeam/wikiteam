@@ -222,10 +222,6 @@ def getRevisions(url, title, use_hidden_rev=False, select_revs=False):
                 user_span = li.find('span', {'class': 'user'})
                 if user_span:
                     rev['user'] = user_span.text
-                else:
-                    user_matches = re.findall(ur'\xe9e\xe9\xe9(.*)', li.text)
-                    if user_matches:
-                        rev['user'] = user_matches[0]
 
             if select_revs and len(revs) > i:
                 revs[i].update(rev)
@@ -391,5 +387,3 @@ def dump(url):
     os.mkdir(domain2prefix(url))
     dumpContent(url)
     dumpMedia(url)
-
-dump('http://localhost:9080/dokuwiki-2004-08-22/doku.php')
