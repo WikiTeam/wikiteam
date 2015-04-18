@@ -1438,7 +1438,7 @@ def getParameters(params=[]):
         'xml': args.xml,
         'namespaces': namespaces,
         'exnamespaces': exnamespaces,
-        'path': os.path.normpath(args.path) or '',
+        'path': os.path.normpath(args.path or '') or '',
         'cookies': args.cookies or '',
         'delay': args.delay
     }
