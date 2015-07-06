@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 
 # not-archived.py List of not archived wikis, using WikiApiary data
+# NOTE: unreliable! https://github.com/WikiApiary/WikiApiary/issues/130
+#
 # Copyright (C) 2014 WikiTeam developers
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
