@@ -23,6 +23,8 @@ import sys
 import time
 import urllib
 import urllib2
+import urlparse
+import StringIO
 from xml.sax.saxutils import quoteattr
 from internetarchive import get_item
 
@@ -40,7 +42,7 @@ convertlang = {'ar': 'Arabic', 'de': 'German', 'en': 'English', 'es': 'Spanish',
 listfile = sys.argv[1]
 uploadeddumps = []
 try:
-    uploadeddumps = [l.split(';')[1] for l in open('uploader-%s.log' % (listfile), 'r').read().strip().splitlines()]
+    uploadeddumps = [l.split(';')[1] for l in open('uploader-%s.log' % (listfile), 'r').read().strip().splitlines() if len(l.split(';'))>1]
 except:
     pass
 print '%d dumps uploaded previously' % (len(uploadeddumps))
@@ -51,11 +53,12 @@ def getParameters(params=[]):
     config = {
         'prune-directories': False,
         'prune-wikidump': False,
-        'collection': collection
+        'collection': collection,
+        'update': False,
     }
     #console params
     try:
-        opts, args = getopt.getopt(params, "", ["h", "help", "prune-directories", "prune-wikidump", "admin"])
+        opts, args = getopt.getopt(params, "", ["h", "help", "prune-directories", "prune-wikidump", "admin", "update"])
     except getopt.GetoptError, err:
         # print help information and exit:
         print str(err) # will print something like "option -a not recognized"
@@ -71,6 +74,8 @@ def getParameters(params=[]):
             config['prune-wikidump'] = True
         elif o in ("--admin"):
             config['collection'] = "wikiteam"
+        elif o in ("--update"):
+            config['update'] = True
     return config
 
 def usage():
@@ -112,7 +117,6 @@ def upload(wikis, config={}):
         for dump in dumps:
             wikidate = dump.split('-')[1]
             item = get_item('wiki-' + wikiname)
-
             if dump in uploadeddumps:
                 if config['prune-directories']:
                     rmline='rm -rf %s-%s-wikidump/' % (wikiname, wikidate)
@@ -146,9 +150,12 @@ def upload(wikis, config={}):
             # Does the item exist already?
             ismissingitem = not item.exists
 
+            # Logo path
+            logourl = ''
+
             # We don't know a way to fix/overwrite metadata if item exists already:
             # just pass bogus data and save some time
-            if ismissingitem:
+            if ismissingitem or config['update']:
                 #get metadata from api.php
                 #first sitename and base url
                 params = {'action': 'query', 'meta': 'siteinfo', 'format': 'xml'}
@@ -205,15 +212,16 @@ def upload(wikis, config={}):
                 except:
                     pass
 
+                raw = ''
+                try:
+                    f = urllib.urlopen(baseurl)
+                    raw = f.read()
+                    f.close()
+                except:
+                    pass
+
                 #or copyright info from #footer in mainpage
                 if baseurl and not rightsinfourl and not rightsinfotext:
-                    raw = ''
-                    try:
-                        f = urllib.urlopen(baseurl)
-                        raw = f.read()
-                        f.close()
-                    except:
-                        pass
                     rightsinfotext = ''
                     rightsinfourl = ''
                     try:
@@ -226,6 +234,11 @@ def upload(wikis, config={}):
                         pass
                     if rightsinfotext and not rightsinfourl:
                         rightsinfourl = baseurl + '#footer'
+                try:
+                    logourl = re.findall(ur'p-logo["\'][^>]*>\s*<a [^>]*background-image:\s*(?:url\()?([^;)"]+)', raw)[0]
+                except:
+                    pass
+                print logourl
 
                 #retrieve some info from the wiki
                 wikititle = "Wiki - %s" % (sitename) # Wiki - ECGpedia
@@ -257,7 +270,7 @@ def upload(wikis, config={}):
                     'language': lang,
                     'last-updated-date': wikidate_text,
                     'subject': '; '.join(wikikeys), # Keywords should be separated by ; but it doesn't matter much; the alternative is to set one per field with subject[0], subject[1], ...
-                    'licenseurl': wikilicenseurl,
+                    'licenseurl': wikilicenseurl and urlparse.urljoin(wiki, wikilicenseurl),
                     'rights': wikirights,
                     'originalurl': wikiurl,
                 }
@@ -266,10 +279,16 @@ def upload(wikis, config={}):
             #TODO: not needed for the second file in an item
             try:
                 item.upload(dump, metadata=md, access_key=accesskey, secret_key=secretkey, verbose=True)
+                if logourl:
+                    logo = StringIO.StringIO(urllib.urlopen(urlparse.urljoin(wiki, logourl)).read())
+                    logoextension = logourl.split('.')[-1] if logourl.split('.') else 'unknown'
+                    logo.name = 'wiki-' + wikiname + '_logo.' + logoextension
+                    item.upload(logo, access_key=accesskey, secret_key=secretkey, verbose=True)
                 uploadeddumps.append(dump)
                 log(wiki, dump, 'ok')
             except:
-                log(wiki, dump, 'error?')
+                print wiki, dump, 'error when uploading?'
+
             c += 1
 
 def main(params=[]):
