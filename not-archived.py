@@ -26,7 +26,7 @@ def getdomain(wiki):
     return domain
     
 def main():
-    doneurl = 'https://wikiteam.googlecode.com/svn/trunk/batchdownload/taskforce/mediawikis_done_2014.txt'
+    doneurl = 'https://raw.githubusercontent.com/WikiTeam/wikiteam/master/batchdownload/taskforce/mediawikis_done_2014.txt'
     f = urllib.urlopen(doneurl)
     donewikis = [getdomain(wiki) for wiki in f.read().splitlines()]
     #print 'Loaded %d done wikis' % len(donewikis)
