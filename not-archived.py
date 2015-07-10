@@ -4,7 +4,7 @@
 # not-archived.py List of not archived wikis, using WikiApiary data
 # NOTE: unreliable! https://github.com/WikiApiary/WikiApiary/issues/130
 #
-# Copyright (C) 2014 WikiTeam developers
+# Copyright (C) 2015 WikiTeam developers
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
@@ -28,9 +28,10 @@ def getdomain(wiki):
     return domain
     
 def main():
-    doneurl = 'https://raw.githubusercontent.com/WikiTeam/wikiteam/master/batchdownload/taskforce/mediawikis_done_2014.txt'
+    doneurl = 'https://archive.org/advancedsearch.php?q=collection%3A%28wikiteam%29+AND+originalurl%3A[%22http%22+TO+null]&fl[]=description&sort[]=&sort[]=&sort[]=&rows=100000&page=1&output=json&callback=callback'
     f = urllib.urlopen(doneurl)
-    donewikis = [getdomain(wiki) for wiki in f.read().splitlines()]
+    wikiurls = re.findall(ur'(?im)<a href=\\"(http[^>]+?)\\" rel=\\"nofollow\\">[^<]+?</a> dumped with', f.read())
+    donewikis = [getdomain(wikiurl) for wikiurl in wikiurls]
     #print 'Loaded %d done wikis' % len(donewikis)
     
     offset = 0
@@ -49,7 +50,6 @@ def main():
         if not re.search(ur'rel="nofollow">Next</a>', raw):
             break
         offset += limit
-
 
 if __name__ == '__main__':
     main()
