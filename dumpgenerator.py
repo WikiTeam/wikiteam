@@ -482,13 +482,15 @@ def getXMLPageCore(headers={}, params={}, config={}, session=None):
     xml = ''
     c = 0
     maxseconds = 100  # max seconds to wait in a single sleeping
-    maxretries = 5  # x retries and skip
+    maxretries = config['retries']  # x retries and skip
     increment = 20  # increment every retry
+    abortonconnectionerror = False
+
     while not re.search(r'</mediawiki>', xml):
         if c > 0 and c < maxretries:
             wait = increment * c < maxseconds and increment * \
                 c or maxseconds  # incremental until maxseconds
-            print '    XML for "%s" is wrong. Waiting %d seconds and reloading...' % (params['pages'], wait)
+            print '    In attempt {0}, XML for "{1}" is wrong. Waiting {2} seconds and reloading...'.format(c, params['pages'], wait)
             time.sleep(wait)
             # reducing server load requesting smallest chunks (if curonly then
             # limit = 1 from mother function)
@@ -530,7 +532,9 @@ def getXMLPageCore(headers={}, params={}, config={}, session=None):
             handleStatusCode(r)
             xml = fixBOM(r)
         except requests.exceptions.ConnectionError as e:
-            raise ExportAbortedError(config['index'])
+            print '    Connection error {0}'.format(e[0])
+            if abortonconnectionerror:
+                raise ExportAbortedError(config['index'])
             xml = ''
         c += 1
 
@@ -827,7 +831,7 @@ def getImageNamesScraper(config={}, session=None):
     images = []
     offset = '29990101000000'  # january 1, 2999
     limit = 5000
-    retries = 5
+    retries = config['retries']
     while offset:
         # 5000 overload some servers, but it is needed for sites like this with
         # no next links
@@ -1352,7 +1356,18 @@ def getParameters(params=[]):
     index2 = None
 
     if api:
-        check = checkAPI(api=api, session=session)
+        retry = 0
+        maxretries = args.retries
+        retrydelay = 20
+        while retry < maxretries:
+            try:
+                check = checkAPI(api=api, session=session)
+                break
+            except requests.exceptions.ConnectionError as e:
+                print 'Connection error {0}'.format(e)
+                retry += 1
+                print "Start retry attempt {0} in {1} seconds.".format(retry+1, retrydelay)
+                time.sleep(retrydelay)
     if api and check:
         index2 = check[1]
         api = check[2]
@@ -1440,8 +1455,10 @@ def getParameters(params=[]):
         'exnamespaces': exnamespaces,
         'path': args.path and os.path.normpath(args.path) or '',
         'cookies': args.cookies or '',
-        'delay': args.delay
+        'delay': args.delay,
+		'retries': int(args.retries),
     }
+
     other = {
         'resume': args.resume,
         'filenamelimit': 100,  # do not change
