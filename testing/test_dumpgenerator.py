@@ -192,7 +192,7 @@ class TestDumpgenerator(unittest.TestCase):
             ['https://confluence.atlassian.com/', 'Confluence'],
             #['https://wiki.hybris.com/dashboard.action', 'Confluence'],
             ['https://confluence.sakaiproject.org/', 'Confluence'],
-            ['http://demo.bananadance.org/', 'Banana Dance'],
+            #['http://demo.bananadance.org/', 'Banana Dance'],
             ['http://wagn.org/', 'Wagn'],
             ['http://wiki.ace-mod.net/', 'Wagn'],
             ['https://success.mindtouch.com/', 'MindTouch'],
