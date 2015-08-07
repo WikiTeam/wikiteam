@@ -15,11 +15,13 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import datetime
 import json
 try:
     from hashlib import md5
 except ImportError:             # Python 2.4 compatibility
     from md5 import new as md5
+import os
 import requests
 import shutil
 import time
@@ -27,8 +29,7 @@ import unittest
 import urllib
 import urllib2
 import tempfile
-import os
-from dumpgenerator import delay, getImageNames, getPageTitles, getUserAgent, getWikiEngine, mwGetAPIAndIndex, domain2prefix
+from dumpgenerator import delay, domain2prefix, getImageNames, getPageTitles, getUserAgent, getWikiEngine, mwGetAPIAndIndex
 
 class TestDumpgenerator(unittest.TestCase):
     # Documentation
@@ -41,7 +42,7 @@ class TestDumpgenerator(unittest.TestCase):
     def test_delay(self):
         # This test checks several delays
         
-        print '#'*73, '\n', 'test_delay', '\n', '#'*73
+        print '\n', '#'*73, '\n', 'test_delay', '\n', '#'*73
         for i in [0, 1, 2, 3]:
             print 'Testing delay:', i
             config = {'delay': i}
@@ -57,7 +58,7 @@ class TestDumpgenerator(unittest.TestCase):
         # Check the presence of some special files, like odd chars filenames
         # The tested wikis are from different wikifarms and some alone
         
-        print '#'*73, '\n', 'test_getImages', '\n', '#'*73
+        print '\n', '#'*73, '\n', 'test_getImages', '\n', '#'*73
         tests = [
             # Alone wikis
             #['http://wiki.annotation.jp/index.php', 'http://wiki.annotation.jp/api.php', u'かずさアノテーション - ソーシャル・ゲノム・アノテーション.jpg'],
@@ -142,7 +143,7 @@ class TestDumpgenerator(unittest.TestCase):
         # Check the presence of some special titles, like odd chars
         # The tested wikis are from different wikifarms and some alone
         
-        print '#'*73, '\n', 'test_getPageTitles', '\n', '#'*73
+        print '\n', '#'*73, '\n', 'test_getPageTitles', '\n', '#'*73
         tests = [
             # Alone wikis
             ['http://archiveteam.org/index.php', 'http://archiveteam.org/api.php', u'April Fools\' Day'],
@@ -161,42 +162,32 @@ class TestDumpgenerator(unittest.TestCase):
             # Testing with API
             print '\nTesting', api
             print 'Trying to parse', pagetocheck, 'with API'
-            config_api = {'api': api, 
-                'delay': 0, 
-                'namespaces': ['all'], 
-                'exnamespaces': [], 
-                'retries': 5,
-                'date': "20150807",
-                }
-            config_api['path'] = tempfile.mkdtemp()
-            result_api = getPageTitles(config=config_api, session=session)
-            titles_api = open(os.path.join(config_api['path'], result_api), "rt").read().decode("utf-8").split("\n")
-            self.assertTrue(pagetocheck in titles_api)
+            config_api = {'api': api, 'index': '', 'delay': 0, 'namespaces': ['all'], 'exnamespaces': [], 'date': datetime.datetime.now().strftime('%Y%m%d'), 'path': '.'}
+            getPageTitles(config=config_api, session=session)
+            titles_api = './%s-%s-titles.txt' % (domain2prefix(config=config_api), config_api['date'])
+            result_api = open(titles_api, 'r').read().splitlines()
+            os.remove(titles_api)
+            self.assertTrue(pagetocheck in result_api)
             
             # Testing with index
             print 'Testing', index
             print 'Trying to parse', pagetocheck, 'with index'
-            config_index = {'index': index, 
-                'delay': 0, 
-                'namespaces': ['all'], 
-                'exnamespaces': [], 
-                'retries': 5,
-                'date': "20150807",
-                'api': False
-                }
-            config_index['path'] = tempfile.mkdtemp()
-            result_index = getPageTitles(config=config_index, session=session)
-            titles_index = open(os.path.join(config_api['path'], result_index), "rt").read().decode("utf-8").split("\n")
-            self.assertTrue(pagetocheck in titles_index)
-            self.assertEqual(len(titles_api), len(titles_index))
+            config_index = {'index': index, 'api': '', 'delay': 0, 'namespaces': ['all'], 'exnamespaces': [], 'date': datetime.datetime.now().strftime('%Y%m%d'), 'path': '.'}
+            getPageTitles(config=config_index, session=session)
+            titles_index = './%s-%s-titles.txt' % (domain2prefix(config=config_index), config_index['date'])
+            result_index = open(titles_index, 'r').read().splitlines()
+            os.remove(titles_index)
+            self.assertTrue(pagetocheck in result_index)
+            self.assertEqual(len(result_api), len(result_index))
             
             # Compare every page in both lists, with/without API
             c = 0
             for pagename_api in result_api:
-                self.assertEqual(pagename_api, result_index[c], u'{0} and {1} are different'.format(pagename_api, result_index[c]))
+                self.assertEqual(pagename_api.decode('utf8'), result_index[c].decode('utf8'), u'{0} and {1} are different'.format(pagename_api.decode('utf8'), result_index[c].decode('utf8')))
                 c += 1
             
     def test_getWikiEngine(self):
+        print '\n', '#'*73, '\n', 'test_getWikiEngine', '\n', '#'*73
         tests = [
             ['https://www.dokuwiki.org', 'DokuWiki'],
             ['http://wiki.openwrt.org', 'DokuWiki'],
@@ -221,11 +212,11 @@ class TestDumpgenerator(unittest.TestCase):
             ['https://confluence.atlassian.com/', 'Confluence'],
             #['https://wiki.hybris.com/dashboard.action', 'Confluence'],
             ['https://confluence.sakaiproject.org/', 'Confluence'],
-            #['http://demo.bananadance.org/', 'Banana Dance'],
+            ['http://demo.bananadance.org/', 'Banana Dance'],
             ['http://wagn.org/', 'Wagn'],
             ['http://wiki.ace-mod.net/', 'Wagn'],
-            #['https://success.mindtouch.com/', 'MindTouch'],
-            #['https://jspwiki.apache.org/', 'JSPWiki'],
+            ['https://success.mindtouch.com/', 'MindTouch'],
+            ['https://jspwiki.apache.org/', 'JSPWiki'],
             ['http://www.ihear.com/FreeCLAS/', 'JSPWiki'],
             ['http://www.wikkawiki.org/HomePage', 'WikkaWiki'],
             ['http://puppylinux.org/wikka/', 'WikkaWiki'],
@@ -260,6 +251,7 @@ class TestDumpgenerator(unittest.TestCase):
             self.assertEqual(guess_engine, engine)
     
     def test_mwGetAPIAndIndex(self):
+        print '\n', '#'*73, '\n', 'test_mwGetAPIAndIndex', '\n', '#'*73
         tests = [
             # Alone wikis
             ['http://archiveteam.org', 'http://archiveteam.org/api.php', 'http://archiveteam.org/index.php'],
