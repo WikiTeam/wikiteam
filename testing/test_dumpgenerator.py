@@ -26,6 +26,7 @@ import time
 import unittest
 import urllib
 import urllib2
+import tempfile
 from dumpgenerator import delay, getImageNames, getPageTitles, getUserAgent, getWikiEngine, mwGetAPIAndIndex, domain2prefix
 
 class TestDumpgenerator(unittest.TestCase):
@@ -96,7 +97,7 @@ class TestDumpgenerator(unittest.TestCase):
                 'retries': 5,
                 'date': "20150807",
                 }
-            config_api['path'] = './%s-%s-wikidump' % (domain2prefix(config=config_api, session=session), config_api['date'])
+            config_api['path'] = tempfile.mkdtemp()
             req = urllib2.Request(url=api, data=urllib.urlencode({'action': 'query', 'meta': 'siteinfo', 'siprop': 'statistics', 'format': 'json'}), headers={'User-Agent': getUserAgent()})
             f = urllib2.urlopen(req)
             imagecount = int(json.loads(f.read())['query']['statistics']['images'])
@@ -114,7 +115,7 @@ class TestDumpgenerator(unittest.TestCase):
                 'retries': 5,
                 'date': "20150807",
                 }
-            config_api['path'] = './%s-%s-wikidump' % (domain2prefix(config=config_api, session=session), config_api['date'])
+            config_api['path'] = tempfile.mkdtemp()
             req = urllib2.Request(url=api, data=urllib.urlencode({'action': 'query', 'meta': 'siteinfo', 'siprop': 'statistics', 'format': 'json'}), headers={'User-Agent': getUserAgent()})
             f = urllib2.urlopen(req)
             imagecount = int(json.loads(f.read())['query']['statistics']['images'])
@@ -166,7 +167,7 @@ class TestDumpgenerator(unittest.TestCase):
                 'retries': 5,
                 'date': "20150807",
                 }
-            config_api['path'] = './%s-%s-wikidump' % (domain2prefix(config=config_api, session=session), config_api['date'])
+            config_api['path'] = tempfile.mkdtemp()
             result_api = getPageTitles(config=config_api, session=session)
             self.assertTrue(pagetocheck in result_api)
             
@@ -180,7 +181,7 @@ class TestDumpgenerator(unittest.TestCase):
                 'retries': 5,
                 'date': "20150807",
                 }
-            config_api['path'] = './%s-%s-wikidump' % (domain2prefix(config=config_api, session=session), config_api['date'])
+            config_api['path'] = tempfile.mkdtemp()
             result_index = getPageTitles(config=config_index, session=session)
             self.assertTrue(pagetocheck in result_index)
             self.assertEqual(len(result_api), len(result_index))
@@ -216,11 +217,11 @@ class TestDumpgenerator(unittest.TestCase):
             ['https://confluence.atlassian.com/', 'Confluence'],
             #['https://wiki.hybris.com/dashboard.action', 'Confluence'],
             ['https://confluence.sakaiproject.org/', 'Confluence'],
-            ['http://demo.bananadance.org/', 'Banana Dance'],
+            #['http://demo.bananadance.org/', 'Banana Dance'],
             ['http://wagn.org/', 'Wagn'],
             ['http://wiki.ace-mod.net/', 'Wagn'],
-            ['https://success.mindtouch.com/', 'MindTouch'],
-            ['https://jspwiki.apache.org/', 'JSPWiki'],
+            #['https://success.mindtouch.com/', 'MindTouch'],
+            #['https://jspwiki.apache.org/', 'JSPWiki'],
             ['http://www.ihear.com/FreeCLAS/', 'JSPWiki'],
             ['http://www.wikkawiki.org/HomePage', 'WikkaWiki'],
             ['http://puppylinux.org/wikka/', 'WikkaWiki'],
