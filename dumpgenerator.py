@@ -1456,7 +1456,7 @@ def getParameters(params=[]):
         'path': args.path and os.path.normpath(args.path) or '',
         'cookies': args.cookies or '',
         'delay': args.delay,
-		'retries': int(args.retries),
+        'retries': int(args.retries),
     }
 
     other = {
@@ -1991,7 +1991,6 @@ def mwGetAPIAndIndex(url=''):
 
 def main(params=[]):
     """ Main function """
-
     configfilename = 'config.txt'
     config, other = getParameters(params=params)
     avoidWikimediaProjects(config=config, other=other)
@@ -2046,3 +2045,4 @@ def main(params=[]):
 
 if __name__ == "__main__":
     main()
+
