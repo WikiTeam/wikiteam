@@ -245,7 +245,16 @@ def getPageTitlesAPI(config={}, session=None):
                 'apfrom': apfrom.encode('utf-8'),
                 'format': 'json',
                 'aplimit': 500}
-            r = session.post(url=config['api'], data=params)
+
+            retryCount = 0
+            while retryCount < config["retries"]:
+                try:
+                    r = session.post(url=config['api'], data=params)
+                    break
+                except ConnectionError as err:
+                    print "Connection error: %s" % (str(err),)
+                    retryCount += 1
+                    time.sleep(20)
             handleStatusCode(r)
             # FIXME Handle HTTP errors here!
             jsontitles = getJSON(r)
@@ -376,7 +385,7 @@ def getPageTitles(config={}, session=None):
 
     titlesfilename = '%s-%s-titles.txt' % (
         domain2prefix(config=config), config['date'])
-    titlesfile = open('%s/%s' % (config['path'], titlesfilename), 'a')
+    titlesfile = open('%s/%s' % (config['path'], titlesfilename), 'wt')
     c = 0
     for title in titles:
         titlesfile.write(title.encode('utf-8') + "\n")
@@ -389,7 +398,8 @@ def getPageTitles(config={}, session=None):
     print 'Titles saved at...', titlesfilename
 
     print '%d page titles loaded' % (c)
-
+    return titlesfilename
+    
 def getImageNames(config={}, session=None):
     """ Get list of image names """
 

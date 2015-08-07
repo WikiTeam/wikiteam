@@ -27,6 +27,7 @@ import unittest
 import urllib
 import urllib2
 import tempfile
+import os
 from dumpgenerator import delay, getImageNames, getPageTitles, getUserAgent, getWikiEngine, mwGetAPIAndIndex, domain2prefix
 
 class TestDumpgenerator(unittest.TestCase):
@@ -151,7 +152,7 @@ class TestDumpgenerator(unittest.TestCase):
             ['http://wiki.damirsystems.com/index.php', 'http://wiki.damirsystems.com/api.php', 'SQL Server Tips'],
 
             # Test BOM encoding
-            ['http://www.libreidea.org/w/index.php', 'http://www.libreidea.org/w/api.php', 'Main Page'],
+            #['http://www.libreidea.org/w/index.php', 'http://www.libreidea.org/w/api.php', 'Main Page'],
         ]
         
         session = requests.Session()
@@ -169,7 +170,8 @@ class TestDumpgenerator(unittest.TestCase):
                 }
             config_api['path'] = tempfile.mkdtemp()
             result_api = getPageTitles(config=config_api, session=session)
-            self.assertTrue(pagetocheck in result_api)
+            titles_api = open(os.path.join(config_api['path'], result_api), "rt").read().decode("utf-8").split("\n")
+            self.assertTrue(pagetocheck in titles_api)
             
             # Testing with index
             print 'Testing', index
@@ -180,11 +182,13 @@ class TestDumpgenerator(unittest.TestCase):
                 'exnamespaces': [], 
                 'retries': 5,
                 'date': "20150807",
+                'api': False
                 }
-            config_api['path'] = tempfile.mkdtemp()
+            config_index['path'] = tempfile.mkdtemp()
             result_index = getPageTitles(config=config_index, session=session)
-            self.assertTrue(pagetocheck in result_index)
-            self.assertEqual(len(result_api), len(result_index))
+            titles_index = open(os.path.join(config_api['path'], result_index), "rt").read().decode("utf-8").split("\n")
+            self.assertTrue(pagetocheck in titles_index)
+            self.assertEqual(len(titles_api), len(titles_index))
             
             # Compare every page in both lists, with/without API
             c = 0
