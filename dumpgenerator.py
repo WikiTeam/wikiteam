@@ -245,7 +245,16 @@ def getPageTitlesAPI(config={}, session=None):
                 'apfrom': apfrom.encode('utf-8'),
                 'format': 'json',
                 'aplimit': 500}
-            r = session.post(url=config['api'], data=params)
+
+            retryCount = 0
+            while retryCount < config["retries"]:
+                try:
+                    r = session.post(url=config['api'], data=params)
+                    break
+                except ConnectionError as err:
+                    print "Connection error: %s" % (str(err),)
+                    retryCount += 1
+                    time.sleep(20)
             handleStatusCode(r)
             # FIXME Handle HTTP errors here!
             jsontitles = getJSON(r)
@@ -376,7 +385,7 @@ def getPageTitles(config={}, session=None):
 
     titlesfilename = '%s-%s-titles.txt' % (
         domain2prefix(config=config), config['date'])
-    titlesfile = open('%s/%s' % (config['path'], titlesfilename), 'a')
+    titlesfile = open('%s/%s' % (config['path'], titlesfilename), 'wt')
     c = 0
     for title in titles:
         titlesfile.write(title.encode('utf-8') + "\n")
@@ -389,7 +398,8 @@ def getPageTitles(config={}, session=None):
     print 'Titles saved at...', titlesfilename
 
     print '%d page titles loaded' % (c)
-
+    return titlesfilename
+    
 def getImageNames(config={}, session=None):
     """ Get list of image names """
 
@@ -482,13 +492,14 @@ def getXMLPageCore(headers={}, params={}, config={}, session=None):
     xml = ''
     c = 0
     maxseconds = 100  # max seconds to wait in a single sleeping
-    maxretries = 5  # x retries and skip
+    maxretries = config['retries']  # x retries and skip
     increment = 20  # increment every retry
+
     while not re.search(r'</mediawiki>', xml):
         if c > 0 and c < maxretries:
             wait = increment * c < maxseconds and increment * \
                 c or maxseconds  # incremental until maxseconds
-            print '    XML for "%s" is wrong. Waiting %d seconds and reloading...' % (params['pages'], wait)
+            print '    In attempt %d, XML for "%s" is wrong. Waiting %d seconds and reloading...'%(c, params['pages'], wait)
             time.sleep(wait)
             # reducing server load requesting smallest chunks (if curonly then
             # limit = 1 from mother function)
@@ -530,7 +541,7 @@ def getXMLPageCore(headers={}, params={}, config={}, session=None):
             handleStatusCode(r)
             xml = fixBOM(r)
         except requests.exceptions.ConnectionError as e:
-            raise ExportAbortedError(config['index'])
+            print '    Connection error: %s'%(str(e[0]))
             xml = ''
         c += 1
 
@@ -827,7 +838,7 @@ def getImageNamesScraper(config={}, session=None):
     images = []
     offset = '29990101000000'  # january 1, 2999
     limit = 5000
-    retries = 5
+    retries = config['retries']
     while offset:
         # 5000 overload some servers, but it is needed for sites like this with
         # no next links
@@ -1352,7 +1363,18 @@ def getParameters(params=[]):
     index2 = None
 
     if api:
-        check = checkAPI(api=api, session=session)
+        retry = 0
+        maxretries = args.retries
+        retrydelay = 20
+        while retry < maxretries:
+            try:
+                check = checkAPI(api=api, session=session)
+                break
+            except requests.exceptions.ConnectionError as e:
+                print 'Connection error: %s'%(str(e))
+                retry += 1
+                print "Start retry attempt %d in %d seconds."%(retry+1, retrydelay)
+                time.sleep(retrydelay)
     if api and check:
         index2 = check[1]
         api = check[2]
@@ -1440,8 +1462,10 @@ def getParameters(params=[]):
         'exnamespaces': exnamespaces,
         'path': args.path and os.path.normpath(args.path) or '',
         'cookies': args.cookies or '',
-        'delay': args.delay
+        'delay': args.delay,
+        'retries': int(args.retries),
     }
+
     other = {
         'resume': args.resume,
         'filenamelimit': 100,  # do not change
@@ -1974,7 +1998,6 @@ def mwGetAPIAndIndex(url=''):
 
 def main(params=[]):
     """ Main function """
-
     configfilename = 'config.txt'
     config, other = getParameters(params=params)
     avoidWikimediaProjects(config=config, other=other)
@@ -2029,3 +2052,4 @@ def main(params=[]):
 
 if __name__ == "__main__":
     main()
+
