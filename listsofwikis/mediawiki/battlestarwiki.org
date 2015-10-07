@@ -1,0 +1,9 @@
+http://de.battlestarwiki.org/w/api.php
+http://en.battlestarwiki.org/w/api.php
+http://es.battlestarwiki.org/w/api.php
+http://fr.battlestarwiki.org/w/api.php
+http://media.battlestarwiki.org/w/api.php
+http://ms.battlestarwiki.org/w/api.php
+http://simple.battlestarwiki.org/w/api.php
+http://tr.battlestarwiki.org/w/api.php
+http://zh.battlestarwiki.org/w/api.php
