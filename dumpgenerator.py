@@ -1088,6 +1088,7 @@ def generateImageDump(config={}, other={}, images=[], start='', session=None):
                 print '    We have retried %d times. Now skipping.' % (retried)
                 print '    Image download error for "%s", network error or whatever...' % (filename)
                 break
+            retried += 1
             
             # saving file
             # truncate filename if length > 100 (100 + 32 (md5) = 132 < 143 (crash
@@ -1099,13 +1100,15 @@ def generateImageDump(config={}, other={}, images=[], start='', session=None):
                 print 'Filename is too long, truncating. Now it is:', filename2
             filename3 = u'%s/%s' % (imagepath, filename2)
             try:
-                imagefile = open(filename3, 'wb')
                 r = requests.get(url=url)
+                if r.status_code != 200:
+                    print '    Image download error: %d'%(r.status_code)
+                    continue
+                imagefile = open(filename3, 'wb')
                 imagefile.write(r.content)
                 imagefile.close()
             except requests.exceptions.ConnectionError as e:
                 print '    Image download connection error: %s'%(str(e[0]))
-                completed = False
                 continue
             
             # saving description if any
