@@ -255,6 +255,10 @@ def getPageTitlesAPI(config={}, session=None):
                     print "Connection error: %s" % (str(err),)
                     retryCount += 1
                     time.sleep(20)
+                except requests.exceptions.ReadTimeoutError as e:
+                    print 'Read timeout error: %s'%(str(e[0]))
+                    retryCount += 1
+                    time.sleep(20)
             handleStatusCode(r)
             # FIXME Handle HTTP errors here!
             jsontitles = getJSON(r)
@@ -542,6 +546,9 @@ def getXMLPageCore(headers={}, params={}, config={}, session=None):
             xml = fixBOM(r)
         except requests.exceptions.ConnectionError as e:
             print '    Connection error: %s'%(str(e[0]))
+            xml = ''
+        except requests.exceptions.ReadTimeoutError as e:
+            print '    Read timeout error: %s'%(str(e[0]))
             xml = ''
         c += 1
 
@@ -1110,6 +1117,9 @@ def generateImageDump(config={}, other={}, images=[], start='', session=None):
             except requests.exceptions.ConnectionError as e:
                 print '    Image download connection error: %s'%(str(e[0]))
                 continue
+            except requests.exceptions.ReadTimeoutError as e:
+                print '    Read timeout error: %s'%(str(e[0]))
+                xml = ''
             
             # saving description if any
             try:
@@ -1401,6 +1411,11 @@ def getParameters(params=[]):
                 break
             except requests.exceptions.ConnectionError as e:
                 print 'Connection error: %s'%(str(e))
+                retry += 1
+                print "Start retry attempt %d in %d seconds."%(retry+1, retrydelay)
+                time.sleep(retrydelay)
+            except requests.exceptions.ReadTimeoutError as e:
+                print '    Read timeout error: %s'%(str(e[0]))
                 retry += 1
                 print "Start retry attempt %d in %d seconds."%(retry+1, retrydelay)
                 time.sleep(retrydelay)
