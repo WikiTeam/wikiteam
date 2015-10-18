@@ -251,12 +251,8 @@ def getPageTitlesAPI(config={}, session=None):
                 try:
                     r = session.post(url=config['api'], data=params)
                     break
-                except ConnectionError as err:
-                    print "Connection error: %s" % (str(err),)
-                    retryCount += 1
-                    time.sleep(20)
-                except requests.exceptions.ReadTimeoutError as e:
-                    print 'Read timeout error: %s'%(str(e[0]))
+                except requests.exceptions.RequestException as err:
+                    print "Request error: %s" % (str(err),)
                     retryCount += 1
                     time.sleep(20)
             handleStatusCode(r)
@@ -544,11 +540,8 @@ def getXMLPageCore(headers={}, params={}, config={}, session=None):
             r = session.post(url=config['index'], data=params, headers=headers)
             handleStatusCode(r)
             xml = fixBOM(r)
-        except requests.exceptions.ConnectionError as e:
-            print '    Connection error: %s'%(str(e[0]))
-            xml = ''
-        except requests.exceptions.ReadTimeoutError as e:
-            print '    Read timeout error: %s'%(str(e[0]))
+        except requests.exceptions.RequestException as e:
+            print '    Request error: %s'%(str(e[0]))
             xml = ''
         c += 1
 
@@ -1114,12 +1107,9 @@ def generateImageDump(config={}, other={}, images=[], start='', session=None):
                 imagefile = open(filename3, 'wb')
                 imagefile.write(r.content)
                 imagefile.close()
-            except requests.exceptions.ConnectionError as e:
-                print '    Image download connection error: %s'%(str(e[0]))
+            except requests.exceptions.RequestException as e:
+                print '    Image download error: %s'%(str(e[0]))
                 continue
-            except requests.exceptions.ReadTimeoutError as e:
-                print '    Read timeout error: %s'%(str(e[0]))
-                xml = ''
             
             # saving description if any
             try:
@@ -1409,13 +1399,8 @@ def getParameters(params=[]):
             try:
                 check = checkAPI(api=api, session=session)
                 break
-            except requests.exceptions.ConnectionError as e:
-                print 'Connection error: %s'%(str(e))
-                retry += 1
-                print "Start retry attempt %d in %d seconds."%(retry+1, retrydelay)
-                time.sleep(retrydelay)
-            except requests.exceptions.ReadTimeoutError as e:
-                print '    Read timeout error: %s'%(str(e[0]))
+            except requests.exceptions.RequestException as e:
+                print 'Request error: %s'%(str(e))
                 retry += 1
                 print "Start retry attempt %d in %d seconds."%(retry+1, retrydelay)
                 time.sleep(retrydelay)
