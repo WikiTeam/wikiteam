@@ -255,6 +255,11 @@ def getPageTitlesAPI(config={}, session=None):
                     print "Request error: %s" % (str(err),)
                     retryCount += 1
                     time.sleep(20)
+                except TypeError as e:
+                    if '__str__ returned non-string' in str(e):
+                        print 'urllib3 had an SSL handshake error with pyOpenSSL'
+                        retryCount += 1
+                        time.sleep(20)
             handleStatusCode(r)
             # FIXME Handle HTTP errors here!
             jsontitles = getJSON(r)
@@ -543,6 +548,10 @@ def getXMLPageCore(headers={}, params={}, config={}, session=None):
         except requests.exceptions.RequestException as e:
             print '    Request error: %s'%(str(e[0]))
             xml = ''
+        except TypeError as e:
+            if '__str__ returned non-string' in str(e):
+                print 'urllib3 had an SSL handshake error with pyOpenSSL'
+                xml = ''
         c += 1
 
     return xml
@@ -1110,6 +1119,10 @@ def generateImageDump(config={}, other={}, images=[], start='', session=None):
             except requests.exceptions.RequestException as e:
                 print '    Image download error: %s'%(str(e[0]))
                 continue
+            except TypeError as e:
+                if '__str__ returned non-string' in str(e):
+                    print 'urllib3 had an SSL handshake error with pyOpenSSL'
+                    continue
             
             # saving description if any
             try:
@@ -1404,6 +1417,12 @@ def getParameters(params=[]):
                 retry += 1
                 print "Start retry attempt %d in %d seconds."%(retry+1, retrydelay)
                 time.sleep(retrydelay)
+            except TypeError as e:
+                if '__str__ returned non-string' in str(e):
+                    print 'urllib3 had an SSL handshake error with pyOpenSSL'
+                    retry += 1
+                    print "Start retry attempt %d in %d seconds."%(retry+1, retrydelay)
+                    time.sleep(retrydelay)
     if api and check:
         index2 = check[1]
         api = check[2]
