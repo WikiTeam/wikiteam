@@ -600,8 +600,13 @@ def getXMLPage(config={}, title='', verbose=True, session=None):
         while not truncated and params['offset']:  # next chunk
             # get the last timestamp from the acum XML
             params['offset'] = re.findall(r_timestamp, xml)[-1]
-            xml2 = getXMLPageCore(
-                params=params, config=config, session=session)
+            try:
+                xml2 = getXMLPageCore(
+                    params=params, config=config, session=session)
+            except MemoryError:
+                print "The page's history exceeds our memory, halving limit."
+                params['limit'] = params['limit'] / 2
+                continue
 
             # are there more edits in this next XML chunk or no <page></page>?
             if re.findall(r_timestamp, xml2):
@@ -626,8 +631,8 @@ def getXMLPage(config={}, title='', verbose=True, session=None):
                     """
                     # offset is OK in this wiki, merge with the previous chunk
                     # of this page history and continue
-                    xml2 = xml2.split("</page>")[0]
                     try:
+                        xml2 = xml2.split("</page>")[0]
                         yield '  <revision>' + ('<revision>'.join(xml2.split('<revision>')[1:]))
                     except MemoryError:
                         print "The page's history exceeds our memory, halving limit."
