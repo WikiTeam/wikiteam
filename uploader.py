@@ -81,12 +81,14 @@ def getParameters(params=[]):
 def usage():
     """  """
     print """uploader.py
+
 This script takes the filename of a list of wikis as argument and uploads their dumps to archive.org.
 The list must be a text file with the wiki's api.php URLs, one per line.
 Dumps must be in the same directory and follow the -wikidump.7z/-history.xml.7z format
 as produced by launcher.py (explained in https://github.com/WikiTeam/wikiteam/wiki/Tutorial#Publishing_the_dump ).
 You need a file named keys.txt with access and secret keys, in two different lines
 You also need dumpgenerator.py in the same directory as this script.
+
 Use --help to print this help."""
 
 def log(wiki, dump, msg):
@@ -153,8 +155,6 @@ def upload(wikis, config={}):
             # Logo path
             logourl = ''
 
-            # We don't know a way to fix/overwrite metadata if item exists already:
-            # just pass bogus data and save some time
             if ismissingitem or config['update']:
                 #get metadata from api.php
                 #first sitename and base url
@@ -275,10 +275,10 @@ def upload(wikis, config={}):
                     'originalurl': wikiurl,
                 }
 
-            #now also to update the metadata
-            #TODO: not needed for the second file in an item
+            #Upload files and update metadata
             try:
                 item.upload(dump, metadata=md, access_key=accesskey, secret_key=secretkey, verbose=True)
+                item.modify_metadata(md) # update
                 print 'You can find it in https://archive.org/details/wiki-%s' % (wikiname)
                 if logourl:
                     logo = StringIO.StringIO(urllib.urlopen(urlparse.urljoin(wiki, logourl)).read())
