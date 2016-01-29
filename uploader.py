@@ -1,7 +1,7 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2011-2014 WikiTeam
+# Copyright (C) 2011-2016 WikiTeam
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
@@ -84,7 +84,7 @@ def usage():
 This script takes the filename of a list of wikis as argument and uploads their dumps to archive.org.
 The list must be a text file with the wiki's api.php URLs, one per line.
 Dumps must be in the same directory and follow the -wikidump.7z/-history.xml.7z format
-as produced by launcher.py (explained in https://code.google.com/p/wikiteam/wiki/NewTutorial#Publishing_the_dump ).
+as produced by launcher.py (explained in https://github.com/WikiTeam/wikiteam/wiki/Tutorial#Publishing_the_dump ).
 You need a file named keys.txt with access and secret keys, in two different lines
 You also need dumpgenerator.py in the same directory as this script.
 Use --help to print this help."""
@@ -279,6 +279,7 @@ def upload(wikis, config={}):
             #TODO: not needed for the second file in an item
             try:
                 item.upload(dump, metadata=md, access_key=accesskey, secret_key=secretkey, verbose=True)
+                print 'You can find it in https://archive.org/details/wiki-%s' % (wikiname)
                 if logourl:
                     logo = StringIO.StringIO(urllib.urlopen(urlparse.urljoin(wiki, logourl)).read())
                     logoextension = logourl.split('.')[-1] if logourl.split('.') else 'unknown'
@@ -292,7 +293,6 @@ def upload(wikis, config={}):
             c += 1
 
 def main(params=[]):
-
     config = getParameters(params=params)
     wikis = open(listfile, 'r').read().strip().splitlines()
     upload(wikis, config)
