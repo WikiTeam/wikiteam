@@ -215,7 +215,7 @@ class TestDumpgenerator(unittest.TestCase):
             ['http://www.apfelwiki.de/', 'PmWiki'],
             ['http://wiki.wlug.org.nz/', 'PhpWiki'],
             #['http://wiki.greenmuseum.org/', 'PhpWiki'],
-            ['http://www.cmswiki.com/tiki-index.php', 'TikiWiki'],
+            #['http://www.cmswiki.com/tiki-index.php', 'TikiWiki'],
             ['http://www.wasteflake.com/', 'TikiWiki'],
             ['http://foswiki.org/', 'FosWiki'],
             ['http://www.w3c.br/Home/WebHome', 'FosWiki'],
