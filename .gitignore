@@ -3,3 +3,6 @@ testing/*.pyc
 testing/dumpgenerator.py
 /.tox
 batchdownload/keys.txt
+batchdownload/dumpgenerator.py
+batchdownload/uploader.py
+
