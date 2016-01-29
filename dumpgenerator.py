@@ -343,6 +343,11 @@ def getPageTitlesScraper(config={}, session=None):
                     name = fr
                     url = '%s?title=Special:Allpages/%s&namespace=%s' % (
                         config['index'], name, namespace)
+                elif r_suballpages == r_suballpages3:
+                    fr = fr.split('&amp;namespace=')[0]
+                    name = fr
+                    url = '%s?title=Special:Allpages&from=%s&namespace=%s' % (
+                        config['index'], name, namespace)
 
                 if name not in checked_suballpages:
                     # to avoid reload dupe subpages links
