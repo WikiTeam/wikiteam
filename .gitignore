@@ -1,1 +1,5 @@
+*.pyc
+testing/*.pyc
+testing/dumpgenerator.py
+/.tox
 batchdownload/keys.txt
