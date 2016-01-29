@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # dumpgenerator.py A generator of dumps for wikis
-# Copyright (C) 2011-2014 WikiTeam developers
+# Copyright (C) 2011-2016 WikiTeam developers
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
@@ -266,6 +266,12 @@ def getPageTitlesAPI(config={}, session=None):
                         'query-continue']['allpages']['apcontinue']
                 elif 'apfrom' in jsontitles['query-continue']['allpages']:
                     apfrom = jsontitles['query-continue']['allpages']['apfrom']
+            elif 'continue' in jsontitles:
+                if 'apcontinue' in jsontitles['continue']:
+                    apfrom = jsontitles['continue']['apcontinue']
+                elif 'apfrom' in jsontitles['continue']:
+                    apfrom = jsontitles['continue']['apfrom']
+            
             # print apfrom
             # print jsontitles
             allpages = jsontitles['query']['allpages']
