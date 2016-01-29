@@ -1,7 +1,7 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2011-2015 WikiTeam developers
+# Copyright (C) 2011-2016 WikiTeam developers
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
@@ -163,13 +163,13 @@ class TestDumpgenerator(unittest.TestCase):
             print '\nTesting', api
             print 'Trying to parse', pagetocheck, 'with API'
             config_api = {'api': api, 
-				'index': '', 
-				'delay': 0, 
-				'namespaces': ['all'], 'exnamespaces': [], 
-				'date': datetime.datetime.now().strftime('%Y%m%d'), 
-				'path': '.',
-				'retries': 5,
-				}
+                'index': '', 
+                'delay': 0, 
+                'namespaces': ['all'], 'exnamespaces': [], 
+                'date': datetime.datetime.now().strftime('%Y%m%d'), 
+                'path': '.',
+                'retries': 5,
+                }
             
             titles_api = getPageTitles(config=config_api, session=session)
             result_api = open(titles_api, 'r').read().decode('utf8').splitlines()
@@ -180,13 +180,13 @@ class TestDumpgenerator(unittest.TestCase):
             print 'Testing', index
             print 'Trying to parse', pagetocheck, 'with index'
             config_index = {'index': index, 
-				'api': '', 
-				'delay': 0, 
-				'namespaces': ['all'], 
-				'exnamespaces': [], 
-				'date': datetime.datetime.now().strftime('%Y%m%d'), 
-				'path': '.',
-				'retries': 5}
+                'api': '', 
+                'delay': 0, 
+                'namespaces': ['all'], 
+                'exnamespaces': [], 
+                'date': datetime.datetime.now().strftime('%Y%m%d'), 
+                'path': '.',
+                'retries': 5}
 
             titles_index = getPageTitles(config=config_index, session=session)
             result_index = open(titles_index, 'r').read().decode('utf8').splitlines()
@@ -210,11 +210,11 @@ class TestDumpgenerator(unittest.TestCase):
             #['http://moinmo.in', 'MoinMoin'],
             ['https://wiki.debian.org', 'MoinMoin'],
             ['http://twiki.org/cgi-bin/view/', 'TWiki'],
-            ['http://nuclearinfo.net/Nuclearpower/CurrentReactors', 'TWiki'],
+            #['http://nuclearinfo.net/Nuclearpower/CurrentReactors', 'TWiki'],
             ['http://www.pmwiki.org/', 'PmWiki'],
             ['http://www.apfelwiki.de/', 'PmWiki'],
             ['http://wiki.wlug.org.nz/', 'PhpWiki'],
-#            ['http://wiki.greenmuseum.org/', 'PhpWiki'],
+            #['http://wiki.greenmuseum.org/', 'PhpWiki'],
             ['http://www.cmswiki.com/tiki-index.php', 'TikiWiki'],
             ['http://www.wasteflake.com/', 'TikiWiki'],
             ['http://foswiki.org/', 'FosWiki'],
