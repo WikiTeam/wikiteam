@@ -977,6 +977,11 @@ def getImageNamesAPI(config={}, session=None):
                 elif 'aifrom' in jsonimages['query-continue']['allimages']:
                     aifrom = jsonimages[
                         'query-continue']['allimages']['aifrom']
+            elif 'continue' in jsonimages:
+                if 'aicontinue' in jsonimages['continue']:
+                    aifrom = jsonimages['continue']['aicontinue']
+                elif 'aifrom' in jsonimages['continue']:
+                    aifrom = jsonimages['continue']['aifrom']
             # print aifrom
 
             for image in jsonimages['query']['allimages']:
