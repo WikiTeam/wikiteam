@@ -33,7 +33,10 @@ def main():
         
         wtitle = page.title()
         wtext = page.text
-                
+        
+        if not wtitle.startswith('5'):
+            continue
+        
         if re.search('Internet Archive', wtext):
             #print('It has IA parameter')
             pass
@@ -62,8 +65,16 @@ def main():
                 metaurl = 'https://archive.org/download/%s/%s_files.xml' % (itemidentifier, itemidentifier)
                 g = urllib.request.urlopen(metaurl)
                 raw2 = g.read().decode('utf-8')
-                itemfiles = re.findall(r'(?im)<file name="[^ ]+-(\d{8})-[^ ]+" source="original">\s*<mtime>\d+</mtime>\s*<size>(\d+)</size>', raw2)
-                itemfiles = [[int(x), int(y)] for x, y in itemfiles]
+                raw2 = raw2.split('</file>')
+                itemfiles = []
+                for raw2_ in raw2:
+                    try:
+                        x = re.findall(r'(?im)<file name="[^ ]+-(\d{8})-[^ ]+" source="original">', raw2_)[0]
+                        y = re.findall(r'(?im)<size>(\d+)</size>', raw2_)[0]
+                        itemfiles.append([int(x), int(y)])
+                    except:
+                        pass
+                    
                 itemfiles.sort(reverse=True)
                 print(itemfiles)
                 itemdate = str(itemfiles[0][0])[0:4] + '/' + str(itemfiles[0][0])[4:6] + '/' + str(itemfiles[0][0])[6:8]
