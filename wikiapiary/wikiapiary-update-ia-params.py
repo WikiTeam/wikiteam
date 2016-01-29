@@ -39,7 +39,7 @@ def main():
             pass
         else:
             print('\n','#'*50,'\n',wtitle,'\n','#'*50)
-            print('https://wikiapiary.com/wiki/%s' % (re.sub(' ', ',¡_', wtitle)))
+            print('https://wikiapiary.com/wiki/%s' % (re.sub(' ', '_', wtitle)))
             print('Missing IA parameter')
             
             if re.search(r'(?i)API URL=http', wtext):
@@ -75,9 +75,11 @@ def main():
 |Internet Archive file size=%s""" % (itemidentifier, itemurl, itemdate, itemsize)
                 newtext = page.text
                 newtext = re.sub(r'(?im)\}\}\n', '%s\n}}\n' % (iaparams), newtext)
-                pywikibot.showDiff(page.text, newtext)
-                page.text = newtext
-                page.save('BOT - Adding dump details: %s, %s, %s bytes' % (itemidentifier, itemdate, itemsize))
+                
+                if page.text != newtext:
+                    pywikibot.showDiff(page.text, newtext)
+                    page.text = newtext
+                    page.save('BOT - Adding dump details: %s, %s, %s bytes' % (itemidentifier, itemdate, itemsize))
     
 if __name__ == "__main__":
     main()
