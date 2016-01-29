@@ -293,7 +293,7 @@ def getPageTitlesAPI(config={}, session=None):
         print '    %d titles retrieved in the namespace %d' % (c, namespace)
 
 def getPageTitlesScraper(config={}, session=None):
-    """  """
+    """ Scrape the list of page titles from Special:Allpages """
     titles = []
     namespaces, namespacenames = getNamespacesScraper(
         config=config, session=session)
@@ -309,15 +309,17 @@ def getPageTitlesScraper(config={}, session=None):
         r_suballpages = ''
         r_suballpages1 = r'&amp;from=(?P<from>[^>]+)&amp;to=(?P<to>[^>]+)">'
         r_suballpages2 = r'Special:Allpages/(?P<from>[^>]+)">'
+        r_suballpages3 = r'&amp;from=(?P<from>[^>]+)" title="[^>]+">'
         if re.search(r_suballpages1, raw):
             r_suballpages = r_suballpages1
         elif re.search(r_suballpages2, raw):
             r_suballpages = r_suballpages2
+        elif re.search(r_suballpages3, raw):
+            r_suballpages = r_suballpages3
         else:
             pass  # perhaps no subpages
 
-        # 3 is the current deep of English Wikipedia for Special:Allpages, 3
-        # levels
+        # 3 is the current deep of English Wikipedia for Special:Allpages
         deep = 3
         c = 0
         checked_suballpages = []
