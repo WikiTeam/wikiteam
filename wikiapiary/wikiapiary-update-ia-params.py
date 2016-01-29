@@ -34,8 +34,8 @@ def main():
         wtitle = page.title()
         wtext = page.text
         
-        if not wtitle.startswith('5'):
-            continue
+        #if not wtitle.startswith('5'):
+        #    continue
         
         if re.search('Internet Archive', wtext):
             #print('It has IA parameter')
@@ -85,7 +85,7 @@ def main():
 |Internet Archive added date=%s 00:00:00 
 |Internet Archive file size=%s""" % (itemidentifier, itemurl, itemdate, itemsize)
                 newtext = page.text
-                newtext = re.sub(r'(?im)\}\}\n', '%s\n}}\n' % (iaparams), newtext)
+                newtext = re.sub(r'(?im)\n\}\}', '\n%s\n}}' % (iaparams), newtext)
                 
                 if page.text != newtext:
                     pywikibot.showDiff(page.text, newtext)
