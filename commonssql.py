@@ -34,7 +34,7 @@ queries = [
 ]
 
 f = csv.writer(open(filename, 'a'), delimiter='|', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-conn = MySQLdb.connect(host='sql-s4', db='commonswiki_p', read_default_file='~/.my.cnf')
+conn = MySQLdb.connect(host='commonswiki.labsdb', db='commonswiki_p', read_default_file='~/.my.cnf')
 for query in queries:
     conn.query(query)
     r = conn.store_result()
