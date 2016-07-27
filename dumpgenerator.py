@@ -1403,8 +1403,11 @@ def getParameters(params=[]):
         api = check[2]
         print 'API is OK: ' + api
     else:
-        print 'Error in API. Please, provide a correct path to API'
-        sys.exit(1)
+        if index and not args.wiki:
+            print 'API not available. Trying with index.php only.'
+        else:
+            print 'Error in API. Please, provide a correct path to API'
+            sys.exit(1)
 
     if index and checkIndex(
             index=index,
