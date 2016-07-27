@@ -24,7 +24,7 @@ def main():
     site = pywikibot.Site('wikiapiary', 'wikiapiary')
     catname = 'Category:Website'
     cat = pywikibot.Category(site, catname)
-    gen = pagegenerators.CategorizedPageGenerator(cat)
+    gen = pagegenerators.CategorizedPageGenerator(cat, start='Spyropedia')
     pre = pagegenerators.PreloadingGenerator(gen)
     
     for page in pre:
@@ -90,7 +90,7 @@ def main():
                 if page.text != newtext:
                     pywikibot.showDiff(page.text, newtext)
                     page.text = newtext
-                    page.save('BOT - Adding dump details: %s, %s, %s bytes' % (itemidentifier, itemdate, itemsize))
+                    page.save('BOT - Adding dump details: %s, %s, %s bytes' % (itemidentifier, itemdate, itemsize), botflag=True)
     
 if __name__ == "__main__":
     main()
