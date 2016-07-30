@@ -72,7 +72,7 @@ class TestDumpgenerator(unittest.TestCase):
             ['http://dawngate.gamepedia.com/index.php', 'http://dawngate.gamepedia.com/api.php', u'Spell Vanquish.png'],
             
             # Neoseeker wikifarm
-            ['http://digimon.neoseeker.com/w/index.php', 'http://digimon.neoseeker.com/w/api.php', u'Ogremon card.png'],
+            #['http://digimon.neoseeker.com/w/index.php', 'http://digimon.neoseeker.com/w/api.php', u'Ogremon card.png'],
             
             # Orain wikifarm
             #['http://mc.orain.org/w/index.php', 'http://mc.orain.org/w/api.php', u'Mojang logo.svg'],
@@ -150,7 +150,7 @@ class TestDumpgenerator(unittest.TestCase):
             ['http://skilledtests.com/wiki/index.php', 'http://skilledtests.com/wiki/api.php', u'Conway\'s Game of Life'],
 
             # Test old allpages API behaviour
-            ['http://wiki.damirsystems.com/index.php', 'http://wiki.damirsystems.com/api.php', 'SQL Server Tips'],
+            #['http://wiki.damirsystems.com/index.php', 'http://wiki.damirsystems.com/api.php', 'SQL Server Tips'],
 
             # Test BOM encoding
             #['http://www.libreidea.org/w/index.php', 'http://www.libreidea.org/w/api.php', 'Main Page'],
@@ -205,7 +205,7 @@ class TestDumpgenerator(unittest.TestCase):
         print '\n', '#'*73, '\n', 'test_getWikiEngine', '\n', '#'*73
         tests = [
             ['https://www.dokuwiki.org', 'DokuWiki'],
-            ['http://wiki.openwrt.org', 'DokuWiki'],
+            #['http://wiki.openwrt.org', 'DokuWiki'],
             ['http://skilledtests.com/wiki/', 'MediaWiki'],
             #['http://moinmo.in', 'MoinMoin'],
             ['https://wiki.debian.org', 'MoinMoin'],
