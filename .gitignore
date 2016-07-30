@@ -2,6 +2,7 @@
 testing/*.pyc
 testing/dumpgenerator.py
 /.tox
+keys.txt
 batchdownload/keys.txt
 batchdownload/dumpgenerator.py
 batchdownload/uploader.py
