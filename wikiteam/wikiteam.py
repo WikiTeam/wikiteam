@@ -19,17 +19,20 @@
 # Documentation for developers: http://wikiteam.readthedocs.com
 
 import argparse
-import cPickle # what is in python3?
 import datetime
+import os
 import random
 import re
 import sys
+import time
 import urllib
 
 if sys.version_info < (3, 0):
     import cookielib
+    import cPickle
 else:
     import http.cookiejar as cookielib
+    import pickle as cPickle
 
 __version__ = "0.3.0"
 
@@ -57,10 +60,10 @@ Good luck! Bye!"""
 def createNewDump(config={}):
     if config['wikiengine'] == 'mediawiki':
         import mediawiki
-        mwCreateNewDump(config=config)
+        mediawiki.mwCreateNewDump(config=config)
     elif config['wikiengine'] == 'wikispaces':
         import wikispaces
-        wsCreateNewDump(config=config)
+        wikispaces.wsCreateNewDump(config=config)
     else:
         print("Wikiengine %s not supported. Exiting." % (config['wikiengine']))
 
@@ -74,7 +77,7 @@ def createDumpPath(config={}):
         print('\nWarning!: "%s" path exists' % (config['path']))
         reply = ''
         while reply.lower() not in ['yes', 'y', 'no', 'n']:
-            reply = raw_input(
+            reply = input(
                 'There is a dump in "%s", probably incomplete.\nIf you choose resume, to avoid conflicts, the parameters you have chosen in the current session will be ignored\nand the parameters available in "%s/%s" will be loaded.\nDo you want to resume ([yes, y], [no, n])? ' %
                 (config['path'],
                  config['path'],
@@ -93,6 +96,12 @@ def createDumpPath(config={}):
         print('Trying to use path "%s"...' % (config['path']))
         c += 1
     return config
+
+def delay(config={}):
+    """ Add a delay if configured for that """
+    if config['delay'] > 0:
+        print('Sleeping... %d seconds...' % (config['delay']))
+        time.sleep(config['delay'])
 
 def domain2prefix(config={}):
     """ Convert domain name to a valid prefix filename. """
@@ -114,6 +123,7 @@ def getAPI(url=''):
     wikiengine = getWikiEngine(url=url)
     api = ''
     if wikiengine == 'mediawiki':
+        import mediawiki
         api = mediawiki.mwGetAPI(url=url)
     
     return api
@@ -124,9 +134,27 @@ def getIndex(url=''):
     wikiengine = getWikiEngine(url=url)
     index = ''
     if wikiengine == 'mediawiki':
+        import mediawiki
         index = mediawiki.mwGetIndex(url=url)
     
     return index
+
+def getJSON(request):
+    """Strip Unicode BOM"""
+    if request.text.startswith(u'\ufeff'):
+        request.encoding = 'utf-8-sig'
+    return request.json()
+
+def getPageTitles(url=''):
+    """ Returns Index.php for a wiki, if available """
+    
+    wikiengine = getWikiEngine(url=url)
+    pagetitles = []
+    if wikiengine == 'mediawiki':
+        import mediawiki
+        pagetitles = mediawiki.mwGetPageTitles()
+    
+    return pagetitles
 
 def getParameters(params=[]):
     """ Import parameters into variable """
@@ -214,6 +242,10 @@ def getParameters(params=[]):
         action='store_true',
         help="Returns wiki Index.php when available.")
     groupMeta.add_argument(
+        '--get-page-titles',
+        action='store_true',
+        help="Returns wiki page titles.")
+    groupMeta.add_argument(
         '--get-wiki-engine',
         action='store_true',
         help="Returns wiki engine.")
@@ -229,14 +261,14 @@ def getParameters(params=[]):
     
     # Don't mix download params and meta info params
     if (args.pages or args.images) and \
-            (args.get_wiki_engine):
+            (args.get_api or args.get_index or args.get_page_titles or args.get_wiki_engine):
         print('ERROR: Don\'t mix download params and meta info params')
         parser.print_help()
         sys.exit(1)
 
     # No download params and no meta info params? Exit
     if (not args.pages and not args.images) and \
-            (not args.get_api and not args.get_wiki_engine):
+            (not args.get_api and not args.get_index and not args.get_page_titles and not args.get_wiki_engine):
         print('ERROR: Use at least one download param or meta info param')
         parser.print_help()
         sys.exit(1)
@@ -245,6 +277,12 @@ def getParameters(params=[]):
     if args.wiki:
         if args.get_api:
             print(getAPI(url=args.wiki))
+            sys.exit()
+        if args.get_index:
+            print(getIndex(url=args.wiki))
+            sys.exit()
+        if args.get_page_titles:
+            print(getPageTitles(url=args.wiki))
             sys.exit()
         if args.get_wiki_engine:
             print(getWikiEngine(url=args.wiki))
@@ -361,11 +399,11 @@ def getParameters(params=[]):
 
     return config
 
-def getURL(url=''):
+def getURL(url='', data=None):
     html = ''
     try:
         req = urllib.request.Request(url, headers={ 'User-Agent': 'Mozilla/5.0' })
-        html = urllib.request.urlopen(req).read().decode().strip()
+        html = urllib.request.urlopen(req, data=data).read().decode().strip()
     except:
         print("Error while retrieving URL", url)
         sys.exit()
@@ -393,82 +431,114 @@ def getWikiEngine(url=''):
     
     if re.search(
             r'(?im)(<meta name="generator" content="DokuWiki)|dokuwiki__site',
-            result):
+            html):
         wikiengine = 'dokuwiki'
-    elif re.search(r'(?im)(alt="Powered by MediaWiki"|<meta name="generator" content="MediaWiki)', result):
+    elif re.search(r'(?im)(alt="Powered by MediaWiki"|<meta name="generator" content="MediaWiki)', html):
         wikiengine = 'mediawiki'
-    elif re.search(r'(?im)(>MoinMoin Powered</a>|<option value="LocalSiteMap">)', result):
+    elif re.search(r'(?im)(>MoinMoin Powered</a>|<option value="LocalSiteMap">)', html):
         wikiengine = 'moinmoin'
-    elif re.search(r'(?im)(twikiCurrentTopicLink|twikiCurrentWebHomeLink|twikiLink)', result):
+    elif re.search(r'(?im)(twikiCurrentTopicLink|twikiCurrentWebHomeLink|twikiLink)', html):
         wikiengine = 'twiki'
-    elif re.search(r'(?im)(<!--PageHeaderFmt-->)', result):
+    elif re.search(r'(?im)(<!--PageHeaderFmt-->)', html):
         wikiengine = 'pmwiki'
-    elif re.search(r'(?im)(<meta name="generator" content="PhpWiki|<meta name="PHPWIKI_VERSION)', result):
+    elif re.search(r'(?im)(<meta name="generator" content="PhpWiki|<meta name="PHPWIKI_VERSION)', html):
         wikiengine = 'phpwiki'
-    elif re.search(r'(?im)(<meta name="generator" content="Tiki Wiki|Powered by <a href="http://(www\.)?tiki\.org"| id="tiki-(top|main)")', result):
+    elif re.search(r'(?im)(<meta name="generator" content="Tiki Wiki|Powered by <a href="http://(www\.)?tiki\.org"| id="tiki-(top|main)")', html):
         wikiengine = 'tikiwiki'
-    elif re.search(r'(?im)(foswikiNoJs|<meta name="foswiki\.|foswikiTable|foswikiContentFooter)', result):
+    elif re.search(r'(?im)(foswikiNoJs|<meta name="foswiki\.|foswikiTable|foswikiContentFooter)', html):
         wikiengine = 'foswiki'
-    elif re.search(r'(?im)(<meta http-equiv="powered by" content="MojoMojo)', result):
+    elif re.search(r'(?im)(<meta http-equiv="powered by" content="MojoMojo)', html):
         wikiengine = 'mojomojo'
-    elif re.search(r'(?im)(id="xwiki(content|nav_footer|platformversion|docinfo|maincontainer|data)|/resources/js/xwiki/xwiki|XWiki\.webapppath)', result):
+    elif re.search(r'(?im)(id="xwiki(content|nav_footer|platformversion|docinfo|maincontainer|data)|/resources/js/xwiki/xwiki|XWiki\.webapppath)', html):
         wikiengine = 'xwiki'
-    elif re.search(r'(?im)(<meta id="confluence-(base-url|context-path)")', result):
+    elif re.search(r'(?im)(<meta id="confluence-(base-url|context-path)")', html):
         wikiengine = 'confluence'
-    elif re.search(r'(?im)(<meta name="generator" content="Banana Dance)', result):
+    elif re.search(r'(?im)(<meta name="generator" content="Banana Dance)', html):
         wikiengine = 'bananadance'
-    elif re.search(r'(?im)(Wheeled by <a class="external-link" href="http://www\.wagn\.org">|<body id="wagn">)', result):
+    elif re.search(r'(?im)(Wheeled by <a class="external-link" href="http://www\.wagn\.org">|<body id="wagn">)', html):
         wikiengine = 'wagn'
-    elif re.search(r'(?im)(<meta name="generator" content="MindTouch)', result):
+    elif re.search(r'(?im)(<meta name="generator" content="MindTouch)', html):
         wikiengine = 'mindtouch'  # formerly DekiWiki
-    elif re.search(r'(?im)(<div class="wikiversion">\s*(<p>)?JSPWiki|xmlns:jspwiki="http://www\.jspwiki\.org")', result):
+    elif re.search(r'(?im)(<div class="wikiversion">\s*(<p>)?JSPWiki|xmlns:jspwiki="http://www\.jspwiki\.org")', html):
         wikiengine = 'jspwiki'
-    elif re.search(r'(?im)(Powered by:?\s*(<br ?/>)?\s*<a href="http://kwiki\.org">|\bKwikiNavigation\b)', result):
+    elif re.search(r'(?im)(Powered by:?\s*(<br ?/>)?\s*<a href="http://kwiki\.org">|\bKwikiNavigation\b)', html):
         wikiengine = 'kwiki'
-    elif re.search(r'(?im)(Powered by <a href="http://www\.anwiki\.com")', result):
+    elif re.search(r'(?im)(Powered by <a href="http://www\.anwiki\.com")', html):
         wikiengine = 'anwiki'
-    elif re.search(r'(?im)(<meta name="generator" content="Aneuch|is powered by <em>Aneuch</em>|<!-- start of Aneuch markup -->)', result):
+    elif re.search(r'(?im)(<meta name="generator" content="Aneuch|is powered by <em>Aneuch</em>|<!-- start of Aneuch markup -->)', html):
         wikiengine = 'aneuch'
-    elif re.search(r'(?im)(<meta name="generator" content="bitweaver)', result):
+    elif re.search(r'(?im)(<meta name="generator" content="bitweaver)', html):
         wikiengine = 'bitweaver'
-    elif re.search(r'(?im)(powered by <a href="[^"]*\bzwiki.org(/[^"]*)?">)', result):
+    elif re.search(r'(?im)(powered by <a href="[^"]*\bzwiki.org(/[^"]*)?">)', html):
         wikiengine = 'zwiki'
     # WakkaWiki forks
-    elif re.search(r'(?im)(<meta name="generator" content="WikkaWiki|<a class="ext" href="(http://wikka\.jsnx\.com/|http://wikkawiki\.org/)">)', result):
+    elif re.search(r'(?im)(<meta name="generator" content="WikkaWiki|<a class="ext" href="(http://wikka\.jsnx\.com/|http://wikkawiki\.org/)">)', html):
         wikiengine = 'wikkawiki'  # formerly WikkaWakkaWiki
-    elif re.search(r'(?im)(<meta name="generator" content="CoMa Wiki)', result):
+    elif re.search(r'(?im)(<meta name="generator" content="CoMa Wiki)', html):
         wikiengine = 'comawiki'
-    elif re.search(r'(?im)(Fonctionne avec <a href="http://www\.wikini\.net)', result):
+    elif re.search(r'(?im)(Fonctionne avec <a href="http://www\.wikini\.net)', html):
         wikiengine = 'wikini'
-    elif re.search(r'(?im)(Powered by <a href="[^"]*CitiWiki">CitiWiki</a>)', result):
+    elif re.search(r'(?im)(Powered by <a href="[^"]*CitiWiki">CitiWiki</a>)', html):
         wikiengine = 'citiwiki'
-    elif re.search(r'(?im)(Powered by <a href="http://wackowiki\.com/|title="WackoWiki")', result):
+    elif re.search(r'(?im)(Powered by <a href="http://wackowiki\.com/|title="WackoWiki")', html):
         wikiengine = 'wackowiki'
-    elif re.search(r'(?im)(Powered by <a href="http://www\.wakkawiki\.com)', result):
+    elif re.search(r'(?im)(Powered by <a href="http://www\.wakkawiki\.com)', html):
         # This may not work for heavily modded/themed installations, e.g.
         # http://operawiki.info/
         wikiengine = 'wakkawiki'
     # Custom wikis used by wiki farms
-    elif re.search(r'(?im)(var wikispaces_page|<div class="WikispacesContent)', result):
+    elif re.search(r'(?im)(var wikispaces_page|<div class="WikispacesContent)', html):
         wikiengine = 'wikispaces'
-    elif re.search(r'(?im)(Powered by <a href="http://www\.wikidot\.com">|wikidot-privacy-button-hovertip|javascript:WIKIDOT\.page)', result):
+    elif re.search(r'(?im)(Powered by <a href="http://www\.wikidot\.com">|wikidot-privacy-button-hovertip|javascript:WIKIDOT\.page)', html):
         wikiengine = 'wikidot'
-    elif re.search(r'(?im)(IS_WETPAINT_USER|wetpaintLoad|WPC-bodyContentContainer)', result):
+    elif re.search(r'(?im)(IS_WETPAINT_USER|wetpaintLoad|WPC-bodyContentContainer)', html):
         wikiengine = 'wetpaint'
-    elif re.search(r'(?im)(<div id="footer-pbwiki">|ws-nav-search|PBinfo *= *{)', result):
+    elif re.search(r'(?im)(<div id="footer-pbwiki">|ws-nav-search|PBinfo *= *{)', html):
         # formerly PBwiki
         wikiengine = 'pbworks'
-    # if wikiengine == 'Unknown': print result
+    # if wikiengine == 'Unknown': print html
 
     return wikiengine.lower()
+
+def handleStatusCode(response):
+    statuscode = response.status_code
+    if statuscode >= 200 and statuscode < 300:
+        return
+
+    print("HTTP Error %d." % statuscode)
+    if statuscode >= 300 and statuscode < 400:
+        print("Redirect should happen automatically: please report this as a bug.")
+        print(response.url)
+
+    elif statuscode == 400:
+        print("Bad Request: The wiki may be malfunctioning.")
+        print("Please try again later.")
+        print(response.url)
+        sys.exit(1)
+
+    elif statuscode == 401 or statuscode == 403:
+        print("Authentication required.")
+        print("Please use --userpass.")
+        print(response.url)
+
+    elif statuscode == 404:
+        print("Not found. Is Special:Export enabled for this wiki?")
+        print(response.url)
+        sys.exit(1)
+
+    elif statuscode == 429 or (statuscode >= 500 and statuscode < 600):
+        print("Server error, max retries exceeded.")
+        print("Please resume the dump later.")
+        print(response.url)
+        sys.exit(1)
 
 def resumePreviousDump(config={}):
     if config['wikiengine'] == 'mediawiki':
         import mediawiki
-        mwResumePreviousDump(config=config)
+        mediawiki.mwResumePreviousDump(config=config)
     elif config['wikiengine'] == 'wikispaces':
         import wikispaces
-        wsResumePreviousDump(config=config)
+        wikispaces.wsResumePreviousDump(config=config)
     else:
         print("Wikiengine %s not supported. Exiting." % (config['wikiengine']))
 
@@ -476,11 +546,15 @@ def saveConfig(config={}):
     """ Save config file """
     
     # Do not save config['other'] as it has session info and other stuff
-    config2 = config
+    config2 = config.copy()
     config2['other'] = {}
     with open('%s/%s' % (config['path'], config['other']['configfilename']), 'w') as outfile:
         print('Saving config file...')
-        cPickle.dump(config2, outfile)
+        try: #str
+            cPickle.dump(config2, outfile)
+        except: #bytes
+            with open('%s/%s' % (config['path'], config['other']['configfilename']), 'wb') as outfile:
+                cPickle.dump(config2, outfile)
 
 def welcome():
     """ Print opening message """
@@ -525,25 +599,20 @@ def loadConfig(config={}):
 def main(params=[]):
     """ Main function """
     
-    config = getParameters(params=params)
-    #print(config)
-    
+    config = getParameters(params=params)    
     welcome()
     avoidWikimediaProjects(config=config)
     config = createDumpPath(config=config)
-    
     if config['other']['resume']:
         config = loadConfig(config=config)
-    else:
-        os.mkdir(config['path'])
-        saveConfig(config=config)
-
-    if config['other']['resume']:
         resumePreviousDump(config=config)
     else:
+        os.mkdir(config['path'])
+        print(config)
+        saveConfig(config=config)
         createNewDump(config=config)
     
-    """move to mw
+    """move to mw module
     saveIndexPHP(config=config, session=other['session'])
     saveSpecialVersion(config=config, session=other['session'])
     saveSiteInfo(config=config, session=other['session'])"""
