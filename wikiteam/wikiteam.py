@@ -19,10 +19,10 @@
 # Documentation for developers: http://wikiteam.readthedocs.com
 
 import argparse
+import cPickle # what is in python3?
 import datetime
 import random
 import re
-import requests # seriously needed?
 import sys
 import urllib
 
@@ -30,8 +30,6 @@ if sys.version_info < (3, 0):
     import cookielib
 else:
     import http.cookiejar as cookielib
-
-import mediawiki
 
 __version__ = "0.3.0"
 
@@ -55,6 +53,46 @@ If you found any bug, report a new issue here: https://github.com/WikiTeam/wikit
 If this is a public wiki, please consider publishing this dump. Do it yourself as explained in https://github.com/WikiTeam/wikiteam/wiki/Tutorial#Publishing_the_dump or contact us at https://github.com/WikiTeam/wikiteam
 Good luck! Bye!"""
     print(message)
+
+def createNewDump(config={}):
+    if config['wikiengine'] == 'mediawiki':
+        import mediawiki
+        mwCreateNewDump(config=config)
+    elif config['wikiengine'] == 'wikispaces':
+        import wikispaces
+        wsCreateNewDump(config=config)
+    else:
+        print("Wikiengine %s not supported. Exiting." % (config['wikiengine']))
+
+def createDumpPath(config={}):
+    # creating path or resuming if desired
+    c = 2
+    # to avoid concat blabla-2, blabla-2-3, and so on...
+    originalpath = config['path']
+    # do not enter if resume is requested from begining
+    while not config['other']['resume'] and os.path.isdir(config['path']):
+        print('\nWarning!: "%s" path exists' % (config['path']))
+        reply = ''
+        while reply.lower() not in ['yes', 'y', 'no', 'n']:
+            reply = raw_input(
+                'There is a dump in "%s", probably incomplete.\nIf you choose resume, to avoid conflicts, the parameters you have chosen in the current session will be ignored\nand the parameters available in "%s/%s" will be loaded.\nDo you want to resume ([yes, y], [no, n])? ' %
+                (config['path'],
+                 config['path'],
+                    config['other']['configfilename']))
+        if reply.lower() in ['yes', 'y']:
+            if not os.path.isfile('%s/%s' % (config['path'], config['other']['configfilename'])):
+                print('No config file found. I can\'t resume. Aborting.')
+                sys.exit()
+            print('You have selected: YES')
+            config['other']['resume'] = True
+            break
+        elif reply.lower() in ['no', 'n']:
+            print('You have selected: NO')
+            config['other']['resume'] = False
+        config['path'] = '%s-%d' % (originalpath, c)
+        print('Trying to use path "%s"...' % (config['path']))
+        c += 1
+    return config
 
 def domain2prefix(config={}):
     """ Convert domain name to a valid prefix filename. """
@@ -212,18 +250,26 @@ def getParameters(params=[]):
             print(getWikiEngine(url=args.wiki))
             sys.exit()
 
-    # Create session
+    # Load cookies
     cj = cookielib.MozillaCookieJar()
     if args.cookies:
         cj.load(args.cookies)
         print('Using cookies from %s' % args.cookies)
 
-    session = requests.Session()
-    session.cookies = cj
-    session.headers.update({'User-Agent': getUserAgent()})
+    # check user and pass (one requires both)
+    if (args.user and not args.password) or (args.password and not args.user):
+        print('ERROR: Both --user and --pass are required for authentication.')
+        parser.print_help()
+        sys.exit(1)
+    
+    session = None
     if args.user and args.password:
+        import requests
+        session = requests.Session()
+        session.cookies = cj
+        session.headers.update({'User-Agent': getUserAgent()})
         session.auth = (args.user, args.password)
-    # session.mount(args.mw_api.split('/api.php')[0], HTTPAdapter(max_retries=max_ret))
+        #session.mount(args.mw_api.split('/api.php')[0], HTTPAdapter(max_retries=max_ret)) Mediawiki-centric, be careful
 
     # check URLs
     for url in [args.mw_api, args.mw_index, args.wiki]:
@@ -235,8 +281,10 @@ def getParameters(params=[]):
     
     wikiengine = getWikiEngine(args.wiki)
     if wikiengine == 'wikispaces':
+        import wikispaces
         pass
     else: # presume is a mediawiki
+        import mediawiki
         if not args.mw_api:
             api = mediawiki.mwGetAPI(url=args.wiki)
             if not api:
@@ -245,12 +293,6 @@ def getParameters(params=[]):
             index = mediawiki.mwGetIndex(url=args.wiki)
             if not index:
                 print('ERROR: Provide a URL to Index.php')
-            
-    # check user and pass (one requires both)
-    if (args.user and not args.password) or (args.password and not args.user):
-        print('ERROR: Both --user and --pass are required for authentication.')
-        parser.print_help()
-        sys.exit(1)
 
     namespaces = ['all']
     exnamespaces = []
@@ -290,6 +332,7 @@ def getParameters(params=[]):
 
     config = {
         'wiki': args.wiki, 
+        'wikicanonical': '', 
         'wikiengine': wikiengine, 
         'curonly': args.curonly, 
         'date': datetime.datetime.now().strftime('%Y%m%d'), 
@@ -304,6 +347,7 @@ def getParameters(params=[]):
         'delay': args.delay, 
         'retries': int(args.retries), 
          'other': {
+            'configfilename': 'config.txt', 
             'resume': args.resume, 
             'filenamelimit': 100,  # do not change
             'force': args.force, 
@@ -343,12 +387,7 @@ def getWikiEngine(url=''):
     
     wikiengine = 'unknown'
     if url:
-        session = requests.Session()
-        session.headers.update({'User-Agent': getUserAgent()})
-        r = session.post(url=url)
-        if r.status_code == 405 or r.text == '':
-            r = session.get(url=url)
-        result = r.text
+        html = getURL(url=url)
     else:
         return wikiengine.lower()
     
@@ -423,6 +462,26 @@ def getWikiEngine(url=''):
 
     return wikiengine.lower()
 
+def resumePreviousDump(config={}):
+    if config['wikiengine'] == 'mediawiki':
+        import mediawiki
+        mwResumePreviousDump(config=config)
+    elif config['wikiengine'] == 'wikispaces':
+        import wikispaces
+        wsResumePreviousDump(config=config)
+    else:
+        print("Wikiengine %s not supported. Exiting." % (config['wikiengine']))
+
+def saveConfig(config={}):
+    """ Save config file """
+    
+    # Do not save config['other'] as it has session info and other stuff
+    config2 = config
+    config2['other'] = {}
+    with open('%s/%s' % (config['path'], config['other']['configfilename']), 'w') as outfile:
+        print('Saving config file...')
+        cPickle.dump(config2, outfile)
+
 def welcome():
     """ Print opening message """
     
@@ -450,6 +509,19 @@ def welcome():
 """ % (getVersion())
     print(message)
 
+def loadConfig(config={}):
+    """ Load config file """
+    
+    try:
+        with open('%s/%s' % (config['path'], config['other']['configfilename']), 'r') as infile:
+            print('Loading config file...')
+            config = cPickle.load(infile)
+    except:
+        print('ERROR: There is no config file. we can\'t resume. Start a new dump.')
+        sys.exit()
+
+    return config
+
 def main(params=[]):
     """ Main function """
     
@@ -458,7 +530,23 @@ def main(params=[]):
     
     welcome()
     avoidWikimediaProjects(config=config)
+    config = createDumpPath(config=config)
     
+    if config['other']['resume']:
+        config = loadConfig(config=config)
+    else:
+        os.mkdir(config['path'])
+        saveConfig(config=config)
+
+    if config['other']['resume']:
+        resumePreviousDump(config=config)
+    else:
+        createNewDump(config=config)
+    
+    """move to mw
+    saveIndexPHP(config=config, session=other['session'])
+    saveSpecialVersion(config=config, session=other['session'])
+    saveSiteInfo(config=config, session=other['session'])"""
     bye()
 
 if __name__ == "__main__":
