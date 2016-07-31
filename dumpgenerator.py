@@ -223,7 +223,7 @@ def getNamespacesAPI(config={}, session=None):
     return namespaces, namespacenames
 
 
-def mwGetPageTitlesAPI(config={}, session=None):
+def getPageTitlesAPI(config={}, session=None):
     """ Uses the API to get the list of page titles """
     titles = []
     namespaces, namespacenames = getNamespacesAPI(
@@ -292,7 +292,7 @@ def mwGetPageTitlesAPI(config={}, session=None):
             delay(config=config, session=session)
         print '    %d titles retrieved in the namespace %d' % (c, namespace)
 
-def mwGetPageTitlesScraper(config={}, session=None):
+def getPageTitlesScraper(config={}, session=None):
     """ Scrape the list of page titles from Special:Allpages """
     titles = []
     namespaces, namespacenames = getNamespacesScraper(
@@ -376,16 +376,7 @@ def mwGetPageTitlesScraper(config={}, session=None):
     return titles
 
 
-def wsGetPageTitles(config={}, session=None):
-    """ Get list of page titles """
-    
-    titles = []
-    
-    
-    
-    return titles
-
-def mwGetPageTitles(config={}, session=None):
+def getPageTitles(config={}, session=None):
     """ Get list of page titles """
     # http://en.wikipedia.org/wiki/Special:AllPages
     # http://archiveteam.org/index.php?title=Special:AllPages
@@ -399,11 +390,11 @@ def mwGetPageTitles(config={}, session=None):
         test = getJSON(r)
         if ('warnings' in test and 'allpages' in test['warnings'] and '*' in test['warnings']['allpages']
                 and test['warnings']['allpages']['*'] == 'The "allpages" module has been disabled.'):
-            titles = mwGetPageTitlesScraper(config=config, session=session)
+            titles = getPageTitlesScraper(config=config, session=session)
         else:
-            titles = mwGetPageTitlesAPI(config=config, session=session)
+            titles = getPageTitlesAPI(config=config, session=session)
     elif 'index' in config and config['index']:
-        titles = mwGetPageTitlesScraper(config=config, session=session)
+        titles = getPageTitlesScraper(config=config, session=session)
 
     titlesfilename = '%s-%s-titles.txt' % (
         domain2prefix(config=config), config['date'])
@@ -1268,7 +1259,7 @@ def getParameters(params=[]):
         '--retries',
         metavar=5,
         default=5,
-        help="maximum number of retries")
+        help="Maximum number of retries for ")
     parser.add_argument('--path', help='path to store wiki dump at')
     parser.add_argument(
         '--resume',
@@ -1276,11 +1267,11 @@ def getParameters(params=[]):
         help='resumes previous incomplete dump (requires --path)')
     parser.add_argument('--force', action='store_true', help='')
     parser.add_argument(
-        '--user', help='username if authentication is required')
+        '--user', help='Username if authentication is required.')
     parser.add_argument(
         '--pass',
         dest='password',
-        help='password if authentication is required')
+        help='Password if authentication is required.')
 
     # URL params
     groupWikiOrAPIOrIndex = parser.add_argument_group()
@@ -1308,8 +1299,6 @@ def getParameters(params=[]):
                                help='store only the current version of pages')
     groupDownload.add_argument(
         '--images', action='store_true', help="generates an image dump")
-    groupDownload.add_argument(
-        '--pages', action='store_true', help="generates a page dump")
     groupDownload.add_argument(
         '--namespaces',
         metavar="1,2,3",
@@ -1371,79 +1360,80 @@ def getParameters(params=[]):
             print 'ERROR: URLs must start with http:// or https://\n'
             parser.print_help()
             sys.exit(1)
-    
-    if getWikiEngine(args.wiki) == 'wikispaces':
-        pass
-    else: # presume is a mediawiki
-        # Get API and index and verify
-        api = args.api and args.api or ''
-        index = args.index and args.index or ''
-        if api == '' or index == '':
-            if args.wiki:
+
+    # Get API and index and verify
+    api = args.api and args.api or ''
+    index = args.index and args.index or ''
+    if api == '' or index == '':
+        if args.wiki:
+            if getWikiEngine(args.wiki) == 'MediaWiki':
                 api2, index2 = mwGetAPIAndIndex(args.wiki)
                 if not api:
                     api = api2
                 if not index:
                     index = index2
             else:
-                if api == '':
-                    pass
-                elif index == '':
-                    index = '/'.join(api.split('/')[:-1]) + '/index.php'
-
-        # print api
-        # print index
-        index2 = None
-
-        if api:
-            retry = 0
-            maxretries = args.retries
-            retrydelay = 20
-            while retry < maxretries:
-                try:
-                    check = checkAPI(api=api, session=session)
-                    break
-                except requests.exceptions.ConnectionError as e:
-                    print 'Connection error: %s'%(str(e))
-                    retry += 1
-                    print "Start retry attempt %d in %d seconds."%(retry+1, retrydelay)
-                    time.sleep(retrydelay)
-        if api and check:
-            index2 = check[1]
-            api = check[2]
-            print 'API is OK: ' + api
-        else:
-            if index and not args.wiki:
-                print 'API not available. Trying with index.php only.'
-            else:
-                print 'Error in API. Please, provide a correct path to API'
+                print 'ERROR: Unsupported wiki. Wiki engines supported are: MediaWiki'
                 sys.exit(1)
+        else:
+            if api == '':
+                pass
+            elif index == '':
+                index = '/'.join(api.split('/')[:-1]) + '/index.php'
 
+    # print api
+    # print index
+    index2 = None
+
+    if api:
+        retry = 0
+        maxretries = args.retries
+        retrydelay = 20
+        while retry < maxretries:
+            try:
+                check = checkAPI(api=api, session=session)
+                break
+            except requests.exceptions.ConnectionError as e:
+                print 'Connection error: %s'%(str(e))
+                retry += 1
+                print "Start retry attempt %d in %d seconds."%(retry+1, retrydelay)
+                time.sleep(retrydelay)
+    if api and check:
+        index2 = check[1]
+        api = check[2]
+        print 'API is OK: ' + api
+    else:
+        if index and not args.wiki:
+            print 'API not available. Trying with index.php only.'
+        else:
+            print 'Error in API. Please, provide a correct path to API'
+            sys.exit(1)
+
+    if index and checkIndex(
+            index=index,
+            cookies=args.cookies,
+            session=session):
+        print 'index.php is OK'
+    else:
+        index = index2
+        if index and index.startswith('//'):
+            index = args.wiki.split('//')[0] + index
         if index and checkIndex(
                 index=index,
                 cookies=args.cookies,
                 session=session):
             print 'index.php is OK'
         else:
-            index = index2
-            if index and index.startswith('//'):
-                index = args.wiki.split('//')[0] + index
+            index = '/'.join(index.split('/')[:-1])
             if index and checkIndex(
                     index=index,
                     cookies=args.cookies,
                     session=session):
                 print 'index.php is OK'
             else:
-                index = '/'.join(index.split('/')[:-1])
-                if index and checkIndex(
-                        index=index,
-                        cookies=args.cookies,
-                        session=session):
-                    print 'index.php is OK'
-                else:
-                    print 'Error in index.php, please, provide a correct path to index.php'
-                    sys.exit(1)
-    
+                print 'Error in index.php, please, provide a correct path to index.php'
+                sys.exit(1)
+
     # check user and pass (one requires both)
     if (args.user and not args.password) or (args.password and not args.user):
         print 'ERROR: Both --user and --pass are required for authentication.'
@@ -1487,15 +1477,13 @@ def getParameters(params=[]):
         sys.exit(1)
 
     config = {
-        'wikiengine': getWikiEngine(args.wiki),
         'curonly': args.curonly,
         'date': datetime.datetime.now().strftime('%Y%m%d'),
         'api': api,
         'index': index,
         'images': args.images,
-        'pages': args.pages,
         'logs': False,
-        'xml': args.xml, #this should be 'pages'? (and modify in all the script). Xml is mediawiki-centric, other wikis dont export in XML
+        'xml': args.xml,
         'namespaces': namespaces,
         'exnamespaces': exnamespaces,
         'path': args.path and os.path.normpath(args.path) or '',
@@ -1651,33 +1639,10 @@ def checkXMLIntegrity(config={}, titles=[], session=None):
 
 
 def createNewDump(config={}, other={}):
-    if config['wikiengine'] == 'mediawiki':
-        mwCreateNewDump(config=config, other=other)
-    elif config['wikiengine'] == 'wikispaces':
-        wsCreateNewDump(config=config, other=other)
-
-def wsCreateNewDump(config={}, other={}):
-    print 'Trying generating a new dump into a new directory...'
-    if config['pages']:
-        pages = wsGetPageTitles(config=config, session=other['session'])
-        wsSavePageTitles(config=config, pages=pages)
-        generatePageDump(config=config, pages=pages, session=other['session'])
-    if config['images']:
-        images = wsGetImageNames(config=config, session=other['session'])
-        wsSaveImageNames(config=config, images=images)
-        generateImageDump(
-            config=config,
-            other=other,
-            images=images,
-            session=other['session'])
-    if config['logs']:
-        wsSaveLogs(config=config, session=other['session'])
-
-def mwCreateNewDump(config={}, other={}):
     images = []
     print 'Trying generating a new dump into a new directory...'
     if config['xml']:
-        mwGetPageTitles(config=config, session=other['session'])
+        getPageTitles(config=config, session=other['session'])
         titles=readTitles(config)
         generateXMLDump(config=config, titles=titles, session=other['session'])
         checkXMLIntegrity(
@@ -1695,16 +1660,8 @@ def mwCreateNewDump(config={}, other={}):
     if config['logs']:
         saveLogs(config=config, session=other['session'])
 
+
 def resumePreviousDump(config={}, other={}):
-    if config['wikiengine'] == 'mediawiki':
-        mwResumePreviousDump(config=config, other=other)
-    elif config['wikiengine'] == 'wikispaces':
-        wsResumePreviousDump(config=config, other=other)
-
-def wsResumePreviousDump(config={}, other={}):
-    pass
-
-def mwResumePreviousDump(config={}, other={}):
     images = []
     print 'Resuming previous dump process...'
     if config['xml']:
@@ -1727,7 +1684,7 @@ def mwResumePreviousDump(config={}, other={}):
             print 'Title list is incomplete. Reloading...'
             # do not resume, reload, to avoid inconsistences, deleted pages or
             # so
-            mwGetPageTitles(config=config, session=other['session'])
+            getPageTitles(config=config, session=other['session'])
 
         # checking xml dump
         xmliscomplete = False
@@ -1932,88 +1889,85 @@ def avoidWikimediaProjects(config={}, other={}):
 
 def getWikiEngine(url=''):
     """ Returns the wiki engine of a URL, if known """
-    
-    wikiengine = 'unknown'
-    if url:
-        session = requests.Session()
-        session.headers.update({'User-Agent': getUserAgent()})
-        r = session.post(url=url)
-        if r.status_code == 405 or r.text == '':
-            r = session.get(url=url)
-        result = r.text
-    else:
-        return wikiengine.lower()
-    
+
+    session = requests.Session()
+    session.headers.update({'User-Agent': getUserAgent()})
+    r = session.post(url=url)
+    if r.status_code == 405 or r.text == '':
+        r = session.get(url=url)
+    result = r.text
+
+    wikiengine = 'Unknown'
     if re.search(
             ur'(?im)(<meta name="generator" content="DokuWiki)|dokuwiki__site',
             result):
-        wikiengine = 'dokuwiki'
+        wikiengine = 'DokuWiki'
     elif re.search(ur'(?im)(alt="Powered by MediaWiki"|<meta name="generator" content="MediaWiki)', result):
-        wikiengine = 'mediawiki'
+        wikiengine = 'MediaWiki'
     elif re.search(ur'(?im)(>MoinMoin Powered</a>|<option value="LocalSiteMap">)', result):
-        wikiengine = 'moinmoin'
+        wikiengine = 'MoinMoin'
     elif re.search(ur'(?im)(twikiCurrentTopicLink|twikiCurrentWebHomeLink|twikiLink)', result):
-        wikiengine = 'twiki'
+        wikiengine = 'TWiki'
     elif re.search(ur'(?im)(<!--PageHeaderFmt-->)', result):
-        wikiengine = 'pmwiki'
+        wikiengine = 'PmWiki'
     elif re.search(ur'(?im)(<meta name="generator" content="PhpWiki|<meta name="PHPWIKI_VERSION)', result):
-        wikiengine = 'phpwiki'
+        wikiengine = 'PhpWiki'
     elif re.search(ur'(?im)(<meta name="generator" content="Tiki Wiki|Powered by <a href="http://(www\.)?tiki\.org"| id="tiki-(top|main)")', result):
-        wikiengine = 'tikiwiki'
+        wikiengine = 'TikiWiki'
     elif re.search(ur'(?im)(foswikiNoJs|<meta name="foswiki\.|foswikiTable|foswikiContentFooter)', result):
-        wikiengine = 'foswiki'
+        wikiengine = 'FosWiki'
     elif re.search(ur'(?im)(<meta http-equiv="powered by" content="MojoMojo)', result):
-        wikiengine = 'mojomojo'
+        wikiengine = 'MojoMojo'
     elif re.search(ur'(?im)(id="xwiki(content|nav_footer|platformversion|docinfo|maincontainer|data)|/resources/js/xwiki/xwiki|XWiki\.webapppath)', result):
-        wikiengine = 'xwiki'
+        wikiengine = 'XWiki'
     elif re.search(ur'(?im)(<meta id="confluence-(base-url|context-path)")', result):
-        wikiengine = 'confluence'
+        wikiengine = 'Confluence'
     elif re.search(ur'(?im)(<meta name="generator" content="Banana Dance)', result):
-        wikiengine = 'bananadance'
+        wikiengine = 'Banana Dance'
     elif re.search(ur'(?im)(Wheeled by <a class="external-link" href="http://www\.wagn\.org">|<body id="wagn">)', result):
-        wikiengine = 'wagn'
+        wikiengine = 'Wagn'
     elif re.search(ur'(?im)(<meta name="generator" content="MindTouch)', result):
-        wikiengine = 'mindtouch'  # formerly DekiWiki
+        wikiengine = 'MindTouch'  # formerly DekiWiki
     elif re.search(ur'(?im)(<div class="wikiversion">\s*(<p>)?JSPWiki|xmlns:jspwiki="http://www\.jspwiki\.org")', result):
-        wikiengine = 'jspwiki'
+        wikiengine = 'JSPWiki'
     elif re.search(ur'(?im)(Powered by:?\s*(<br ?/>)?\s*<a href="http://kwiki\.org">|\bKwikiNavigation\b)', result):
-        wikiengine = 'kwiki'
+        wikiengine = 'Kwiki'
     elif re.search(ur'(?im)(Powered by <a href="http://www\.anwiki\.com")', result):
-        wikiengine = 'anwiki'
+        wikiengine = 'Anwiki'
     elif re.search(ur'(?im)(<meta name="generator" content="Aneuch|is powered by <em>Aneuch</em>|<!-- start of Aneuch markup -->)', result):
-        wikiengine = 'aneuch'
+        wikiengine = 'Aneuch'
     elif re.search(ur'(?im)(<meta name="generator" content="bitweaver)', result):
         wikiengine = 'bitweaver'
     elif re.search(ur'(?im)(powered by <a href="[^"]*\bzwiki.org(/[^"]*)?">)', result):
-        wikiengine = 'zwiki'
+        wikiengine = 'Zwiki'
     # WakkaWiki forks
     elif re.search(ur'(?im)(<meta name="generator" content="WikkaWiki|<a class="ext" href="(http://wikka\.jsnx\.com/|http://wikkawiki\.org/)">)', result):
-        wikiengine = 'wikkawiki'  # formerly WikkaWakkaWiki
+        wikiengine = 'WikkaWiki'  # formerly WikkaWakkaWiki
     elif re.search(ur'(?im)(<meta name="generator" content="CoMa Wiki)', result):
-        wikiengine = 'comawiki'
+        wikiengine = 'CoMaWiki'
     elif re.search(ur'(?im)(Fonctionne avec <a href="http://www\.wikini\.net)', result):
-        wikiengine = 'wikini'
+        wikiengine = 'WikiNi'
     elif re.search(ur'(?im)(Powered by <a href="[^"]*CitiWiki">CitiWiki</a>)', result):
-        wikiengine = 'citiwiki'
+        wikiengine = 'CitiWiki'
     elif re.search(ur'(?im)(Powered by <a href="http://wackowiki\.com/|title="WackoWiki")', result):
-        wikiengine = 'wackowiki'
+        wikiengine = 'WackoWiki'
     elif re.search(ur'(?im)(Powered by <a href="http://www\.wakkawiki\.com)', result):
         # This may not work for heavily modded/themed installations, e.g.
         # http://operawiki.info/
-        wikiengine = 'wakkawiki'
+        wikiengine = 'WakkaWiki'
     # Custom wikis used by wiki farms
     elif re.search(ur'(?im)(var wikispaces_page|<div class="WikispacesContent)', result):
-        wikiengine = 'wikispaces'
+        wikiengine = 'Wikispaces'
     elif re.search(ur'(?im)(Powered by <a href="http://www\.wikidot\.com">|wikidot-privacy-button-hovertip|javascript:WIKIDOT\.page)', result):
-        wikiengine = 'wikidot'
+        wikiengine = 'Wikidot'
     elif re.search(ur'(?im)(IS_WETPAINT_USER|wetpaintLoad|WPC-bodyContentContainer)', result):
-        wikiengine = 'wetpaint'
+        wikiengine = 'Wetpaint'
     elif re.search(ur'(?im)(<div id="footer-pbwiki">|ws-nav-search|PBinfo *= *{)', result):
         # formerly PBwiki
-        wikiengine = 'pbworks'
+        wikiengine = 'PBworks'
     # if wikiengine == 'Unknown': print result
 
-    return wikiengine.lower()
+    return wikiengine
 
 
 def mwGetAPIAndIndex(url=''):
@@ -2075,7 +2029,7 @@ def main(params=[]):
     avoidWikimediaProjects(config=config, other=other)
 
     print welcome()
-    print 'Analysing %s' % (config['api'] or config['index'])
+    print 'Analysing %s' % (config['api'] and config['api'] or config['index'])
 
     # creating path or resuming if desired
     c = 2
@@ -2124,4 +2078,3 @@ def main(params=[]):
 
 if __name__ == "__main__":
     main()
-
