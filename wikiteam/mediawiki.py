@@ -19,6 +19,7 @@
 # Documentation for developers: http://wikiteam.readthedocs.com
 
 import re
+import sys
 import urllib
 
 import wikiteam
@@ -91,11 +92,11 @@ def mwGeneratePageDump(config={}, titles=[], start=None):
     xmlfile.close()
     print('XML dump saved at...', xmlfilename)
 
-def mwGetAPI(url=''):
+def mwGetAPI(config={}):
     """ Returns API for a MediaWiki wiki, if available """
 
     api = ''
-    html = wikiteam.getURL(url=url)
+    html = wikiteam.getURL(url=config['wiki'])
     m = re.findall(
         r'(?im)<\s*link\s*rel="EditURI"\s*type="application/rsd\+xml"\s*href="([^>]+?)\?action=rsd"\s*/\s*>',
         html)
@@ -105,12 +106,15 @@ def mwGetAPI(url=''):
             api = url.split('//')[0] + api
     return api
 
-def mwGetIndex(url=''):
+def mwGetIndex(config={}):
     """ Returns Index.php for a MediaWiki wiki, if available """
 
-    api = mwGetAPI(url=url)
+    if config['mwapi']:
+        mwapi = config['mwapi']
+    else:
+        mwapi = mwGetAPI(config=config)
     index = ''
-    html = wikiteam.getURL(url=url)
+    html = wikiteam.getURL(url=config['wiki'])
     m = re.findall(r'<li id="ca-viewsource"[^>]*?>\s*(?:<span>)?\s*<a href="([^\?]+?)\?', html)
     if m:
         index = m[0]
@@ -120,13 +124,13 @@ def mwGetIndex(url=''):
             index = m[0]
     if index:
         if index.startswith('/'):
-            index = '/'.join(api.split('/')[:-1]) + '/' + index.split('/')[-1]
+            index = '/'.join(mwapi.split('/')[:-1]) + '/' + index.split('/')[-1]
     else:
-        if api:
+        if mwapi:
             if len(re.findall(r'/index\.php5\?', html)) > len(re.findall(r'/index\.php\?', html)):
-                index = '/'.join(api.split('/')[:-1]) + '/index.php5'
+                index = '/'.join(mwapi.split('/')[:-1]) + '/index.php5'
             else:
-                index = '/'.join(api.split('/')[:-1]) + '/index.php'
+                index = '/'.join(mwapi.split('/')[:-1]) + '/index.php'
     return index
 
 def mwGetNamespacesAPI(config={}):
@@ -138,11 +142,10 @@ def mwGetNamespacesAPI(config={}):
                 'meta': 'siteinfo',
                 'siprop': 'namespaces',
                 'format': 'json'}
-        data = urllib.parse.urlencode(params)
-        r = wikiteam.getURL(url=config['api'], data=data)
+        data = urllib.parse.urlencode(params).encode()
+        r = wikiteam.getURL(url=config['mwapi'], data=data)
         result = wikiteam.getJSON(r)
         wikiteam.delay(config=config)
-
         if 'all' in namespaces:
             namespaces = []
             for i in result['query']['namespaces'].keys():
@@ -166,7 +169,7 @@ def mwGetNamespacesAPI(config={}):
         namespaces = [0]
 
     namespaces = list(set(namespaces))  # uniques
-    print('%d namespaces found' % (len(namespaces)))
+    sys.stderr.write('%d namespaces found\n' % (len(namespaces)))
     return namespaces, namespacenames
 
 def mwGetPageTitles(config={}):
@@ -174,30 +177,28 @@ def mwGetPageTitles(config={}):
     # http://en.wikipedia.org/wiki/Special:AllPages
     # http://archiveteam.org/index.php?title=Special:AllPages
     # http://www.wikanda.es/wiki/Especial:Todas
-    print('Loading page titles from namespaces = %s' % (','.join([str(i) for i in config['namespaces']]) or 'None'))
-    print('Excluding titles from namespaces = %s' % (','.join([str(i) for i in config['exnamespaces']]) or 'None'))
+    sys.stderr.write('Loading page titles from namespaces = %s\n' % (','.join([str(i) for i in config['namespaces']]) or 'None'))
+    sys.stderr.write('Excluding titles from namespaces = %s\n' % (','.join([str(i) for i in config['exnamespaces']]) or 'None'))
 
-    pagetitles = []
-    if 'api' in config and config['api']:
-        pagetitles = mwGetPageTitlesAPI(config=config)
-    elif 'index' in config and config['index']:
-        pagetitles = mwGetPageTitlesScraper(config=config)
-    
-    print('%d page titles loaded' % (len(pagetitles)))
-    return pagetitles
+    if 'mwapi' in config and config['mwapi']:
+        for pagetitle in mwGetPageTitlesAPI(config=config):
+            yield pagetitle
+    elif 'mwindex' in config and config['mwindex']:
+        for pagetitle in mwGetPageTitlesScraper(config=config):
+            yield pagetitle
 
 def mwGetPageTitlesAPI(config={}):
     """ Uses the API to get the list of page titles """
-    titles = []
+    pagetitles = []
     namespaces, namespacenames = mwGetNamespacesAPI(
         config=config)
     for namespace in namespaces:
         if namespace in config['exnamespaces']:
-            print('    Skipping namespace = %d' % (namespace))
+            sys.stderr.write('    Skipping namespace = %d\n' % (namespace))
             continue
 
         c = 0
-        print('    Retrieving titles in the namespace %d' % (namespace))
+        sys.stderr.write('    Retrieving page titles in namespace %d\n' % (namespace))
         apfrom = '!'
         while apfrom:
             sys.stderr.write('.')  # progress
@@ -208,17 +209,17 @@ def mwGetPageTitlesAPI(config={}):
                 'apfrom': apfrom.encode('utf-8'),
                 'format': 'json',
                 'aplimit': 500}
-            data = urllib.parse.urlencode(params)
+            data = urllib.parse.urlencode(params).encode()
             retryCount = 0
             while retryCount < config["retries"]:
                 try:
-                    r = wikiteam.getURL(url=config['api'], data=data)
+                    r = wikiteam.getURL(url=config['mwapi'], data=data)
                     break
                 except ConnectionError as err:
                     print("Connection error: %s" % (str(err),))
                     retryCount += 1
                     time.sleep(20)
-            wikiteam.handleStatusCode(r)
+            #wikiteam.handleStatusCode(r)
             # FIXME Handle HTTP errors here!
             jsontitles = wikiteam.getJSON(r)
             apfrom = ''
@@ -245,15 +246,15 @@ def mwGetPageTitlesAPI(config={}):
                 yield page['title']
             c += len(allpages)
 
-            if len(titles) != len(set(titles)):
+            if len(pagetitles) != len(set(pagetitles)):
                 # probably we are in a loop, server returning dupe titles, stop
                 # it
-                print('Probably a loop, finishing')
-                titles = list(set(titles))
+                sys.stderr.write('Probably a loop, finishing\n')
+                pagetitles = list(set(pagetitles))
                 apfrom = ''
 
             wikiteam.delay(config=config)
-        print('    %d titles retrieved in the namespace %d' % (c, namespace))
+        sys.stderr.write('    %d titles retrieved in namespace %d\n' % (c, namespace))
 
 def main():
     pass

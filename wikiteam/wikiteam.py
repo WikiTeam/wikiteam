@@ -20,21 +20,17 @@
 
 import argparse
 import datetime
+import http.cookiejar as cookielib
+import json
 import os
+import pickle as cPickle
 import random
 import re
 import sys
 import time
 import urllib
 
-if sys.version_info < (3, 0):
-    import cookielib
-    import cPickle
-else:
-    import http.cookiejar as cookielib
-    import pickle as cPickle
-
-__version__ = "0.3.0"
+__version__ = "0.3.1"
 
 def avoidWikimediaProjects(config={}):
     """ Skip Wikimedia projects and redirect to the dumps website """
@@ -117,44 +113,56 @@ def domain2prefix(config={}):
     domain = domain.strip('_')
     return domain
 
-def getAPI(url=''):
+def getAPI(config={}):
     """ Returns API for a wiki, if available """
     
-    wikiengine = getWikiEngine(url=url)
     api = ''
-    if wikiengine == 'mediawiki':
+    if config['wikiengine'] == 'mediawiki':
         import mediawiki
-        api = mediawiki.mwGetAPI(url=url)
+        api = mediawiki.mwGetAPI(config=config)
     
     return api
 
-def getIndex(url=''):
-    """ Returns Index.php for a wiki, if available """
+def getImageNames(config={}):
+    """ Returns list of image names for this wiki """
     
-    wikiengine = getWikiEngine(url=url)
-    index = ''
+    imagenames = []
     if wikiengine == 'mediawiki':
         import mediawiki
-        index = mediawiki.mwGetIndex(url=url)
+        imagenames = mediawiki.mwGetImageNames(config=config)
+    
+    return imagenames
+
+def getIndex(config={}):
+    """ Returns Index.php for a wiki, if available """
+    
+    index = ''
+    if config['wikiengine'] == 'mediawiki':
+        import mediawiki
+        index = mediawiki.mwGetIndex(config=config)
     
     return index
 
 def getJSON(request):
     """Strip Unicode BOM"""
-    if request.text.startswith(u'\ufeff'):
+    """if request.text.startswith(u'\ufeff'):
         request.encoding = 'utf-8-sig'
-    return request.json()
+    return request.json()"""
+    return json.loads(request)
 
-def getPageTitles(url=''):
-    """ Returns Index.php for a wiki, if available """
+def getPageTitles(config={}):
+    """ Returns page titles for this wiki """
     
-    wikiengine = getWikiEngine(url=url)
-    pagetitles = []
-    if wikiengine == 'mediawiki':
+    if config['wikiengine'] == 'mediawiki':
         import mediawiki
-        pagetitles = mediawiki.mwGetPageTitles()
+        for pagetitle in mediawiki.mwGetPageTitles(config=config):
+            yield pagetitle
+
+def printPageTitles(config={}):
+    """ Returns list of page titles for this wiki """
     
-    return pagetitles
+    for pagetitle in getPageTitles(config=config):
+        sys.stdout.write('%s\n' % (pagetitle))
 
 def getParameters(params=[]):
     """ Import parameters into variable """
@@ -195,17 +203,20 @@ def getParameters(params=[]):
         help='Password if authentication is required.')
 
     # URL params
+    # This script should work with any general URL, finding out
+    # API, index.php or whatever by itself when necessary
     groupWiki = parser.add_argument_group()
     groupWiki.add_argument(
         'wiki',
         default='',
         nargs='?',
         help="URL to wiki (e.g. http://wiki.domain.org).")
+    # URL params for MediaWiki
     groupWiki.add_argument(
-        '--mw-api',
+        '--mwapi',
         help="URL to MediaWiki API (e.g. http://wiki.domain.org/w/api.php).")
     groupWiki.add_argument(
-        '--mw-index',
+        '--mwindex',
         help="URL to MediaWiki index.php (e.g. http://wiki.domain.org/w/index.php).")
 
     # Download params
@@ -246,6 +257,10 @@ def getParameters(params=[]):
         action='store_true',
         help="Returns wiki page titles.")
     groupMeta.add_argument(
+        '--get-image-names',
+        action='store_true',
+        help="Returns wiki image names.")
+    groupMeta.add_argument(
         '--get-wiki-engine',
         action='store_true',
         help="Returns wiki engine.")
@@ -261,32 +276,17 @@ def getParameters(params=[]):
     
     # Don't mix download params and meta info params
     if (args.pages or args.images) and \
-            (args.get_api or args.get_index or args.get_page_titles or args.get_wiki_engine):
+            (args.get_api or args.get_index or args.get_page_titles or args.get_image_names or args.get_wiki_engine):
         print('ERROR: Don\'t mix download params and meta info params')
         parser.print_help()
         sys.exit(1)
 
     # No download params and no meta info params? Exit
     if (not args.pages and not args.images) and \
-            (not args.get_api and not args.get_index and not args.get_page_titles and not args.get_wiki_engine):
+            (not args.get_api and not args.get_index and not args.get_page_titles and not args.get_image_names and not args.get_wiki_engine):
         print('ERROR: Use at least one download param or meta info param')
         parser.print_help()
         sys.exit(1)
-
-    # Execute meta info params
-    if args.wiki:
-        if args.get_api:
-            print(getAPI(url=args.wiki))
-            sys.exit()
-        if args.get_index:
-            print(getIndex(url=args.wiki))
-            sys.exit()
-        if args.get_page_titles:
-            print(getPageTitles(url=args.wiki))
-            sys.exit()
-        if args.get_wiki_engine:
-            print(getWikiEngine(url=args.wiki))
-            sys.exit()
 
     # Load cookies
     cj = cookielib.MozillaCookieJar()
@@ -310,27 +310,25 @@ def getParameters(params=[]):
         #session.mount(args.mw_api.split('/api.php')[0], HTTPAdapter(max_retries=max_ret)) Mediawiki-centric, be careful
 
     # check URLs
-    for url in [args.mw_api, args.mw_index, args.wiki]:
+    for url in [args.mwapi, args.mwindex, args.wiki]:
         if url and (not url.startswith('http://') and not url.startswith('https://')):
             print(url)
             print('ERROR: URLs must start with http:// or https://\n')
             parser.print_help()
             sys.exit(1)
     
-    wikiengine = getWikiEngine(args.wiki)
-    if wikiengine == 'wikispaces':
-        import wikispaces
-        pass
-    else: # presume is a mediawiki
-        import mediawiki
-        if not args.mw_api:
-            api = mediawiki.mwGetAPI(url=args.wiki)
-            if not api:
-                print('ERROR: Provide a URL to API')
-        if not args.mw_index:
-            index = mediawiki.mwGetIndex(url=args.wiki)
-            if not index:
-                print('ERROR: Provide a URL to Index.php')
+    # Meta info params
+    metainfo = '' # only one allowed, so we don't mix output
+    if args.get_api:
+        metainfo = 'get_api'
+    elif args.get_index:
+        metainfo = 'get_index'
+    elif args.get_page_titles:
+        metainfo = 'get_page_titles'
+    elif args.get_image_names:
+        metainfo = 'get_image_names'
+    elif args.get_wiki_engine:
+        metainfo = 'get_wiki_engine'
 
     namespaces = ['all']
     exnamespaces = []
@@ -371,10 +369,11 @@ def getParameters(params=[]):
     config = {
         'wiki': args.wiki, 
         'wikicanonical': '', 
-        'wikiengine': wikiengine, 
+        'wikiengine': getWikiEngine(args.wiki), 
         'curonly': args.curonly, 
         'date': datetime.datetime.now().strftime('%Y%m%d'), 
         'images': args.images, 
+        'metainfo': metainfo, 
         'pages': args.pages, 
         'logs': False, 
         'pages': args.pages, 
@@ -392,7 +391,24 @@ def getParameters(params=[]):
             'session': session, 
         }
     }
-
+    
+    # Get ready special variables (API for MediWiki, etc)
+    if config['wikiengine'] == 'mediawiki':
+        import mediawiki
+        if not args.mwapi:
+            config['mwapi'] = mediawiki.mwGetAPI(config=config)
+            if not config['mwapi']:
+                print('ERROR: Provide a URL to API')
+                sys.exit(1)
+        if not args.mwindex:
+            config['mwindex'] = mediawiki.mwGetIndex(config=config)
+            if not config['mwindex']:
+                print('ERROR: Provide a URL to Index.php')
+                sys.exit(1)
+    elif wikiengine == 'wikispaces':
+        import wikispaces
+        # use wikicanonical for base url for Wikispaces?
+    
     # calculating path, if not defined by user with --path=
     if not config['path']:
         config['path'] = './%s-%s-wikidump' % (domain2prefix(config=config), config['date'])
@@ -401,6 +417,8 @@ def getParameters(params=[]):
 
 def getURL(url='', data=None):
     html = ''
+    req = urllib.request.Request(url, headers={ 'User-Agent': 'Mozilla/5.0' })
+    html = urllib.request.urlopen(req, data=data).read().decode().strip()
     try:
         req = urllib.request.Request(url, headers={ 'User-Agent': 'Mozilla/5.0' })
         html = urllib.request.urlopen(req, data=data).read().decode().strip()
@@ -600,18 +618,33 @@ def main(params=[]):
     """ Main function """
     
     config = getParameters(params=params)    
-    welcome()
     avoidWikimediaProjects(config=config)
     config = createDumpPath(config=config)
     if config['other']['resume']:
+        # Resume dump
+        welcome()
         config = loadConfig(config=config)
         resumePreviousDump(config=config)
-    else:
+    elif config['pages'] or config['images'] or config['logs']:
+        # New dump
+        welcome()
         os.mkdir(config['path'])
-        print(config)
         saveConfig(config=config)
         createNewDump(config=config)
-    
+    elif config['metainfo']:
+        # No dumps. Print meta info params
+        if config['metainfo'] == 'get_api':
+            print(getAPI(config=config))
+        elif config['metainfo'] == 'get_index':
+            print(getIndex(config=config))
+        elif config['metainfo'] == 'get_page_titles':
+            printPageTitles(config=config)
+        elif config['metainfo'] == 'get_image_names':
+            print(getImageNames(config=config))
+        elif config['metainfo'] == 'get_wiki_engine':
+            print(config['wikiengine'])
+        sys.exit()
+            
     """move to mw module
     saveIndexPHP(config=config, session=other['session'])
     saveSpecialVersion(config=config, session=other['session'])
