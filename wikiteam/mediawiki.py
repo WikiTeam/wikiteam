@@ -216,7 +216,7 @@ def mwGetPageTitlesAPI(config={}):
                     r = wikiteam.getURL(url=config['mwapi'], data=data)
                     break
                 except ConnectionError as err:
-                    print("Connection error: %s" % (str(err),))
+                    sys.stderr.write("Connection error: %s\n" % (str(err),))
                     retryCount += 1
                     time.sleep(20)
             #wikiteam.handleStatusCode(r)
@@ -247,10 +247,8 @@ def mwGetPageTitlesAPI(config={}):
             c += len(allpages)
 
             if len(pagetitles) != len(set(pagetitles)):
-                # probably we are in a loop, server returning dupe titles, stop
-                # it
+                # Are we in a loop? Server returning dupes, stop it
                 sys.stderr.write('Probably a loop, finishing\n')
-                pagetitles = list(set(pagetitles))
                 apfrom = ''
 
             wikiteam.delay(config=config)
