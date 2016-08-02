@@ -32,13 +32,19 @@ import urllib
 
 __version__ = "0.3.1"
 
+"""
+Stuff to check if works properly or re-add if needed:
+* fixBOM
+* sessions
+"""
+
 def avoidWikimediaProjects(config={}):
     """ Skip Wikimedia projects and redirect to the dumps website """
 
     # notice about wikipedia dumps
     if re.findall(r'(?i)(wikipedia|wikisource|wiktionary|wikibooks|wikiversity|wikimedia|wikispecies|wikiquote|wikinews|wikidata|wikivoyage)\.org', config['wiki']):
-        sys.stderr.write('PLEASE, DO NOT USE THIS SCRIPT TO DOWNLOAD WIKIMEDIA PROJECTS!')
-        sys.stderr.write('Download Wikimedia dumps from https://dumps.wikimedia.org')
+        sys.stderr.write('PLEASE, DO NOT USE THIS SCRIPT TO DOWNLOAD WIKIMEDIA PROJECTS!\n')
+        sys.stderr.write('Download Wikimedia dumps from https://dumps.wikimedia.org\n')
         """if not other['force']:
             print 'Thanks!'
             sys.exit()"""
@@ -61,7 +67,7 @@ def createNewDump(config={}):
         import wikispaces
         wikispaces.wsCreateNewDump(config=config)
     else:
-        sys.stderr.write("Wikiengine %s not supported. Exiting." % (config['wikiengine']))
+        sys.stderr.write("Wikiengine %s not supported. Exiting.\n" % (config['wikiengine']))
 
 def createDumpPath(config={}):
     # creating path or resuming if desired
@@ -70,7 +76,7 @@ def createDumpPath(config={}):
     originalpath = config['path']
     # do not enter if resume is requested from begining
     while not config['other']['resume'] and os.path.isdir(config['path']):
-        sys.stderr.write('\nWarning!: "%s" path exists' % (config['path']))
+        sys.stderr.write('\nWarning!: "%s" path exists\n' % (config['path']))
         reply = ''
         while reply.lower() not in ['yes', 'y', 'no', 'n']:
             reply = input(
@@ -80,16 +86,16 @@ def createDumpPath(config={}):
                     config['other']['configfilename']))
         if reply.lower() in ['yes', 'y']:
             if not os.path.isfile('%s/%s' % (config['path'], config['other']['configfilename'])):
-                sys.stderr.write('No config file found. I can\'t resume. Aborting.')
+                sys.stderr.write('No config file found. I can\'t resume. Aborting.\n')
                 sys.exit()
-            sys.stderr.write('You have selected: YES')
+            sys.stderr.write('You have selected: YES\n')
             config['other']['resume'] = True
             break
         elif reply.lower() in ['no', 'n']:
-            sys.stderr.write('You have selected: NO')
+            sys.stderr.write('You have selected: NO\n')
             config['other']['resume'] = False
         config['path'] = '%s-%d' % (originalpath, c)
-        sys.stderr.write('Trying to use path "%s"...' % (config['path']))
+        sys.stderr.write('Trying to use path "%s"...\n' % (config['path']))
         c += 1
     return config
 
@@ -270,21 +276,21 @@ def getParameters(params=[]):
     
     # Not wiki? Exit
     if not args.wiki:
-        sys.stderr.write('ERROR: Provide a URL to a wiki')
+        sys.stderr.write('ERROR: Provide a URL to a wiki\n')
         parser.print_help()
         sys.exit(1)
     
     # Don't mix download params and meta info params
     if (args.pages or args.images) and \
             (args.get_api or args.get_index or args.get_page_titles or args.get_image_names or args.get_wiki_engine):
-        sys.stderr.write('ERROR: Don\'t mix download params and meta info params')
+        sys.stderr.write('ERROR: Don\'t mix download params and meta info params\n')
         parser.print_help()
         sys.exit(1)
 
     # No download params and no meta info params? Exit
     if (not args.pages and not args.images) and \
             (not args.get_api and not args.get_index and not args.get_page_titles and not args.get_image_names and not args.get_wiki_engine):
-        sys.stderr.write('ERROR: Use at least one download param or meta info param')
+        sys.stderr.write('ERROR: Use at least one download param or meta info param\n')
         parser.print_help()
         sys.exit(1)
 
@@ -292,11 +298,11 @@ def getParameters(params=[]):
     cj = cookielib.MozillaCookieJar()
     if args.cookies:
         cj.load(args.cookies)
-        sys.stderr.write('Using cookies from %s' % args.cookies)
+        sys.stderr.write('Using cookies from %s\n' % args.cookies)
 
     # check user and pass (one requires both)
     if (args.user and not args.password) or (args.password and not args.user):
-        sys.stderr.write('ERROR: Both --user and --pass are required for authentication.')
+        sys.stderr.write('ERROR: Both --user and --pass are required for authentication.\n')
         parser.print_help()
         sys.exit(1)
     
@@ -338,7 +344,7 @@ def getParameters(params=[]):
         if re.search(
                 r'[^\d, \-]',
                 args.namespaces) and args.namespaces.lower() != 'all':
-            sys.stderr.write("Invalid namespace values.\nValid format is integer(s) separated by commas")
+            sys.stderr.write("Invalid namespace values.\nValid format is integer(s) separated by commas\n")
             sys.exit()
         else:
             ns = re.sub(' ', '', args.namespaces)
@@ -350,12 +356,12 @@ def getParameters(params=[]):
     # Process namespace exclusions
     if args.exnamespaces:
         if re.search(r'[^\d, \-]', args.exnamespaces):
-            sys.stderr.write("Invalid namespace values.\nValid format is integer(s) separated by commas")
+            sys.stderr.write("Invalid namespace values.\nValid format is integer(s) separated by commas\n")
             sys.exit(1)
         else:
             ns = re.sub(' ', '', args.exnamespaces)
             if ns.lower() == 'all':
-                sys.stderr.write('You cannot exclude all namespaces.')
+                sys.stderr.write('You cannot exclude all namespaces.\n')
                 sys.exit(1)
             else:
                 exnamespaces = [int(i) for i in ns.split(',')]
@@ -394,15 +400,25 @@ def getParameters(params=[]):
     # Get ready special variables (API for MediWiki, etc)
     if config['wikiengine'] == 'mediawiki':
         import mediawiki
+        config['mwexport'] = 'Special:Export'
         if not args.mwapi:
             config['mwapi'] = mediawiki.mwGetAPI(config=config)
             if not config['mwapi']:
-                sys.stderr.write('ERROR: Provide a URL to API')
+                sys.stderr.write('ERROR: Provide a URL to API\n')
                 sys.exit(1)
+            else:
+                data={
+                    'action': 'query',
+                    'meta': 'siteinfo',
+                    'siprop': 'namespaces',
+                    'format': 'json'}
+                r = getURL(config['mwapi'], data=data)
+                config['mwexport'] = getJSON(r)['query']['namespaces']['-1']['*'] \
+                    + ':Export'
         if not args.mwindex:
             config['mwindex'] = mediawiki.mwGetIndex(config=config)
             if not config['mwindex']:
-                sys.stderr.write('ERROR: Provide a URL to Index.php')
+                sys.stderr.write('ERROR: Provide a URL to Index.php\n')
                 sys.exit(1)
     elif wikiengine == 'wikispaces':
         import wikispaces
@@ -415,14 +431,14 @@ def getParameters(params=[]):
     return config
 
 def getURL(url='', data=None):
+    # fix quizas pasandole el config pueda saber si esta definido el campo session y usarlo si interesa con un if
     html = ''
-    req = urllib.request.Request(url, headers={ 'User-Agent': 'Mozilla/5.0' })
-    html = urllib.request.urlopen(req, data=data).read().decode().strip()
     try:
+        data = urllib.parse.urlencode(data).encode()
         req = urllib.request.Request(url, headers={ 'User-Agent': 'Mozilla/5.0' })
         html = urllib.request.urlopen(req, data=data).read().decode().strip()
     except:
-        sys.stderr.write("Error while retrieving URL", url)
+        sys.stderr.write("Error while retrieving URL: %s\n" % url)
         sys.exit()
     return html
 
@@ -517,36 +533,42 @@ def getWikiEngine(url=''):
 
     return wikiengine.lower()
 
+def fixBOM(r):
+    """Strip Unicode BOM"""
+    if request.text.startswith(u'\ufeff'):
+        request.encoding = 'utf-8-sig'
+    return request.text
+
 def handleStatusCode(response):
     statuscode = response.status_code
     if statuscode >= 200 and statuscode < 300:
         return
 
-    sys.stderr.write("HTTP Error %d." % statuscode)
+    sys.stderr.write("HTTP Error %d.\n" % statuscode)
     if statuscode >= 300 and statuscode < 400:
-        sys.stderr.write("Redirect should happen automatically: please report this as a bug.")
-        sys.stderr.write(response.url)
+        sys.stderr.write("Redirect should happen automatically: please report this as a bug.\n")
+        sys.stderr.write('%s\n' % response.url)
 
     elif statuscode == 400:
-        sys.stderr.write("Bad Request: The wiki may be malfunctioning.")
-        sys.stderr.write("Please try again later.")
-        sys.stderr.write(response.url)
+        sys.stderr.write("Bad Request: The wiki may be malfunctioning.\n")
+        sys.stderr.write("Please try again later.\n")
+        sys.stderr.write('%s\n' % response.url)
         sys.exit(1)
 
     elif statuscode == 401 or statuscode == 403:
-        sys.stderr.write("Authentication required.")
-        sys.stderr.write("Please use --userpass.")
-        sys.stderr.write(response.url)
+        sys.stderr.write("Authentication required.\n")
+        sys.stderr.write("Please use --userpass.\n")
+        sys.stderr.write('%s\n' % response.url)
 
     elif statuscode == 404:
-        sys.stderr.write("Not found. Is Special:Export enabled for this wiki?")
-        sys.stderr.write(response.url)
+        sys.stderr.write("Not found. Is Special:Export enabled for this wiki?\n")
+        sys.stderr.write('%s\n' % response.url)
         sys.exit(1)
 
     elif statuscode == 429 or (statuscode >= 500 and statuscode < 600):
-        sys.stderr.write("Server error, max retries exceeded.")
-        sys.stderr.write("Please resume the dump later.")
-        sys.stderr.write(response.url)
+        sys.stderr.write("Server error, max retries exceeded.\n")
+        sys.stderr.write("Please resume the dump later.\n")
+        sys.stderr.write('%s\n' % response.url)
         sys.exit(1)
 
 def resumePreviousDump(config={}):
@@ -557,7 +579,7 @@ def resumePreviousDump(config={}):
         import wikispaces
         wikispaces.wsResumePreviousDump(config=config)
     else:
-        sys.stderr.write("Wikiengine %s not supported. Exiting." % (config['wikiengine']))
+        sys.stderr.write("Wikiengine %s not supported. Exiting.\n" % (config['wikiengine']))
 
 def saveConfig(config={}):
     """ Save config file """
@@ -566,12 +588,40 @@ def saveConfig(config={}):
     config2 = config.copy()
     config2['other'] = {}
     with open('%s/%s' % (config['path'], config['other']['configfilename']), 'w') as outfile:
-        sys.stderr.write('Saving config file...')
+        sys.stderr.write('Saving config file...\n')
         try: #str
             cPickle.dump(config2, outfile)
         except: #bytes
             with open('%s/%s' % (config['path'], config['other']['configfilename']), 'wb') as outfile:
                 cPickle.dump(config2, outfile)
+
+def savePageTitles(config={}, pagetitles=None):
+    pagetitlesfilename = '%s-%s-titles.txt' % (
+        domain2prefix(config=config), config['date'])
+    with open('%s/%s' % (config['path'], pagetitlesfilename), 'wt') as f:
+        for pagetitle in pagetitles:
+            output = '%s\n' % (pagetitle)
+            f.write(output)
+
+        # TODO: Sort to remove dupes? In CZ, Widget:AddThis appears two times:
+        # main namespace and widget namespace.
+        # We can use sort -u in UNIX, but is it worth it?
+        f.write('--END--\n')
+        f.close()
+    sys.stderr.write('Page titles saved at... %s\n' % (pagetitlesfilename))
+
+def undoHTMLEntities(text=''):
+    """ Undo some HTML codes """
+
+    # i guess only < > & " ' need conversion
+    # http://www.w3schools.com/html/html_entities.asp
+    text = re.sub('&lt;', '<', text)
+    text = re.sub('&gt;', '>', text)
+    text = re.sub('&amp;', '&', text)
+    text = re.sub('&quot;', '"', text)
+    text = re.sub('&#039;', '\'', text)
+
+    return text
 
 def welcome():
     """ Print opening message """
@@ -579,6 +629,7 @@ def welcome():
     message = """
 #########################################################################
 # Welcome to WikiTeam's tools v%s (GPL v3)                           #
+# Tools for downloading and preserving wikis                            #
 # More info at: https://github.com/WikiTeam/wikiteam                    #
 #########################################################################
 
@@ -605,10 +656,10 @@ def loadConfig(config={}):
     
     try:
         with open('%s/%s' % (config['path'], config['other']['configfilename']), 'r') as infile:
-            sys.stderr.write('Loading config file...')
+            sys.stderr.write('Loading config file...\n')
             config = cPickle.load(infile)
     except:
-        sys.stderr.write('ERROR: There is no config file. we can\'t resume. Start a new dump.')
+        sys.stderr.write('ERROR: There is no config file. we can\'t resume. Start a new dump.\n')
         sys.exit()
 
     return config
@@ -616,17 +667,16 @@ def loadConfig(config={}):
 def main(params=[]):
     """ Main function """
     
+    welcome()
     config = getParameters(params=params)    
     avoidWikimediaProjects(config=config)
     config = createDumpPath(config=config)
     if config['other']['resume']:
         # Resume dump
-        welcome()
         config = loadConfig(config=config)
         resumePreviousDump(config=config)
     elif config['pages'] or config['images'] or config['logs']:
         # New dump
-        welcome()
         os.mkdir(config['path'])
         saveConfig(config=config)
         createNewDump(config=config)
@@ -639,7 +689,7 @@ def main(params=[]):
         elif config['metainfo'] == 'get_page_titles':
             printPageTitles(config=config)
         elif config['metainfo'] == 'get_image_names':
-            printGetImageNames(config=config))
+            printGetImageNames(config=config)
         elif config['metainfo'] == 'get_wiki_engine':
             sys.stdout.write(config['wikiengine'])
         sys.exit()
