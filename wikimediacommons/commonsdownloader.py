@@ -1,7 +1,7 @@
 #!/usr/bin/env python2
 # -*- coding: utf8 -*-
 
-# Copyright (C) 2011-2012 WikiTeam
+# Copyright (C) 2011-2016 WikiTeam developers
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
@@ -30,11 +30,11 @@ def welcome():
     """  """
     print "#"*73
     print """# Welcome to CommonsDownloader 0.1 by WikiTeam (GPL v3)                 #
-# More info at: http://code.google.com/p/wikiteam/                      #"""
+# More info: https://github.com/WikiTeam/wikiteam                      #"""
     print "#"*73
     print ''
     print "#"*73
-    print """# Copyright (C) 2011-2012 WikiTeam                                      #
+    print """# Copyright (C) 2011-2016 WikiTeam                                      #
 # This program is free software: you can redistribute it and/or modify  #
 # it under the terms of the GNU General Public License as published by  #
 # the Free Software Foundation, either version 3 of the License, or     #
@@ -61,7 +61,6 @@ def main():
     welcome()
     
     filenamefeed = 'commonssql.csv' # feed
-    #filenamefeed = 'a.csv'
     startdate = ''
     enddate = ''
     delta = datetime.timedelta(days=1) #chunks by day
@@ -122,7 +121,7 @@ def main():
                 
                 #wget file
                 if original_name != img_name: #the image is an old version, download using /archive/ path in server
-                    os.system('wget -c "http://upload.wikimedia.org/wikipedia/commons/archive/%s/%s/%s" -O "%s/%s"' % (md5hash[0], md5hash[0:2], img_name_quoted, savepath, img_saved_as_))
+                    os.system('wget -c "https://upload.wikimedia.org/wikipedia/commons/archive/%s/%s/%s" -O "%s/%s"' % (md5hash[0], md5hash[0:2], img_name_quoted, savepath, img_saved_as_))
                     try:
                         if not os.path.getsize('%s/%s' % (savepath, img_saved_as_)): #empty file?...
                             #probably false 20101005024534! begining like this http://commons.wikimedia.org/wiki/File:20041028210012!Pilar.jpg
@@ -131,16 +130,16 @@ def main():
                             original_name_ = re.sub(r'"', r'\"', re.sub(r' ', r'_', original_name.encode('utf-8')))
                             md5hash = md5(re.sub(' ', '_', original_name.encode("utf-8"))).hexdigest()
                             #redownload, now without /archive/ subpath
-                            os.system('wget -c "http://upload.wikimedia.org/wikipedia/commons/%s/%s/%s" -O "%s/%s"' % (md5hash[0], md5hash[0:2], img_name_quoted, savepath, img_saved_as_))
+                            os.system('wget -c "https://upload.wikimedia.org/wikipedia/commons/%s/%s/%s" -O "%s/%s"' % (md5hash[0], md5hash[0:2], img_name_quoted, savepath, img_saved_as_))
                     except OSError:
                         pass
                 else:
                     # Issue #66 : try your.org first
                     os.system('wget -c "http://ftpmirror.your.org/pub/wikimedia/images/wikipedia/commons/%s/%s/%s" -O "%s/%s"' % (md5hash[0], md5hash[0:2], img_name_quoted, savepath, img_saved_as_))
-                    os.system('wget -c "http://upload.wikimedia.org/wikipedia/commons/%s/%s/%s" -O "%s/%s"' % (md5hash[0], md5hash[0:2], img_name_quoted, savepath, img_saved_as_))
+                    os.system('wget -c "https://upload.wikimedia.org/wikipedia/commons/%s/%s/%s" -O "%s/%s"' % (md5hash[0], md5hash[0:2], img_name_quoted, savepath, img_saved_as_))
                 
                 #curl .xml description page with full history
-                os.system('curl -d "&pages=File:%s&history=1&action=submit" http://commons.wikimedia.org/w/index.php?title=Special:Export -o "%s/%s.xml"' % (original_name_, savepath, img_saved_as_))
+                os.system('curl -d "&pages=File:%s&history=1&action=submit" https://commons.wikimedia.org/w/index.php?title=Special:Export -o "%s/%s.xml"' % (original_name_, savepath, img_saved_as_))
                 
                 #save csv info
                 g = csv.writer(open(filenamecsv, 'a'), delimiter='|', quotechar='"', quoting=csv.QUOTE_MINIMAL)
