@@ -46,7 +46,7 @@ def mwCleanHTML(raw=''):
     elif re.search('<body class=', raw):
         raw = raw.split('<body class=')[1].split('<div class="printfooter">')[0]
     else:
-        print raw[:250]
+        sys.stderr.write(raw[:250])
         sys.stderr.write('This wiki doesn\'t use marks to split content\n')
         sys.exit()
     return raw
@@ -62,23 +62,55 @@ def mwCleanXML(xml=''):
     return xml
 
 def mwCreateNewDump(config={}):
-    print('Trying generating a new dump into a new directory...')
+    sys.stderr.write('Trying generating a new dump into a new directory...')
     if config['pages']:
         pagetitles = mwGetPageTitles(config=config)
         wikiteam.savePageTitles(config=config, pagetitles=pagetitles)
         mwGeneratePageDump(config=config, pagetitles=pagetitles)
-        checkXMLIntegrity(config=config, pagetitles=pagetitles)
+        mwCheckXMLIntegrity(config=config, pagetitles=pagetitles)
     if config['images']:
-        images = mwGetImageNames(config=config)
-        mwSaveImageNames(config=config, images=images)
-        mwGenerateImageDump(config=config, images=images)
+        imagenames = mwGetImageNames(config=config)
+        mwSaveImageNames(config=config, imagenames=imagenames)
+        mwGenerateImageDump(config=config, imagenames=imagenames)
     if config['logs']:
         mwSaveLogs(config=config)
+    mwSaveIndexPHP(config=config)
+    mwSaveSpecialVersion(config=config)
+    mwSaveSiteInfo(config=config)
+
+def mwCurateImageURL(config={}, url=''):
+    """ Returns an absolute URL for an image, adding the domain if missing """
+
+    if 'mwindex' in config and config['mwindex']:
+        # remove from :// (http or https) until the first / after domain
+        domainalone = config['mwindex'].split(
+            '://')[0] + '://' + config['mwindex'].split('://')[1].split('/')[0]
+    elif 'mwapi' in config and config['mwapi']:
+        domainalone = config['mwapi'].split(
+            '://')[0] + '://' + config['mwapi'].split('://')[1].split('/')[0]
+    else:
+        sys.stderr.write('ERROR: no index nor API')
+        sys.exit()
+
+    if url.startswith('//'):  # Orain wikifarm returns URLs starting with //
+        url = '%s:%s' % (domainalone.split('://')[0], url)
+    # is it a relative URL?
+    elif url[0] == '/' or (not url.startswith('http://') and not url.startswith('https://')):
+        if url[0] == '/':  # slash is added later
+            url = url[1:]
+        # concat http(s) + domain + relative url
+        url = '%s/%s' % (domainalone, url)
+    url = wikiteam.undoHTMLEntities(text=url)
+    # url = urllib.unquote(url) #do not use unquote with url, it break some
+    # urls with odd chars
+    url = re.sub(' ', '_', url)
+    
+    return url
 
 def mwGeneratePageDump(config={}, pagetitles=None, start=None):
     """ Generates a XML dump for page titles """
     
-    print('Retrieving XML for every page from "%s"' % (start or 'start'))
+    sys.stderr.write('Retrieving XML for every page from "%s"' % (start or 'start'))
     header = mwGetXMLHeader(config=config)
     footer = '</mediawiki>\n'  # new line at the end
     xmlfilename = '%s-%s-%s.xml' % (wikiteam.domain2prefix(config=config),
@@ -118,7 +150,6 @@ def mwGeneratePageDump(config={}, pagetitles=None, start=None):
                 config=config,
                 text='The page "%s" was missing in the wiki (probably deleted)' %
                 (title))
-            )
         # here, XML is a correct <page> </page> chunk or
         # an empty string due to a deleted page (logged in errors log) or
         # an empty string due to an error while retrieving the page from server
@@ -141,6 +172,215 @@ def mwGetAPI(config={}):
         if api.startswith('//'):  # gentoo wiki and others
             api = url.split('//')[0] + api
     return api
+
+def mwGetImageNames(config={}):
+    """ Get list of image names """
+
+    sys.stderr.write('Retrieving image filenames\n')
+    imagenames = []
+    if 'mwapi' in config and config['mwapi']:
+        imagenames = mwGetImageNamesAPI(config=config)
+    elif 'mwindex' in config and config['mwindex']:
+        imagenames = mwGetImageNamesScraper(config=config)
+    # imagenames = list(set(imagenames)) # it is a list of lists
+    imagenames.sort()
+    sys.stderr.write('%d image names loaded\n' % (len(imagenames)))
+    return imagenames
+
+def mwGetImageNamesAPI(config={}):
+    """ Retrieve file list: filename, url, uploader """
+    
+    oldAPI = False
+    aifrom = '!'
+    imagenames = []
+    while aifrom:
+        sys.stderr.write('.')  # progress
+        data = {
+            'action': 'query',
+            'list': 'allimages',
+            'aiprop': 'url|user',
+            'aifrom': aifrom,
+            'format': 'json',
+            'ailimit': 500}
+        # FIXME Handle HTTP Errors HERE
+        r = wikiteam.getURL(url=config['mwapi'], data=data)
+        #handleStatusCode(r)
+        jsonimages = wikiteam.getJSON(r)
+        wikiteam.delay(config=config)
+
+        if 'query' in jsonimages:
+            aifrom = ''
+            if 'query-continue' in jsonimages and 'allimages' in jsonimages['query-continue']:
+                if 'aicontinue' in jsonimages['query-continue']['allimages']:
+                    aifrom = jsonimages['query-continue']['allimages']['aicontinue']
+                elif 'aifrom' in jsonimages['query-continue']['allimages']:
+                    aifrom = jsonimages['query-continue']['allimages']['aifrom']
+            elif 'continue' in jsonimages:
+                if 'aicontinue' in jsonimages['continue']:
+                    aifrom = jsonimages['continue']['aicontinue']
+                elif 'aifrom' in jsonimages['continue']:
+                    aifrom = jsonimages['continue']['aifrom']
+            # sys.stderr.write(aifrom)
+
+            for image in jsonimages['query']['allimages']:
+                url = image['url']
+                url = mwCurateImageURL(config=config, url=url)
+                # encoding to ascii is needed to work around this horrible bug:
+                # http://bugs.python.org/issue8136
+                filename = urllib.parse.unquote(re.sub('_', ' ', url.split('/')[-1])).encode('ascii', 'ignore')
+                uploader = re.sub('_', ' ', image['user'])
+                imagenames.append([filename, url, uploader])
+        else:
+            oldAPI = True
+            break
+
+    if oldAPI:
+        gapfrom = '!'
+        imagenames = []
+        while gapfrom:
+            sys.stderr.write('.')  # progress
+            # Some old APIs doesn't have allimages query
+            # In this case use allpages (in nm=6) as generator for imageinfo
+            # Example:
+            # http://minlingo.wiki-site.com/api.php?action=query&generator=allpages&gapnamespace=6
+            # &gaplimit=500&prop=imageinfo&iiprop=user|url&gapfrom=!
+            data = {
+                'action': 'query',
+                'generator': 'allpages',
+                'gapnamespace': 6,
+                'gaplimit': 500,
+                'gapfrom': gapfrom,
+                'prop': 'imageinfo',
+                'iiprop': 'user|url',
+                'format': 'json'}
+            # FIXME Handle HTTP Errors HERE
+            r = wikiteam.getURL(url=config['mwapi'], data=data)
+            #handleStatusCode(r)
+            jsonimages = wikiteam.getJSON(r)
+            wikiteam.delay(config=config)
+
+            if 'query' in jsonimages:
+                gapfrom = ''
+                if 'query-continue' in jsonimages and 'allpages' in jsonimages['query-continue']:
+                    if 'gapfrom' in jsonimages['query-continue']['allpages']:
+                        gapfrom = jsonimages['query-continue']['allpages']['gapfrom']
+
+                for image, props in jsonimages['query']['pages'].items():
+                    url = props['imageinfo'][0]['url']
+                    url = mwCurateImageURL(config=config, url=url)
+                    tmp_filename = ':'.join(props['title'].split(':')[1:])
+                    filename = re.sub('_', ' ', tmp_filename)
+                    uploader = re.sub('_', ' ', props['imageinfo'][0]['user'])
+                    imagenames.append([filename, url, uploader])
+            else:
+                # if the API doesn't return query data, then we're done
+                break
+
+    if len(imagenames) == 1:
+        sys.stderr.write('    Found 1 image')
+    else:
+        sys.stderr.write('    Found %d images' % (len(imagenames)))
+
+    return imagenames
+
+def mwGetImageNamesScraper(config={}):
+    """ Retrieve file list: filename, url, uploader """
+
+    # (?<! http://docs.python.org/library/re.html
+    r_next = r'(?<!&amp;dir=prev)&amp;offset=(?P<offset>\d+)&amp;'
+    imagenames = []
+    offset = '29990101000000'  # january 1, 2999
+    limit = 5000
+    retries = config['retries']
+    while offset:
+        # 5000 overload some servers, but it is needed for sites like this with
+        # no next links
+        # http://www.memoryarchive.org/en/index.php?title=Special:Imagelist&sort=byname&limit=50&wpIlMatch=
+        data={
+            'title': 'Special:Imagelist',
+            'limit': limit,
+            'offset': offset}
+        raw = wikiteam.getURL(url=config['index'], data=data)
+        #handleStatusCode(r)
+        wikiteam.delay(config=config)
+        # delicate wiki
+        if re.search(r'(?i)(allowed memory size of \d+ bytes exhausted|Call to a member function getURL)', raw):
+            if limit > 10:
+                sys.stderr.write('Error: listing %d images in a chunk is not possible, trying tiny chunks' % (limit))
+                limit = limit / 10
+                continue
+            elif retries > 0:  # waste retries, then exit
+                retries -= 1
+                sys.stderr.write('Retrying...')
+                continue
+            else:
+                sys.stderr.write('No more retries, exit...')
+                break
+
+        raw = mwCleanHTML(raw)
+        # archiveteam 1.15.1 <td class="TablePager_col_img_name"><a href="/index.php?title=File:Yahoovideo.jpg" title="File:Yahoovideo.jpg">Yahoovideo.jpg</a> (<a href="/images/2/2b/Yahoovideo.jpg">file</a>)</td>
+        # wikanda 1.15.5 <td class="TablePager_col_img_user_text"><a
+        # href="/w/index.php?title=Usuario:Fernandocg&amp;action=edit&amp;redlink=1"
+        # class="new" title="Usuario:Fernandocg (página no
+        # existe)">Fernandocg</a></td>
+        r_images1 = r'(?im)<td class="TablePager_col_img_name"><a href[^>]+title="[^:>]+:(?P<filename>[^>]+)">[^<]+</a>[^<]+<a href="(?P<url>[^>]+/[^>/]+)">[^<]+</a>[^<]+</td>\s*<td class="TablePager_col_img_user_text"><a[^>]+>(?P<uploader>[^<]+)</a></td>'
+        # wikijuegos 1.9.5
+        # http://softwarelibre.uca.es/wikijuegos/Especial:Imagelist old
+        # mediawiki version
+        r_images2 = r'(?im)<td class="TablePager_col_links"><a href[^>]+title="[^:>]+:(?P<filename>[^>]+)">[^<]+</a>[^<]+<a href="(?P<url>[^>]+/[^>/]+)">[^<]+</a></td>\s*<td class="TablePager_col_img_timestamp">[^<]+</td>\s*<td class="TablePager_col_img_name">[^<]+</td>\s*<td class="TablePager_col_img_user_text"><a[^>]+>(?P<uploader>[^<]+)</a></td>'
+        # gentoowiki 1.18
+        r_images3 = r'(?im)<td class="TablePager_col_img_name"><a[^>]+title="[^:>]+:(?P<filename>[^>]+)">[^<]+</a>[^<]+<a href="(?P<url>[^>]+)">[^<]+</a>[^<]+</td><td class="TablePager_col_thumb"><a[^>]+><img[^>]+></a></td><td class="TablePager_col_img_size">[^<]+</td><td class="TablePager_col_img_user_text"><a[^>]+>(?P<uploader>[^<]+)</a></td>'
+        # http://www.memoryarchive.org/en/index.php?title=Special:Imagelist&sort=byname&limit=50&wpIlMatch=
+        # (<a href="/en/Image:109_0923.JPG" title="Image:109 0923.JPG">desc</a>) <a href="/en/upload/c/cd/109_0923.JPG">109 0923.JPG</a> . . 885,713 bytes . . <a href="/en/User:Bfalconer" title="User:Bfalconer">Bfalconer</a> . . 18:44, 17 November 2005<br />
+        r_images4 = r'(?im)<a href=[^>]+ title="[^:>]+:(?P<filename>[^>]+)">[^<]+</a>[^<]+<a href="(?P<url>[^>]+)">[^<]+</a>[^<]+<a[^>]+>(?P<uploader>[^<]+)</a>'
+        r_images5 = (
+            r'(?im)<td class="TablePager_col_img_name">\s*<a href[^>]*?>(?P<filename>[^>]+)</a>\s*\(<a href="(?P<url>[^>]+)">[^<]*?</a>\s*\)\s*</td>\s*'
+            '<td class="TablePager_col_thumb">[^\n\r]*?</td>\s*'
+            '<td class="TablePager_col_img_size">[^<]*?</td>\s*'
+            '<td class="TablePager_col_img_user_text">\s*(<a href="[^>]*?" title="[^>]*?">)?(?P<uploader>[^<]+?)(</a>)?\s*</td>')
+
+        # Select the regexp that returns more results
+        regexps = [r_images1, r_images2, r_images3, r_images4, r_images5]
+        count = 0
+        i = 0
+        regexp_best = 0
+        for regexp in regexps:
+            if len(re.findall(regexp, raw)) > count:
+                count = len(re.findall(regexp, raw))
+                regexp_best = i
+            i += 1
+        m = re.compile(regexps[regexp_best]).finditer(raw)
+
+        # Iter the image results
+        for i in m:
+            url = i.group('url')
+            url = mwCurateImageURL(config=config, url=url)
+            filename = re.sub('_', ' ', i.group('filename'))
+            filename = wikiteam.undoHTMLEntities(text=filename)
+            filename = urllib.unquote(filename)
+            uploader = re.sub('_', ' ', i.group('uploader'))
+            uploader = wikiteam.undoHTMLEntities(text=uploader)
+            uploader = urllib.unquote(uploader)
+            imagenames.append([filename, url, uploader])
+
+        if re.search(r_next, raw):
+            new_offset = re.findall(r_next, raw)[0]
+            # Avoid infinite loop
+            if new_offset != offset:
+                offset = new_offset
+                retries += 5  # add more retries if we got a page with offset
+            else:
+                offset = ''
+        else:
+            offset = ''
+
+    if (len(imagenames) == 1):
+        sys.stderr.write('    Found 1 image')
+    else:
+        sys.stderr.write('    Found %d images' % (len(imagenames)))
+
+    imagenames.sort()
+    return imagenames
 
 def mwGetIndex(config={}):
     """ Returns Index.php for a MediaWiki wiki, if available """
@@ -205,6 +445,39 @@ def mwGetNamespacesAPI(config={}):
     sys.stderr.write('%d namespaces found\n' % (len(namespaces)))
     return namespaces, namespacenames
 
+
+def mwGetNamespacesScraper(config={}):
+    """ Hackishly gets the list of namespaces names and ids from the dropdown in the HTML of Special:AllPages """
+    """ Function called if no API is available """
+    
+    namespaces = config['namespaces']
+    namespacenames = {0: ''}  # main is 0, no prefix
+    if namespaces:
+        raw = wikiteam.getURL(url=config['index'], data={'title': 'Special:Allpages'})
+        wikiteam.delay(config=config)
+
+        # [^>]*? to include selected="selected"
+        m = re.compile(r'<option [^>]*?value="(?P<namespaceid>\d+)"[^>]*?>(?P<namespacename>[^<]+)</option>').finditer(raw)
+        if 'all' in namespaces:
+            namespaces = []
+            for i in m:
+                namespaces.append(int(i.group("namespaceid")))
+                namespacenames[int(i.group("namespaceid"))] = i.group("namespacename")
+        else:
+            # check if those namespaces really exist in this wiki
+            namespaces2 = []
+            for i in m:
+                if int(i.group("namespaceid")) in namespaces:
+                    namespaces2.append(int(i.group("namespaceid")))
+                    namespacenames[int(i.group("namespaceid"))] = i.group("namespacename")
+            namespaces = namespaces2
+    else:
+        namespaces = [0]
+
+    namespaces = list(set(namespaces))  # uniques
+    std.stderr.write('%d namespaces found' % (len(namespaces)))
+    return namespaces, namespacenames
+
 def mwGetPageTitles(config={}):
     """ Get list of page titles """
     # http://en.wikipedia.org/wiki/Special:AllPages
@@ -235,14 +508,13 @@ def mwGetPageTitlesAPI(config={}):
         apfrom = '!'
         while apfrom:
             sys.stderr.write('.')  # progress
-            params = {
+            data = {
                 'action': 'query',
                 'list': 'allpages',
                 'apnamespace': namespace,
                 'apfrom': apfrom.encode('utf-8'),
                 'format': 'json',
                 'aplimit': 500}
-            data = urllib.parse.urlencode(params).encode()
             retryCount = 0
             while retryCount < config["retries"]:
                 try:
@@ -269,8 +541,8 @@ def mwGetPageTitlesAPI(config={}):
                 elif 'apfrom' in jsontitles['continue']:
                     apfrom = jsontitles['continue']['apfrom']
             
-            # print apfrom
-            # print jsontitles
+            # sys.stderr.write(apfrom)
+            # sys.stderr.write(jsontitles)
             allpages = jsontitles['query']['allpages']
             # Hack for old versions of MediaWiki API where result is dict
             if isinstance(allpages, dict):
@@ -296,8 +568,7 @@ def mwGetPageTitlesScraper(config={}):
         config=config)
     for namespace in namespaces:
         sys.stderr.write('    Retrieving titles in namespace %s\n' % (namespace))
-        url = '%s?title=Special:Allpages&namespace=%s' % (
-            config['index'], namespace)
+        url = '%s?title=Special:Allpages&namespace=%s' % (config['index'], namespace)
         raw = wikiteam.getURL(url=url)
         raw = mwCleanHTML(raw)
 
@@ -513,7 +784,7 @@ def mwGetXMLPageCore(config={}, data={}):
         if cretries > 0 and cretries < maxretries:
             wait = increment * cretries < maxseconds and increment * \
                 cretries or maxseconds  # incremental until maxseconds
-            sys.stderr.write('    In attempt %d, XML for "%s" is wrong. Waiting %d seconds and reloading...\n' % (c, data['pages'], wait)
+            sys.stderr.write('    In attempt %d, XML for "%s" is wrong. Waiting %d seconds and reloading...\n' % (c, data['pages'], wait))
             time.sleep(wait)
             # reducing server load requesting smallest chunks (if curonly then
             # limit = 1 from mother function)
@@ -556,6 +827,153 @@ def mwGetXMLPageCore(config={}, data={}):
         cretries += 1
 
     return xml
+
+def mwReadPageTitles(config={}, start=None):
+    """ Read title list from a file, from the title "start" """
+
+    titlesfilename = '%s-%s-titles.txt' % (
+        domain2prefix(config=config), config['date'])
+    titlesfile = open('%s/%s' % (config['path'], titlesfilename), 'r')
+
+    seeking = False
+    if start:
+        seeking = True
+
+    with titlesfile as f:
+        for line in f:
+            if line.strip() == '--END--':
+                break
+            elif seeking and line.strip() != start:
+                continue
+            elif seeking and line.strip() == start:
+                seeking = False
+                yield line.strip()
+            else:
+                yield line.strip()
+
+def mwResumePreviousDump(config={}):
+    imagenames = []
+    sys.stderr.write('Resuming previous dump process...')
+    if config['xml']:
+        pagetitles = mwReadPageTitles(config=config)
+        try:
+            lasttitles = wikiteam.reverseReadline('%s/%s-%s-titles.txt' % (config['path'], domain2prefix(config=config), config['date']))
+            lasttitle=lasttitles.next()
+            if lasttitle == '':
+                lasttitle=lasttitles.next()
+        except:
+            pass  # probably file does not exists
+        if lasttitle == '--END--':
+            # titles list is complete
+            sys.stderr.write('Title list was completed in the previous session')
+        else:
+            sys.stderr.write('Title list is incomplete. Reloading...')
+            # do not resume, reload, to avoid inconsistences, deleted pages or
+            # so
+            pagetitles = mwGetPageTitles(config=config, start=lastxmltitle)
+            wikiteam.savePageTitles(config=config, pagetitles=pagetitles)
+
+        # checking xml dump
+        xmliscomplete = False
+        lastxmltitle = None
+        try:
+            f = wikiteam.reverseReadline(
+                '%s/%s-%s-%s.xml' %
+                (config['path'],
+                 domain2prefix(
+                    config=config),
+                    config['date'],
+                    config['curonly'] and 'current' or 'history'),
+                )
+            for l in f:
+                if l == '</mediawiki>':
+                    # xml dump is complete
+                    xmliscomplete = True
+                    break
+
+                xmltitle = re.search(r'<title>([^<]+)</title>', l)
+                if xmltitle:
+                    lastxmltitle = wikiteam.undoHTMLEntities(text=xmltitle.group(1))
+                    break
+        except:
+            pass  # probably file does not exists
+
+        if xmliscomplete:
+            sys.stderr.write('XML dump was completed in the previous session')
+        elif lastxmltitle:
+            # resuming...
+            sys.stderr.write('Resuming XML dump from "%s"' % (lastxmltitle))
+            pagetitles = mwReadPageTitles(config=config, start=lastxmltitle)
+            mwGenerateXMLDump(
+                config=config,
+                pagetitles=pagetitles,
+                start=lastxmltitle)
+        else:
+            # corrupt? only has XML header?
+            sys.stderr.write('XML is corrupt? Regenerating...')
+            pagetitles = mwReadPageTitles(config=config)
+            mwGenerateXMLDump(config=config, pagetitles=pagetitles)
+
+    if config['images']:
+        # load images
+        lastimage = ''
+        try:
+            f = open('%s/%s-%s-images.txt' % (config['path'], domain2prefix(config=config), config['date']), 'r')
+            raw = f.read().strip()
+            lines = raw.split('\n')
+            for l in lines:
+                if re.search(r'\t', l):
+                    imagenames.append(l.split('\t'))
+            lastimage = lines[-1]
+            f.close()
+        except:
+            pass  # probably file doesnot exists
+        if lastimage == '--END--':
+            sys.stderr.write('Image list was completed in the previous session')
+        else:
+            sys.stderr.write('Image list is incomplete. Reloading...')
+            # do not resume, reload, to avoid inconsistences, deleted images or
+            # so
+            imagenames = mwGetImageNames(config=config)
+            saveImageNames(config=config, imagenames=imagenames)
+        # checking images directory
+        listdir = []
+        try:
+            listdir = [n.decode('utf-8') for n in os.listdir('%s/images' % (config['path']))]
+        except:
+            pass  # probably directory does not exist
+        listdir.sort()
+        complete = True
+        lastfilename = ''
+        lastfilename2 = ''
+        c = 0
+        for filename, url, uploader in imagenames:
+            lastfilename2 = lastfilename
+            # return always the complete filename, not the truncated
+            lastfilename = filename
+            filename2 = filename
+            if len(filename2) > other['filenamelimit']:
+                filename2 = truncateFilename(other=other, filename=filename2)
+            if filename2 not in listdir:
+                complete = False
+                break
+            c += 1
+        sys.stderr.write('%d images were found in the directory from a previous session' % (c))
+        if complete:
+            # image dump is complete
+            sys.stderr.write('Image dump was completed in the previous session')
+        else:
+            # we resume from previous image, which may be corrupted (or missing
+            # .desc)  by the previous session ctrl-c or abort
+            mwGenerateImageDump(config=config, imagenames=imagenames, start=lastfilename2)
+
+    if config['logs']:
+        # fix
+        pass
+
+    mwSaveIndexPHP(config=config)
+    mwSaveSpecialVersion(config=config)
+    mwSaveSiteInfo(config=config)
 
 def main():
     pass

@@ -46,7 +46,7 @@ def avoidWikimediaProjects(config={}):
         sys.stderr.write('PLEASE, DO NOT USE THIS SCRIPT TO DOWNLOAD WIKIMEDIA PROJECTS!\n')
         sys.stderr.write('Download Wikimedia dumps from https://dumps.wikimedia.org\n')
         """if not other['force']:
-            print 'Thanks!'
+            sys.stderr.write('Thanks!')
             sys.exit()"""
 
 def bye():
@@ -133,7 +133,7 @@ def getImageNames(config={}):
     """ Returns list of image names for this wiki """
     
     imagenames = []
-    if wikiengine == 'mediawiki':
+    if config['wikiengine'] == 'mediawiki':
         import mediawiki
         imagenames = mediawiki.mwGetImageNames(config=config)
     
@@ -163,12 +163,6 @@ def getPageTitles(config={}):
         import mediawiki
         for pagetitle in mediawiki.mwGetPageTitles(config=config):
             yield pagetitle
-
-def printPageTitles(config={}):
-    """ Returns list of page titles for this wiki """
-    
-    for pagetitle in getPageTitles(config=config):
-        sys.stdout.write('%s\n' % (pagetitle))
 
 def getParameters(params=[]):
     """ Import parameters into variable """
@@ -272,7 +266,7 @@ def getParameters(params=[]):
         help="Returns wiki engine.")
 
     args = parser.parse_args()
-    #print(args)
+    #sys.stderr.write(args)
     
     # Not wiki? Exit
     if not args.wiki:
@@ -371,7 +365,7 @@ def getParameters(params=[]):
         sys.stderr.write("--curonly requires --pages\n")
         parser.print_help()
         sys.exit(1)
-
+    
     config = {
         'cookies': args.cookies or '', 
         'curonly': args.curonly, 
@@ -434,11 +428,16 @@ def getURL(url='', data=None):
     # fix quizas pasandole el config pueda saber si esta definido el campo session y usarlo si interesa con un if
     html = ''
     try:
-        data = urllib.parse.urlencode(data).encode()
         req = urllib.request.Request(url, headers={ 'User-Agent': 'Mozilla/5.0' })
-        html = urllib.request.urlopen(req, data=data).read().decode().strip()
+        if data:
+            data = urllib.parse.urlencode(data).encode()
+            html = urllib.request.urlopen(req, data=data).read().decode().strip()
+        else:
+            html = urllib.request.urlopen(req).read().decode().strip()
     except:
         sys.stderr.write("Error while retrieving URL: %s\n" % url)
+        if data:
+            sys.stderr.write("Data sent: %s\n" % data)
         sys.exit()
     return html
 
@@ -529,7 +528,7 @@ def getWikiEngine(url=''):
     elif re.search(r'(?im)(<div id="footer-pbwiki">|ws-nav-search|PBinfo *= *{)', html):
         # formerly PBwiki
         wikiengine = 'pbworks'
-    # if wikiengine == 'Unknown': print html
+    # if wikiengine == 'Unknown': sys.stderr.write(html)
 
     return wikiengine.lower()
 
@@ -571,6 +570,18 @@ def handleStatusCode(response):
         sys.stderr.write('%s\n' % response.url)
         sys.exit(1)
 
+def printImageNames(config={}):
+    """ Print list of page titles for this wiki """
+    
+    for imagename in getImageNames(config=config):
+        sys.stdout.write('%s\n' % (imagename))
+        
+def printPageTitles(config={}):
+    """ Print list of page titles for this wiki """
+    
+    for pagetitle in getPageTitles(config=config):
+        sys.stdout.write('%s\n' % (pagetitle))
+
 def resumePreviousDump(config={}):
     if config['wikiengine'] == 'mediawiki':
         import mediawiki
@@ -580,6 +591,49 @@ def resumePreviousDump(config={}):
         wikispaces.wsResumePreviousDump(config=config)
     else:
         sys.stderr.write("Wikiengine %s not supported. Exiting.\n" % (config['wikiengine']))
+
+def reverseReadline(filename, buf_size=8192, truncate=False):
+    """a generator that returns the lines of a file in reverse order"""
+    # Original code by srohde, abdus_salam: cc by-sa 3.0
+    # http://stackoverflow.com/a/23646049/718903
+    with open(filename, 'r+') as fh:
+        segment = None
+        offset = 0
+        fh.seek(0, os.SEEK_END)
+        total_size = remaining_size = fh.tell()
+        while remaining_size > 0:
+            offset = min(total_size, offset + buf_size)
+            fh.seek(-offset, os.SEEK_END)
+            buffer = fh.read(min(remaining_size, buf_size))
+            remaining_size -= buf_size
+            lines = buffer.split('\n')
+            # the first line of the buffer is probably not a complete line so
+            # we'll save it and append it to the last line of the next buffer
+            # we read
+            if segment is not None:
+                # if the previous chunk starts right from the beginning of line
+                # do not concat the segment to the last line of new chunk
+                # instead, yield the segment first 
+                if buffer[-1] is not '\n':
+                    lines[-1] += segment
+                else:
+                    if truncate and '</page>' in segment:
+                        pages = buffer.split('</page>')
+                        fh.seek(-offset+buf_size-len(pages[-1]), os.SEEK_END)
+                        fh.truncate
+                        raise StopIteration
+                    else:
+                        yield segment
+            segment = lines[0]
+            for index in range(len(lines) - 1, 0, -1):
+                if truncate and '</page>' in segment:
+                    pages = buffer.split('</page>')
+                    fh.seek(-offset-len(pages[-1]), os.SEEK_END)
+                    fh.truncate
+                    raise StopIteration
+                else:
+                    yield lines[index]
+        yield segment
 
 def saveConfig(config={}):
     """ Save config file """
@@ -594,6 +648,17 @@ def saveConfig(config={}):
         except: #bytes
             with open('%s/%s' % (config['path'], config['other']['configfilename']), 'wb') as outfile:
                 cPickle.dump(config2, outfile)
+
+def saveImageNames(config={}, imagenames=[]):
+    """ Save image list in a file, including filename, url and uploader """
+
+    imagesfilename = '%s-%s-images.txt' % (
+        domain2prefix(config=config), config['date'])
+    imagesfile = open('%s/%s' % (config['path'], imagesfilename), 'w')
+    imagesfile.write('\n'.join(['%s\t%s\t%s' % (filename, url, uploader) for filename, url, uploader in imagenames]))
+    imagesfile.write('\n--END--')
+    imagesfile.close()
+    sys.stderr.write('Image filenames and URLs saved at... %s ' % imagesfilename)
 
 def savePageTitles(config={}, pagetitles=None):
     pagetitlesfilename = '%s-%s-titles.txt' % (
@@ -667,37 +732,34 @@ def loadConfig(config={}):
 def main(params=[]):
     """ Main function """
     
-    welcome()
     config = getParameters(params=params)    
     avoidWikimediaProjects(config=config)
     config = createDumpPath(config=config)
     if config['other']['resume']:
         # Resume dump
+        welcome()
         config = loadConfig(config=config)
         resumePreviousDump(config=config)
     elif config['pages'] or config['images'] or config['logs']:
         # New dump
+        welcome()
         os.mkdir(config['path'])
         saveConfig(config=config)
         createNewDump(config=config)
     elif config['metainfo']:
         # No dumps. Print meta info params
         if config['metainfo'] == 'get_api':
-            sys.stdout.write(getAPI(config=config))
+            print(getAPI(config=config))
         elif config['metainfo'] == 'get_index':
-            sys.stdout.write(getIndex(config=config))
+            print(getIndex(config=config))
         elif config['metainfo'] == 'get_page_titles':
             printPageTitles(config=config)
         elif config['metainfo'] == 'get_image_names':
-            printGetImageNames(config=config)
+            printImageNames(config=config)
         elif config['metainfo'] == 'get_wiki_engine':
-            sys.stdout.write(config['wikiengine'])
+            print(config['wikiengine'])
         sys.exit()
             
-    """move to mw module
-    saveIndexPHP(config=config, session=other['session'])
-    saveSpecialVersion(config=config, session=other['session'])
-    saveSiteInfo(config=config, session=other['session'])"""
     bye()
 
 if __name__ == "__main__":
