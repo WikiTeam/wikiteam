@@ -156,6 +156,17 @@ def getJSON(request):
     return request.json()"""
     return json.loads(request)
 
+def getNamespaces(config={}):
+    """ Returns list of namespaces for this wiki """
+    
+    namespaces = []
+    namespacenames = []
+    if config['wikiengine'] == 'mediawiki':
+        import mediawiki
+        namespaces, namespacenames = mediawiki.mwGetNamespaces(config=config)
+    
+    return namespacenames
+
 def getPageTitles(config={}):
     """ Returns page titles for this wiki """
     
@@ -261,6 +272,10 @@ def getParameters(params=[]):
         action='store_true',
         help="Returns wiki image names.")
     groupMeta.add_argument(
+        '--get-namespaces',
+        action='store_true',
+        help="Returns wiki namespaces.")
+    groupMeta.add_argument(
         '--get-wiki-engine',
         action='store_true',
         help="Returns wiki engine.")
@@ -276,14 +291,14 @@ def getParameters(params=[]):
     
     # Don't mix download params and meta info params
     if (args.pages or args.images) and \
-            (args.get_api or args.get_index or args.get_page_titles or args.get_image_names or args.get_wiki_engine):
+       (args.get_api or args.get_index or args.get_page_titles or args.get_image_names or args.get_namespaces or args.get_wiki_engine):
         sys.stderr.write('ERROR: Don\'t mix download params and meta info params\n')
         parser.print_help()
         sys.exit(1)
 
     # No download params and no meta info params? Exit
     if (not args.pages and not args.images) and \
-            (not args.get_api and not args.get_index and not args.get_page_titles and not args.get_image_names and not args.get_wiki_engine):
+       (not args.get_api and not args.get_index and not args.get_page_titles and not args.get_image_names and not args.get_namespaces and not args.get_wiki_engine):
         sys.stderr.write('ERROR: Use at least one download param or meta info param\n')
         parser.print_help()
         sys.exit(1)
@@ -327,6 +342,8 @@ def getParameters(params=[]):
         metainfo = 'get_page_titles'
     elif args.get_image_names:
         metainfo = 'get_image_names'
+    elif args.get_namespaces:
+        metainfo = 'get_namespaces'
     elif args.get_wiki_engine:
         metainfo = 'get_wiki_engine'
 
@@ -576,6 +593,13 @@ def printImageNames(config={}):
     for imagename in getImageNames(config=config):
         sys.stdout.write('%s\n' % (imagename))
         
+def printNamespaces(config={}):
+    """ Print list of namespaces for this wiki """
+    
+    namespacenames = getNamespaces(config=config)
+    for namespaceid, namespacename in namespacenames.items():
+        sys.stdout.write('%s %s\n' % (namespaceid, namespacename))
+        
 def printPageTitles(config={}):
     """ Print list of page titles for this wiki """
     
@@ -756,6 +780,8 @@ def main(params=[]):
             printPageTitles(config=config)
         elif config['metainfo'] == 'get_image_names':
             printImageNames(config=config)
+        elif config['metainfo'] == 'get_namespaces':
+            printNamespaces(config=config)
         elif config['metainfo'] == 'get_wiki_engine':
             print(config['wikiengine'])
         sys.exit()

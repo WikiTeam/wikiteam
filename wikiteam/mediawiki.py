@@ -409,6 +409,20 @@ def mwGetIndex(config={}):
                 index = '/'.join(mwapi.split('/')[:-1]) + '/index.php'
     return index
 
+def mwGetNamespaces(config={}):
+    """ Get list of namespaces """
+
+    sys.stderr.write('Retrieving namespaces\n')
+    namespaces = []
+    namespacenames = []
+    if 'mwapi' in config and config['mwapi']:
+        namespaces, namespacenames = mwGetNamespacesAPI(config=config)
+    elif 'mwindex' in config and config['mwindex']:
+        namespaces, namespacenames = mwGetImageNamesScraper(config=config)
+    namespaces.sort()
+    sys.stderr.write('%d namespaces loaded\n' % (len(namespaces)))
+    return namespaces, namespacenames
+
 def mwGetNamespacesAPI(config={}):
     """ Uses the API to get the list of namespaces names and ids """
     namespaces = config['namespaces']
@@ -444,7 +458,6 @@ def mwGetNamespacesAPI(config={}):
     namespaces = list(set(namespaces))  # uniques
     sys.stderr.write('%d namespaces found\n' % (len(namespaces)))
     return namespaces, namespacenames
-
 
 def mwGetNamespacesScraper(config={}):
     """ Hackishly gets the list of namespaces names and ids from the dropdown in the HTML of Special:AllPages """
