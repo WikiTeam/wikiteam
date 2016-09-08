@@ -18,6 +18,7 @@
 # Documentation for users: https://github.com/WikiTeam/wikiteam/wiki
 # Documentation for developers: http://wikiteam.readthedocs.com
 
+import json
 import re
 import sys
 import urllib
@@ -864,6 +865,19 @@ def mwReadPageTitles(config={}, start=None):
             else:
                 yield line.strip()
 
+def mwRemoveIP(raw=''):
+    """ Remove IP from HTML comments <!-- --> """
+
+    raw = re.sub(r'\d+\.\d+\.\d+\.\d+', '0.0.0.0', raw)
+    # http://www.juniper.net/techpubs/software/erx/erx50x/swconfig-routing-vol1/html/ipv6-config5.html
+    # weird cases as :: are not included
+    raw = re.sub(
+        r'(?i)[\da-f]{0,4}:[\da-f]{0,4}:[\da-f]{0,4}:[\da-f]{0,4}:[\da-f]{0,4}:[\da-f]{0,4}:[\da-f]{0,4}:[\da-f]{0,4}',
+        '0:0:0:0:0:0:0:0',
+        raw)
+
+    return raw
+
 def mwResumePreviousDump(config={}):
     imagenames = []
     sys.stderr.write('Resuming previous dump process...')
@@ -987,6 +1001,68 @@ def mwResumePreviousDump(config={}):
     mwSaveIndexPHP(config=config)
     mwSaveSpecialVersion(config=config)
     mwSaveSiteInfo(config=config)
+
+def mwSaveIndexPHP(config={}):
+    """ Save index.php as .html, to preserve license details available at the botom of the page """
+
+    if os.path.exists('%s/index.html' % (config['path'])):
+        sys.stderr.write('index.html exists, do not overwrite')
+    else:
+        sys.stderr.write('Downloading index.php (Main Page) as index.html')
+        raw = wikiteam.getURL(url=config['index'], data={})
+        wikiteam.delay(config=config)
+        raw = mwRemoveIP(raw=raw)
+        with open('%s/index.html' % (config['path']), 'w') as outfile:
+            outfile.write(raw)
+
+def mwSaveSiteInfo(config={}):
+    """ Save a file with site info """
+
+    if config['api']:
+        if os.path.exists('%s/siteinfo.json' % (config['path'])):
+            sys.stderr.write('siteinfo.json exists, do not overwrite')
+        else:
+            sys.stderr.write('Downloading site info as siteinfo.json')
+
+            # MediaWiki 1.13+
+            raw = wikiteam.getURL(url=config['api'], data={
+                'action': 'query',
+                'meta': 'siteinfo',
+                'siprop': 'general|namespaces|statistics|dbrepllag|interwikimap|namespacealiases|specialpagealiases|usergroups|extensions|skins|magicwords|fileextensions|rightsinfo',
+                'sinumberingroup': 1,
+                'format': 'json'})
+            wikiteam.delay(config=config)
+            # MediaWiki 1.11-1.12
+            if not 'query' in wikiteam.getJSON(raw):
+                raw = wikiteam.getURL(url=config['api'], data={
+                    'action': 'query',
+                    'meta': 'siteinfo',
+                    'siprop': 'general|namespaces|statistics|dbrepllag|interwikimap',
+                    'format': 'json'})
+            # MediaWiki 1.8-1.10
+            if not 'query' in wikiteam.getJSON(raw):
+                raw = wikiteam.getURL(url=config['api'], data={
+                    'action': 'query',
+                    'meta': 'siteinfo',
+                    'siprop': 'general|namespaces',
+                    'format': 'json'})
+            result = wikiteam.getJSON(raw)
+            wikiteam.delay(config=config)
+            with open('%s/siteinfo.json' % (config['path']), 'w') as outfile:
+                outfile.write(json.dumps(result, indent=4, sort_keys=True))
+
+def mwSaveSpecialVersion(config={}):
+    """ Save Special:Version as .html, to preserve extensions details """
+
+    if os.path.exists('%s/Special:Version.html' % (config['path'])):
+        sys.stderr.write('Special:Version.html exists, do not overwrite')
+    else:
+        sys.stderr.write('Downloading Special:Version with extensions and other related info')
+        raw = wikiteam.getURL(url=config['index'], data={'title': 'Special:Version'})
+        wikiteam.delay(config=config)
+        raw = mwRemoveIP(raw=raw)
+        with open('%s/Special:Version.html' % (config['path']), 'w') as outfile:
+            outfile.write(raw)
 
 def main():
     pass
