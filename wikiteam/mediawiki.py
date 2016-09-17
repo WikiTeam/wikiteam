@@ -228,7 +228,11 @@ def mwGetImageNamesAPI(config={}):
                 url = mwCurateImageURL(config=config, url=url)
                 # encoding to ascii is needed to work around this horrible bug:
                 # http://bugs.python.org/issue8136
-                filename = urllib.parse.unquote(re.sub('_', ' ', url.split('/')[-1])).encode('ascii', 'ignore')
+                if 'mwapi' in config and '.wikia.com' in config['mwapi']:
+                    #to avoid latest?cb=20120816112532 in filenames
+                    filename = urllib.parse.unquote(re.sub('_', ' ', url.split('/')[-3])).encode('ascii', 'ignore')
+                else:
+                    filename = urllib.parse.unquote(re.sub('_', ' ', url.split('/')[-1])).encode('ascii', 'ignore')
                 uploader = re.sub('_', ' ', image['user'])
                 imagenames.append([filename, url, uploader])
         else:
