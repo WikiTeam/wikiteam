@@ -994,8 +994,11 @@ def getImageNamesAPI(config={}, session=None):
                 url = curateImageURL(config=config, url=url)
                 # encoding to ascii is needed to work around this horrible bug:
                 # http://bugs.python.org/issue8136
-                filename = unicode(urllib.unquote(
-                    (re.sub('_', ' ', url.split('/')[-1])).encode('ascii', 'ignore')), 'utf-8')
+                if 'api' in config and '.wikia.com' in config['api']:
+                    #to avoid latest?cb=20120816112532 in filenames
+                    filename = unicode(urllib.unquote((re.sub('_', ' ', url.split('/')[-3])).encode('ascii', 'ignore')), 'utf-8')
+                else:
+                    filename = unicode(urllib.unquote((re.sub('_', ' ', url.split('/')[-1])).encode('ascii', 'ignore')), 'utf-8')
                 uploader = re.sub('_', ' ', image['user'])
                 images.append([filename, url, uploader])
         else:
