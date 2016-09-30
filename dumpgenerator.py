@@ -1211,6 +1211,7 @@ def welcome():
     message += ''
     message += "\n"
     message += "#" * 73
+    message += "\n"
     message += "# Copyright (C) 2011-%d WikiTeam developers                           #\n" % (datetime.datetime.now().year)
     message += """
 # This program is free software: you can redistribute it and/or modify  #
