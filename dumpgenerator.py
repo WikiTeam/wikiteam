@@ -70,6 +70,7 @@ def getVersion():
 
 def truncateFilename(other={}, filename=''):
     """ Truncate filename if longer than other['filenamelimit']  """
+    filename = unicode(filename)
     if len(filename.encode('utf-8')) < other['filenamelimit']:
         return filename
     fileext = filename.split('.')
@@ -81,7 +82,6 @@ def truncateFilename(other={}, filename=''):
     trunc = other['filenamelimit'] - 32 - len(fileext) - len(other['imagesdescext'])
     assert (trunc > 0)
     while len(filename[:trunc].encode('utf-8')) > other['filenamelimit']:
-        print trunc, filename[:trunc], filename[:trunc].encode('utf-8'),
         trunc -= 1
     trunked_fn = filename[:trunc] + md5(filename.encode('utf-8')).hexdigest() + fileext
     print 'Filename is too long, truncating. Now it is:', trunked_fn
