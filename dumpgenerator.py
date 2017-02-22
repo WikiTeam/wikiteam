@@ -69,15 +69,23 @@ def getVersion():
 
 
 def truncateFilename(other={}, filename=''):
-    """ Truncate filenames if needed """
-    # truncate filename if length > 100 (100 + 32 (md5) = 132 < 143 (crash
-    # limit). Later .desc is added to filename, so better 100 as max)
-    if len(filename) < other['filenamelimit']:
+    """ Truncate filename if longer than other['filenamelimit']  """
+    if len(filename.encode('utf-8')) < other['filenamelimit']:
         return filename
-    filename2 = filename[:other['filenamelimit']] + \
-        md5(filename.encode('utf-8')).hexdigest() + '.' + filename.split('.')[-1]
-    print 'Filename is too long, truncating. Now it is:', filename2
-    return filename2
+    fileext = filename.split('.')
+    if len(fileext) == 1:
+        fileext = ""
+    else:
+        fileext = '.' + fileext[-1]
+    # make room for md5, file extension and imagesdescext
+    trunc = other['filenamelimit'] - 32 - len(fileext) - len(other['imagesdescext'])
+    assert (trunc > 0)
+    while len(filename[:trunc].encode('utf-8')) > other['filenamelimit']:
+        print trunc, filename[:trunc], filename[:trunc].encode('utf-8'),
+        trunc -= 1
+    trunked_fn = filename[:trunc] + md5(filename.encode('utf-8')).hexdigest() + fileext
+    print 'Filename is too long, truncating. Now it is:', trunked_fn
+    return trunked_fn
 
 
 def delay(config={}, session=None):
@@ -1124,7 +1132,7 @@ def generateImageDump(config={}, other={}, images=[], start='', session=None):
                 text=u'The page "%s" was missing in the wiki (probably deleted)' % (title.decode('utf-8'))
             )
 
-        f = open('%s/%s.desc' % (imagepath, filename2), 'w')
+        f = open('%s/%s%s' % (imagepath, filename2, other['imagesdescext']), 'w')
         # <text xml:space="preserve" bytes="36">Banner featuring SG1, SGA, SGU teams</text>
         if not re.search(r'</mediawiki>', xmlfiledesc):
             # failure when retrieving desc? then save it as empty .desc
@@ -1501,7 +1509,8 @@ def getParameters(params=[]):
         'resume': args.resume,
         'filenamelimit': 100,  # do not change
         'force': args.force,
-        'session': session
+        'session': session,
+        'imagesdescext': '.desc'
     }
 
     # calculating path, if not defined by user with --path=
