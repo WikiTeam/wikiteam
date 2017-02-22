@@ -1507,7 +1507,7 @@ def getParameters(params=[]):
 
     other = {
         'resume': args.resume,
-        'filenamelimit': 100,  # do not change
+        'filenamelimit': 140,  # encryptfs reduce the filename limit from 255 to ~148 chars :/
         'force': args.force,
         'session': session,
         'imagesdescext': '.desc'

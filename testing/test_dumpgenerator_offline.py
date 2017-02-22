@@ -33,7 +33,7 @@ class TestDumpgeneratorOffline(unittest.TestCase):
 
     def setUp(self):
         other = dict()  # FIXME: get from dumpgenerator, but code base is a pre-OO mess
-        other['filenamelimit'] = 100
+        other['filenamelimit'] = 140  # encryptfs reduce the filename limit from 255 to ~148 chars :/
         other['imagesdescext'] = '.desc'
         self.other = other
 
