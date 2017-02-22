@@ -32,23 +32,44 @@ from dumpgenerator import truncateFilename
 class TestDumpgeneratorOffline(unittest.TestCase):
 
     def setUp(self):
-        pass
+        other = dict()  # FIXME: get from dumpgenerator, but code base is a pre-OO mess
+        other['filenamelimit'] = 100
+
+        self.other = other
 
     def tearDown(self):
         pass
 
-    def test_truncateFilename(self):
-        """ Test if truncFilename() obey other['filenamelimit']"""
-        other = dict()  # FIXME: get from dumpgenerator, but code base is a pre-OO mess
-        other['filenamelimit'] = 100
+    def helper_truncateFilename(self, fn):
+        fn_trunc = truncateFilename(other=self.other, filename=fn)
+        self.assertLessEqual(len(fn_trunc), self.other['filenamelimit'],
+                             "trunced filename '%s' len of %d exceed limit of %d." % (
+                             fn_trunc, len(fn_trunc), self.other['filenamelimit']))
+
+    def test_truncateFilename1(self):
+        """ Test if truncFilename() obey other['filenamelimit'] - real world example 1"""
         fn = u"Assortiment de différentes préparation à bases de légumes et féculents, bien sur servit avec de l'injara.JPG"
         self.assertEqual(len(fn), 108)
-        self.assertEqual(len(fn.encode("utf-8")), 113)  # chars like 'è' will extend length
+        self.assertEqual(len(fn.encode("utf-8")), 113)  # chars like 'è' will extend length - this is maybe unexpected
+        self.helper_truncateFilename(fn)
 
-        fn_trunc = truncateFilename(other=other, filename=fn)
-        self.assertLessEqual(len(fn_trunc), other['filenamelimit'],
-                             "trunced filename '%s' len of %d exceed limit of %d." %
-                             (fn_trunc, len(fn_trunc), other['filenamelimit']))
+    def test_truncateFilename2(self):
+        """ Test if truncFilename() obey other['filenamelimit'] - longest valid name w/o file extension"""
+        fn = "A" * self.other['filenamelimit']
+        self.helper_truncateFilename(fn)
+
+    def test_truncateFilename3(self):
+        """ Test if truncFilename() obey other['filenamelimit'] - longest valid name w/ file extension"""
+        fn = "A" * self.other['filenamelimit']
+        fn = fn[:-4] + ".jpg"
+        self.helper_truncateFilename(fn)
+
+    def test_truncateFilename4(self):
+        """ Test if truncFilename() obey other['filenamelimit'] - longest valid name w/ file extension"""
+        fn = "A" * (self.other['filenamelimit'] / 2)
+        fn = fn[:-4] + ".jpg"
+        self.helper_truncateFilename(fn)
+
 
 if __name__ == '__main__':
     unittest.main()
