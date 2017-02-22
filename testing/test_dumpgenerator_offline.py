@@ -35,7 +35,6 @@ class TestDumpgeneratorOffline(unittest.TestCase):
         other = dict()  # FIXME: get from dumpgenerator, but code base is a pre-OO mess
         other['filenamelimit'] = 100
         other['imagesdescext'] = '.desc'
-
         self.other = other
 
     def tearDown(self):
@@ -66,10 +65,17 @@ class TestDumpgeneratorOffline(unittest.TestCase):
         self.helper_truncateFilename(fn)
 
     def test_truncateFilename4(self):
-        """ Test if truncFilename() obey other['filenamelimit'] - longest valid name w/ file extension"""
+        """ Test if truncFilename() obey other['filenamelimit'] - valid name w/ file extension"""
         fn = "A" * (self.other['filenamelimit'] / 2)
         fn = fn[:-4] + ".jpg"
         self.helper_truncateFilename(fn)
+
+    def test_truncateFilename5(self):
+        """ Test if truncFilename() obey other['filenamelimit'] - longest valid name w/ file extension (unicode)"""
+        fn = u"è" * self.other['filenamelimit']
+        fn = fn[:-4] + ".jpg"
+        self.helper_truncateFilename(fn)
+
 
 
 if __name__ == '__main__':
