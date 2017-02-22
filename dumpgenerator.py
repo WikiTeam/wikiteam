@@ -69,9 +69,15 @@ def getVersion():
 
 
 def truncateFilename(other={}, filename=''):
-    """ Truncate filenames when downloading images with large filenames """
-    return filename[:other['filenamelimit']] + \
+    """ Truncate filenames if needed """
+    # truncate filename if length > 100 (100 + 32 (md5) = 132 < 143 (crash
+    # limit). Later .desc is added to filename, so better 100 as max)
+    if len(filename) < other['filenamelimit']:
+        return filename
+    filename2 = filename[:other['filenamelimit']] + \
         md5(filename.encode('utf-8')).hexdigest() + '.' + filename.split('.')[-1]
+    print 'Filename is too long, truncating. Now it is:', filename2
+    return filename2
 
 
 def delay(config={}, session=None):
@@ -1097,13 +1103,8 @@ def generateImageDump(config={}, other={}, images=[], start='', session=None):
         delay(config=config, session=session)
 
         # saving file
-        # truncate filename if length > 100 (100 + 32 (md5) = 132 < 143 (crash
-        # limit). Later .desc is added to filename, so better 100 as max)
         filename2 = urllib.unquote(filename)
-        if len(filename2) > other['filenamelimit']:
-            # split last . (extension) and then merge
-            filename2 = truncateFilename(other=other, filename=filename2)
-            print 'Filename is too long, truncating. Now it is:', filename2
+        filename2 = truncateFilename(other=other, filename=filename2)
         filename3 = u'%s/%s' % (imagepath, filename2)
         imagefile = open(filename3, 'wb')
         r = requests.get(url=url)
