@@ -29,6 +29,9 @@ def main():
     m = re.findall(ur'<tr><td><a href="https://([^>]+?)/">[^<]+</a></td></tr>', raw)
     for i in m:
         print 'https://' + i + '/w/api.php'
+    n = re.findall(ur'<tr><td><del><a href="https://([^>]+?)/">[^<]+</a></del></td></tr>', raw)
+    for i in n:
+        print 'https://' + i + '/w/api.php'
     
 if __name__ == '__main__':
     main()
