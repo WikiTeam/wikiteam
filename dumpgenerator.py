@@ -251,10 +251,15 @@ def getPageTitlesAPI(config={}, session=None):
                 try:
                     r = session.post(url=config['api'], data=params)
                     break
-                except ConnectionError as err:
-                    print "Connection error: %s" % (str(err),)
+                except requests.exceptions.RequestException as err:
+                    print "Request error: %s" % (str(err),)
                     retryCount += 1
                     time.sleep(20)
+                except TypeError as e:
+                    if '__str__ returned non-string' in str(e):
+                        print 'urllib3 had an SSL handshake error with pyOpenSSL'
+                        retryCount += 1
+                        time.sleep(20)
             handleStatusCode(r)
             # FIXME Handle HTTP errors here!
             jsontitles = getJSON(r)
@@ -553,9 +558,13 @@ def getXMLPageCore(headers={}, params={}, config={}, session=None):
             r = session.post(url=config['index'], data=params, headers=headers)
             handleStatusCode(r)
             xml = fixBOM(r)
-        except requests.exceptions.ConnectionError as e:
-            print '    Connection error: %s'%(str(e[0]))
+        except requests.exceptions.RequestException as e:
+            print '    Request error: %s'%(str(e[0]))
             xml = ''
+        except TypeError as e:
+            if '__str__ returned non-string' in str(e):
+                print 'urllib3 had an SSL handshake error with pyOpenSSL'
+                xml = ''
         c += 1
 
     return xml
@@ -1084,53 +1093,86 @@ def generateImageDump(config={}, other={}, images=[], start='', session=None):
     if not os.path.isdir(imagepath):
         print 'Creating "%s" directory' % (imagepath)
         os.makedirs(imagepath)
-
+    
+    maxseconds = 100  # max seconds to wait in a single sleeping
+    maxretries = config['retries']  # x retries and skip
+    increment = 20  # increment every retry
+    
     c = 0
     lock = True
     if not start:
         lock = False
     for filename, url, uploader in images:
+        retried = 0
+        completed = False
         if filename == start:  # start downloading from start (included)
             lock = False
         if lock:
             continue
+        
         delay(config=config, session=session)
-
-        # saving file
-        # truncate filename if length > 100 (100 + 32 (md5) = 132 < 143 (crash
-        # limit). Later .desc is added to filename, so better 100 as max)
-        filename2 = urllib.unquote(filename)
-        if len(filename2) > other['filenamelimit']:
-            # split last . (extension) and then merge
-            filename2 = truncateFilename(other=other, filename=filename2)
-            print 'Filename is too long, truncating. Now it is:', filename2
-        filename3 = u'%s/%s' % (imagepath, filename2)
-        imagefile = open(filename3, 'wb')
-        r = requests.get(url=url)
-        imagefile.write(r.content)
-        imagefile.close()
-        # saving description if any
-        try:
-            title = u'Image:%s' % (filename)
-            xmlfiledesc = getXMLFileDesc(
-                config=config,
-                title=title,
-                session=session)  # use Image: for backwards compatibility
-        except PageMissingError:
-            xmlfiledesc = ''
-            logerror(
-                config=config,
-                text=u'The page "%s" was missing in the wiki (probably deleted)' % (title.decode('utf-8'))
-            )
-
-        f = open('%s/%s.desc' % (imagepath, filename2), 'w')
-        # <text xml:space="preserve" bytes="36">Banner featuring SG1, SGA, SGU teams</text>
-        if not re.search(r'</mediawiki>', xmlfiledesc):
-            # failure when retrieving desc? then save it as empty .desc
-            xmlfiledesc = ''
-        f.write(xmlfiledesc.encode('utf-8'))
-        f.close()
-        delay(config=config, session=session)
+        
+        while not completed:
+            if retried > 0 and retried < maxretries:
+                wait = increment * retried < maxseconds and increment * \
+                    retried or maxseconds  # incremental until maxseconds
+                # print xml
+                print '    In attempt %d, Image "%s" failed to download. Waiting %d seconds and reloading...'%(retried, filename, wait)
+                time.sleep(wait)
+            if retried >= maxretries:
+                print '    We have retried %d times. Now skipping.' % (retried)
+                print '    Image download error for "%s", network error or whatever...' % (filename)
+                break
+            retried += 1
+            
+            # saving file
+            # truncate filename if length > 100 (100 + 32 (md5) = 132 < 143 (crash
+            # limit). Later .desc is added to filename, so better 100 as max)
+            filename2 = urllib.unquote(filename)
+            if len(filename2) > other['filenamelimit']:
+                # split last . (extension) and then merge
+                filename2 = truncateFilename(other=other, filename=filename2)
+                print 'Filename is too long, truncating. Now it is:', filename2
+            filename3 = u'%s/%s' % (imagepath, filename2)
+            try:
+                r = requests.get(url=url)
+                if r.status_code != 200:
+                    print '    Image download error: %d'%(r.status_code)
+                    continue
+                imagefile = open(filename3, 'wb')
+                imagefile.write(r.content)
+                imagefile.close()
+            except requests.exceptions.RequestException as e:
+                print '    Image download error: %s'%(str(e[0]))
+                continue
+            except TypeError as e:
+                if '__str__ returned non-string' in str(e):
+                    print 'urllib3 had an SSL handshake error with pyOpenSSL'
+                    continue
+            
+            # saving description if any
+            try:
+                title = u'Image:%s' % (filename)
+                xmlfiledesc = getXMLFileDesc(
+                    config=config,
+                    title=title,
+                    session=session)  # use Image: for backwards compatibility
+            except PageMissingError:
+                xmlfiledesc = ''
+                logerror(
+                    config=config,
+                    text=u'The page "%s" was missing in the wiki (probably deleted)' % (title.decode('utf-8'))
+                )
+            
+            f = open('%s/%s.desc' % (imagepath, filename2), 'w')
+            # <text xml:space="preserve" bytes="36">Banner featuring SG1, SGA, SGU teams</text>
+            if not re.search(r'</mediawiki>', xmlfiledesc):
+                # failure when retrieving desc? then save it as empty .desc
+                xmlfiledesc = ''
+            f.write(xmlfiledesc.encode('utf-8'))
+            f.close()
+            completed = True
+        
         c += 1
         if c % 10 == 0:
             print '    Downloaded %d images' % (c)
@@ -1397,11 +1439,17 @@ def getParameters(params=[]):
             try:
                 check = checkAPI(api=api, session=session)
                 break
-            except requests.exceptions.ConnectionError as e:
-                print 'Connection error: %s'%(str(e))
+            except requests.exceptions.RequestException as e:
+                print 'Request error: %s'%(str(e))
                 retry += 1
                 print "Start retry attempt %d in %d seconds."%(retry+1, retrydelay)
                 time.sleep(retrydelay)
+            except TypeError as e:
+                if '__str__ returned non-string' in str(e):
+                    print 'urllib3 had an SSL handshake error with pyOpenSSL'
+                    retry += 1
+                    print "Start retry attempt %d in %d seconds."%(retry+1, retrydelay)
+                    time.sleep(retrydelay)
     if api and check:
         index2 = check[1]
         api = check[2]
