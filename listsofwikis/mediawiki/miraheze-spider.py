@@ -27,6 +27,7 @@ def main():
     r = requests.get(url, headers=headers)
     raw = r.text
     m = re.findall(ur'<tr><td>(<del>)?<a href="https://([^>]+?)/">[^<]+</a>', raw)
+    m.sort()
     for i in m:
         print 'https://' + i[1] + '/w/api.php'
     
