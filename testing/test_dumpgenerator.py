@@ -261,7 +261,11 @@ class TestDumpgenerator(unittest.TestCase):
         ]
         for wiki, engine in tests:
             print 'Testing', wiki
-            guess_engine = getWikiEngine(wiki)
+            try:
+                guess_engine = getWikiEngine(wiki)
+            except ConnectionError:
+                print "%s failed to load, skipping..." % (wiki)
+                continue
             print 'Got: %s, expected: %s' % (guess_engine, engine)
             self.assertEqual(guess_engine, engine)
     
