@@ -1084,53 +1084,82 @@ def generateImageDump(config={}, other={}, images=[], start='', session=None):
     if not os.path.isdir(imagepath):
         print 'Creating "%s" directory' % (imagepath)
         os.makedirs(imagepath)
-
+    
+    maxseconds = 100  # max seconds to wait in a single sleeping
+    maxretries = config['retries']  # x retries and skip
+    increment = 20  # increment every retry
+    
     c = 0
     lock = True
     if not start:
         lock = False
     for filename, url, uploader in images:
+        retried = 0
+        completed = False
         if filename == start:  # start downloading from start (included)
             lock = False
         if lock:
             continue
+        
         delay(config=config, session=session)
-
-        # saving file
-        # truncate filename if length > 100 (100 + 32 (md5) = 132 < 143 (crash
-        # limit). Later .desc is added to filename, so better 100 as max)
-        filename2 = urllib.unquote(filename)
-        if len(filename2) > other['filenamelimit']:
-            # split last . (extension) and then merge
-            filename2 = truncateFilename(other=other, filename=filename2)
-            print 'Filename is too long, truncating. Now it is:', filename2
-        filename3 = u'%s/%s' % (imagepath, filename2)
-        imagefile = open(filename3, 'wb')
-        r = requests.get(url=url)
-        imagefile.write(r.content)
-        imagefile.close()
-        # saving description if any
-        try:
-            title = u'Image:%s' % (filename)
-            xmlfiledesc = getXMLFileDesc(
-                config=config,
-                title=title,
-                session=session)  # use Image: for backwards compatibility
-        except PageMissingError:
-            xmlfiledesc = ''
-            logerror(
-                config=config,
-                text=u'The page "%s" was missing in the wiki (probably deleted)' % (title.decode('utf-8'))
-            )
-
-        f = open('%s/%s.desc' % (imagepath, filename2), 'w')
-        # <text xml:space="preserve" bytes="36">Banner featuring SG1, SGA, SGU teams</text>
-        if not re.search(r'</mediawiki>', xmlfiledesc):
-            # failure when retrieving desc? then save it as empty .desc
-            xmlfiledesc = ''
-        f.write(xmlfiledesc.encode('utf-8'))
-        f.close()
-        delay(config=config, session=session)
+        
+        while not completed:
+            if retried > 0 and retried < maxretries:
+                wait = increment * retried < maxseconds and increment * \
+                    retried or maxseconds  # incremental until maxseconds
+                # print xml
+                print '    In attempt %d, Image "%s" failed to download. Waiting %d seconds and reloading...'%(retried, filename, wait)
+                time.sleep(wait)
+            if retried >= maxretries:
+                print '    We have retried %d times. Now skipping.' % (retried)
+                print '    Image download error for "%s", network error or whatever...' % (filename)
+                break
+            retried += 1
+            
+            # saving file
+            # truncate filename if length > 100 (100 + 32 (md5) = 132 < 143 (crash
+            # limit). Later .desc is added to filename, so better 100 as max)
+            filename2 = urllib.unquote(filename)
+            if len(filename2) > other['filenamelimit']:
+                # split last . (extension) and then merge
+                filename2 = truncateFilename(other=other, filename=filename2)
+                print 'Filename is too long, truncating. Now it is:', filename2
+            filename3 = u'%s/%s' % (imagepath, filename2)
+            try:
+                r = requests.get(url=url)
+                if r.status_code != 200:
+                    print '    Image download error: %d'%(r.status_code)
+                    continue
+                imagefile = open(filename3, 'wb')
+                imagefile.write(r.content)
+                imagefile.close()
+            except requests.exceptions.ConnectionError as e:
+                print '    Image download connection error: %s'%(str(e[0]))
+                continue
+            
+            # saving description if any
+            try:
+                title = u'Image:%s' % (filename)
+                xmlfiledesc = getXMLFileDesc(
+                    config=config,
+                    title=title,
+                    session=session)  # use Image: for backwards compatibility
+            except PageMissingError:
+                xmlfiledesc = ''
+                logerror(
+                    config=config,
+                    text=u'The page "%s" was missing in the wiki (probably deleted)' % (title.decode('utf-8'))
+                )
+            
+            f = open('%s/%s.desc' % (imagepath, filename2), 'w')
+            # <text xml:space="preserve" bytes="36">Banner featuring SG1, SGA, SGU teams</text>
+            if not re.search(r'</mediawiki>', xmlfiledesc):
+                # failure when retrieving desc? then save it as empty .desc
+                xmlfiledesc = ''
+            f.write(xmlfiledesc.encode('utf-8'))
+            f.close()
+            completed = True
+        
         c += 1
         if c % 10 == 0:
             print '    Downloaded %d images' % (c)
