@@ -1304,6 +1304,8 @@ def getParameters(params=[]):
     groupDownload.add_argument(
         '--images', action='store_true', help="generates an image dump")
     groupDownload.add_argument(
+        '--listonly', help="only retrieves lists and doesn't download the content")
+    groupDownload.add_argument(
         '--namespaces',
         metavar="1,2,3",
         help='comma-separated value of namespaces to include (all by default)')
@@ -1488,6 +1490,7 @@ def getParameters(params=[]):
         'images': args.images,
         'logs': False,
         'xml': args.xml,
+        'listonly': args.listonly,
         'namespaces': namespaces,
         'exnamespaces': exnamespaces,
         'path': args.path and os.path.normpath(args.path) or '',
@@ -1648,19 +1651,24 @@ def createNewDump(config={}, other={}):
     if config['xml']:
         getPageTitles(config=config, session=other['session'])
         titles=readTitles(config)
-        generateXMLDump(config=config, titles=titles, session=other['session'])
-        checkXMLIntegrity(
-            config=config,
-            titles=titles,
-            session=other['session'])
+        if not config['listonly']:
+            generateXMLDump(
+                config=config,
+                titles=titles,
+                session=other['session'])
+            checkXMLIntegrity(
+                config=config,
+                titles=titles,
+                session=other['session'])
     if config['images']:
         images += getImageNames(config=config, session=other['session'])
         saveImageNames(config=config, images=images, session=other['session'])
-        generateImageDump(
-            config=config,
-            other=other,
-            images=images,
-            session=other['session'])
+        if not config['listonly']:
+            generateImageDump(
+                config=config,
+                other=other,
+                images=images,
+                session=other['session'])
     if config['logs']:
         saveLogs(config=config, session=other['session'])
 

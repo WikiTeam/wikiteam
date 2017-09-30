@@ -63,7 +63,7 @@ class TestDumpgenerator(unittest.TestCase):
             # Alone wikis
             #['http://wiki.annotation.jp/index.php', 'http://wiki.annotation.jp/api.php', u'かずさアノテーション - ソーシャル・ゲノム・アノテーション.jpg'],
             ['http://archiveteam.org/index.php', 'http://archiveteam.org/api.php', u'Archive-is 2013-07-02 17-05-40.png'],
-            ['http://skilledtests.com/wiki/index.php', 'http://skilledtests.com/wiki/api.php', u'Benham\'s disc (animated).gif'],
+            #['http://skilledtests.com/wiki/index.php', 'http://skilledtests.com/wiki/api.php', u'Benham\'s disc (animated).gif'],
             
             # Editthis wikifarm
             # It has a page view limit
@@ -147,7 +147,7 @@ class TestDumpgenerator(unittest.TestCase):
         tests = [
             # Alone wikis
             ['http://archiveteam.org/index.php', 'http://archiveteam.org/api.php', u'April Fools\' Day'],
-            ['http://skilledtests.com/wiki/index.php', 'http://skilledtests.com/wiki/api.php', u'Conway\'s Game of Life'],
+            #['http://skilledtests.com/wiki/index.php', 'http://skilledtests.com/wiki/api.php', u'Conway\'s Game of Life'],
 
             # Test old allpages API behaviour
             #['http://wiki.damirsystems.com/index.php', 'http://wiki.damirsystems.com/api.php', 'SQL Server Tips'],
@@ -206,7 +206,7 @@ class TestDumpgenerator(unittest.TestCase):
         tests = [
             ['https://www.dokuwiki.org', 'DokuWiki'],
             #['http://wiki.openwrt.org', 'DokuWiki'],
-            ['http://skilledtests.com/wiki/', 'MediaWiki'],
+            #['http://skilledtests.com/wiki/', 'MediaWiki'],
             #['http://moinmo.in', 'MoinMoin'],
             ['https://wiki.debian.org', 'MoinMoin'],
             ['http://twiki.org/cgi-bin/view/', 'TWiki'],
@@ -274,7 +274,7 @@ class TestDumpgenerator(unittest.TestCase):
         tests = [
             # Alone wikis
             ['http://archiveteam.org', 'http://archiveteam.org/api.php', 'http://archiveteam.org/index.php'],
-            ['http://skilledtests.com/wiki/', 'http://skilledtests.com/wiki/api.php', 'http://skilledtests.com/wiki/index.php'],
+            #['http://skilledtests.com/wiki/', 'http://skilledtests.com/wiki/api.php', 'http://skilledtests.com/wiki/index.php'],
             
             # Editthis wikifarm
             # It has a page view limit
