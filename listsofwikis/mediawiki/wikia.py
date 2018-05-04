@@ -55,16 +55,16 @@ def main():
         print dbname
         first = dbname[0]
         # There are one-letter dbnames; the second letter is replaced by an underscore
-        # http://s3.amazonaws.com/wikia_xml_dumps/n/n_/n_pages_full.xml.gz
+        # http://s3.amazonaws.com/wikia_xml_dumps/n/n_/n_pages_full.xml.7z
         try:
             second = dbname[1]
         except:
             second = '_'
         base = 'http://s3.amazonaws.com/wikia_xml_dumps/' + first + '/' \
             + first + second + '/' + dbname
-        full = base + '_pages_full.xml.gz'
+        full = base + '_pages_full.xml.7z'
         print full
-        current = base + '_pages_current.xml.gz'
+        current = base + '_pages_current.xml.7z'
         images = base + '_images.tar'
         try:
             #subprocess.check_call(['wget', '-e', 'robots=off', '--fail', '-nc', '-a', 'wikia.log', full])
