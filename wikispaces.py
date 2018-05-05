@@ -27,7 +27,10 @@ import urllib.request
 
 def saveURL(url='', filename='', path=''):
     wikidomain = url.split('//')[1].split('/')[0]
-    filename2 = '%s/%s/%s' % (wikidomain, path, filename)
+    if path:
+        filename2 = '%s/%s/%s' % (wikidomain, path, filename)
+    else:
+        filename2 = '%s/%s' % (wikidomain, filename)
     opener = urllib.request.build_opener()
     opener.addheaders = [('User-agent', 'Mozilla/5.0')]
     urllib.request.install_opener(opener)
@@ -95,7 +98,7 @@ def downloadPagesAndFiles(wikiurl=''):
     print('Downloaded %d files' % (filesc))
 
 def downloadMainPage(wikiurl=''):
-    saveURL(url=wikiurl, filename='index.html')
+    saveURL(url=wikiurl, filename='index.html', path='')
 
 def main():
     if len(sys.argv) < 2:
