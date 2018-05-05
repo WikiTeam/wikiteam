@@ -152,14 +152,13 @@ def main():
         print('Please, introduce a wikispaces wiki url or filename.\nExample: https://yourwiki.wikispaces.com or mylistofwikis.txt')
         sys.exit()
     param = sys.argv[1]
-    param = param.rstrip('/')
     if not param:
         print('Please, introduce a wikispaces wiki url or filename.\nExample: https://yourwiki.wikispaces.com or mylistofwikis.txt')
         sys.exit()
     
     wikilist = []
     if '://' in param:
-        wikilist.append(param)
+        wikilist.append(param.rstrip('/'))
     else:
         with open(param, 'r') as f:
             wikilist = f.read().strip().splitlines()
