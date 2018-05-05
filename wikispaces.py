@@ -39,7 +39,7 @@ def saveURL(wikidomain='', url='', filename='', path=''):
         urllib.request.urlretrieve(url, filename2)
     except:
         sleep = 10 # seconds
-        maxsleep = 100
+        maxsleep = 60
         while sleep <= maxsleep:
             try:
                 print('Error while retrieving: %s' % (url))
@@ -65,9 +65,13 @@ def undoHTMLEntities(text=''):
 
 def convertHTML2Wikitext(wikidomain='', filename='', path=''):
     wikitext = ''
-    with open('%s/%s/%s' % (wikidomain, path, filename), 'r') as f:
+    wikitextfile = '%s/%s/%s' % (wikidomain, path, filename)
+    if not os.path.exists(wikitextfile):
+        print('Error retrieving wikitext, page is a redirect probably')
+        return
+    with open(wikitextfile, 'r') as f:
         wikitext = f.read()
-    with open('%s/%s/%s' % (wikidomain, path, filename), 'w') as f:
+    with open(wikitextfile, 'w') as f:
         m = re.findall(r'(?im)<div class="WikispacesContent WikispacesBs3">\s*<pre>', wikitext)
         if m:
             try:
@@ -145,23 +149,38 @@ def downloadMainPage(wikidomain='', wikiurl=''):
 
 def main():
     if len(sys.argv) < 2:
-        print('Please, introduce a wikispaces wiki url.\nExample: https://yourwiki.wikispaces.com')
+        print('Please, introduce a wikispaces wiki url or filename.\nExample: https://yourwiki.wikispaces.com or mylistofwikis.txt')
         sys.exit()
-    wikiurl = sys.argv[1]
-    wikiurl = wikiurl.rstrip('/')
-    if not wikiurl or not '//' in wikiurl:
-        print('Please, introduce a wikispaces wiki url.\nExample: https://yourwiki.wikispaces.com')
+    param = sys.argv[1]
+    param = param.rstrip('/')
+    if not param:
+        print('Please, introduce a wikispaces wiki url or filename.\nExample: https://yourwiki.wikispaces.com or mylistofwikis.txt')
         sys.exit()
-    wikidomain = wikiurl.split('//')[1].split('/')[0]
-    print('Creating directories for %s' % (wikidomain))
-    if not os.path.exists('%s/files' % (wikidomain)):
-        os.makedirs('%s/files' % (wikidomain))
-    if not os.path.exists('%s/pages' % (wikidomain)):
-        os.makedirs('%s/pages' % (wikidomain))
-    downloadPagesAndFiles(wikidomain=wikidomain, wikiurl=wikiurl)
-    sitemapurl = 'https://%s/sitemap.xml' % (wikidomain)
-    downloadSitemap(wikidomain=wikidomain, wikiurl=sitemapurl)
-    downloadMainPage(wikidomain=wikidomain, wikiurl=wikiurl)
+    
+    wikilist = []
+    if '://' in param:
+        wikilist.append(param)
+    else:
+        with open(param, 'r') as f:
+            wikilist = f.read().strip().splitlines()
+            wikilist2 = []
+            for wiki in wikilist:
+                wikilist2.append(wiki.rstrip('/'))
+            wikilist = wikilist2
+    
+    for wikiurl in wikilist:
+        wikidomain = wikiurl.split('://')[1].split('/')[0]
+        print('#'*40,'\n Analyzing:', wikiurl)
+        print('#'*40,'\n')
+        print('Creating directories for %s' % (wikidomain))
+        if not os.path.exists('%s/files' % (wikidomain)):
+            os.makedirs('%s/files' % (wikidomain))
+        if not os.path.exists('%s/pages' % (wikidomain)):
+            os.makedirs('%s/pages' % (wikidomain))
+        downloadPagesAndFiles(wikidomain=wikidomain, wikiurl=wikiurl)
+        sitemapurl = 'https://%s/sitemap.xml' % (wikidomain)
+        downloadSitemap(wikidomain=wikidomain, wikiurl=sitemapurl)
+        downloadMainPage(wikidomain=wikidomain, wikiurl=wikiurl)
 
 if __name__ == "__main__":
     main()
