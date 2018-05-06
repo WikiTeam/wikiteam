@@ -46,7 +46,7 @@ def saveURL(wikidomain='', url='', filename='', path='', overwrite=False):
         urllib.request.urlretrieve(url, filename2)
     except:
         sleep = 10 # seconds
-        maxsleep = 60
+        maxsleep = 30
         while sleep <= maxsleep:
             try:
                 print('Error while retrieving: %s' % (url))
@@ -242,6 +242,7 @@ def main():
     
     for wikiurl in wikilist:
         wikidomain = wikiurl.split('://')[1].split('/')[0]
+        print('\n')
         print('#'*40,'\n Downloading:', wikiurl)
         print('#'*40,'\n')
         dirfiles = '%s/files' % (wikidomain)
