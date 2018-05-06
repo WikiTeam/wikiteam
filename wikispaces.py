@@ -307,7 +307,7 @@ def main():
             itemlang = 'Unknown'
             itemdate = datetime.datetime.now().strftime("%Y-%m-%d")
             itemlogo = logofilename and '%s/%s' % (wikidir, logofilename) or ''                
-            subprocess.call('ia' + ' upload %s %s %s --metadata="mediatype:web" --metadata="collection:%s" --metadata="title:%s" --metadata="description:%s" --metadata="language:%s" --metadata="last-updated-date:%s" %s %s' % (itemid, wikizip, itemlogo and itemlogo or '', itemcollection, itemtitle, itemdesc, itemlang, itemdate, itemlicenseurl and '--metadata="licenseurl:%s"' % (itemlicenseurl) or '', itemtags_), shell=True)
+            subprocess.call('ia' + ' upload %s %s %s --metadata="mediatype:web" --metadata="collection:%s" --metadata="title:%s" --metadata="description:%s" --metadata="language:%s" --metadata="last-updated-date:%s" --metadata="originalurl:%s" %s %s' % (itemid, wikizip, itemlogo and itemlogo or '', itemcollection, itemtitle, itemdesc, itemlang, itemdate, itemoriginalurl, itemlicenseurl and '--metadata="licenseurl:%s"' % (itemlicenseurl) or '', itemtags_), shell=True)
             print('You can find it in https://archive.org/details/%s' % (itemid))
 
 if __name__ == "__main__":
