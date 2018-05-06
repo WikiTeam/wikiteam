@@ -71,9 +71,7 @@ def undoHTMLEntities(text=''):
 
     return text
 
-def convertHTML2Wikitext(wikidomain='', filename='', path='', overwrite=False):
-    if not overwrite:
-        return
+def convertHTML2Wikitext(wikidomain='', filename='', path=''):
     wikitext = ''
     wikitextfile = '%s/%s/%s' % (wikidomain, path, filename)
     if not os.path.exists(wikitextfile):
@@ -88,11 +86,7 @@ def convertHTML2Wikitext(wikidomain='', filename='', path='', overwrite=False):
                 wikitext = wikitext.split(m[0])[1].split('</pre>')[0].strip()
                 wikitext = undoHTMLEntities(text=wikitext)
             except:
-                wikitext = ''
-                print('Error extracting wikitext.')
-        else:
-            wikitext = ''
-            print('Error extracting wikitext.')
+                pass
         f.write(wikitext)
 
 def downloadPage(wikidomain='', wikiurl='', pagename='', overwrite=False):
@@ -108,7 +102,7 @@ def downloadPage(wikidomain='', wikiurl='', pagename='', overwrite=False):
     filename2 = '%s.wikitext' % (pagenameplus)
     print('Downloading page: %s' % (filename2))
     saveURL(wikidomain=wikidomain, url=pageurl2, filename=filename2, path='pages', overwrite=overwrite)
-    convertHTML2Wikitext(wikidomain=wikidomain, filename=filename2, path='pages', overwrite=overwrite)
+    convertHTML2Wikitext(wikidomain=wikidomain, filename=filename2, path='pages')
     
     #csv with page history
     csvurl = '%s/page/history/%s?utable=WikiTablePageHistoryList&ut_csv=1' % (wikiurl, pagename_)
@@ -245,6 +239,18 @@ def main():
         print('\n')
         print('#'*40,'\n Downloading:', wikiurl)
         print('#'*40,'\n')
+        
+        if upload and not overwriteia:
+            itemid = 'wiki-%s' % (wikidomain)
+            try:
+                iahtml = urllib.request.urlopen('https://archive.org/details/%s' % (itemid)).read().decode('utf-8')
+                if not re.findall(r'Item cannot be found', iahtml):
+                    if not overwriteia:
+                        print('Warning: item exists on Internet Archive. Skipping wiki. Force with parameter --overwrite-ia')
+                        continue
+            except:
+                pass
+        
         dirfiles = '%s/files' % (wikidomain)
         if not os.path.exists(dirfiles):
             print('Creating directory %s' % (dirfiles))
@@ -261,14 +267,6 @@ def main():
         
         if upload:
             itemid = 'wiki-%s' % (wikidomain)
-            try:
-                iahtml = urllib.request.urlopen('https://archive.org/details/%s' % (itemid)).read().decode('utf-8')
-                if not re.findall(r'Item cannot be found', iahtml):
-                    if not overwriteia:
-                        print('Warning: item exists on Internet Archive. Skipping upload. Force upload with parameter --overwrite-ia')
-                        continue
-            except:
-                pass
             print('\nCompressing dump...')
             wikidir = wikidomain
             os.chdir(wikidir)
