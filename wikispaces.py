@@ -260,12 +260,14 @@ def main():
         
         if upload:
             itemid = 'wiki-%s' % (wikidomain)
-            iahtml = urllib.request.urlopen('https://archive.org/details/%s' % (itemid)).read().decode('utf-8')
-            if not re.findall(r'Item cannot be found', iahtml):
-                if not overwriteia:
-                    print('Warning: item exists on Internet Archive. Skipping upload. Force upload with parameter --overwrite-ia')
-                    continue
-                
+            try:
+                iahtml = urllib.request.urlopen('https://archive.org/details/%s' % (itemid)).read().decode('utf-8')
+                if not re.findall(r'Item cannot be found', iahtml):
+                    if not overwriteia:
+                        print('Warning: item exists on Internet Archive. Skipping upload. Force upload with parameter --overwrite-ia')
+                        continue
+            except:
+                pass
             print('\nCompressing dump...')
             wikidir = wikidomain
             os.chdir(wikidir)
