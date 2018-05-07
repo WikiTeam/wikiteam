@@ -54,7 +54,7 @@ import urllib
 UTF8Writer = getwriter('utf8')
 sys.stdout = UTF8Writer(sys.stdout)
 
-__VERSION__ = '0.3.0-alpha'  # major, minor, micro: semver.org
+__VERSION__ = '0.4.0-alpha'  # major, minor, micro: semver.org
 
 class PageMissingError(Exception):
     def __init__(self, title, xml):
