@@ -39,11 +39,16 @@ except ImportError:             # Python 2.4 compatibility
     from md5 import new as md5
 import os
 import re
+import subprocess
 try:
     import requests
 except ImportError:
     print "Please install or update the Requests module."
     sys.exit(1)
+try:
+    import wikitools
+except ImportError:
+    print "Please install the wikitools 1.3+ module if you want to use --xmlrevisions."
 import time
 import urllib
 UTF8Writer = getwriter('utf8')
@@ -514,7 +519,7 @@ def getXMLPageCore(headers={}, params={}, config={}, session=None):
         if c > 0 and c < maxretries:
             wait = increment * c < maxseconds and increment * \
                 c or maxseconds  # incremental until maxseconds
-            print '    In attempt %d, XML for "%s" is wrong. Waiting %d seconds and reloading...'%(c, params['pages'], wait)
+            print '    In attempt %d, XML for "%s" is wrong. Waiting %d seconds and reloading...' %(c, params['pages'], wait)
             time.sleep(wait)
             # reducing server load requesting smallest chunks (if curonly then
             # limit = 1 from mother function)
@@ -677,10 +682,9 @@ def cleanXML(xml=''):
 
 
 def generateXMLDump(config={}, titles=[], start=None, session=None):
-    """ Generates a XML dump for a list of titles """
+    """ Generates a XML dump for a list of titles or from revision IDs """
     # TODO: titles is now unused.
 
-    print 'Retrieving the XML for every page from "%s"' % (start and start or 'start')
     header, config = getXMLHeader(config=config, session=session)
     footer = '</mediawiki>\n'  # new line at the end
     xmlfilename = '%s-%s-%s.xml' % (domain2prefix(config=config),
@@ -688,47 +692,99 @@ def generateXMLDump(config={}, titles=[], start=None, session=None):
                                     config['curonly'] and 'current' or 'history')
     xmlfile = ''
     lock = True
-    if start:
-        print "Removing the last chunk of past XML dump: it is probably incomplete."
-        for i in reverse_readline('%s/%s' % (config['path'], xmlfilename), truncate=True):
-            pass
-    else:
-        # requested complete xml dump
-        lock = False
+
+    if config['xmlrevisions']:
+        print 'Retrieving the XML for every page from the beginning'
         xmlfile = open('%s/%s' % (config['path'], xmlfilename), 'w')
         xmlfile.write(header.encode('utf-8'))
-        xmlfile.close()
-
-    xmlfile = open('%s/%s' % (config['path'], xmlfilename), 'a')
-    c = 1
-    for title in readTitles(config, start):
-        if not title.strip():
-            continue
-        if title == start:  # start downloading from start, included
-            lock = False
-        if lock:
-            continue
-        delay(config=config, session=session)
-        if c % 10 == 0:
-            print 'Downloaded %d pages' % (c)
         try:
-            for xml in getXMLPage(config=config, title=title, session=session):
+            for xml in getXMLRevisions(config=config, session=session):
                 xml = cleanXML(xml=xml)
                 xmlfile.write(xml.encode('utf-8'))
-        except PageMissingError:
-            logerror(
-                config=config,
-                text=u'The page "%s" was missing in the wiki (probably deleted)' %
-                (title.decode('utf-8'))
-            )
-        # here, XML is a correct <page> </page> chunk or
-        # an empty string due to a deleted page (logged in errors log) or
-        # an empty string due to an error while retrieving the page from server
-        # (logged in errors log)
-        c += 1
+        except AttributeError:
+            print "This wikitools module version is not working"
+            sys.exit()
+    else:
+        print 'Retrieving the XML for every page from "%s"' % (start and start or 'start')
+        if start:
+            print "Removing the last chunk of past XML dump: it is probably incomplete."
+            for i in reverse_readline('%s/%s' % (config['path'], xmlfilename), truncate=True):
+                pass
+        else:
+            # requested complete xml dump
+            lock = False
+            xmlfile = open('%s/%s' % (config['path'], xmlfilename), 'w')
+            xmlfile.write(header.encode('utf-8'))
+            xmlfile.close()
+
+        xmlfile = open('%s/%s' % (config['path'], xmlfilename), 'a')
+        c = 1
+        for title in readTitles(config, start):
+            if not title.strip():
+                continue
+            if title == start:  # start downloading from start, included
+                lock = False
+            if lock:
+                continue
+            delay(config=config, session=session)
+            if c % 10 == 0:
+                print 'Downloaded %d pages' % (c)
+            try:
+                for xml in getXMLPage(config=config, title=title, session=session):
+                    xml = cleanXML(xml=xml)
+                    xmlfile.write(xml.encode('utf-8'))
+            except PageMissingError:
+                logerror(
+                    config=config,
+                    text=u'The page "%s" was missing in the wiki (probably deleted)' %
+                    (title.decode('utf-8'))
+                )
+            # here, XML is a correct <page> </page> chunk or
+            # an empty string due to a deleted page (logged in errors log) or
+            # an empty string due to an error while retrieving the page from server
+            # (logged in errors log)
+            c += 1
+
     xmlfile.write(footer)
     xmlfile.close()
     print 'XML dump saved at...', xmlfilename
+
+def getXMLRevisions(config={}, session=None):
+    site = wikitools.wiki.Wiki(config['api'])
+    if config['namespaces']:
+        namespaces, namespacenames = getNamespacesAPI(config=config, session=session)
+    else:
+        namespaces = ['*']
+
+    for namespace in namespaces:
+        params = {
+            'action': 'query',
+            'generator': 'allrevisions',
+            'garvnamespace': namespace,
+            'garvlimit': 50,
+            'garvprop': 'ids',
+            'export': 1 # Just to make sure the parameter is passed. Empty is fine too.
+            }
+        request = wikitools.api.APIRequest(site, params)
+        results = request.queryGen()
+        try:
+            for result in results:
+                yield result['query']['export']['*']
+        except wikitools.api.APIError:
+            # Falling back to allpages generator, the wiki is too old
+            params = {
+                'action': 'query',
+                'generator': 'allpages',
+                'gaplimit': 50,
+                'export': 1 # Just to make sure the parameter is passed. Empty is fine too.
+            }
+            # allpages does not accept "*"
+            if namespace is not '*':
+                params['gapnamespace'] = namespace
+            request = wikitools.api.APIRequest(site, params)
+            results = request.queryGen()
+            for result in results:
+                yield result['query']['export']['*']
 
 def readTitles(config={}, start=None):
     """ Read title list from a file, from the title "start" """
@@ -1303,7 +1359,9 @@ def getParameters(params=[]):
         action='store_true',
         help="generates a full history XML dump (--xml --curonly for current revisions only)")
     groupDownload.add_argument('--curonly', action='store_true',
-                               help='store only the current version of pages')
+        help='store only the current version of pages; incompatible with --xmlrevisions')
+    groupDownload.add_argument('--xmlrevisions', action='store_true',
+                               help='download all revisions from an API generator')
     groupDownload.add_argument(
         '--images', action='store_true', help="generates an image dump")
     groupDownload.add_argument(
@@ -1502,6 +1560,7 @@ def getParameters(params=[]):
         'images': args.images,
         'logs': False,
         'xml': args.xml,
+        'xmlrevisions': args.xmlrevisions,
         'namespaces': namespaces,
         'exnamespaces': exnamespaces,
         'path': args.path and os.path.normpath(args.path) or '',
@@ -1547,7 +1606,7 @@ def checkAPI(api=None, session=None):
     try:
         result = getJSON(r)
         index = None
-        if result['query']:
+        if result:
             try:
                 index = result['query']['general']['server'] + \
                     result['query']['general']['script']
@@ -1886,7 +1945,7 @@ def saveSiteInfo(config={}, session=None):
                         'action': 'query',
                         'meta': 'siteinfo',
                         'siprop': 'general|namespaces',
-                        'format': 'json'}
+                        'format': 'json'},
                     timeout=10)
             result = getJSON(r)
             delay(config=config, session=session)
