@@ -698,7 +698,11 @@ def generateXMLDump(config={}, titles=[], start=None, session=None):
         xmlfile = open('%s/%s' % (config['path'], xmlfilename), 'w')
         xmlfile.write(header.encode('utf-8'))
         try:
+            r_timestamp = r'<timestamp>([^<]+)</timestamp>'
             for xml in getXMLRevisions(config=config, session=session):
+                numrevs = len(re.findall(r_timestamp, xml))
+                # Due to how generators work, it's expected this may be less
+                print "%d more revisions exported" % numrevs
                 xml = cleanXML(xml=xml)
                 xmlfile.write(xml.encode('utf-8'))
         except AttributeError:
@@ -751,40 +755,43 @@ def generateXMLDump(config={}, titles=[], start=None, session=None):
 
 def getXMLRevisions(config={}, session=None):
     site = wikitools.wiki.Wiki(config['api'])
-    if config['namespaces']:
-        namespaces, namespacenames = getNamespacesAPI(config=config, session=session)
-    else:
-        namespaces = ['*']
+    #if config['namespaces']:
+    #    namespaces, namespacenames = getNamespacesAPI(config=config, session=session)
+    #else:
+    namespaces = ['*']
 
     for namespace in namespaces:
+        print "Exporting revisions from namespace %s" % namespace
+        # TODO: 500 would be nicer, but need to find the wiki's limits
         params = {
             'action': 'query',
-            'generator': 'allrevisions',
-            'garvnamespace': namespace,
-            'garvlimit': 50,
-            'garvprop': 'ids',
-            'export': 1 # Just to make sure the parameter is passed. Empty is fine too.
+            'list': 'allrevisions',
+            'arvnamespace': '*',
+            'arvlimit': 50,
+            'arvprop': 'ids',
             }
         request = wikitools.api.APIRequest(site, params)
         results = request.queryGen()
         try:
             for result in results:
-                yield result['query']['export']['*']
+                revids = []
+                for page in result['query']['allrevisions']:
+                    for revision in page['revisions']:
+                        revids.append(str(revision['revid']))
+
+                print "50 more revisions listed, until %d" % revids[-1]
+                exportparams = {
+                    'action': 'query',
+                    'revids': '|'.join(revids),
+                    'export': '1',
+                }
+                exportrequest = wikitools.api.APIRequest(site, exportparams)
+                exportresults = exportrequest.queryGen()
+                for exportresult in exportresults:
+                    yield exportresult['query']['export']['*']
         except wikitools.api.APIError:
-            # Falling back to allpages generator, the wiki is too old
-            params = {
-                'action': 'query',
-                'generator': 'allpages',
-                'gaplimit': 50,
-                'export': 1 # Just to make sure the parameter is passed. Empty is fine too.
-            }
-            # allpages does not accept "*"
-            if namespace is not '*':
-                params['gapnamespace'] = namespace
-            request = wikitools.api.APIRequest(site, params)
-            results = request.queryGen()
-            for result in results:
-                yield result['query']['export']['*']
+            print "This wikitools version seems not to work for us. Exiting."
+            sys.exit()
 
 def readTitles(config={}, start=None):
     """ Read title list from a file, from the title "start" """
@@ -1361,7 +1368,8 @@ def getParameters(params=[]):
     groupDownload.add_argument('--curonly', action='store_true',
         help='store only the current version of pages; incompatible with --xmlrevisions')
     groupDownload.add_argument('--xmlrevisions', action='store_true',
-                               help='download all revisions from an API generator')
+                               help='download all revisions from an API generator. Ignores the \
+                               namespace selection')
     groupDownload.add_argument(
         '--images', action='store_true', help="generates an image dump")
     groupDownload.add_argument(
