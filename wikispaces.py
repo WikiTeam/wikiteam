@@ -247,6 +247,7 @@ def main():
                 if not re.findall(r'Item cannot be found', iahtml):
                     if not overwriteia:
                         print('Warning: item exists on Internet Archive. Skipping wiki. Force with parameter --overwrite-ia')
+                        print('You can find it in https://archive.org/details/%s' % (itemid))
                         continue
             except:
                 pass
