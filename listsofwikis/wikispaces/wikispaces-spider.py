@@ -88,6 +88,7 @@ def getWikis(user):
         return {}
 
 def main():
+    sleep = 0.2
     users = loadUsers()
     wikis = loadWikis()
     
@@ -115,7 +116,7 @@ def main():
             saveUsers(users)
             users = loadUsers()
         saveWikis(wikis)
-        time.sleep(1)
+        time.sleep(sleep)
     wikis = loadWikis()
     
     # find more wikis
@@ -136,7 +137,7 @@ def main():
             saveWikis(wikis)
             wikis = loadWikis()
         saveUsers(users)
-        time.sleep(1)
+        time.sleep(sleep)
     users = loadUsers()
     
     print '\nSummary:'
