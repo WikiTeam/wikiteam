@@ -150,7 +150,7 @@ def getNamespacesScraper(config={}, session=None):
     namespacenames = {0: ''}  # main is 0, no prefix
     if namespaces:
         r = session.post(
-            url=config['index'], data={'title': 'Special:Allpages'})
+            url=config['index'], data={'title': 'Special:Allpages'}, timeout=30)
         raw = r.text
         delay(config=config, session=session)
 
@@ -191,7 +191,8 @@ def getNamespacesAPI(config={}, session=None):
                 'action': 'query',
                 'meta': 'siteinfo',
                 'siprop': 'namespaces',
-                'format': 'json'}
+                'format': 'json'},
+            timeout=30
         )
         result = getJSON(r)
         delay(config=config, session=session)
@@ -249,7 +250,7 @@ def getPageTitlesAPI(config={}, session=None):
             retryCount = 0
             while retryCount < config["retries"]:
                 try:
-                    r = session.post(url=config['api'], data=params)
+                    r = session.post(url=config['api'], data=params, timeout=30)
                     break
                 except ConnectionError as err:
                     print "Connection error: %s" % (str(err),)
@@ -301,7 +302,7 @@ def getPageTitlesScraper(config={}, session=None):
         print '    Retrieving titles in the namespace', namespace
         url = '%s?title=Special:Allpages&namespace=%s' % (
             config['index'], namespace)
-        r = session.get(url=url)
+        r = session.get(url=url, timeout=30)
         raw = r.text
         raw = cleanHTML(raw)
 
@@ -353,7 +354,7 @@ def getPageTitlesScraper(config={}, session=None):
                     # to avoid reload dupe subpages links
                     checked_suballpages.append(name)
                     delay(config=config, session=session)
-                    r2 = session.get(url=url)
+                    r2 = session.get(url=url, timeout=10)
                     raw2 = r2.text
                     raw2 = cleanHTML(raw2)
                     rawacum += raw2  # merge it after removed junk
@@ -386,7 +387,7 @@ def getPageTitles(config={}, session=None):
 
     titles = []
     if 'api' in config and config['api']:
-        r = session.post(config['api'], {'action': 'query', 'list': 'allpages', 'format': 'json'})
+        r = session.post(config['api'], {'action': 'query', 'list': 'allpages', 'format': 'json'}, timeout=30)
         test = getJSON(r)
         if ('warnings' in test and 'allpages' in test['warnings'] and '*' in test['warnings']['allpages']
                 and test['warnings']['allpages']['*'] == 'The "allpages" module has been disabled.'):
@@ -454,7 +455,8 @@ def getXMLHeader(config={}, session=None):
                     'action': 'query',
                     'meta': 'siteinfo',
                     'siprop': 'namespaces',
-                    'format': 'json'}
+                    'format': 'json'},
+                timeout=120
                 )
                 config['export'] = json.loads(r.text)['query']['namespaces']['-1']['*'] \
                     + ':Export'
@@ -550,7 +552,7 @@ def getXMLPageCore(headers={}, params={}, config={}, session=None):
                 return ''  # empty xml
         # FIXME HANDLE HTTP Errors HERE
         try:
-            r = session.post(url=config['index'], data=params, headers=headers)
+            r = session.post(url=config['index'], data=params, headers=headers, timeout=10)
             handleStatusCode(r)
             xml = fixBOM(r)
         except requests.exceptions.ConnectionError as e:
@@ -866,7 +868,8 @@ def getImageNamesScraper(config={}, session=None):
             data={
                 'title': 'Special:Imagelist',
                 'limit': limit,
-                'offset': offset})
+                'offset': offset},
+            timeout=30)
         raw = r.text
         delay(config=config, session=session)
         # delicate wiki
@@ -967,7 +970,7 @@ def getImageNamesAPI(config={}, session=None):
             'format': 'json',
             'ailimit': 500}
         # FIXME Handle HTTP Errors HERE
-        r = session.post(url=config['api'], data=params)
+        r = session.post(url=config['api'], data=params, timeout=30)
         handleStatusCode(r)
         jsonimages = getJSON(r)
         delay(config=config, session=session)
@@ -1025,7 +1028,7 @@ def getImageNamesAPI(config={}, session=None):
                 'iiprop': 'user|url',
                 'format': 'json'}
             # FIXME Handle HTTP Errors HERE
-            r = session.post(url=config['api'], data=params)
+            r = session.post(url=config['api'], data=params, timeout=30)
             handleStatusCode(r)
             jsonimages = getJSON(r)
             delay(config=config, session=session)
@@ -1351,11 +1354,22 @@ def getParameters(params=[]):
         print 'Using cookies from %s' % args.cookies
 
     session = requests.Session()
+    try:
+        from requests.packages.urllib3.util.retry import Retry
+        from requests.adapters import HTTPAdapter
+        # Courtesy datashaman https://stackoverflow.com/a/35504626
+        __retries__ = Retry(total=5,
+                        backoff_factor=2,
+                        status_forcelist=[500, 502, 503, 504])
+        session.mount('https://', HTTPAdapter(max_retries=__retries__))
+        session.mount('http://', HTTPAdapter(max_retries=__retries__))
+    except:
+        # Our urllib3/requests is too old
+        pass
     session.cookies = cj
     session.headers.update({'User-Agent': getUserAgent()})
     if args.user and args.password:
         session.auth = (args.user, args.password)
-    # session.mount(args.api.split('/api.php')[0], HTTPAdapter(max_retries=max_ret))
 
     # check URLs
     for url in [args.api, args.index, args.wiki]:
@@ -1521,7 +1535,8 @@ def checkAPI(api=None, session=None):
             data={
                 'action': 'query',
                 'meta': 'siteinfo',
-                'format': 'json'}
+                'format': 'json'},
+            timeout=30
         )
         if r.url == api:
             break
@@ -1549,7 +1564,7 @@ def checkAPI(api=None, session=None):
 
 def checkIndex(index=None, cookies=None, session=None):
     """ Checking index.php availability """
-    r = session.post(url=index, data={'title': 'Special:Version'})
+    r = session.post(url=index, data={'title': 'Special:Version'}, timeout=30)
     raw = r.text
     print 'Checking index.php...', index
     # Workaround for issue 71
@@ -1811,7 +1826,7 @@ def saveSpecialVersion(config={}, session=None):
     else:
         print 'Downloading Special:Version with extensions and other related info'
         r = session.post(
-            url=config['index'], data={'title': 'Special:Version'})
+            url=config['index'], data={'title': 'Special:Version'}, timeout=10)
         raw = r.text
         delay(config=config, session=session)
         raw = removeIP(raw=raw)
@@ -1826,7 +1841,7 @@ def saveIndexPHP(config={}, session=None):
         print 'index.html exists, do not overwrite'
     else:
         print 'Downloading index.php (Main Page) as index.html'
-        r = session.post(url=config['index'], data={})
+        r = session.post(url=config['index'], data={}, timeout=10)
         raw = r.text
         delay(config=config, session=session)
         raw = removeIP(raw=raw)
@@ -1851,7 +1866,8 @@ def saveSiteInfo(config={}, session=None):
                     'meta': 'siteinfo',
                     'siprop': 'general|namespaces|statistics|dbrepllag|interwikimap|namespacealiases|specialpagealiases|usergroups|extensions|skins|magicwords|fileextensions|rightsinfo',
                     'sinumberingroup': 1,
-                    'format': 'json'})
+                    'format': 'json'},
+                timeout=10)
             # MediaWiki 1.11-1.12
             if not 'query' in getJSON(r):
                 r = session.post(
@@ -1860,7 +1876,8 @@ def saveSiteInfo(config={}, session=None):
                         'action': 'query',
                         'meta': 'siteinfo',
                         'siprop': 'general|namespaces|statistics|dbrepllag|interwikimap',
-                        'format': 'json'})
+                        'format': 'json'},
+                    timeout=10)
             # MediaWiki 1.8-1.10
             if not 'query' in getJSON(r):
                 r = session.post(
@@ -1869,7 +1886,8 @@ def saveSiteInfo(config={}, session=None):
                         'action': 'query',
                         'meta': 'siteinfo',
                         'siprop': 'general|namespaces',
-                        'format': 'json'})
+                        'format': 'json'}
+                    timeout=10)
             result = getJSON(r)
             delay(config=config, session=session)
             with open('%s/siteinfo.json' % (config['path']), 'w') as outfile:
@@ -1896,9 +1914,9 @@ def getWikiEngine(url=''):
 
     session = requests.Session()
     session.headers.update({'User-Agent': getUserAgent()})
-    r = session.post(url=url)
+    r = session.post(url=url, timeout=30)
     if r.status_code == 405 or r.text == '':
-        r = session.get(url=url)
+        r = session.get(url=url, timeout=120)
     result = r.text
 
     wikiengine = 'Unknown'
@@ -1981,7 +1999,7 @@ def mwGetAPIAndIndex(url=''):
     index = ''
     session = requests.Session()
     session.headers.update({'User-Agent': getUserAgent()})
-    r = session.post(url=url)
+    r = session.post(url=url, timeout=120)
     result = r.text
 
     # API
