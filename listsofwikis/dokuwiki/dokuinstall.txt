@@ -2706,7 +2706,7 @@ https://users.fit.cvut.cz/~loupalp/doku.php
 https://users.fit.cvut.cz/perglr/wiki/doku.php
 https://users.fit.cvut.cz/valenta/doku/doku.php
 https://users.fit.cvut.cz/xkubalik/doku.php
-https://vancouver.hackspace.ca/doku.php
+https://vanhack.ca/doku.php
 http://svenskkoreanska.se/dw/doku.php
 https://vph.cyfronet.pl/tutorial/doku.php
 https://vpn.muni.cz/doku.php
