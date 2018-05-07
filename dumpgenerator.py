@@ -442,34 +442,38 @@ def getXMLHeader(config={}, session=None):
     # similar to: <mediawiki xmlns="http://www.mediawiki.org/xml/export-0.3/"
     # xmlns:x....
     randomtitle = 'Main_Page'  # previously AMF5LKE43MNFGHKSDMRTJ
-    try:
-        xml = "".join([x for x in getXMLPage(config=config, title=randomtitle, verbose=False, session=session)])
-    except PageMissingError as pme:
-        # The <page> does not exist. Not a problem, if we get the <siteinfo>.
-        xml = pme.xml
-    # Issue 26: Account for missing "Special" namespace.
-    # Hope the canonical special name has not been removed.
-    # http://albens73.fr/wiki/api.php?action=query&meta=siteinfo&siprop=namespacealiases
-    except ExportAbortedError:
+    if config['xmlrevisions'] and config['api'] and config['api'].endswith("api.php"):
+        r = session.get(config['api'] + '?action=query&revids=1&export&exportnowrap')
+        xml = r.text
+    else:
         try:
-            if config['api']:
-                print "Trying the local name for the Special namespace instead"
-                r = session.post(
-                url=config['api'],
-                data={
-                    'action': 'query',
-                    'meta': 'siteinfo',
-                    'siprop': 'namespaces',
-                    'format': 'json'},
-                timeout=120
-                )
-                config['export'] = json.loads(r.text)['query']['namespaces']['-1']['*'] \
-                    + ':Export'
-                xml = "".join([x for x in getXMLPage(config=config, title=randomtitle, verbose=False, session=session)])
+            xml = "".join([x for x in getXMLPage(config=config, title=randomtitle, verbose=False, session=session)])
         except PageMissingError as pme:
+            # The <page> does not exist. Not a problem, if we get the <siteinfo>.
             xml = pme.xml
+        # Issue 26: Account for missing "Special" namespace.
+        # Hope the canonical special name has not been removed.
+        # http://albens73.fr/wiki/api.php?action=query&meta=siteinfo&siprop=namespacealiases
         except ExportAbortedError:
-            pass
+            try:
+                if config['api']:
+                    print "Trying the local name for the Special namespace instead"
+                    r = session.post(
+                    url=config['api'],
+                    data={
+                        'action': 'query',
+                        'meta': 'siteinfo',
+                        'siprop': 'namespaces',
+                        'format': 'json'},
+                    timeout=120
+                    )
+                    config['export'] = json.loads(r.text)['query']['namespaces']['-1']['*'] \
+                        + ':Export'
+                    xml = "".join([x for x in getXMLPage(config=config, title=randomtitle, verbose=False, session=session)])
+            except PageMissingError as pme:
+                xml = pme.xml
+            except ExportAbortedError:
+                pass
 
     header = xml.split('</mediawiki>')[0]
     if not re.match(r"\s*<mediawiki", xml):
@@ -528,6 +532,9 @@ def getXMLPageCore(headers={}, params={}, config={}, session=None):
         if c >= maxretries:
             print '    We have retried %d times' % (c)
             print '    MediaWiki error for "%s", network error or whatever...' % (params['pages'])
+            if config['failfast']:
+                print "Exit, it will be for another time"
+                sys.exit()
             # If it's not already what we tried: our last chance, preserve only the last revision...
             # config['curonly'] means that the whole dump is configured to save only the last,
             # params['curonly'] should mean that we've already tried this
@@ -766,7 +773,6 @@ def getXMLRevisions(config={}, session=None):
         params = {
             'action': 'query',
             'list': 'allrevisions',
-            'arvnamespace': '*',
             'arvlimit': 50,
             'arvprop': 'ids',
             }
@@ -779,7 +785,7 @@ def getXMLRevisions(config={}, session=None):
                     for revision in page['revisions']:
                         revids.append(str(revision['revid']))
 
-                print "50 more revisions listed, until %d" % revids[-1]
+                print "50 more revisions listed, until %s" % revids[-1]
                 exportparams = {
                     'action': 'query',
                     'revids': '|'.join(revids),
@@ -1178,10 +1184,14 @@ def generateImageDump(config={}, other={}, images=[], start='', session=None):
         # saving description if any
         try:
             title = u'Image:%s' % (filename)
-            xmlfiledesc = getXMLFileDesc(
-                config=config,
-                title=title,
-                session=session)  # use Image: for backwards compatibility
+            if config['xmlrevisions'] and config['api'] and config['api'].endswith("api.php"):
+                r = session.get(config['api'] + u"?action=query&export&exportnowrap&titles=%s" % title)
+                xml = r.text
+            else:
+                xmlfiledesc = getXMLFileDesc(
+                    config=config,
+                    title=title,
+                    session=session)  # use Image: for backwards compatibility
         except PageMissingError:
             xmlfiledesc = ''
             logerror(
@@ -1389,6 +1399,10 @@ def getParameters(params=[]):
         '--get-wiki-engine',
         action='store_true',
         help="returns the wiki engine")
+    groupMeta.add_argument(
+        '--failfast',
+        action='store_true',
+        help="Avoid resuming, discard failing wikis quickly. Useful only for mass downloads.")
 
     args = parser.parse_args()
     # print args
@@ -1564,6 +1578,7 @@ def getParameters(params=[]):
         'curonly': args.curonly,
         'date': datetime.datetime.now().strftime('%Y%m%d'),
         'api': api,
+        'failfast': args.failfast,
         'index': index,
         'images': args.images,
         'logs': False,
@@ -2127,7 +2142,10 @@ def main(params=[]):
     # do not enter if resume is requested from begining
     while not other['resume'] and os.path.isdir(config['path']):
         print '\nWarning!: "%s" path exists' % (config['path'])
-        reply = ''
+        if config['failfast']:
+            retry = 'yes'
+        else:
+            reply = ''
         while reply.lower() not in ['yes', 'y', 'no', 'n']:
             reply = raw_input(
                 'There is a dump in "%s", probably incomplete.\nIf you choose resume, to avoid conflicts, the parameters you have chosen in the current session will be ignored\nand the parameters available in "%s/%s" will be loaded.\nDo you want to resume ([yes, y], [no, n])? ' %
