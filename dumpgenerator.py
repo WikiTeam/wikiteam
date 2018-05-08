@@ -443,8 +443,16 @@ def getXMLHeader(config={}, session=None):
     # xmlns:x....
     randomtitle = 'Main_Page'  # previously AMF5LKE43MNFGHKSDMRTJ
     if config['xmlrevisions'] and config['api'] and config['api'].endswith("api.php"):
-        r = session.get(config['api'] + '?action=query&revids=1&export&exportnowrap')
-        xml = r.text
+        xml = None
+        try:
+            r = session.get(config['api'] + '?action=query&revids=1&export&exportnowrap', timeout=10)
+            xml = r.text
+        except requests.exceptions.RetryError:
+            pass
+
+        if not xml:
+            r = session.get(config['api'] + '?action=query&revids=1&export&format=json', timeout=10)
+            xml = r.json()['query']['export']['*']
     else:
         try:
             xml = "".join([x for x in getXMLPage(config=config, title=randomtitle, verbose=False, session=session)])
@@ -1186,7 +1194,7 @@ def generateImageDump(config={}, other={}, images=[], start='', session=None):
             title = u'Image:%s' % (filename)
             if config['xmlrevisions'] and config['api'] and config['api'].endswith("api.php"):
                 r = session.get(config['api'] + u"?action=query&export&exportnowrap&titles=%s" % title)
-                xml = r.text
+                xmlfiledesc = r.text
             else:
                 xmlfiledesc = getXMLFileDesc(
                     config=config,
