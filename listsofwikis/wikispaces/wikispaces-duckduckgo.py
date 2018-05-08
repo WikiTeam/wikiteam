@@ -1,0 +1,75 @@
+#!/usr/bin/env python2
+# -*- coding: utf-8 -*-
+
+# Copyright (C) 2018 WikiTeam developers
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+import random
+import re
+import time
+import urllib.request
+
+def main():
+    opener = urllib.request.build_opener()
+    opener.addheaders = [('User-agent', 'Mozilla/5.0')]
+    urllib.request.install_opener(opener)
+    
+    words = []
+    with open('words.txt', 'r') as f:
+        words = f.read().strip().splitlines()
+    random.shuffle(words)
+    print('Loaded %d words from file' % (len(words)))
+    #words = words + ['%d' % (i) for i in range(1900, 1980, 10)]
+    wikis = []
+    with open('wikispaces-duckduckgo.txt', 'r') as f:
+        wikis = f.read().strip().splitlines()
+        wikis.sort()
+    print('Loaded %d wikis from file' % (len(wikis)))
+    
+    for word in words:
+        print('Word', word)
+        word_ = re.sub(' ', '+', word)
+        url = ''
+        r = random.randint(0, 3)
+        if r == 0:
+            url = 'https://duckduckgo.com/html/?q=%s%%20site:wikispaces.com' % (word_)
+        elif r == 1:
+            url = 'https://duckduckgo.com/html/?q=%s%%20wikispaces.com' % (word_)
+        elif r == 2:
+            url = 'https://duckduckgo.com/html/?q=%s%%20%s%%20wikispaces.com' % (word_, random.randint(1000, 2000))
+        elif r == 3:
+            url = 'https://duckduckgo.com/html/?q=%s%%20%s%%20wikispaces.com' % (random.randint(1000, 2000), word_)
+        else:
+            url = 'https://duckduckgo.com/html/?q=%s%%20site:wikispaces.com' % (word_)
+        print('URL search', url)
+        try:
+            html = urllib.request.urlopen(url).read().decode('utf-8')
+        except:
+            print('Search error')
+            sys.exit()
+        html = urllib.parse.unquote(html)
+        m = re.findall(r'://([^/]+?\.wikispaces\.com)', html)
+        for wiki in m:
+            wiki = 'https://' + wiki
+            if not wiki in wikis:
+                wikis.append(wiki)
+                wikis.sort()
+                print(wiki)
+        with open('wikispaces-duckduckgo.txt', 'w') as f:
+            wikis.sort()
+            f.write('\n'.join(wikis))
+        time.sleep(random.randint(5,15))
+
+if __name__ == '__main__':
+    main()
