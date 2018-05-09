@@ -31,7 +31,7 @@ import urllib.request
 # zip command (apt-get install zip)
 # ia command (pip install internetarchive, and configured properly)
 
-def saveURL(wikidomain='', url='', filename='', path='', overwrite=False):
+def saveURL(wikidomain='', url='', filename='', path='', overwrite=False, iteration=1):
     filename2 = '%s/%s' % (wikidomain, filename)
     if path:
         filename2 = '%s/%s/%s' % (wikidomain, path, filename)
@@ -57,6 +57,18 @@ def saveURL(wikidomain='', url='', filename='', path='', overwrite=False):
             except:
                 sleep = sleep * 2
         print('Download failed')
+    
+    #sometimes wikispaces returns invalid data, redownload in that cases
+    if os.path.exists(filename2) and \
+        filename2.split('.')[-1].lower() in ['csv', 'html', 'wikitext', 'xml']:
+        sleep2 = 60 * iteration
+        raw = ''
+        with open(filename2, 'r') as f:
+            raw = f.read()
+        if re.findall(r'(?im)<title>TES and THE Status</title>', raw):
+            print('Warning: invalid content. Waiting %d seconds and re-downloading' % (sleep2))
+            time.sleep(sleep2)
+            saveURL(wikidomain=wikidomain, url=url, filename=filename, path=path, overwrite=overwrite, iteration=iteration+1)
 
 def undoHTMLEntities(text=''):
     """ Undo some HTML codes """
