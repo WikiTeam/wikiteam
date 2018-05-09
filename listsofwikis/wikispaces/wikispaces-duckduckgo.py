@@ -37,39 +37,50 @@ def main():
         wikis.sort()
     print('Loaded %d wikis from file' % (len(wikis)))
     
-    for word in words:
-        print('Word', word)
-        word_ = re.sub(' ', '+', word)
-        url = ''
-        r = random.randint(0, 3)
-        if r == 0:
-            url = 'https://duckduckgo.com/html/?q=%s%%20site:wikispaces.com' % (word_)
-        elif r == 1:
-            url = 'https://duckduckgo.com/html/?q=%s%%20wikispaces.com' % (word_)
-        elif r == 2:
-            url = 'https://duckduckgo.com/html/?q=%s%%20%s%%20wikispaces.com' % (word_, random.randint(1000, 2000))
-        elif r == 3:
-            url = 'https://duckduckgo.com/html/?q=%s%%20%s%%20wikispaces.com' % (random.randint(1000, 2000), word_)
-        else:
-            url = 'https://duckduckgo.com/html/?q=%s%%20site:wikispaces.com' % (word_)
-        print('URL search', url)
-        try:
-            html = urllib.request.urlopen(url).read().decode('utf-8')
-        except:
-            print('Search error')
-            sys.exit()
-        html = urllib.parse.unquote(html)
-        m = re.findall(r'://([^/]+?\.wikispaces\.com)', html)
-        for wiki in m:
-            wiki = 'https://' + wiki
-            if not wiki in wikis:
-                wikis.append(wiki)
+    for i in range(1, 100):
+        random.shuffle(words)
+        for word in words:
+            print('Word', word)
+            word_ = re.sub(' ', '+', word)
+            url = ''
+            r = random.randint(0, 10)
+            if r == 0:
+                url = 'https://duckduckgo.com/html/?q=%s%%20site:wikispaces.com' % (word_)
+            elif r == 1:
+                url = 'https://duckduckgo.com/html/?q=%s%%20wikispaces.com' % (word_)
+            elif r == 2:
+                url = 'https://duckduckgo.com/html/?q=%s%%20%s%%20wikispaces.com' % (word_, random.randint(100, 3000))
+            elif r == 3:
+                url = 'https://duckduckgo.com/html/?q=%s%%20%s%%20wikispaces.com' % (random.randint(100, 3000), word_)
+            else:
+                url = 'https://duckduckgo.com/html/?q=%s%%20%s%%20wikispaces.com' % (word_, random.randint(100, 3000))
+            print('URL search', url)
+            try:
+                html = urllib.request.urlopen(url).read().decode('utf-8')
+            except:
+                print('Search error')
+                sys.exit()
+            html = urllib.parse.unquote(html)
+            m = re.findall(r'://([^/]+?\.wikispaces\.com)', html)
+            for wiki in m:
+                wiki = 'https://' + wiki
+                if not wiki in wikis:
+                    wikis.append(wiki)
+                    wikis.sort()
+                    print(wiki)
+            with open('wikispaces-duckduckgo.txt', 'w') as f:
+                wikis2 = []
+                for wiki in wikis:
+                    wiki = re.sub(r'https://www\.', 'https://', wiki)
+                    if not wiki in wikis2:
+                        wikis2.append(wiki)
+                wikis = wikis2
                 wikis.sort()
-                print(wiki)
-        with open('wikispaces-duckduckgo.txt', 'w') as f:
-            wikis.sort()
-            f.write('\n'.join(wikis))
-        time.sleep(random.randint(5,15))
+                f.write('\n'.join(wikis))
+            print('%d wikis found' % (len(wikis)))
+            sleep = random.randint(5,20)
+            print('Sleeping %d seconds' % (sleep))
+            time.sleep(sleep)
 
 if __name__ == '__main__':
     main()
