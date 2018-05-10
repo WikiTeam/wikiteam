@@ -59,8 +59,9 @@ def saveURL(wikidomain='', url='', filename='', path='', overwrite=False, iterat
         print('Download failed')
     
     #sometimes wikispaces returns invalid data, redownload in that cases
-    if os.path.exists(filename2) and \
-        filename2.split('.')[-1].lower() in ['csv', 'html', 'wikitext', 'xml']:
+    #only 'pages'. 'files' binaries are a pain to open and check
+    if (os.path.exists(filename2) and 'pages' in path) or \
+        (os.path.exists(filename2) and path == '' and filename2.split('.')[-1] in ['xml', 'html', 'csv']):
         sleep2 = 60 * iteration
         raw = ''
         with open(filename2, 'r') as f:
@@ -255,11 +256,17 @@ def main():
         if upload and not overwriteia:
             itemid = 'wiki-%s' % (wikidomain)
             try:
-                iahtml = urllib.request.urlopen('https://archive.org/details/%s' % (itemid)).read().decode('utf-8')
-                if not re.findall(r'Item cannot be found', iahtml):
+                iahtml = ''
+                try:
+                    iahtml = urllib.request.urlopen('https://archive.org/details/%s' % (itemid)).read().decode('utf-8')
+                except:
+                    time.sleep(10)
+                    iahtml = urllib.request.urlopen('https://archive.org/details/%s' % (itemid)).read().decode('utf-8')
+                if iahtml and not re.findall(r'Item cannot be found', iahtml):
                     if not overwriteia:
                         print('Warning: item exists on Internet Archive. Skipping wiki. Force with parameter --overwrite-ia')
                         print('You can find it in https://archive.org/details/%s' % (itemid))
+                        time.sleep(1)
                         continue
             except:
                 pass
