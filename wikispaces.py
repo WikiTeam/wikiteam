@@ -64,8 +64,15 @@ def saveURL(wikidomain='', url='', filename='', path='', overwrite=False, iterat
         (os.path.exists(filename2) and path == '' and filename2.split('.')[-1] in ['xml', 'html', 'csv']):
         sleep2 = 60 * iteration
         raw = ''
-        with open(filename2, 'r') as f:
-            raw = f.read()
+        try:
+            with open(filename2, 'r', encoding='utf-8') as f:
+                raw = f.read()
+        except:
+            try:
+                with open(filename2, 'r', encoding='latin-1') as f:
+                    raw = f.read()
+            except:
+                pass
         if re.findall(r'(?im)<title>TES and THE Status</title>', raw):
             print('Warning: invalid content. Waiting %d seconds and re-downloading' % (sleep2))
             time.sleep(sleep2)
