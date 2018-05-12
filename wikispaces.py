@@ -68,11 +68,8 @@ def saveURL(wikidomain='', url='', filename='', path='', overwrite=False, iterat
             with open(filename2, 'r', encoding='utf-8') as f:
                 raw = f.read()
         except:
-            try:
-                with open(filename2, 'r', encoding='latin-1') as f:
-                    raw = f.read()
-            except:
-                pass
+            with open(filename2, 'r', encoding='latin-1') as f:
+                raw = f.read()
         if re.findall(r'(?im)<title>TES and THE Status</title>', raw):
             print('Warning: invalid content. Waiting %d seconds and re-downloading' % (sleep2))
             time.sleep(sleep2)
@@ -323,7 +320,11 @@ def main():
             itemtags = ['wiki', 'wikiteam', 'wikispaces', wikititle, wikidomain.split('.wikispaces.com')[0], wikidomain]
             itemoriginalurl = wikiurl
             itemlicenseurl = ''
-            m = re.findall(r'<a rel="license" href="([^<>]+?)">', indexhtml.split('<div class="WikiLicense')[1].split('</div>')[0])
+            m = ''
+            try:
+                m = re.findall(r'<a rel="license" href="([^<>]+?)">', indexhtml.split('<div class="WikiLicense')[1].split('</div>')[0])
+            except:
+                m = ''
             if m:
                 itemlicenseurl = m[0]
             if not itemlicenseurl:
