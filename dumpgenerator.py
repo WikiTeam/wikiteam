@@ -51,6 +51,10 @@ except ImportError:
     print "Please install the wikitools 1.3+ module if you want to use --xmlrevisions."
 import time
 import urllib
+try:
+    from urlparse import urlparse, urlunparse
+except ImportError:
+    from urllib.parse import urlparse, urlunparse
 UTF8Writer = getwriter('utf8')
 sys.stdout = UTF8Writer(sys.stdout)
 
@@ -192,7 +196,7 @@ def getNamespacesAPI(config={}, session=None):
     if namespaces:
         r = session.post(
             url=config['api'],
-            data={
+            params={
                 'action': 'query',
                 'meta': 'siteinfo',
                 'siprop': 'namespaces',
@@ -255,7 +259,7 @@ def getPageTitlesAPI(config={}, session=None):
             retryCount = 0
             while retryCount < config["retries"]:
                 try:
-                    r = session.post(url=config['api'], data=params, timeout=30)
+                    r = session.post(url=config['api'], params=params, timeout=30)
                     break
                 except ConnectionError as err:
                     print "Connection error: %s" % (str(err),)
@@ -392,7 +396,7 @@ def getPageTitles(config={}, session=None):
 
     titles = []
     if 'api' in config and config['api']:
-        r = session.post(config['api'], {'action': 'query', 'list': 'allpages', 'format': 'json'}, timeout=30)
+        r = session.post(config['api'], params={'action': 'query', 'list': 'allpages', 'format': 'json'}, timeout=30)
         test = getJSON(r)
         if ('warnings' in test and 'allpages' in test['warnings'] and '*' in test['warnings']['allpages']
                 and test['warnings']['allpages']['*'] == 'The "allpages" module has been disabled.'):
@@ -442,9 +446,11 @@ def getXMLHeader(config={}, session=None):
     # similar to: <mediawiki xmlns="http://www.mediawiki.org/xml/export-0.3/"
     # xmlns:x....
     randomtitle = 'Main_Page'  # previously AMF5LKE43MNFGHKSDMRTJ
+    print config['api']
     if config['xmlrevisions'] and config['api'] and config['api'].endswith("api.php"):
         xml = None
         try:
+            print 'Getting the XML header from the API'
             r = session.get(config['api'] + '?action=query&revids=1&export&exportnowrap', timeout=10)
             xml = r.text
         except requests.exceptions.RetryError:
@@ -1254,7 +1260,7 @@ def domain2prefix(config={}, session=None):
         domain = config['index']
 
     domain = domain.lower()
-    domain = re.sub(r'(https?://|www\.|/index\.php|/api\.php)', '', domain)
+    domain = re.sub(r'(https?://|www\.|/index\.php.+|/api\.php.+)', '', domain)
     domain = re.sub(r'/', '_', domain)
     domain = re.sub(r'\.', '', domain)
     domain = re.sub(r'[^A-Za-z0-9]', '_', domain)
@@ -1530,15 +1536,20 @@ def getParameters(params=[]):
                 session=session):
             print 'index.php is OK'
         else:
-            index = '/'.join(index.split('/')[:-1])
+            try:
+                index = '/'.join(index.split('/')[:-1])
+            except AttributeError:
+                index = None
             if index and checkIndex(
                     index=index,
                     cookies=args.cookies,
                     session=session):
                 print 'index.php is OK'
             else:
-                print 'Error in index.php, please, provide a correct path to index.php'
-                sys.exit(1)
+                print 'Error in index.php.'
+                if not args.xmlrevisions:
+                    print 'Please, provide a correct path to index.php or use --xmlrevisions. Terminating.'
+                    sys.exit(1)
 
     # check user and pass (one requires both)
     if (args.user and not args.password) or (args.password and not args.user):
@@ -1622,16 +1633,17 @@ def checkAPI(api=None, session=None):
         print 'Checking API...', api
         r = session.post(
             url=api,
-            data={
+            params={
                 'action': 'query',
                 'meta': 'siteinfo',
                 'format': 'json'},
             timeout=30
         )
-        if r.url == api:
+        if r.status_code == 200:
             break
         else:
-            api = r.url
+            p = r.url
+            api = urlunparse([p.scheme, p.netloc, p.path, '', '', ''])
     if "MediaWiki API is not enabled for this site." in r.text:
         return False
     try:
@@ -1988,10 +2000,14 @@ def avoidWikimediaProjects(config={}, other={}):
     """ Skip Wikimedia projects and redirect to the dumps website """
 
     # notice about wikipedia dumps
+    url = ''
+    if config['api']:
+        url = url + config['api']
+    if config['index']:
+        url = url + config['index']
     if re.findall(
             r'(?i)(wikipedia|wikisource|wiktionary|wikibooks|wikiversity|wikimedia|wikispecies|wikiquote|wikinews|wikidata|wikivoyage)\.org',
-            config['api'] +
-            config['index']):
+            url):
         print 'PLEASE, DO NOT USE THIS SCRIPT TO DOWNLOAD WIKIMEDIA PROJECTS!'
         print 'Download the dumps from http://dumps.wikimedia.org'
         if not other['force']:
