@@ -159,7 +159,7 @@ def getNamespacesScraper(config={}, session=None):
     namespacenames = {0: ''}  # main is 0, no prefix
     if namespaces:
         r = session.post(
-            url=config['index'], data={'title': 'Special:Allpages'}, timeout=30)
+            url=config['index'], params={'title': 'Special:Allpages'}, timeout=30)
         raw = r.text
         delay(config=config, session=session)
 
@@ -474,7 +474,7 @@ def getXMLHeader(config={}, session=None):
                     print "Trying the local name for the Special namespace instead"
                     r = session.post(
                     url=config['api'],
-                    data={
+                    params={
                         'action': 'query',
                         'meta': 'siteinfo',
                         'siprop': 'namespaces',
@@ -578,7 +578,7 @@ def getXMLPageCore(headers={}, params={}, config={}, session=None):
                 return ''  # empty xml
         # FIXME HANDLE HTTP Errors HERE
         try:
-            r = session.post(url=config['index'], data=params, headers=headers, timeout=10)
+            r = session.post(url=config['index'], params=params, headers=headers, timeout=10)
             handleStatusCode(r)
             xml = fixBOM(r)
         except requests.exceptions.ConnectionError as e:
@@ -948,7 +948,7 @@ def getImageNamesScraper(config={}, session=None):
         # http://www.memoryarchive.org/en/index.php?title=Special:Imagelist&sort=byname&limit=50&wpIlMatch=
         r = session.post(
             url=config['index'],
-            data={
+            params={
                 'title': 'Special:Imagelist',
                 'limit': limit,
                 'offset': offset},
@@ -1053,7 +1053,7 @@ def getImageNamesAPI(config={}, session=None):
             'format': 'json',
             'ailimit': 500}
         # FIXME Handle HTTP Errors HERE
-        r = session.post(url=config['api'], data=params, timeout=30)
+        r = session.post(url=config['api'], params=params, timeout=30)
         handleStatusCode(r)
         jsonimages = getJSON(r)
         delay(config=config, session=session)
@@ -1111,7 +1111,7 @@ def getImageNamesAPI(config={}, session=None):
                 'iiprop': 'user|url',
                 'format': 'json'}
             # FIXME Handle HTTP Errors HERE
-            r = session.post(url=config['api'], data=params, timeout=30)
+            r = session.post(url=config['api'], params=params, timeout=30)
             handleStatusCode(r)
             jsonimages = getJSON(r)
             delay(config=config, session=session)
@@ -1260,7 +1260,7 @@ def domain2prefix(config={}, session=None):
         domain = config['index']
 
     domain = domain.lower()
-    domain = re.sub(r'(https?://|www\.|/index\.php.+|/api\.php.+)', '', domain)
+    domain = re.sub(r'(https?://|www\.|/index\.php.*|/api\.php.*)', '', domain)
     domain = re.sub(r'/', '_', domain)
     domain = re.sub(r'\.', '', domain)
     domain = re.sub(r'[^A-Za-z0-9]', '_', domain)
@@ -1666,7 +1666,7 @@ def checkAPI(api=None, session=None):
 
 def checkIndex(index=None, cookies=None, session=None):
     """ Checking index.php availability """
-    r = session.post(url=index, data={'title': 'Special:Version'}, timeout=30)
+    r = session.post(url=index, params={'title': 'Special:Version'}, timeout=30)
     raw = r.text
     print 'Checking index.php...', index
     # Workaround for issue 71
@@ -1928,7 +1928,7 @@ def saveSpecialVersion(config={}, session=None):
     else:
         print 'Downloading Special:Version with extensions and other related info'
         r = session.post(
-            url=config['index'], data={'title': 'Special:Version'}, timeout=10)
+            url=config['index'], params={'title': 'Special:Version'}, timeout=10)
         raw = r.text
         delay(config=config, session=session)
         raw = removeIP(raw=raw)
@@ -1943,7 +1943,7 @@ def saveIndexPHP(config={}, session=None):
         print 'index.html exists, do not overwrite'
     else:
         print 'Downloading index.php (Main Page) as index.html'
-        r = session.post(url=config['index'], data={}, timeout=10)
+        r = session.post(url=config['index'], params={}, timeout=10)
         raw = r.text
         delay(config=config, session=session)
         raw = removeIP(raw=raw)
@@ -1963,7 +1963,7 @@ def saveSiteInfo(config={}, session=None):
             # MediaWiki 1.13+
             r = session.post(
                 url=config['api'],
-                data={
+                params={
                     'action': 'query',
                     'meta': 'siteinfo',
                     'siprop': 'general|namespaces|statistics|dbrepllag|interwikimap|namespacealiases|specialpagealiases|usergroups|extensions|skins|magicwords|fileextensions|rightsinfo',
@@ -1974,7 +1974,7 @@ def saveSiteInfo(config={}, session=None):
             if not 'query' in getJSON(r):
                 r = session.post(
                     url=config['api'],
-                    data={
+                    params={
                         'action': 'query',
                         'meta': 'siteinfo',
                         'siprop': 'general|namespaces|statistics|dbrepllag|interwikimap',
@@ -1984,7 +1984,7 @@ def saveSiteInfo(config={}, session=None):
             if not 'query' in getJSON(r):
                 r = session.post(
                     url=config['api'],
-                    data={
+                    params={
                         'action': 'query',
                         'meta': 'siteinfo',
                         'siprop': 'general|namespaces',
