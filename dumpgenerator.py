@@ -494,9 +494,15 @@ def getXMLHeader(config={}, session=None):
 
     header = xml.split('</mediawiki>')[0]
     if not re.match(r"\s*<mediawiki", xml):
-        print 'XML export on this wiki is broken, quitting.'
-        logerror(u'XML export on this wiki is broken, quitting.')
-        sys.exit()
+        if config['xmlrevisions']:
+            # Try again the old way
+            print 'Export test via the API failed. Wiki too old? Trying without xmlrevisions.'
+            config['xmlrevisions'] = False
+            header, config = getXMLHeader(config=config, session=session)
+        else:
+            print 'XML export on this wiki is broken, quitting.'
+            logerror(u'XML export on this wiki is broken, quitting.')
+            sys.exit()
     return header, config
 
 
