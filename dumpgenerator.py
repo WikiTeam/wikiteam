@@ -1729,7 +1729,11 @@ def getJSON(request):
     """Strip Unicode BOM"""
     if request.text.startswith(u'\ufeff'):
         request.encoding = 'utf-8-sig'
-    return request.json()
+    try:
+        return request.json()
+    except:
+        # Maybe an older API version which did not return correct JSON
+        return {}
 
 
 def fixBOM(request):
@@ -1821,7 +1825,7 @@ def resumePreviousDump(config={}, other={}):
             if lasttitle == '':
                 lasttitle=lasttitles.next()
         except:
-            pass  # probably file does not exists
+            lasttitle = ''  # probably file does not exists
         if lasttitle == '--END--':
             # titles list is complete
             print 'Title list was completed in the previous session'
@@ -1973,7 +1977,6 @@ def saveIndexPHP(config={}, session=None):
         raw = removeIP(raw=raw)
         with open('%s/index.html' % (config['path']), 'w') as outfile:
             outfile.write(raw.encode('utf-8'))
-
 
 def saveSiteInfo(config={}, session=None):
     """ Save a file with site info """
