@@ -425,7 +425,7 @@ def getPageTitles(config={}, session=None):
 
     print '%d page titles loaded' % (c)
     return titlesfilename
-    
+
 def getImageNames(config={}, session=None):
     """ Get list of image names """
 
@@ -454,14 +454,14 @@ def getXMLHeader(config={}, session=None):
         xml = None
         try:
             print 'Getting the XML header from the API'
-            r = session.get(config['api'] + '?action=query&revids=1&export&exportnowrap', timeout=10)
-            xml = r.text
+            r = session.get(config['api'] + '?action=query&revids=1&export&format=json', timeout=10)
+            xml = r.json()['query']['export']['*']
+            if not xml:
+                r = session.get(config['api'] + '?action=query&revids=1&export&exportnowrap', timeout=10)
+                xml = r.text
         except requests.exceptions.RetryError:
             pass
 
-        if not xml:
-            r = session.get(config['api'] + '?action=query&revids=1&export&format=json', timeout=10)
-            xml = r.json()['query']['export']['*']
     else:
         try:
             xml = "".join([x for x in getXMLPage(config=config, title=randomtitle, verbose=False, session=session)])
@@ -783,25 +783,27 @@ def generateXMLDump(config={}, titles=[], start=None, session=None):
     xmlfile.close()
     print 'XML dump saved at...', xmlfilename
 
-def getXMLRevisions(config={}, session=None):
+def getXMLRevisions(config={}, session=None, allpages=False):
     site = wikitools.wiki.Wiki(config['api'])
-    #if config['namespaces']:
-    #    namespaces, namespacenames = getNamespacesAPI(config=config, session=session)
-    #else:
-    namespaces = ['*']
+    if not 'all' in config['namespaces']:
+        namespaces = config['namespaces']
+        print namespaces
+    else:
+        namespaces = ['*']
 
     for namespace in namespaces:
         print "Exporting revisions from namespace %s" % namespace
-        # TODO: 500 would be nicer, but need to find the wiki's limits
-        params = {
-            'action': 'query',
-            'list': 'allrevisions',
-            'arvlimit': 50,
-            'arvprop': 'ids',
-            }
-        request = wikitools.api.APIRequest(site, params)
-        results = request.queryGen()
         try:
+            # TODO: 500 would be nicer, but need to find the wiki's limits
+            params = {
+                'action': 'query',
+                'list': 'allrevisions',
+                'arvlimit': 50,
+                'arvprop': 'ids',
+                'arvnamespace': '*'
+                }
+            request = wikitools.api.APIRequest(site, params)
+            results = request.queryGen()
             for result in results:
                 revids = []
                 for page in result['query']['allrevisions']:
@@ -818,6 +820,19 @@ def getXMLRevisions(config={}, session=None):
                 exportresults = exportrequest.queryGen()
                 for exportresult in exportresults:
                     yield exportresult['query']['export']['*']
+        except KeyError:
+            print "Error. Is the allrevisions module missing? Trying allpages."
+            for title in readTitles(config):
+                exportparams = {
+                    'action': 'query',
+                    'titles': title,
+                    'export': '1',
+                }
+                exportrequest = wikitools.api.APIRequest(site, exportparams)
+                exportresults = exportrequest.queryGen()
+                for exportresult in exportresults:
+                    yield exportresult['query']['export']['*']
+
         except wikitools.api.APIError:
             print "This wikitools version seems not to work for us. Exiting."
             sys.exit()
