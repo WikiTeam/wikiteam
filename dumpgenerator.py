@@ -1715,9 +1715,12 @@ def checkAPI(api=None, session=None):
         )
         if r.status_code == 200:
             break
-        else:
+        elif r.status_code < 400:
             p = r.url
             api = urlunparse([p.scheme, p.netloc, p.path, '', '', ''])
+        elif r.status_code > 400:
+            print "MediaWiki API URL not found or giving error: HTTP %d" % r.status_code
+            return False
     if "MediaWiki API is not enabled for this site." in r.text:
         return False
     try:
