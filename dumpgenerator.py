@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # dumpgenerator.py A generator of dumps for wikis
-# Copyright (C) 2011-2016 WikiTeam developers
+# Copyright (C) 2011-2018 WikiTeam developers
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
@@ -396,16 +396,11 @@ def getPageTitles(config={}, session=None):
 
     titles = []
     if 'api' in config and config['api']:
-        r = session.post(config['api'], params={'action': 'query', 'list': 'allpages', 'format': 'json'}, timeout=30)
         try:
-            test = getJSON(r)
-        except:
-            test = None
-        if not test or ('warnings' in test and 'allpages' in test['warnings'] and '*' in test['warnings']['allpages']
-                and test['warnings']['allpages']['*'] == 'The "allpages" module has been disabled.'):
-            titles = getPageTitlesScraper(config=config, session=session)
-        else:
             titles = getPageTitlesAPI(config=config, session=session)
+        except:
+            print "Error: could not get page titles from the API"
+            titles = getPageTitlesScraper(config=config, session=session)
     elif 'index' in config and config['index']:
         titles = getPageTitlesScraper(config=config, session=session)
 
