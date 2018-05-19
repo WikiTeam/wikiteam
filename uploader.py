@@ -268,6 +268,8 @@ Use --help to print this help.""")
     parser.add_argument('-u', '--update', action='store_true')
     parser.add_argument('listfile')
     config = parser.parse_args()
+    if config.admin:
+        config.collection = 'wikiteam'
     uploadeddumps = []
     listfile = config.listfile
     try:
