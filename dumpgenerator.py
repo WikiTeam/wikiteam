@@ -802,7 +802,7 @@ def getXMLRevisions(config={}, session=None, allpages=False):
             if not config['curonly']:
                 # We have to build the XML manually...
                 # Skip flags, presumably needed to add <minor/> which is in the schema.
-                # Also missing is the parentid.
+                # Also missing: parentid and contentformat.
                 arvparams['arvprop'] = 'ids|timestamp|user|userid|size|sha1|contentmodel|comment|content'
                 arvrequest = wikitools.api.APIRequest(site, arvparams)
                 results = arvrequest.queryGen()
@@ -872,8 +872,7 @@ def makeXmlFromPage(page):
             E.id(str(page['pageid'])),
        )
     for rev in page['revisions']:
-       p.append(
-           E.revision(
+        revision = E.revision(
                E.id(str(rev['revid'])),
                E.timestamp(rev['timestamp']),
                E.contributor(
@@ -883,8 +882,10 @@ def makeXmlFromPage(page):
                E.comment(rev['comment']),
                E.text(rev['*'], space="preserve", bytes=str(rev['size'])),
                E.sha1(rev['sha1']),
-           )
         )
+        if 'contentmodel' in rev:
+            revision.append(E.model)
+        p.append(revision)
     return etree.tostring(p, pretty_print=True)
 
 def readTitles(config={}, start=None):
