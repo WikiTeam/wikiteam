@@ -49,6 +49,11 @@ try:
     import wikitools
 except ImportError:
     print "Please install the wikitools 1.3+ module if you want to use --xmlrevisions."
+try:
+    from lxml import etree
+    from lxml.builder import E
+except ImportError:
+    print "Please install the lxml module if you want to use --xmlrevisions."
 import time
 import urllib
 try:
@@ -281,7 +286,7 @@ def getPageTitlesAPI(config={}, session=None):
                     apfrom = jsontitles['continue']['apcontinue']
                 elif 'apfrom' in jsontitles['continue']:
                     apfrom = jsontitles['continue']['apfrom']
-            
+
             # print apfrom
             # print jsontitles
             allpages = jsontitles['query']['allpages']
@@ -782,39 +787,64 @@ def getXMLRevisions(config={}, session=None, allpages=False):
     site = wikitools.wiki.Wiki(config['api'])
     if not 'all' in config['namespaces']:
         namespaces = config['namespaces']
-        print namespaces
     else:
-        namespaces = ['*']
+        namespaces, namespacenames = getNamespacesAPI(config=config, session=session)
+        print namespaces
 
     for namespace in namespaces:
         print "Exporting revisions from namespace %s" % namespace
         try:
-            # TODO: 500 would be nicer, but need to find the wiki's limits
+            # TODO: 500 is nicer than 50, but need to find the wiki's limits
             params = {
                 'action': 'query',
                 'list': 'allrevisions',
-                'arvlimit': 50,
-                'arvprop': 'ids',
-                'arvnamespace': '*'
+                'arvlimit': 500,
+                # Skip flags, presumably needed to add <minor/> which is in the schema.
+                'arvprop': 'ids|timestamp|user|userid|size|sha1|contentmodel|comment|content',
+                'arvnamespace': namespace
                 }
             request = wikitools.api.APIRequest(site, params)
             results = request.queryGen()
             for result in results:
-                revids = []
-                for page in result['query']['allrevisions']:
-                    for revision in page['revisions']:
-                        revids.append(str(revision['revid']))
+                if config['curonly']:
+                    revids = []
+                    for page in result['query']['allrevisions']:
+                        for revision in page['revisions']:
+                            revids.append(str(revision['revid']))
 
-                print "50 more revisions listed, until %s" % revids[-1]
-                exportparams = {
-                    'action': 'query',
-                    'revids': '|'.join(revids),
-                    'export': '1',
-                }
-                exportrequest = wikitools.api.APIRequest(site, exportparams)
-                exportresults = exportrequest.queryGen()
-                for exportresult in exportresults:
-                    yield exportresult['query']['export']['*']
+                    print "%d more revisions listed, until %s" % (len(revids), revids[-1])
+                    exportparams = {
+                        'action': 'query',
+                        'revids': '|'.join(revids),
+                        'export': '1',
+                    }
+                    exportrequest = wikitools.api.APIRequest(site, exportparams)
+                    exportresults = exportrequest.queryGen()
+                    for exportresult in exportresults:
+                        yield exportresult['query']['export']['*']
+                else:
+                    # We have to build the XML manually...
+                    for page in result['query']['allrevisions']:
+                        p = E.page(
+                                E.title(page['title']),
+                                E.ns(str(page['ns'])),
+                                E.id(str(page['pageid'])),
+                            )
+                        for rev in page['revisions']:
+                            p.append(
+                                    E.revision(
+                                        E.id(str(rev['revid'])),
+                                        E.timestamp(rev['timestamp']),
+                                        E.contributor(
+                                            E.id(str(rev['userid'])),
+                                            E.username(str(rev['user'])),
+                                        ),
+                                        E.comment(rev['comment']),
+                                        E.text(rev['*'], space="preserve", bytes=str(rev['size'])),
+                                        E.sha1(rev['sha1']),
+                                    )
+                                )
+                        yield etree.tostring(p, pretty_print=True)
         except KeyError:
             print "Error. Is the allrevisions module missing? Trying allpages."
             for title in readTitles(config):
@@ -828,9 +858,9 @@ def getXMLRevisions(config={}, session=None, allpages=False):
                 for exportresult in exportresults:
                     yield exportresult['query']['export']['*']
 
-        except wikitools.api.APIError:
-            print "This wikitools version seems not to work for us. Exiting."
-            sys.exit()
+        #except wikitools.api.APIError:
+        #    print "This wikitools version seems not to work for us. Exiting."
+        #    sys.exit()
 
 def readTitles(config={}, start=None):
     """ Read title list from a file, from the title "start" """
