@@ -789,30 +789,38 @@ def getXMLRevisions(config={}, session=None, allpages=False):
         namespaces = config['namespaces']
     else:
         namespaces, namespacenames = getNamespacesAPI(config=config, session=session)
-        print namespaces
 
-    for namespace in namespaces:
-        print "Exporting revisions from namespace %s" % namespace
-        try:
-            # TODO: 500 is nicer than 50, but need to find the wiki's limits
-            params = {
+    try:
+        for namespace in namespaces:
+            print "Exporting revisions from namespace %s" % namespace
+            arvparams = {
                 'action': 'query',
                 'list': 'allrevisions',
                 'arvlimit': 500,
-                # Skip flags, presumably needed to add <minor/> which is in the schema.
-                'arvprop': 'ids|timestamp|user|userid|size|sha1|contentmodel|comment|content',
                 'arvnamespace': namespace
-                }
-            request = wikitools.api.APIRequest(site, params)
-            results = request.queryGen()
-            for result in results:
-                if config['curonly']:
+            }
+            if not config['curonly']:
+                # We have to build the XML manually...
+                # Skip flags, presumably needed to add <minor/> which is in the schema.
+                # Also missing is the parentid.
+                arvparams['arvprop'] = 'ids|timestamp|user|userid|size|sha1|contentmodel|comment|content'
+                arvrequest = wikitools.api.APIRequest(site, arvparams)
+                results = arvrequest.queryGen()
+                for result in results:
+                    for page in result['query']['allrevisions']:
+                        yield makeXmlFromPage(page)
+            else:
+                # Just cycle through revision IDs and use the XML as is
+                arvparams['arvprop'] = 'ids'
+                arvrequest = wikitools.api.APIRequest(site, arvparams)
+                arvresults = arvrequest.queryGen()
+                for result in arvresults:
                     revids = []
                     for page in result['query']['allrevisions']:
                         for revision in page['revisions']:
                             revids.append(str(revision['revid']))
-
                     print "%d more revisions listed, until %s" % (len(revids), revids[-1])
+
                     exportparams = {
                         'action': 'query',
                         'revids': '|'.join(revids),
@@ -822,31 +830,10 @@ def getXMLRevisions(config={}, session=None, allpages=False):
                     exportresults = exportrequest.queryGen()
                     for exportresult in exportresults:
                         yield exportresult['query']['export']['*']
-                else:
-                    # We have to build the XML manually...
-                    for page in result['query']['allrevisions']:
-                        p = E.page(
-                                E.title(page['title']),
-                                E.ns(str(page['ns'])),
-                                E.id(str(page['pageid'])),
-                            )
-                        for rev in page['revisions']:
-                            p.append(
-                                    E.revision(
-                                        E.id(str(rev['revid'])),
-                                        E.timestamp(rev['timestamp']),
-                                        E.contributor(
-                                            E.id(str(rev['userid'])),
-                                            E.username(str(rev['user'])),
-                                        ),
-                                        E.comment(rev['comment']),
-                                        E.text(rev['*'], space="preserve", bytes=str(rev['size'])),
-                                        E.sha1(rev['sha1']),
-                                    )
-                                )
-                        yield etree.tostring(p, pretty_print=True)
-        except KeyError:
-            print "Error. Is the allrevisions module missing? Trying allpages."
+
+    except KeyError:
+        print "Warning. Could not use allrevisions, wiki too old."
+        if config['curonly']:
             for title in readTitles(config):
                 exportparams = {
                     'action': 'query',
@@ -857,10 +844,48 @@ def getXMLRevisions(config={}, session=None, allpages=False):
                 exportresults = exportrequest.queryGen()
                 for exportresult in exportresults:
                     yield exportresult['query']['export']['*']
+        else:
+            for title in readTitles(config):
+                pparams = {
+                    'action': 'query',
+                    'titles': title,
+                    'prop': 'revisions',
+                    'rvlimit': 'max',
+                    'rvprop': 'ids|timestamp|user|userid|size|sha1|contentmodel|comment|content'
+                }
+                prequest = wikitools.api.APIRequest(site, pparams)
+                results = prequest.queryGen()
+                for result in results:
+                    pages = result['query']['pages']
+                    for page in pages:
+                        yield makeXmlFromPage(pages[page])
 
-        #except wikitools.api.APIError:
-        #    print "This wikitools version seems not to work for us. Exiting."
-        #    sys.exit()
+    except wikitools.api.APIError:
+        print "This wikitools version seems not to work for us. Exiting."
+        sys.exit()
+
+def makeXmlFromPage(page):
+    """ Output an XML document as a string from a page as in the API JSON """
+    p = E.page(
+            E.title(page['title']),
+            E.ns(str(page['ns'])),
+            E.id(str(page['pageid'])),
+       )
+    for rev in page['revisions']:
+       p.append(
+           E.revision(
+               E.id(str(rev['revid'])),
+               E.timestamp(rev['timestamp']),
+               E.contributor(
+                    E.id(str(rev['userid'])),
+                    E.username(str(rev['user'])),
+               ),
+               E.comment(rev['comment']),
+               E.text(rev['*'], space="preserve", bytes=str(rev['size'])),
+               E.sha1(rev['sha1']),
+           )
+        )
+    return etree.tostring(p, pretty_print=True)
 
 def readTitles(config={}, start=None):
     """ Read title list from a file, from the title "start" """
