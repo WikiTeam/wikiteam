@@ -264,7 +264,7 @@ def getPageTitlesAPI(config={}, session=None):
             retryCount = 0
             while retryCount < config["retries"]:
                 try:
-                    r = session.post(url=config['api'], params=params, timeout=30)
+                    r = session.post(url=config['api'], data=params, timeout=30)
                     break
                 except ConnectionError as err:
                     print "Connection error: %s" % (str(err),)
@@ -1707,7 +1707,7 @@ def checkAPI(api=None, session=None):
         print 'Checking API...', api
         r = session.post(
             url=api,
-            params={
+            data={
                 'action': 'query',
                 'meta': 'siteinfo',
                 'format': 'json'},
@@ -1740,7 +1740,7 @@ def checkAPI(api=None, session=None):
 
 def checkIndex(index=None, cookies=None, session=None):
     """ Checking index.php availability """
-    r = session.post(url=index, params={'title': 'Special:Version'}, timeout=30)
+    r = session.post(url=index, data={'title': 'Special:Version'}, timeout=30)
     raw = r.text
     print 'Checking index.php...', index
     # Workaround for issue 71
