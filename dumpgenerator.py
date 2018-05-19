@@ -1439,10 +1439,9 @@ def getParameters(params=[]):
         action='store_true',
         help="generates a full history XML dump (--xml --curonly for current revisions only)")
     groupDownload.add_argument('--curonly', action='store_true',
-        help='store only the current version of pages; incompatible with --xmlrevisions')
+        help='store only the current version of pages')
     groupDownload.add_argument('--xmlrevisions', action='store_true',
-                               help='download all revisions from an API generator. Ignores the \
-                               namespace selection')
+                               help='download all revisions from an API generator. MediaWiki 1.27+ only.')
     groupDownload.add_argument(
         '--images', action='store_true', help="generates an image dump")
     groupDownload.add_argument(
