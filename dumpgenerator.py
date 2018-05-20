@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # dumpgenerator.py A generator of dumps for wikis
-# Copyright (C) 2011-2016 WikiTeam developers
+# Copyright (C) 2011-2018 WikiTeam developers
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
@@ -49,8 +49,17 @@ try:
     import wikitools
 except ImportError:
     print "Please install the wikitools 1.3+ module if you want to use --xmlrevisions."
+try:
+    from lxml import etree
+    from lxml.builder import E
+except ImportError:
+    print "Please install the lxml module if you want to use --xmlrevisions."
 import time
 import urllib
+try:
+    from urlparse import urlparse, urlunparse
+except ImportError:
+    from urllib.parse import urlparse, urlunparse
 UTF8Writer = getwriter('utf8')
 sys.stdout = UTF8Writer(sys.stdout)
 
@@ -155,7 +164,7 @@ def getNamespacesScraper(config={}, session=None):
     namespacenames = {0: ''}  # main is 0, no prefix
     if namespaces:
         r = session.post(
-            url=config['index'], data={'title': 'Special:Allpages'}, timeout=30)
+            url=config['index'], params={'title': 'Special:Allpages'}, timeout=30)
         raw = r.text
         delay(config=config, session=session)
 
@@ -192,7 +201,7 @@ def getNamespacesAPI(config={}, session=None):
     if namespaces:
         r = session.post(
             url=config['api'],
-            data={
+            params={
                 'action': 'query',
                 'meta': 'siteinfo',
                 'siprop': 'namespaces',
@@ -277,7 +286,7 @@ def getPageTitlesAPI(config={}, session=None):
                     apfrom = jsontitles['continue']['apcontinue']
                 elif 'apfrom' in jsontitles['continue']:
                     apfrom = jsontitles['continue']['apfrom']
-            
+
             # print apfrom
             # print jsontitles
             allpages = jsontitles['query']['allpages']
@@ -392,13 +401,11 @@ def getPageTitles(config={}, session=None):
 
     titles = []
     if 'api' in config and config['api']:
-        r = session.post(config['api'], {'action': 'query', 'list': 'allpages', 'format': 'json'}, timeout=30)
-        test = getJSON(r)
-        if ('warnings' in test and 'allpages' in test['warnings'] and '*' in test['warnings']['allpages']
-                and test['warnings']['allpages']['*'] == 'The "allpages" module has been disabled.'):
-            titles = getPageTitlesScraper(config=config, session=session)
-        else:
+        try:
             titles = getPageTitlesAPI(config=config, session=session)
+        except:
+            print "Error: could not get page titles from the API"
+            titles = getPageTitlesScraper(config=config, session=session)
     elif 'index' in config and config['index']:
         titles = getPageTitlesScraper(config=config, session=session)
 
@@ -418,7 +425,7 @@ def getPageTitles(config={}, session=None):
 
     print '%d page titles loaded' % (c)
     return titlesfilename
-    
+
 def getImageNames(config={}, session=None):
     """ Get list of image names """
 
@@ -442,17 +449,19 @@ def getXMLHeader(config={}, session=None):
     # similar to: <mediawiki xmlns="http://www.mediawiki.org/xml/export-0.3/"
     # xmlns:x....
     randomtitle = 'Main_Page'  # previously AMF5LKE43MNFGHKSDMRTJ
+    print config['api']
     if config['xmlrevisions'] and config['api'] and config['api'].endswith("api.php"):
         xml = None
         try:
-            r = session.get(config['api'] + '?action=query&revids=1&export&exportnowrap', timeout=10)
-            xml = r.text
+            print 'Getting the XML header from the API'
+            r = session.get(config['api'] + '?action=query&revids=1&export&format=json', timeout=10)
+            xml = r.json()['query']['export']['*']
+            if not xml:
+                r = session.get(config['api'] + '?action=query&revids=1&export&exportnowrap', timeout=10)
+                xml = r.text
         except requests.exceptions.RetryError:
             pass
 
-        if not xml:
-            r = session.get(config['api'] + '?action=query&revids=1&export&format=json', timeout=10)
-            xml = r.json()['query']['export']['*']
     else:
         try:
             xml = "".join([x for x in getXMLPage(config=config, title=randomtitle, verbose=False, session=session)])
@@ -468,7 +477,7 @@ def getXMLHeader(config={}, session=None):
                     print "Trying the local name for the Special namespace instead"
                     r = session.post(
                     url=config['api'],
-                    data={
+                    params={
                         'action': 'query',
                         'meta': 'siteinfo',
                         'siprop': 'namespaces',
@@ -485,9 +494,15 @@ def getXMLHeader(config={}, session=None):
 
     header = xml.split('</mediawiki>')[0]
     if not re.match(r"\s*<mediawiki", xml):
-        print 'XML export on this wiki is broken, quitting.'
-        logerror(u'XML export on this wiki is broken, quitting.')
-        sys.exit()
+        if config['xmlrevisions']:
+            # Try again the old way
+            print 'Export test via the API failed. Wiki too old? Trying without xmlrevisions.'
+            config['xmlrevisions'] = False
+            header, config = getXMLHeader(config=config, session=session)
+        else:
+            print 'XML export on this wiki is broken, quitting.'
+            logerror(u'XML export on this wiki is broken, quitting.')
+            sys.exit()
     return header, config
 
 
@@ -572,7 +587,7 @@ def getXMLPageCore(headers={}, params={}, config={}, session=None):
                 return ''  # empty xml
         # FIXME HANDLE HTTP Errors HERE
         try:
-            r = session.post(url=config['index'], data=params, headers=headers, timeout=10)
+            r = session.post(url=config['index'], params=params, headers=headers, timeout=10)
             handleStatusCode(r)
             xml = fixBOM(r)
         except requests.exceptions.ConnectionError as e:
@@ -768,44 +783,110 @@ def generateXMLDump(config={}, titles=[], start=None, session=None):
     xmlfile.close()
     print 'XML dump saved at...', xmlfilename
 
-def getXMLRevisions(config={}, session=None):
+def getXMLRevisions(config={}, session=None, allpages=False):
     site = wikitools.wiki.Wiki(config['api'])
-    #if config['namespaces']:
-    #    namespaces, namespacenames = getNamespacesAPI(config=config, session=session)
-    #else:
-    namespaces = ['*']
+    if not 'all' in config['namespaces']:
+        namespaces = config['namespaces']
+    else:
+        namespaces, namespacenames = getNamespacesAPI(config=config, session=session)
 
-    for namespace in namespaces:
-        print "Exporting revisions from namespace %s" % namespace
-        # TODO: 500 would be nicer, but need to find the wiki's limits
-        params = {
-            'action': 'query',
-            'list': 'allrevisions',
-            'arvlimit': 50,
-            'arvprop': 'ids',
+    try:
+        for namespace in namespaces:
+            print "Exporting revisions from namespace %s" % namespace
+            arvparams = {
+                'action': 'query',
+                'list': 'allrevisions',
+                'arvlimit': 500,
+                'arvnamespace': namespace
             }
-        request = wikitools.api.APIRequest(site, params)
-        results = request.queryGen()
-        try:
-            for result in results:
-                revids = []
-                for page in result['query']['allrevisions']:
-                    for revision in page['revisions']:
-                        revids.append(str(revision['revid']))
+            if not config['curonly']:
+                # We have to build the XML manually...
+                # Skip flags, presumably needed to add <minor/> which is in the schema.
+                # Also missing: parentid and contentformat.
+                arvparams['arvprop'] = 'ids|timestamp|user|userid|size|sha1|contentmodel|comment|content'
+                arvrequest = wikitools.api.APIRequest(site, arvparams)
+                results = arvrequest.queryGen()
+                for result in results:
+                    for page in result['query']['allrevisions']:
+                        yield makeXmlFromPage(page)
+            else:
+                # Just cycle through revision IDs and use the XML as is
+                arvparams['arvprop'] = 'ids'
+                arvrequest = wikitools.api.APIRequest(site, arvparams)
+                arvresults = arvrequest.queryGen()
+                for result in arvresults:
+                    revids = []
+                    for page in result['query']['allrevisions']:
+                        for revision in page['revisions']:
+                            revids.append(str(revision['revid']))
+                    print "%d more revisions listed, until %s" % (len(revids), revids[-1])
 
-                print "50 more revisions listed, until %s" % revids[-1]
+                    exportparams = {
+                        'action': 'query',
+                        'revids': '|'.join(revids),
+                        'export': '1',
+                    }
+                    exportrequest = wikitools.api.APIRequest(site, exportparams)
+                    exportresults = exportrequest.queryGen()
+                    for exportresult in exportresults:
+                        yield exportresult['query']['export']['*']
+
+    except KeyError:
+        print "Warning. Could not use allrevisions, wiki too old."
+        if config['curonly']:
+            for title in readTitles(config):
                 exportparams = {
                     'action': 'query',
-                    'revids': '|'.join(revids),
+                    'titles': title,
                     'export': '1',
                 }
                 exportrequest = wikitools.api.APIRequest(site, exportparams)
                 exportresults = exportrequest.queryGen()
                 for exportresult in exportresults:
                     yield exportresult['query']['export']['*']
-        except wikitools.api.APIError:
-            print "This wikitools version seems not to work for us. Exiting."
-            sys.exit()
+        else:
+            for title in readTitles(config):
+                pparams = {
+                    'action': 'query',
+                    'titles': title,
+                    'prop': 'revisions',
+                    'rvlimit': 'max',
+                    'rvprop': 'ids|timestamp|user|userid|size|sha1|contentmodel|comment|content'
+                }
+                prequest = wikitools.api.APIRequest(site, pparams)
+                results = prequest.queryGen()
+                for result in results:
+                    pages = result['query']['pages']
+                    for page in pages:
+                        yield makeXmlFromPage(pages[page])
+
+    except wikitools.api.APIError:
+        print "This wikitools version seems not to work for us. Exiting."
+        sys.exit()
+
+def makeXmlFromPage(page):
+    """ Output an XML document as a string from a page as in the API JSON """
+    p = E.page(
+            E.title(page['title']),
+            E.ns(str(page['ns'])),
+            E.id(str(page['pageid'])),
+       )
+    for rev in page['revisions']:
+        revision = E.revision(
+               E.id(str(rev['revid'])),
+               E.timestamp(rev['timestamp']),
+               E.contributor(
+                    E.id(str(rev['userid'])),
+                    E.username(str(rev['user'])),
+               ),
+               E.comment(rev['comment']),
+               E.text(rev['*'], space="preserve", bytes=str(rev['size'])),
+               E.sha1(rev['sha1']),
+        )
+        if 'contentmodel' in rev:
+            revision.append(E.model)
+        p.append(revision)
+    return etree.tostring(p, pretty_print=True)
 
 def readTitles(config={}, start=None):
     """ Read title list from a file, from the title "start" """
@@ -942,7 +1023,7 @@ def getImageNamesScraper(config={}, session=None):
         # http://www.memoryarchive.org/en/index.php?title=Special:Imagelist&sort=byname&limit=50&wpIlMatch=
         r = session.post(
             url=config['index'],
-            data={
+            params={
                 'title': 'Special:Imagelist',
                 'limit': limit,
                 'offset': offset},
@@ -1047,7 +1128,7 @@ def getImageNamesAPI(config={}, session=None):
             'format': 'json',
             'ailimit': 500}
         # FIXME Handle HTTP Errors HERE
-        r = session.post(url=config['api'], data=params, timeout=30)
+        r = session.post(url=config['api'], params=params, timeout=30)
         handleStatusCode(r)
         jsonimages = getJSON(r)
         delay(config=config, session=session)
@@ -1105,7 +1186,7 @@ def getImageNamesAPI(config={}, session=None):
                 'iiprop': 'user|url',
                 'format': 'json'}
             # FIXME Handle HTTP Errors HERE
-            r = session.post(url=config['api'], data=params, timeout=30)
+            r = session.post(url=config['api'], params=params, timeout=30)
             handleStatusCode(r)
             jsonimages = getJSON(r)
             delay(config=config, session=session)
@@ -1254,7 +1335,7 @@ def domain2prefix(config={}, session=None):
         domain = config['index']
 
     domain = domain.lower()
-    domain = re.sub(r'(https?://|www\.|/index\.php|/api\.php)', '', domain)
+    domain = re.sub(r'(https?://|www\.|/index\.php.*|/api\.php.*)', '', domain)
     domain = re.sub(r'/', '_', domain)
     domain = re.sub(r'\.', '', domain)
     domain = re.sub(r'[^A-Za-z0-9]', '_', domain)
@@ -1384,10 +1465,9 @@ def getParameters(params=[]):
         action='store_true',
         help="generates a full history XML dump (--xml --curonly for current revisions only)")
     groupDownload.add_argument('--curonly', action='store_true',
-        help='store only the current version of pages; incompatible with --xmlrevisions')
+        help='store only the current version of pages')
     groupDownload.add_argument('--xmlrevisions', action='store_true',
-                               help='download all revisions from an API generator. Ignores the \
-                               namespace selection')
+                               help='download all revisions from an API generator. MediaWiki 1.27+ only.')
     groupDownload.add_argument(
         '--images', action='store_true', help="generates an image dump")
     groupDownload.add_argument(
@@ -1530,15 +1610,20 @@ def getParameters(params=[]):
                 session=session):
             print 'index.php is OK'
         else:
-            index = '/'.join(index.split('/')[:-1])
+            try:
+                index = '/'.join(index.split('/')[:-1])
+            except AttributeError:
+                index = None
             if index and checkIndex(
                     index=index,
                     cookies=args.cookies,
                     session=session):
                 print 'index.php is OK'
             else:
-                print 'Error in index.php, please, provide a correct path to index.php'
-                sys.exit(1)
+                print 'Error in index.php.'
+                if not args.xmlrevisions:
+                    print 'Please, provide a correct path to index.php or use --xmlrevisions. Terminating.'
+                    sys.exit(1)
 
     # check user and pass (one requires both)
     if (args.user and not args.password) or (args.password and not args.user):
@@ -1628,10 +1713,14 @@ def checkAPI(api=None, session=None):
                 'format': 'json'},
             timeout=30
         )
-        if r.url == api:
+        if r.status_code == 200:
             break
-        else:
-            api = r.url
+        elif r.status_code < 400:
+            p = r.url
+            api = urlunparse([p.scheme, p.netloc, p.path, '', '', ''])
+        elif r.status_code > 400:
+            print "MediaWiki API URL not found or giving error: HTTP %d" % r.status_code
+            return False
     if "MediaWiki API is not enabled for this site." in r.text:
         return False
     try:
@@ -1693,7 +1782,11 @@ def getJSON(request):
     """Strip Unicode BOM"""
     if request.text.startswith(u'\ufeff'):
         request.encoding = 'utf-8-sig'
-    return request.json()
+    try:
+        return request.json()
+    except:
+        # Maybe an older API version which did not return correct JSON
+        return {}
 
 
 def fixBOM(request):
@@ -1785,7 +1878,7 @@ def resumePreviousDump(config={}, other={}):
             if lasttitle == '':
                 lasttitle=lasttitles.next()
         except:
-            pass  # probably file does not exists
+            lasttitle = ''  # probably file does not exists
         if lasttitle == '--END--':
             # titles list is complete
             print 'Title list was completed in the previous session'
@@ -1916,7 +2009,7 @@ def saveSpecialVersion(config={}, session=None):
     else:
         print 'Downloading Special:Version with extensions and other related info'
         r = session.post(
-            url=config['index'], data={'title': 'Special:Version'}, timeout=10)
+            url=config['index'], params={'title': 'Special:Version'}, timeout=10)
         raw = r.text
         delay(config=config, session=session)
         raw = removeIP(raw=raw)
@@ -1931,13 +2024,12 @@ def saveIndexPHP(config={}, session=None):
         print 'index.html exists, do not overwrite'
     else:
         print 'Downloading index.php (Main Page) as index.html'
-        r = session.post(url=config['index'], data={}, timeout=10)
+        r = session.post(url=config['index'], params={}, timeout=10)
         raw = r.text
         delay(config=config, session=session)
         raw = removeIP(raw=raw)
         with open('%s/index.html' % (config['path']), 'w') as outfile:
             outfile.write(raw.encode('utf-8'))
-
 
 def saveSiteInfo(config={}, session=None):
     """ Save a file with site info """
@@ -1951,7 +2043,7 @@ def saveSiteInfo(config={}, session=None):
             # MediaWiki 1.13+
             r = session.post(
                 url=config['api'],
-                data={
+                params={
                     'action': 'query',
                     'meta': 'siteinfo',
                     'siprop': 'general|namespaces|statistics|dbrepllag|interwikimap|namespacealiases|specialpagealiases|usergroups|extensions|skins|magicwords|fileextensions|rightsinfo',
@@ -1962,7 +2054,7 @@ def saveSiteInfo(config={}, session=None):
             if not 'query' in getJSON(r):
                 r = session.post(
                     url=config['api'],
-                    data={
+                    params={
                         'action': 'query',
                         'meta': 'siteinfo',
                         'siprop': 'general|namespaces|statistics|dbrepllag|interwikimap',
@@ -1972,7 +2064,7 @@ def saveSiteInfo(config={}, session=None):
             if not 'query' in getJSON(r):
                 r = session.post(
                     url=config['api'],
-                    data={
+                    params={
                         'action': 'query',
                         'meta': 'siteinfo',
                         'siprop': 'general|namespaces',
@@ -1988,10 +2080,14 @@ def avoidWikimediaProjects(config={}, other={}):
     """ Skip Wikimedia projects and redirect to the dumps website """
 
     # notice about wikipedia dumps
+    url = ''
+    if config['api']:
+        url = url + config['api']
+    if config['index']:
+        url = url + config['index']
     if re.findall(
             r'(?i)(wikipedia|wikisource|wiktionary|wikibooks|wikiversity|wikimedia|wikispecies|wikiquote|wikinews|wikidata|wikivoyage)\.org',
-            config['api'] +
-            config['index']):
+            url):
         print 'PLEASE, DO NOT USE THIS SCRIPT TO DOWNLOAD WIKIMEDIA PROJECTS!'
         print 'Download the dumps from http://dumps.wikimedia.org'
         if not other['force']:
