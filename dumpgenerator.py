@@ -210,25 +210,32 @@ def getNamespacesAPI(config={}, session=None):
         )
         result = getJSON(r)
         delay(config=config, session=session)
+        try:
+            nsquery = result['query']['namespaces']
+        except KeyError:
+            print "Error: could not get namespaces from the API request"
+            print "HTTP %d" % r.status_code
+            print r.text
+            return None
 
         if 'all' in namespaces:
             namespaces = []
-            for i in result['query']['namespaces'].keys():
+            for i in nsquery.keys():
                 if int(i) < 0:  # -1: Special, -2: Media, excluding
                     continue
                 namespaces.append(int(i))
-                namespacenames[int(i)] = result['query']['namespaces'][i]['*']
+                namespacenames[int(i)] = nsquery[i]['*']
         else:
             # check if those namespaces really exist in this wiki
             namespaces2 = []
-            for i in result['query']['namespaces'].keys():
+            for i in nsquery.keys():
                 bi = i
                 i = int(i)
                 if i < 0:  # -1: Special, -2: Media, excluding
                     continue
                 if i in namespaces:
                     namespaces2.append(i)
-                    namespacenames[i] = result['query']['namespaces'][bi]['*']
+                    namespacenames[i] = nsquery[bi]['*']
             namespaces = namespaces2
     else:
         namespaces = [0]
@@ -289,7 +296,12 @@ def getPageTitlesAPI(config={}, session=None):
 
             # print apfrom
             # print jsontitles
-            allpages = jsontitles['query']['allpages']
+            try:
+                allpages = jsontitles['query']['allpages']
+            except KeyError:
+                print "The allpages API returned nothing. Exit."
+                sys.exit(1)
+
             # Hack for old versions of MediaWiki API where result is dict
             if isinstance(allpages, dict):
                 allpages = allpages.values()
