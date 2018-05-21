@@ -45,7 +45,7 @@ def main():
         
         #check if compressed, in that case dump was finished previously
         compressed = False
-        for f in os.listdir('/mnt/raccolto/wikia'):
+        for f in os.listdir('.'):
             if f.startswith(prefix) and f.endswith('.7z'):
                 compressed = True
                 zipfilename = f
