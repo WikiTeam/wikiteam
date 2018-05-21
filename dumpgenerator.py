@@ -306,13 +306,14 @@ def getPageTitlesAPI(config={}, session=None):
             if isinstance(allpages, dict):
                 allpages = allpages.values()
             for page in allpages:
-                yield page['title']
+                title = page['title']
+                titles.append(title)
+                yield title
             c += len(allpages)
 
             if len(titles) != len(set(titles)):
-                # probably we are in a loop, server returning dupe titles, stop
-                # it
-                print 'Probably a loop, finishing'
+                print 'Probably a loop, switching to next namespace. Duplicate title:'
+                print title
                 titles = list(set(titles))
                 apfrom = ''
 
