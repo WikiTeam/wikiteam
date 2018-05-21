@@ -20,7 +20,7 @@
 #     https://github.com/WikiTeam/wikiteam/wiki
 
 try:
-    from kitchen.text.converters import getwriter
+    from kitchen.text.converters import getwriter, to_unicode
 except ImportError:
     print "Please install the kitchen module."
 import cookielib
@@ -868,19 +868,19 @@ def makeXmlFromPage(page):
     """ Output an XML document as a string from a page as in the API JSON """
     p = E.page(
             E.title(page['title']),
-            E.ns(str(page['ns'])),
-            E.id(str(page['pageid'])),
+            E.ns(to_unicode(page['ns'])),
+            E.id(to_unicode(page['pageid'])),
        )
     for rev in page['revisions']:
         revision = E.revision(
-               E.id(str(rev['revid'])),
+               E.id(to_unicode(rev['revid'])),
                E.timestamp(rev['timestamp']),
                E.contributor(
-                    E.id(str(rev['userid'])),
-                    E.username(str(rev['user'])),
+                    E.id(to_unicode(rev['userid'])),
+                    E.username(to_unicode(rev['user'])),
                ),
                E.comment(rev['comment']),
-               E.text(rev['*'], space="preserve", bytes=str(rev['size'])),
+               E.text(rev['*'], space="preserve", bytes=to_unicode(rev['size'])),
                E.sha1(rev['sha1']),
         )
         if 'contentmodel' in rev:
