@@ -1575,6 +1575,7 @@ def getParameters(params=[]):
         retry = 0
         maxretries = args.retries
         retrydelay = 20
+        check = None
         while retry < maxretries:
             try:
                 check = checkAPI(api=api, session=session)
