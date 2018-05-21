@@ -183,14 +183,20 @@ def downloadMainPage(wikidomain='', wikiurl='', overwrite=False):
 def downloadLogo(wikidomain='', wikiurl='', overwrite=False):
     index = '%s/index.html' % (wikidomain)
     if os.path.exists(index):
-        with open(index, 'r') as f:
-            m = re.findall(r'class="WikiLogo WikiElement"><img src="([^<> "]+?)"', f.read())
-            if m:
-                logourl = m[0]
-                logofilename = logourl.split('/')[-1]
-                print('Downloading logo')
-                saveURL(wikidomain=wikidomain, url=logourl, filename=logofilename, path='', overwrite=overwrite)
-                return logofilename
+        raw = ''
+        try:
+            with open(index, 'r', encoding='utf-8') as f:
+                raw = f.read()
+        except:
+            with open(index, 'r', encoding='latin-1') as f:
+                raw = f.read()
+        m = re.findall(r'class="WikiLogo WikiElement"><img src="([^<> "]+?)"', raw)
+        if m:
+            logourl = m[0]
+            logofilename = logourl.split('/')[-1]
+            print('Downloading logo')
+            saveURL(wikidomain=wikidomain, url=logourl, filename=logofilename, path='', overwrite=overwrite)
+            return logofilename
     return ''
 
 def printhelp():
@@ -266,7 +272,7 @@ def main():
                 except:
                     time.sleep(10)
                     iahtml = urllib.request.urlopen('https://archive.org/details/%s' % (itemid)).read().decode('utf-8')
-                if iahtml and not re.findall(r'Item cannot be found', iahtml):
+                if iahtml and not re.findall(r'(?im)Item cannot be found', iahtml):
                     if not overwriteia:
                         print('Warning: item exists on Internet Archive. Skipping wiki. Force with parameter --overwrite-ia')
                         print('You can find it in https://archive.org/details/%s' % (itemid))
@@ -305,9 +311,14 @@ def main():
             if not os.path.exists(indexfilename):
                 print('\nError dump incomplete, skipping upload\n')
                 continue
-            f = open(indexfilename, 'r')
-            indexhtml = f.read()
-            f.close()
+            indexhtml = ''
+            try:
+                with open(indexfilename, 'r', encoding='utf-8') as f:
+                    indexhtml = f.read()
+            except:
+                with open(indexfilename, 'r', encoding='latin-1') as f:
+                    indexhtml = f.read()
+            
             wikititle = ''
             try:
                 wikititle = indexhtml.split('wiki: {')[1].split('}')[0].split("text: '")[1].split("',")[0].strip()
