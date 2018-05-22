@@ -69,12 +69,11 @@ def main():
         #download
         started = False #was this wiki download started before? then resume
         wikidir = ''
-        for dirname, dirnames, filenames in os.walk('.'):
-            if dirname == '.':
-                for d in dirnames:
-                    if d.startswith(prefix):
-                        wikidir = d
-                        started = True
+        for f in os.listdir('.'):
+            # Does not find numbered wikidumps not verify directories
+            if d.startswith(prefix) and d.endswith('wikidump'):
+                wikidir = d
+                started = True
                 break #stop searching, dot not explore subdirectories
         
         # time.sleep(60)
@@ -88,11 +87,10 @@ def main():
             subprocess.call('./dumpgenerator.py --api=%s --xml --images' % wiki, shell=True)
             started = True
             #save wikidir now
-            for dirname, dirnames, filenames in os.walk('.'):
-                if dirname == '.':
-                    for d in dirnames:
-                        if d.startswith(prefix):
-                            wikidir = d
+            for f in os.listdir('.'):
+                # Does not find numbered wikidumps not verify directories
+                if d.startswith(prefix) and d.endswith('wikidump'):
+                    wikidir = d
                     break #stop searching, dot not explore subdirectories
         
         prefix = wikidir.split('-wikidump')[0]
