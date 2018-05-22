@@ -871,7 +871,15 @@ def getXMLRevisions(config={}, session=None, allpages=False):
                 for result in results:
                     pages = result['query']['pages']
                     for page in pages:
-                        yield makeXmlFromPage(pages[page])
+                        try:
+                            xml = makeXmlFromPage(pages[page])
+                        except PageMissingError:
+                            logerror(
+                                config=config,
+                                text=u'Error: empty revision from API. Could not export page: %s' % (title.decode('utf-8'))
+                            )
+                            continue
+                        yield xml
 
     except wikitools.api.APIError:
         print "This wikitools version seems not to work for us. Exiting."
@@ -879,28 +887,31 @@ def getXMLRevisions(config={}, session=None, allpages=False):
 
 def makeXmlFromPage(page):
     """ Output an XML document as a string from a page as in the API JSON """
-    p = E.page(
-            E.title(page['title']),
-            E.ns(to_unicode(page['ns'])),
-            E.id(to_unicode(page['pageid'])),
-       )
-    for rev in page['revisions']:
-        revision = E.revision(
-               E.id(to_unicode(rev['revid'])),
-               E.timestamp(rev['timestamp']),
-               E.contributor(
-                    E.id(to_unicode(rev['userid'])),
-                    E.username(to_unicode(rev['user'])),
-               ),
-               E.comment(rev['comment']),
-               E.text(rev['*'], space="preserve", bytes=to_unicode(rev['size'])),
+    try:
+        p = E.page(
+                E.title(page['title']),
+                E.ns(to_unicode(page['ns'])),
+                E.id(to_unicode(page['pageid'])),
         )
-        if 'contentmodel' in rev:
-            revision.append(E.model(rev['contentmodel'])
-        # The sha1 may not have been backfilled on older wikis or lack for other reasons (Wikia).
-        if 'sha1' in rev:
-            revision.append(E.sha1(rev['sha1']))
-        p.append(revision)
+        for rev in page['revisions']:
+            revision = E.revision(
+                E.id(to_unicode(rev['revid'])),
+                E.timestamp(rev['timestamp']),
+                E.contributor(
+                        E.id(to_unicode(rev['userid'])),
+                        E.username(to_unicode(rev['user'])),
+                ),
+                E.comment(rev['comment']),
+                E.text(rev['*'], space="preserve", bytes=to_unicode(rev['size'])),
+            )
+            if 'contentmodel' in rev:
+                revision.append(E.model(rev['contentmodel']))
+            # The sha1 may not have been backfilled on older wikis or lack for other reasons (Wikia).
+            if 'sha1' in rev:
+                revision.append(E.sha1(rev['sha1']))
+            p.append(revision)
+    except KeyError:
+        raise PageMissingError(page['title'], '')
     return etree.tostring(p, pretty_print=True)
 
 def readTitles(config={}, start=None):
