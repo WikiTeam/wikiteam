@@ -894,10 +894,12 @@ def makeXmlFromPage(page):
                ),
                E.comment(rev['comment']),
                E.text(rev['*'], space="preserve", bytes=to_unicode(rev['size'])),
-               E.sha1(rev['sha1']),
         )
         if 'contentmodel' in rev:
-            revision.append(E.model)
+            revision.append(E.model(rev['contentmodel'])
+        # The sha1 may not have been backfilled on older wikis or lack for other reasons (Wikia).
+        if 'sha1' in rev:
+            revision.append(E.sha1(rev['sha1']))
         p.append(revision)
     return etree.tostring(p, pretty_print=True)
 
