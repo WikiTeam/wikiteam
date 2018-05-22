@@ -6,12 +6,12 @@
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
@@ -30,11 +30,11 @@ def main():
     if len(sys.argv) < 2:
         print 'python script.py file-with-apis.txt'
         sys.exit()
-    
+
     print 'Reading list of APIs from', sys.argv[1]
     wikis = open(sys.argv[1], 'r').read().splitlines()
     print '%d APIs found' % (len(wikis))
-    
+
     for wiki in wikis:
         print "#"*73
         print "# Downloading", wiki
@@ -42,7 +42,7 @@ def main():
         wiki = wiki.lower()
         # Make the prefix in standard way; api and index must be defined, not important which is which
         prefix = dumpgenerator.domain2prefix(config={'api': wiki, 'index': wiki})
-        
+
         #check if compressed, in that case dump was finished previously
         compressed = False
         for f in os.listdir('.'):
@@ -50,7 +50,7 @@ def main():
                 compressed = True
                 zipfilename = f
                 break #stop searching, dot not explore subdirectories
-        
+
         if compressed:
             print 'Skipping... This wiki was downloaded and compressed before in', zipfilename
             # Get the archive's file list.
@@ -65,17 +65,17 @@ def main():
                 print "WARNING: Content of the archive not checked, we need python 2.7+ or 3.1+."
                 # TODO: Find a way like grep -q below without doing a 7z l multiple times?
             continue
-        
+
         #download
         started = False #was this wiki download started before? then resume
         wikidir = ''
         for f in os.listdir('.'):
             # Does not find numbered wikidumps not verify directories
-            if d.startswith(prefix) and d.endswith('wikidump'):
-                wikidir = d
+            if f.startswith(prefix) and f.endswith('wikidump'):
+                wikidir = f
                 started = True
                 break #stop searching, dot not explore subdirectories
-        
+
         # time.sleep(60)
         # Uncomment what above and add --delay=60 in the dumpgenerator.py calls below for broken wiki farms
         # such as editthis.info, wiki-site.com, wikkii (adjust the value as needed;
@@ -89,12 +89,12 @@ def main():
             #save wikidir now
             for f in os.listdir('.'):
                 # Does not find numbered wikidumps not verify directories
-                if d.startswith(prefix) and d.endswith('wikidump'):
-                    wikidir = d
+                if f.startswith(prefix) and f.endswith('wikidump'):
+                    wikidir = f
                     break #stop searching, dot not explore subdirectories
-        
+
         prefix = wikidir.split('-wikidump')[0]
-        
+
         finished = False
         if started and wikidir and prefix:
             if (subprocess.call (['tail -n 1 %s/%s-history.xml | grep -q "</mediawiki>"' % (wikidir, prefix)], shell=True) ):
@@ -103,7 +103,7 @@ def main():
                 finished = True
         # You can also issue this on your working directory to find all incomplete dumps:
         # tail -n 1 */*-history.xml | grep -Ev -B 1 "</page>|</mediawiki>|==|^$"
-        
+
         #compress
         if finished:
             time.sleep(1)
