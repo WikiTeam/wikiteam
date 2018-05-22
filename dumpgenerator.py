@@ -1858,10 +1858,9 @@ def checkXMLIntegrity(config={}, titles=[], session=None):
         pass
     else:
         print 'XML dump seems to be corrupted.'
+        reply = ''
         if config['failfast']:
             reply = 'yes'
-        else:
-            reply = ''
         while reply.lower() not in ['yes', 'y', 'no', 'n']:
             reply = raw_input('Regenerate a new dump ([yes, y], [no, n])? ')
         if reply.lower() in ['yes', 'y']:
