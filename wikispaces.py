@@ -289,9 +289,12 @@ def main():
         if not os.path.exists(dirpages):
             print('Creating directory %s' % (dirpages))
             os.makedirs(dirpages)
-        downloadPagesAndFiles(wikidomain=wikidomain, wikiurl=wikiurl, overwrite=overwrite)
         sitemapurl = 'https://%s/sitemap.xml' % (wikidomain)
         downloadSitemap(wikidomain=wikidomain, wikiurl=sitemapurl, overwrite=overwrite)
+        if not os.path.exists('%s/sitemap.xml' % (wikidomain)):
+            print('Error, wiki was probably deleted. Skiping wiki...')
+            continue
+        downloadPagesAndFiles(wikidomain=wikidomain, wikiurl=wikiurl, overwrite=overwrite)
         downloadMainPage(wikidomain=wikidomain, wikiurl=wikiurl, overwrite=overwrite)
         logofilename = downloadLogo(wikidomain=wikidomain, wikiurl=wikiurl, overwrite=overwrite)
         
