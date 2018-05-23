@@ -23,7 +23,7 @@ import subprocess
 import re
 from wikitools import wiki, api
 
-def getlist(wikia, wkfrom = 1, wkto = 1000):
+def getlist(wikia, wkfrom = 1, wkto = 100):
     params = {'action': 'query', 'list': 'wkdomains', 'wkactive': '1', 'wkfrom': wkfrom, 'wkto': wkto,}
     request = api.APIRequest(wikia, params)
     return request.query()['query']['wkdomains']
@@ -31,8 +31,9 @@ def getlist(wikia, wkfrom = 1, wkto = 1000):
 def getall():
     wikia = wiki.Wiki('http://community.wikia.com/api.php')
     offset = 0
-    limit = 1000
+    limit = 100
     domains = {}
+    empty = 0
     # This API module has no query continuation facility
     print 'Getting list of active domains...'
     while True:
@@ -40,13 +41,21 @@ def getall():
         if list:
             print offset
             domains = dict(domains.items() + list.items() )
-            offset += 1000
+            empty = 0
         else:
+            empty += 1
+
+        offset += limit
+        if empty > 100:
+            # Hopefully we don't have more than 10k wikis deleted in a row
             break
     return domains
 
 def main():
     domains = getall()
+    with open('wikia.com', 'w') as out:
+		out.write('\n'.join(str(domains[i]['domain']) for i in domains))
+
     undumped = []
     # Or we could iterate over each sublist while we get it?
     for i in domains:
@@ -69,7 +78,7 @@ def main():
         try:
             #subprocess.check_call(['wget', '-e', 'robots=off', '--fail', '-nc', '-a', 'wikia.log', full])
             # Use this instead, and comment out the next try, to only list.
-            subprocess.check_call(['curl', '-I', '--fail', full])
+            subprocess.call(['curl', '-I', '--fail', full])
         except subprocess.CalledProcessError as e:
             # We added --fail for this https://superuser.com/a/854102/283120
             if e.returncode == 22:
@@ -81,7 +90,9 @@ def main():
         #    subprocess.check_call(['wget', '-e', 'robots=off', '-nc', '-a', 'wikia.log', images])
         #except:
         #    pass
-    print '\n'.join(str(dump) for dump in undumped)
+
+    with open('wikia.com-unarchived', 'w+') as out:
+        out.write('\n'.join(str(domain) for domain in undumped))
 
 if __name__ == '__main__':
     main()

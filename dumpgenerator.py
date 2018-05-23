@@ -20,7 +20,7 @@
 #     https://github.com/WikiTeam/wikiteam/wiki
 
 try:
-    from kitchen.text.converters import getwriter
+    from kitchen.text.converters import getwriter, to_unicode
 except ImportError:
     print "Please install the kitchen module."
 import cookielib
@@ -210,25 +210,32 @@ def getNamespacesAPI(config={}, session=None):
         )
         result = getJSON(r)
         delay(config=config, session=session)
+        try:
+            nsquery = result['query']['namespaces']
+        except KeyError:
+            print "Error: could not get namespaces from the API request"
+            print "HTTP %d" % r.status_code
+            print r.text
+            return None
 
         if 'all' in namespaces:
             namespaces = []
-            for i in result['query']['namespaces'].keys():
+            for i in nsquery.keys():
                 if int(i) < 0:  # -1: Special, -2: Media, excluding
                     continue
                 namespaces.append(int(i))
-                namespacenames[int(i)] = result['query']['namespaces'][i]['*']
+                namespacenames[int(i)] = nsquery[i]['*']
         else:
             # check if those namespaces really exist in this wiki
             namespaces2 = []
-            for i in result['query']['namespaces'].keys():
+            for i in nsquery.keys():
                 bi = i
                 i = int(i)
                 if i < 0:  # -1: Special, -2: Media, excluding
                     continue
                 if i in namespaces:
                     namespaces2.append(i)
-                    namespacenames[i] = result['query']['namespaces'][bi]['*']
+                    namespacenames[i] = nsquery[bi]['*']
             namespaces = namespaces2
     else:
         namespaces = [0]
@@ -289,18 +296,24 @@ def getPageTitlesAPI(config={}, session=None):
 
             # print apfrom
             # print jsontitles
-            allpages = jsontitles['query']['allpages']
+            try:
+                allpages = jsontitles['query']['allpages']
+            except KeyError:
+                print "The allpages API returned nothing. Exit."
+                sys.exit(1)
+
             # Hack for old versions of MediaWiki API where result is dict
             if isinstance(allpages, dict):
                 allpages = allpages.values()
             for page in allpages:
-                yield page['title']
+                title = page['title']
+                titles.append(title)
+                yield title
             c += len(allpages)
 
             if len(titles) != len(set(titles)):
-                # probably we are in a loop, server returning dupe titles, stop
-                # it
-                print 'Probably a loop, finishing'
+                print 'Probably a loop, switching to next namespace. Duplicate title:'
+                print title
                 titles = list(set(titles))
                 apfrom = ''
 
@@ -858,7 +871,15 @@ def getXMLRevisions(config={}, session=None, allpages=False):
                 for result in results:
                     pages = result['query']['pages']
                     for page in pages:
-                        yield makeXmlFromPage(pages[page])
+                        try:
+                            xml = makeXmlFromPage(pages[page])
+                        except PageMissingError:
+                            logerror(
+                                config=config,
+                                text=u'Error: empty revision from API. Could not export page: %s' % (title.decode('utf-8'))
+                            )
+                            continue
+                        yield xml
 
     except wikitools.api.APIError:
         print "This wikitools version seems not to work for us. Exiting."
@@ -866,26 +887,31 @@ def getXMLRevisions(config={}, session=None, allpages=False):
 
 def makeXmlFromPage(page):
     """ Output an XML document as a string from a page as in the API JSON """
-    p = E.page(
-            E.title(page['title']),
-            E.ns(str(page['ns'])),
-            E.id(str(page['pageid'])),
-       )
-    for rev in page['revisions']:
-        revision = E.revision(
-               E.id(str(rev['revid'])),
-               E.timestamp(rev['timestamp']),
-               E.contributor(
-                    E.id(str(rev['userid'])),
-                    E.username(str(rev['user'])),
-               ),
-               E.comment(rev['comment']),
-               E.text(rev['*'], space="preserve", bytes=str(rev['size'])),
-               E.sha1(rev['sha1']),
+    try:
+        p = E.page(
+                E.title(page['title']),
+                E.ns(to_unicode(page['ns'])),
+                E.id(to_unicode(page['pageid'])),
         )
-        if 'contentmodel' in rev:
-            revision.append(E.model)
-        p.append(revision)
+        for rev in page['revisions']:
+            revision = E.revision(
+                E.id(to_unicode(rev['revid'])),
+                E.timestamp(rev['timestamp']),
+                E.contributor(
+                        E.id(to_unicode(rev['userid'])),
+                        E.username(to_unicode(rev['user'])),
+                ),
+                E.comment(rev['comment']),
+                E.text(rev['*'], space="preserve", bytes=to_unicode(rev['size'])),
+            )
+            if 'contentmodel' in rev:
+                revision.append(E.model(rev['contentmodel']))
+            # The sha1 may not have been backfilled on older wikis or lack for other reasons (Wikia).
+            if 'sha1' in rev:
+                revision.append(E.sha1(rev['sha1']))
+            p.append(revision)
+    except KeyError:
+        raise PageMissingError(page['title'], '')
     return etree.tostring(p, pretty_print=True)
 
 def readTitles(config={}, start=None):
@@ -1575,6 +1601,7 @@ def getParameters(params=[]):
         retry = 0
         maxretries = args.retries
         retrydelay = 20
+        check = None
         while retry < maxretries:
             try:
                 check = checkAPI(api=api, session=session)
@@ -1832,6 +1859,8 @@ def checkXMLIntegrity(config={}, titles=[], session=None):
     else:
         print 'XML dump seems to be corrupted.'
         reply = ''
+        if config['failfast']:
+            reply = 'yes'
         while reply.lower() not in ['yes', 'y', 'no', 'n']:
             reply = raw_input('Regenerate a new dump ([yes, y], [no, n])? ')
         if reply.lower() in ['yes', 'y']:
