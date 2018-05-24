@@ -21,6 +21,7 @@
 import csv
 import datetime
 import os
+import random
 import re
 import subprocess
 import sys
@@ -224,6 +225,33 @@ python3 wikispaces.py https://mywiki.wikispaces.com --upload
     print(helptext)
     sys.exit()
 
+def duckduckgo():
+    opener = urllib.request.build_opener()
+    opener.addheaders = [('User-agent', 'Mozilla/5.0')]
+    urllib.request.install_opener(opener)
+    
+    wikis = []
+    for i in range(1, 100000):
+        url = 'https://duckduckgo.com/html/?q=%s%%20%s%%20site:wikispaces.com' % (random.randint(100, 5000), random.randint(1000, 9999))
+        print('URL search', url)
+        try:
+            html = urllib.request.urlopen(url).read().decode('utf-8')
+        except:
+            print('Search error')
+            time.sleep(30)
+            continue
+        html = urllib.parse.unquote(html)
+        m = re.findall(r'://([^/]+?\.wikispaces\.com)', html)
+        for wiki in m:
+            wiki = 'https://' + wiki
+            wiki = re.sub(r'https://www\.', 'https://', wiki)
+            if not wiki in wikis:
+                wikis.append(wiki)
+                yield wiki
+        sleep = random.randint(5,20)
+        print('Sleeping %d seconds' % (sleep))
+        time.sleep(sleep)
+
 def main():
     upload = False
     isadmin = False
@@ -249,6 +277,10 @@ def main():
     wikilist = []
     if '://' in param:
         wikilist.append(param.rstrip('/'))
+    elif param.lower() == 'duckduckgo':
+        wikilist = duckduckgo()
+        #for wiki in wikilist:
+        #    print(wiki)
     else:
         with open(param, 'r') as f:
             wikilist = f.read().strip().splitlines()
@@ -350,6 +382,7 @@ def main():
             itemlogo = logofilename and '%s/%s' % (wikidir, logofilename) or ''                
             subprocess.call('ia' + ' upload %s %s %s --metadata="mediatype:web" --metadata="collection:%s" --metadata="title:%s" --metadata="description:%s" --metadata="language:%s" --metadata="last-updated-date:%s" --metadata="originalurl:%s" %s %s' % (itemid, wikizip, itemlogo and itemlogo or '', itemcollection, itemtitle, itemdesc, itemlang, itemdate, itemoriginalurl, itemlicenseurl and '--metadata="licenseurl:%s"' % (itemlicenseurl) or '', itemtags_), shell=True)
             print('You can find it in https://archive.org/details/%s' % (itemid))
+            os.remove(wikizip)
 
 if __name__ == "__main__":
     main()
