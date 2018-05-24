@@ -2275,10 +2275,9 @@ def main(params=[]):
     # do not enter if resume is requested from begining
     while not other['resume'] and os.path.isdir(config['path']):
         print '\nWarning!: "%s" path exists' % (config['path'])
+        reply = ''
         if config['failfast']:
             retry = 'yes'
-        else:
-            reply = ''
         while reply.lower() not in ['yes', 'y', 'no', 'n']:
             reply = raw_input(
                 'There is a dump in "%s", probably incomplete.\nIf you choose resume, to avoid conflicts, the parameters you have chosen in the current session will be ignored\nand the parameters available in "%s/%s" will be loaded.\nDo you want to resume ([yes, y], [no, n])? ' %
