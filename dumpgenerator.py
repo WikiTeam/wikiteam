@@ -805,7 +805,7 @@ def getXMLRevisions(config={}, session=None, allpages=False):
 
     try:
         for namespace in namespaces:
-            print "Exporting revisions from namespace %s" % namespace
+            print "Trying to export all revisions from namespace %s" % namespace
             arvparams = {
                 'action': 'query',
                 'list': 'allrevisions',
@@ -864,22 +864,22 @@ def getXMLRevisions(config={}, session=None, allpages=False):
                     'titles': title,
                     'prop': 'revisions',
                     'rvlimit': 'max',
-                    'rvprop': 'ids|timestamp|user|userid|size|sha1|contentmodel|comment|content'
+                    'rvprop': 'ids|timestamp|user|userid|size|sha1|contentmodel|comment|content',
+                    'rawcontinue': 'yes'
                 }
                 prequest = wikitools.api.APIRequest(site, pparams)
-                results = prequest.queryGen()
-                for result in results:
-                    pages = result['query']['pages']
-                    for page in pages:
-                        try:
-                            xml = makeXmlFromPage(pages[page])
-                        except PageMissingError:
-                            logerror(
-                                config=config,
-                                text=u'Error: empty revision from API. Could not export page: %s' % (title.decode('utf-8'))
-                            )
-                            continue
-                        yield xml
+                results = prequest.query()
+                pages = results['query']['pages']
+                for page in pages:
+                    try:
+                        xml = makeXmlFromPage(pages[page])
+                    except PageMissingError:
+                        logerror(
+                            config=config,
+                            text=u'Error: empty revision from API. Could not export page: %s' % (title.decode('utf-8'))
+                        )
+                        continue
+                    yield xml
 
     except wikitools.api.APIError:
         print "This wikitools version seems not to work for us. Exiting."
@@ -896,6 +896,7 @@ def makeXmlFromPage(page):
         for rev in page['revisions']:
             revision = E.revision(
                 E.id(to_unicode(rev['revid'])),
+                E.parentid(to_unicode(rev['parentid'])),
                 E.timestamp(rev['timestamp']),
                 E.contributor(
                         E.id(to_unicode(rev['userid'])),
