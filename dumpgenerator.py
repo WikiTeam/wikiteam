@@ -868,8 +868,11 @@ def getXMLRevisions(config={}, session=None, allpages=False):
                     'rawcontinue': 'yes'
                 }
                 prequest = wikitools.api.APIRequest(site, pparams)
-                results = prequest.query()
-                pages = results['query']['pages']
+                try:
+                    results = prequest.query()
+                    pages = results['query']['pages']
+                except KeyError:
+                    raise PageMissingError(title, xml='')
                 for page in pages:
                     try:
                         xml = makeXmlFromPage(pages[page])
