@@ -326,6 +326,17 @@ def main():
         if not os.path.exists('%s/sitemap.xml' % (wikidomain)):
             print('Error, wiki was probably deleted. Skiping wiki...')
             continue
+        else:
+            sitemapraw = ''
+            try:
+                with open('%s/sitemap.xml' % (wikidomain), encoding='utf-8') as g:
+                    sitemapraw = g.read()
+            except:
+                with open('%s/sitemap.xml' % (wikidomain), encoding='latin-1') as g:
+                    sitemapraw = g.read()
+            if re.search(r'(?im)<h1>This wiki has been deactivated</h1>', sitemapraw):
+                print('Error, wiki was deactivated. Skiping wiki...')
+                continue
         downloadPagesAndFiles(wikidomain=wikidomain, wikiurl=wikiurl, overwrite=overwrite)
         downloadMainPage(wikidomain=wikidomain, wikiurl=wikiurl, overwrite=overwrite)
         logofilename = downloadLogo(wikidomain=wikidomain, wikiurl=wikiurl, overwrite=overwrite)
