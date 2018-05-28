@@ -231,6 +231,12 @@ def duckduckgo():
     urllib.request.install_opener(opener)
     
     wikis = []
+    ignorewikis = [
+        'https://wikispaces.com', 
+        'https://www.wikispaces.com', 
+        'https://wikispaces.net', 
+        'https://www.wikispaces.net', 
+    ]
     for i in range(1, 100000):
         url = 'https://duckduckgo.com/html/?q=%s%%20%s%%20site:wikispaces.com' % (random.randint(100, 5000), random.randint(1000, 9999))
         print('URL search', url)
@@ -245,7 +251,7 @@ def duckduckgo():
         for wiki in m:
             wiki = 'https://' + wiki
             wiki = re.sub(r'https://www\.', 'https://', wiki)
-            if not wiki in wikis:
+            if not wiki in wikis and not wiki in ignorewikis:
                 wikis.append(wiki)
                 yield wiki
         sleep = random.randint(5,20)
@@ -322,6 +328,7 @@ def main():
             print('Creating directory %s' % (dirpages))
             os.makedirs(dirpages)
         sitemapurl = 'https://%s/sitemap.xml' % (wikidomain)
+        
         downloadSitemap(wikidomain=wikidomain, wikiurl=sitemapurl, overwrite=overwrite)
         if not os.path.exists('%s/sitemap.xml' % (wikidomain)):
             print('Error, wiki was probably deleted. Skiping wiki...')
@@ -337,8 +344,24 @@ def main():
             if re.search(r'(?im)<h1>This wiki has been deactivated</h1>', sitemapraw):
                 print('Error, wiki was deactivated. Skiping wiki...')
                 continue
-        downloadPagesAndFiles(wikidomain=wikidomain, wikiurl=wikiurl, overwrite=overwrite)
+        
         downloadMainPage(wikidomain=wikidomain, wikiurl=wikiurl, overwrite=overwrite)
+        if not os.path.exists('%s/index.html' % (wikidomain)):
+            print('Error, wiki was probably deleted or expired. Skiping wiki...')
+            continue
+        else:
+            indexraw = ''
+            try:
+                with open('%s/index.html' % (wikidomain), encoding='utf-8') as g:
+                    indexraw = g.read()
+            except:
+                with open('%s/index.html' % (wikidomain), encoding='latin-1') as g:
+                    indexraw = g.read()
+            if re.search(r'(?im)<h1>Subscription Expired</h1>', indexraw):
+                print('Error, wiki subscription expired. Skiping wiki...')
+                continue
+        
+        downloadPagesAndFiles(wikidomain=wikidomain, wikiurl=wikiurl, overwrite=overwrite)
         logofilename = downloadLogo(wikidomain=wikidomain, wikiurl=wikiurl, overwrite=overwrite)
         
         if upload:
