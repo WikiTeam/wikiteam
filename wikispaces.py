@@ -27,10 +27,22 @@ import subprocess
 import sys
 import time
 import urllib.request
+#from internetarchive import get_item
 
 # Requirements:
 # zip command (apt-get install zip)
 # ia command (pip install internetarchive, and configured properly)
+
+"""
+# You need a file with access and secret keys, in two different lines
+iakeysfilename = '%s/.iakeys' % (os.path.expanduser('~'))
+if os.path.exists(iakeysfilename):
+    accesskey = open(iakeysfilename, 'r').readlines()[0].strip()
+    secretkey = open(iakeysfilename, 'r').readlines()[1].strip()
+else:
+    print('Error, no %s file with S3 keys for Internet Archive account' % (iakeysfilename))
+    sys.exit()
+"""
 
 def saveURL(wikidomain='', url='', filename='', path='', overwrite=False, iteration=1):
     filename2 = '%s/%s' % (wikidomain, filename)
@@ -395,6 +407,8 @@ def main():
                 wikititle = wikidomain
             if not wikititle:
                 wikititle = wikidomain
+            wikititle = wikititle.replace("\\'", " ")
+            wikititle = wikititle.replace('\\"', " ")
             itemtitle = 'Wiki - %s' % wikititle
             itemdesc = '<a href=\"%s\">%s</a> dumped with <a href=\"https://github.com/WikiTeam/wikiteam\" rel=\"nofollow\">WikiTeam</a> tools.' % (wikiurl, wikititle)
             itemtags = ['wiki', 'wikiteam', 'wikispaces', wikititle, wikidomain.split('.wikispaces.com')[0], wikidomain]
@@ -414,7 +428,29 @@ def main():
             itemlang = 'Unknown'
             itemdate = datetime.datetime.now().strftime("%Y-%m-%d")
             itemlogo = logofilename and '%s/%s' % (wikidir, logofilename) or ''                
-            subprocess.call('ia' + ' upload %s %s %s --metadata="mediatype:web" --metadata="collection:%s" --metadata="title:%s" --metadata="description:%s" --metadata="language:%s" --metadata="last-updated-date:%s" --metadata="originalurl:%s" %s %s' % (itemid, wikizip, itemlogo and itemlogo or '', itemcollection, itemtitle, itemdesc, itemlang, itemdate, itemoriginalurl, itemlicenseurl and '--metadata="licenseurl:%s"' % (itemlicenseurl) or '', itemtags_), shell=True)
+            callplain = "ia upload %s %s %s --metadata='mediatype:web' --metadata='collection:%s' --metadata='title:%s' --metadata='description:%s' --metadata='language:%s' --metadata='last-updated-date:%s' --metadata='originalurl:%s' %s %s" % (itemid, wikizip, itemlogo and itemlogo or '', itemcollection, itemtitle, itemdesc, itemlang, itemdate, itemoriginalurl, itemlicenseurl and "--metadata='licenseurl:%s'" % (itemlicenseurl) or '', itemtags_)
+            print(callplain)
+            subprocess.call(callplain, shell=True)
+            
+            """
+            md = {
+                'mediatype': 'web',
+                'collection': itemcollection,
+                'title': itemtitle,
+                'description': itemdesc,
+                'language': itemlang,
+                'last-updated-date': itemdate,
+                'subject': '; '.join(itemtags), 
+                'licenseurl': itemlicenseurl,
+                'originalurl': itemoriginalurl,
+            }
+            item = get_item(itemid)
+            item.upload(wikizip, metadata=md, access_key=accesskey, secret_key=secretkey, verbose=True, queue_derive=False)
+            item.modify_metadata(md)
+            if itemlogo:
+                item.upload(itemlogo, access_key=accesskey, secret_key=secretkey, verbose=True)
+            """
+            
             print('You can find it in https://archive.org/details/%s' % (itemid))
             os.remove(wikizip)
 
