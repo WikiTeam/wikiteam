@@ -16,6 +16,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import csv
+import random
 import re
 import time
 import urllib2
@@ -88,7 +89,8 @@ def getWikis(user):
         return {}
 
 def main():
-    sleep = 0.2
+    sleep = 0.1
+    rand = 10
     users = loadUsers()
     wikis = loadWikis()
     
@@ -113,11 +115,16 @@ def main():
                 c += 1
         print 'Found %s new users' % (c)
         if c > 0:
-            saveUsers(users)
-            users = loadUsers()
-        saveWikis(wikis)
+            if random.randint(0,rand) == 0:
+                saveUsers(users)
+                users = loadUsers()
+        if random.randint(0,rand) == 0:
+            saveWikis(wikis)
         time.sleep(sleep)
+    saveWikis(wikis)
     wikis = loadWikis()
+    saveUsers(users)
+    users = loadUsers()
     
     # find more wikis
     print 'Scanning users for more wikis'
@@ -134,10 +141,15 @@ def main():
                 c += 1
         print 'Found %s new wikis' % (c)
         if c > 0:
-            saveWikis(wikis)
-            wikis = loadWikis()
-        saveUsers(users)
+            if random.randint(0,rand) == 0:
+                saveWikis(wikis)
+                wikis = loadWikis()
+        if random.randint(0,rand) == 0:
+            saveUsers(users)
         time.sleep(sleep)
+    saveWikis(wikis)
+    wikis = loadWikis()
+    saveUsers(users)
     users = loadUsers()
     
     print '\nSummary:'
