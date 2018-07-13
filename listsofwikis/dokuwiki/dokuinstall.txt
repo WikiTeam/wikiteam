@@ -3048,7 +3048,7 @@ http://vai.uibk.ac.at/dadp/doku.php
 http://vak.ru/doku.php
 http://val.bmstu.ru/dokuwiki/doku.php
 http://valk.mave.jp/doku.php
-http://vancouver.hackspace.ca/doku.php
+http://vanhack.ca/doku.php
 http://vanets.vuse.vanderbilt.edu/dokuwiki/doku.php
 http://vaslor.net/doku.php
 http://vbraun.name/cms/doku.php
