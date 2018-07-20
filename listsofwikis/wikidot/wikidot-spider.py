@@ -26,14 +26,9 @@ def main():
     opener.addheaders = [('User-agent', 'Mozilla/5.0')]
     urllib.request.install_opener(opener)
     
-    wikis = [
-        'http://hackersderede.wikidot.com', 
-        'http://ds2009a.wikidot.com', 
-        'http://retrowiki.wikidot.com', 
-        'http://heroesofalvena.wikidot.com', 
-        'http://solariapedia.wikidot.com', 
-        'http://denver.wikidot.com', 
-    ]
+    wikis = []
+    with open('wikidot-spider.txt', 'r') as f:
+        wikis = f.read().strip().splitlines()
     
     for i in range(1, 1000000):
         url = random.choice(wikis)
@@ -62,7 +57,7 @@ def main():
             wikis.sort()
             f.write('\n'.join(wikis))
         print('%d wikis found' % (len(wikis)))
-        sleep = random.randint(5,20)
+        sleep = random.randint(1,5)
         print('Sleeping %d seconds' % (sleep))
         time.sleep(sleep)
 
