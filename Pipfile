@@ -1,0 +1,21 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+argparse = ">=1.2.1"
+requests = ">=2.3.0"
+internetarchive = "*"
+kitchen = "*"
+
+[dev-packages]
+tox = "*"
+
+[scripts]
+dump="python dumpgenerator.py"
+wikipediadownloader="python wikipediadownloader.py"
+
+[requires]
+python_version = "2.7"
+
