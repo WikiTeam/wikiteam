@@ -24,8 +24,10 @@ try:
     from kitchen.text.converters import getwriter, to_unicode
 except ImportError:
     print ("Please install the kitchen module.")
-import cookielib
-import cPickle
+try:
+	import cPickle as pickle
+except ImportError:
+	import pickle
 import datetime
 import sys
 try:
@@ -61,6 +63,10 @@ try:
     from urlparse import urlparse, urlunparse
 except ImportError:
     from urllib.parse import urlparse, urlunparse
+try:
+    import http.cookiejar as CookieJar
+except ImportError:
+    import cookielib as CookieJar
 UTF8Writer = getwriter('utf8')
 sys.stdout = UTF8Writer(sys.stdout)
 
@@ -1379,7 +1385,7 @@ def loadConfig(config={}, configfilename=''):
 
     try:
         with open('%s/%s' % (config['path'], configfilename), 'r') as infile:
-            config = cPickle.load(infile)
+            config = pickle.load(infile)
     except:
         print ('There is no config file. we can\'t resume. Start a new dump.')
         sys.exit()
@@ -1391,7 +1397,7 @@ def saveConfig(config={}, configfilename=''):
     """ Save config file """
 
     with open('%s/%s' % (config['path'], configfilename), 'w') as outfile:
-        cPickle.dump(config, outfile)
+        pickle.dump(config, outfile)
 
 
 def welcome():
@@ -1547,7 +1553,7 @@ def getParameters(params=[]):
             sys.exit()
 
     # Create session
-    cj = cookielib.MozillaCookieJar()
+    cj = CookieJar.MozillaCookieJar()
     if args.cookies:
         cj.load(args.cookies)
         print ('Using cookies from %s' % args.cookies)
