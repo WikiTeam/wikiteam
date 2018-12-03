@@ -72,6 +72,9 @@ if sys.version_info < (3, 0):
     UTF8Writer = getwriter('utf8')
     sys.stdout = UTF8Writer(sys.stdout)
     input = raw_input
+    from urllib import unquote
+else:
+    from urllib.parse import unquote
 
 __VERSION__ = '0.4.0-alpha'  # major, minor, micro: semver.org
 
@@ -999,11 +1002,11 @@ def saveImageNames(config={}, images=[], session=None):
 
     imagesfilename = '%s-%s-images.txt' % (
         domain2prefix(config=config), config['date'])
-    imagesfile = open('%s/%s' % (config['path'], imagesfilename), 'w')
+    imagesfile = open('%s/%s' % (config['path'], imagesfilename), 'wb')
     imagesfile.write(
-        ('\n'.join(
+        (u'\n'.join(
             [
-                '%s\t%s\t%s' %
+                u'%s\t%s\t%s' %
                 (filename,
                  url,
                  uploader) for filename,
@@ -1012,7 +1015,7 @@ def saveImageNames(config={}, images=[], session=None):
             ).encode('utf-8')
          )
     )
-    imagesfile.write('\n--END--')
+    imagesfile.write(b'\n--END--')
     imagesfile.close()
 
     print ('Image filenames and URLs saved at...', imagesfilename)
@@ -1041,7 +1044,7 @@ def curateImageURL(config={}, url=''):
         # concat http(s) + domain + relative url
         url = u'%s/%s' % (domainalone, url)
     url = undoHTMLEntities(text=url)
-    # url = urllib.unquote(url) #do not use unquote with url, it break some
+    # url = unquote(url) #do not use unquote with url, it break some
     # urls with odd chars
     url = re.sub(' ', '_', url)
 
@@ -1126,10 +1129,10 @@ def getImageNamesScraper(config={}, session=None):
             url = curateImageURL(config=config, url=url)
             filename = re.sub('_', ' ', i.group('filename'))
             filename = undoHTMLEntities(text=filename)
-            filename = urllib.unquote(filename)
+            filename = unquote(filename)
             uploader = re.sub('_', ' ', i.group('uploader'))
             uploader = undoHTMLEntities(text=uploader)
-            uploader = urllib.unquote(uploader)
+            uploader = unquote(uploader)
             images.append([filename, url, uploader])
             # print (filename, url)
 
@@ -1193,13 +1196,19 @@ def getImageNamesAPI(config={}, session=None):
             for image in jsonimages['query']['allimages']:
                 url = image['url']
                 url = curateImageURL(config=config, url=url)
-                # encoding to ascii is needed to work around this horrible bug:
-                # http://bugs.python.org/issue8136
                 if 'api' in config and '.wikia.com' in config['api']:
                     #to avoid latest?cb=20120816112532 in filenames
-                    filename = unicode(urllib.unquote((re.sub('_', ' ', url.split('/')[-3])).encode('ascii', 'ignore')), 'utf-8')
+                    filename = re.sub(u'_', u' ', url.split('/')[-3])
                 else:
-                    filename = unicode(urllib.unquote((re.sub('_', ' ', url.split('/')[-1])).encode('ascii', 'ignore')), 'utf-8')
+                    filename = re.sub(u'_', u' ', url.split('/')[-1])
+
+                if sys.version_info < (3, 0):
+                    # encoding to ascii is needed to work around this horrible bug:
+                    # http://bugs.python.org/issue8136
+                    filename = unquote(filename.encode('ascii', 'ignore')).decode('ascii')
+                else:
+                    filename = unquote(filename)
+
                 uploader = re.sub('_', ' ', image['user'])
                 images.append([filename, url, uploader])
         else:
@@ -1300,7 +1309,7 @@ def generateImageDump(config={}, other={}, images=[], start='', session=None):
         # saving file
         # truncate filename if length > 100 (100 + 32 (md5) = 132 < 143 (crash
         # limit). Later .desc is added to filename, so better 100 as max)
-        filename2 = urllib.unquote(filename)
+        filename2 = unquote(filename)
         if len(filename2) > other['filenamelimit']:
             # split last . (extension) and then merge
             filename2 = truncateFilename(other=other, filename=filename2)
@@ -1328,9 +1337,9 @@ def generateImageDump(config={}, other={}, images=[], start='', session=None):
                 text=u'The page "%s" was missing in the wiki (probably deleted)' % (title.decode('utf-8'))
             )
 
-        f = open('%s/%s.desc' % (imagepath, filename2), 'w')
+        f = open('%s/%s.desc' % (imagepath, filename2), 'wb')
         # <text xml:space="preserve" bytes="36">Banner featuring SG1, SGA, SGU teams</text>
-        if not re.search(r'</mediawiki>', xmlfiledesc):
+        if not re.search('</mediawiki>', xmlfiledesc):
             # failure when retrieving desc? then save it as empty .desc
             xmlfiledesc = ''
         f.write(xmlfiledesc.encode('utf-8'))
