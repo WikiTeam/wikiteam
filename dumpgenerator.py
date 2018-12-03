@@ -25,9 +25,9 @@ try:
 except ImportError:
     print ("Please install the kitchen module.")
 try:
-	import cPickle as pickle
+    import cPickle as pickle
 except ImportError:
-	import pickle
+    import pickle
 import datetime
 import sys
 try:
@@ -43,6 +43,7 @@ except ImportError:             # Python 2.4 compatibility
 import os
 import re
 import subprocess
+import sys
 try:
     import requests
 except ImportError:
@@ -67,8 +68,10 @@ try:
     import http.cookiejar as CookieJar
 except ImportError:
     import cookielib as CookieJar
-UTF8Writer = getwriter('utf8')
-sys.stdout = UTF8Writer(sys.stdout)
+if sys.version_info < (3, 0):
+    UTF8Writer = getwriter('utf8')
+    sys.stdout = UTF8Writer(sys.stdout)
+    input = raw_input
 
 __VERSION__ = '0.4.0-alpha'  # major, minor, micro: semver.org
 
@@ -1873,7 +1876,7 @@ def checkXMLIntegrity(config={}, titles=[], session=None):
         if config['failfast']:
             reply = 'yes'
         while reply.lower() not in ['yes', 'y', 'no', 'n']:
-            reply = raw_input('Regenerate a new dump ([yes, y], [no, n])? ')
+            reply = input('Regenerate a new dump ([yes, y], [no, n])? ')
         if reply.lower() in ['yes', 'y']:
             generateXMLDump(config=config, titles=titles, session=session)
         elif reply.lower() in ['no', 'n']:
@@ -2290,7 +2293,7 @@ def main(params=[]):
         if config['failfast']:
             retry = 'yes'
         while reply.lower() not in ['yes', 'y', 'no', 'n']:
-            reply = raw_input(
+            reply = input(
                 'There is a dump in "%s", probably incomplete.\nIf you choose resume, to avoid conflicts, the parameters you have chosen in the current session will be ignored\nand the parameters available in "%s/%s" will be loaded.\nDo you want to resume ([yes, y], [no, n])? ' %
                 (config['path'],
                  config['path'],
