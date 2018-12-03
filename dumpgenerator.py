@@ -434,15 +434,15 @@ def getPageTitles(config={}, session=None):
 
     titlesfilename = '%s-%s-titles.txt' % (
         domain2prefix(config=config), config['date'])
-    titlesfile = open('%s/%s' % (config['path'], titlesfilename), 'wt')
+    titlesfile = open('%s/%s' % (config['path'], titlesfilename), 'wb')
     c = 0
     for title in titles:
-        titlesfile.write(title.encode('utf-8') + "\n")
+        titlesfile.write(title.encode('utf-8') + b"\n")
         c += 1
     # TODO: Sort to remove dupes? In CZ, Widget:AddThis appears two times:
     # main namespace and widget namespace.
     # We can use sort -u in UNIX, but is it worth it?
-    titlesfile.write(u'--END--\n')
+    titlesfile.write(b'--END--\n')
     titlesfile.close()
     print ('Titles saved at...', titlesfilename)
 
@@ -770,11 +770,11 @@ def generateXMLDump(config={}, titles=[], start=None, session=None):
         else:
             # requested complete xml dump
             lock = False
-            xmlfile = open('%s/%s' % (config['path'], xmlfilename), 'w')
+            xmlfile = open('%s/%s' % (config['path'], xmlfilename), 'wb')
             xmlfile.write(header.encode('utf-8'))
             xmlfile.close()
 
-        xmlfile = open('%s/%s' % (config['path'], xmlfilename), 'a')
+        xmlfile = open('%s/%s' % (config['path'], xmlfilename), 'ab')
         c = 1
         for title in readTitles(config, start):
             if not title.strip():
@@ -1399,7 +1399,7 @@ def loadConfig(config={}, configfilename=''):
 def saveConfig(config={}, configfilename=''):
     """ Save config file """
 
-    with open('%s/%s' % (config['path'], configfilename), 'w') as outfile:
+    with open('%s/%s' % (config['path'], configfilename), 'wb') as outfile:
         pickle.dump(config, outfile)
 
 
