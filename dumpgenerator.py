@@ -2065,7 +2065,7 @@ def saveSpecialVersion(config={}, session=None):
         raw = r.text
         delay(config=config, session=session)
         raw = removeIP(raw=raw)
-        with open('%s/Special:Version.html' % (config['path']), 'w') as outfile:
+        with open('%s/Special:Version.html' % (config['path']), 'wb') as outfile:
             outfile.write(raw.encode('utf-8'))
 
 
@@ -2080,7 +2080,7 @@ def saveIndexPHP(config={}, session=None):
         raw = r.text
         delay(config=config, session=session)
         raw = removeIP(raw=raw)
-        with open('%s/index.html' % (config['path']), 'w') as outfile:
+        with open('%s/index.html' % (config['path']), 'wb') as outfile:
             outfile.write(raw.encode('utf-8'))
 
 def saveSiteInfo(config={}, session=None):
@@ -2124,8 +2124,8 @@ def saveSiteInfo(config={}, session=None):
                     timeout=10)
             result = getJSON(r)
             delay(config=config, session=session)
-            with open('%s/siteinfo.json' % (config['path']), 'w') as outfile:
-                outfile.write(json.dumps(result, indent=4, sort_keys=True))
+            with open('%s/siteinfo.json' % (config['path']), 'wb') as outfile:
+                outfile.write(json.dumps(result, indent=4, sort_keys=True).encode('utf-8'))
 
 
 def avoidWikimediaProjects(config={}, other={}):
@@ -2138,7 +2138,7 @@ def avoidWikimediaProjects(config={}, other={}):
     if config['index']:
         url = url + config['index']
     if re.findall(
-            r'(?i)(wikipedia|wikisource|wiktionary|wikibooks|wikiversity|wikimedia|wikispecies|wikiquote|wikinews|wikidata|wikivoyage)\.org',
+            '(?i)(wikipedia|wikisource|wiktionary|wikibooks|wikiversity|wikimedia|wikispecies|wikiquote|wikinews|wikidata|wikivoyage)\\.org',
             url):
         print ('PLEASE, DO NOT USE THIS SCRIPT TO DOWNLOAD WIKIMEDIA PROJECTS!')
         print ('Download the dumps from http://dumps.wikimedia.org')
