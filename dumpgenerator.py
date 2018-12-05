@@ -742,7 +742,7 @@ def generateXMLDump(config={}, titles=[], start=None, session=None):
     # TODO: titles is now unused.
 
     header, config = getXMLHeader(config=config, session=session)
-    footer = '</mediawiki>\n'  # new line at the end
+    footer = b'</mediawiki>\n'  # new line at the end
     xmlfilename = '%s-%s-%s.xml' % (domain2prefix(config=config),
                                     config['date'],
                                     config['curonly'] and 'current' or 'history')
