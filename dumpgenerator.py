@@ -1205,7 +1205,7 @@ def getImageNamesAPI(config={}, session=None):
                 if sys.version_info < (3, 0):
                     # encoding to ascii is needed to work around this horrible bug:
                     # http://bugs.python.org/issue8136
-                    filename = unquote(filename.encode('ascii', 'ignore')).decode('ascii')
+                    filename = unquote(filename.encode('ascii', 'ignore')).decode('utf-8')
                 else:
                     filename = unquote(filename)
 
