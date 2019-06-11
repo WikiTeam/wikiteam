@@ -24,7 +24,7 @@ def main():
     site = pywikibot.Site('wikiapiary', 'wikiapiary')
     catname = 'Category:Website'
     cat = pywikibot.Category(site, catname)
-    gen = pagegenerators.CategorizedPageGenerator(cat, start='Spyropedia')
+    gen = pagegenerators.CategorizedPageGenerator(cat, start='!')
     pre = pagegenerators.PreloadingGenerator(gen)
     
     for page in pre:
