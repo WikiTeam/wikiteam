@@ -62,14 +62,14 @@ class TestDumpgenerator(unittest.TestCase):
         tests = [
             # Alone wikis
             #['http://wiki.annotation.jp/index.php', 'http://wiki.annotation.jp/api.php', u'かずさアノテーション - ソーシャル・ゲノム・アノテーション.jpg'],
-            ['http://archiveteam.org/index.php', 'http://archiveteam.org/api.php', u'Archive-is 2013-07-02 17-05-40.png'],
-            ['http://skilledtests.com/wiki/index.php', 'http://skilledtests.com/wiki/api.php', u'Benham\'s disc (animated).gif'],
+            ['https://www.archiveteam.org/index.php', 'https://www.archiveteam.org/api.php', u'Archive-is 2013-07-02 17-05-40.png'],
+            #['http://skilledtests.com/wiki/index.php', 'http://skilledtests.com/wiki/api.php', u'Benham\'s disc (animated).gif'],
             
             # Editthis wikifarm
             # It has a page view limit
             
             # Gamepedia wikifarm
-            ['http://dawngate.gamepedia.com/index.php', 'http://dawngate.gamepedia.com/api.php', u'Spell Vanquish.png'],
+            #['http://dawngate.gamepedia.com/index.php', 'http://dawngate.gamepedia.com/api.php', u'Spell Vanquish.png'],
             
             # Neoseeker wikifarm
             #['http://digimon.neoseeker.com/w/index.php', 'http://digimon.neoseeker.com/w/api.php', u'Ogremon card.png'],
@@ -78,13 +78,13 @@ class TestDumpgenerator(unittest.TestCase):
             #['http://mc.orain.org/w/index.php', 'http://mc.orain.org/w/api.php', u'Mojang logo.svg'],
             
             # Referata wikifarm
-            ['http://wikipapers.referata.com/w/index.php', 'http://wikipapers.referata.com/w/api.php', u'Avbot logo.png'],
+            #['http://wikipapers.referata.com/w/index.php', 'http://wikipapers.referata.com/w/api.php', u'Avbot logo.png'],
             
             # ShoutWiki wikifarm
-            ['http://commandos.shoutwiki.com/w/index.php', 'http://commandos.shoutwiki.com/w/api.php', u'Night of the Wolves loading.png'],
+            #['http://commandos.shoutwiki.com/w/index.php', 'http://commandos.shoutwiki.com/w/api.php', u'Night of the Wolves loading.png'],
             
             # Wiki-site wikifarm
-            ['http://minlingo.wiki-site.com/index.php', 'http://minlingo.wiki-site.com/api.php', u'一 (書方灋ᅗᅩ).png'],
+            #['http://minlingo.wiki-site.com/index.php', 'http://minlingo.wiki-site.com/api.php', u'一 (書方灋ᅗᅩ).png'],
             
             # Wikkii wikifarm
             # It seems offline
@@ -146,8 +146,8 @@ class TestDumpgenerator(unittest.TestCase):
         print '\n', '#'*73, '\n', 'test_getPageTitles', '\n', '#'*73
         tests = [
             # Alone wikis
-            ['http://archiveteam.org/index.php', 'http://archiveteam.org/api.php', u'April Fools\' Day'],
-            ['http://skilledtests.com/wiki/index.php', 'http://skilledtests.com/wiki/api.php', u'Conway\'s Game of Life'],
+            ['https://www.archiveteam.org/index.php', 'https://www.archiveteam.org/api.php', u'April Fools\' Day'],
+            #['http://skilledtests.com/wiki/index.php', 'http://skilledtests.com/wiki/api.php', u'Conway\'s Game of Life'],
 
             # Test old allpages API behaviour
             #['http://wiki.damirsystems.com/index.php', 'http://wiki.damirsystems.com/api.php', 'SQL Server Tips'],
@@ -261,7 +261,11 @@ class TestDumpgenerator(unittest.TestCase):
         ]
         for wiki, engine in tests:
             print 'Testing', wiki
-            guess_engine = getWikiEngine(wiki)
+            try:
+                guess_engine = getWikiEngine(wiki)
+            except ConnectionError:
+                print "%s failed to load, skipping..." % (wiki)
+                continue
             print 'Got: %s, expected: %s' % (guess_engine, engine)
             self.assertEqual(guess_engine, engine)
     
@@ -269,14 +273,14 @@ class TestDumpgenerator(unittest.TestCase):
         print '\n', '#'*73, '\n', 'test_mwGetAPIAndIndex', '\n', '#'*73
         tests = [
             # Alone wikis
-            ['http://archiveteam.org', 'http://archiveteam.org/api.php', 'http://archiveteam.org/index.php'],
-            ['http://skilledtests.com/wiki/', 'http://skilledtests.com/wiki/api.php', 'http://skilledtests.com/wiki/index.php'],
+            ['https://www.archiveteam.org', 'https://www.archiveteam.org/api.php', 'https://www.archiveteam.org/index.php'],
+            #['http://skilledtests.com/wiki/', 'http://skilledtests.com/wiki/api.php', 'http://skilledtests.com/wiki/index.php'],
             
             # Editthis wikifarm
             # It has a page view limit
             
             # Gamepedia wikifarm
-            ['http://dawngate.gamepedia.com', 'http://dawngate.gamepedia.com/api.php', 'http://dawngate.gamepedia.com/index.php'],
+            #['http://dawngate.gamepedia.com', 'http://dawngate.gamepedia.com/api.php', 'http://dawngate.gamepedia.com/index.php'],
             
             # Neoseeker wikifarm
             #['http://digimon.neoseeker.com', 'http://digimon.neoseeker.com/w/api.php', 'http://digimon.neoseeker.com/w/index.php'],
@@ -288,7 +292,7 @@ class TestDumpgenerator(unittest.TestCase):
             # ['http://wikipapers.referata.com', 'http://wikipapers.referata.com/w/api.php', 'http://wikipapers.referata.com/w/index.php'],
             
             # ShoutWiki wikifarm
-            ['http://commandos.shoutwiki.com', 'http://commandos.shoutwiki.com/w/api.php', 'http://commandos.shoutwiki.com/w/index.php'],
+            #['http://commandos.shoutwiki.com', 'http://commandos.shoutwiki.com/w/api.php', 'http://commandos.shoutwiki.com/w/index.php'],
             
             # Wiki-site wikifarm
             #['http://minlingo.wiki-site.com', 'http://minlingo.wiki-site.com/api.php', 'http://minlingo.wiki-site.com/index.php'],
