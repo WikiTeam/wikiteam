@@ -84,7 +84,7 @@ def main():
             print 'Resuming download, using directory', wikidir
             subprocess.call('./dumpgenerator.py --api=%s --xml --images --resume --path=%s' % (wiki, wikidir), shell=True)
         else: #download from scratch
-            subprocess.call('./dumpgenerator.py --api=%s --xml --images' % wiki, shell=True)
+            subprocess.call('./dumpgenerator.py --api=%s --xml --images --delay=1' % wiki, shell=True)
             started = True
             #save wikidir now
             for f in os.listdir('.'):

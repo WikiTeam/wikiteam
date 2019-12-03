@@ -24,7 +24,7 @@ def main():
     site = pywikibot.Site('wikiapiary', 'wikiapiary')
     catname = 'Category:Website'
     cat = pywikibot.Category(site, catname)
-    gen = pagegenerators.CategorizedPageGenerator(cat, start='Spyropedia')
+    gen = pagegenerators.CategorizedPageGenerator(cat, start='!')
     pre = pagegenerators.PreloadingGenerator(gen)
     
     for page in pre:
@@ -52,7 +52,8 @@ def main():
                 print('No API found in WikiApiary, skiping')
                 continue
             
-            urliasearch = 'https://archive.org/search.php?query=originalurl:"%s"' % (apiurl)
+            indexurl = 'index.php'.join(apiurl.rsplit('api.php', 1))
+            urliasearch = 'https://archive.org/search.php?query=originalurl:"%s" OR originalurl:"%s"' % (apiurl, indexurl)
             f = urllib.request.urlopen(urliasearch)
             raw = f.read().decode('utf-8')
             if re.search(r'(?i)Your search did not match any items', raw):
