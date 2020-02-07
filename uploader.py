@@ -66,7 +66,9 @@ def upload(wikis, config={}, uploadeddumps=[]):
             if f.startswith('%s-' % (wikiname)) and (f.endswith('-wikidump.7z') or f.endswith('-history.xml.7z')):
                 print "%s found" % f
                 dumps.append(f)
-                break
+                # Re-introduce the break here if you only need to upload one file
+                # and the I/O is too slow
+                # break
 
         c = 0
         for dump in dumps:
