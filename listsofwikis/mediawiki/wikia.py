@@ -29,7 +29,7 @@ def getlist(wikia, wkfrom = 1, wkto = 100):
     return request.query()['query']['wkdomains']
 
 def getall():
-    wikia = wiki.Wiki('http://community.wikia.com/api.php')
+    wikia = wiki.Wiki('https://community.fandom.com/api.php')
     offset = 0
     limit = 100
     domains = {}
@@ -54,7 +54,11 @@ def getall():
 def main():
     domains = getall()
     with open('wikia.com', 'w') as out:
-		out.write('\n'.join(str(domains[i]['domain']) for i in domains))
+        out.write('\n'.join(str(domains[i]['domain']) for i in domains))
+    
+    # TODO: Remove the following code entirely. All Wikia wikis can now be
+    # assumed to be undumped.
+    return
 
     undumped = []
     # Or we could iterate over each sublist while we get it?
