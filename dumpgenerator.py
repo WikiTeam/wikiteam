@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 # dumpgenerator.py A generator of dumps for wikis
@@ -19,18 +19,21 @@
 # To learn more, read the documentation:
 #     https://github.com/WikiTeam/wikiteam/wiki
 
+from __future__ import print_function
 try:
     from kitchen.text.converters import getwriter, to_unicode
 except ImportError:
-    print "Please install the kitchen module."
-import cookielib
-import cPickle
+    print ("Please install the kitchen module.")
+try:
+    import cPickle as pickle
+except ImportError:
+    import pickle
 import datetime
 import sys
 try:
     import argparse
 except ImportError:
-    print "Please install the argparse module."
+    print ("Please install the argparse module.")
     sys.exit(1)
 import json
 try:
@@ -40,28 +43,38 @@ except ImportError:             # Python 2.4 compatibility
 import os
 import re
 import subprocess
+import sys
 try:
     import requests
 except ImportError:
-    print "Please install or update the Requests module."
+    print ("Please install or update the Requests module.")
     sys.exit(1)
 try:
     import wikitools
 except ImportError:
-    print "Please install the wikitools 1.3+ module if you want to use --xmlrevisions."
+    print ("Please install the wikitools 1.3+ module if you want to use --xmlrevisions.")
 try:
     from lxml import etree
     from lxml.builder import E
 except ImportError:
-    print "Please install the lxml module if you want to use --xmlrevisions."
+    print ("Please install the lxml module if you want to use --xmlrevisions.")
 import time
 import urllib
 try:
     from urlparse import urlparse, urlunparse
 except ImportError:
     from urllib.parse import urlparse, urlunparse
-UTF8Writer = getwriter('utf8')
-sys.stdout = UTF8Writer(sys.stdout)
+try:
+    import http.cookiejar as CookieJar
+except ImportError:
+    import cookielib as CookieJar
+if sys.version_info < (3, 0):
+    UTF8Writer = getwriter('utf8')
+    sys.stdout = UTF8Writer(sys.stdout)
+    input = raw_input
+    from urllib import unquote
+else:
+    from urllib.parse import unquote
 
 __VERSION__ = '0.4.0-alpha'  # major, minor, micro: semver.org
 
@@ -91,7 +104,7 @@ def truncateFilename(other={}, filename=''):
 def delay(config={}, session=None):
     """ Add a delay if configured for that """
     if config['delay'] > 0:
-        print 'Sleeping... %d seconds...' % (config['delay'])
+        print ('Sleeping... %d seconds...' % (config['delay']))
         time.sleep(config['delay'])
 
 
@@ -118,8 +131,8 @@ def cleanHTML(raw=''):
         raw = raw.split('<body class=')[1].split(
             '<div class="printfooter">')[0]
     else:
-        print raw[:250]
-        print 'This wiki doesn\'t use marks to split content'
+        print (raw[:250])
+        print ('This wiki doesn\'t use marks to split content')
         sys.exit()
     return raw
 
@@ -129,31 +142,31 @@ def handleStatusCode(response):
     if statuscode >= 200 and statuscode < 300:
         return
 
-    print "HTTP Error %d." % statuscode
+    print ("HTTP Error %d." % statuscode)
     if statuscode >= 300 and statuscode < 400:
-        print "Redirect should happen automatically: please report this as a bug."
-        print response.url
+        print ("Redirect should happen automatically: please report this as a bug.")
+        print (response.url)
 
     elif statuscode == 400:
-        print "Bad Request: The wiki may be malfunctioning."
-        print "Please try again later."
-        print response.url
+        print ("Bad Request: The wiki may be malfunctioning.")
+        print ("Please try again later.")
+        print (response.url)
         sys.exit(1)
 
     elif statuscode == 401 or statuscode == 403:
-        print "Authentication required."
-        print "Please use --userpass."
-        print response.url
+        print ("Authentication required.")
+        print ("Please use --userpass.")
+        print (response.url)
 
     elif statuscode == 404:
-        print "Not found. Is Special:Export enabled for this wiki?"
-        print response.url
+        print ("Not found. Is Special:Export enabled for this wiki?")
+        print (response.url)
         sys.exit(1)
 
     elif statuscode == 429 or (statuscode >= 500 and statuscode < 600):
-        print "Server error, max retries exceeded."
-        print "Please resume the dump later."
-        print response.url
+        print ("Server error, max retries exceeded.")
+        print ("Please resume the dump later.")
+        print (response.url)
         sys.exit(1)
 
 
@@ -190,7 +203,7 @@ def getNamespacesScraper(config={}, session=None):
         namespaces = [0]
 
     namespaces = list(set(namespaces))  # uniques
-    print '%d namespaces found' % (len(namespaces))
+    print ('%d namespaces found' % (len(namespaces)))
     return namespaces, namespacenames
 
 
@@ -213,9 +226,9 @@ def getNamespacesAPI(config={}, session=None):
         try:
             nsquery = result['query']['namespaces']
         except KeyError:
-            print "Error: could not get namespaces from the API request"
-            print "HTTP %d" % r.status_code
-            print r.text
+            print ("Error: could not get namespaces from the API request")
+            print ("HTTP %d" % r.status_code)
+            print (r.text)
             return None
 
         if 'all' in namespaces:
@@ -241,7 +254,7 @@ def getNamespacesAPI(config={}, session=None):
         namespaces = [0]
 
     namespaces = list(set(namespaces))  # uniques
-    print '%d namespaces found' % (len(namespaces))
+    print ('%d namespaces found' % (len(namespaces)))
     return namespaces, namespacenames
 
 
@@ -252,11 +265,11 @@ def getPageTitlesAPI(config={}, session=None):
         config=config, session=session)
     for namespace in namespaces:
         if namespace in config['exnamespaces']:
-            print '    Skipping namespace = %d' % (namespace)
+            print ('    Skipping namespace = %d' % (namespace))
             continue
 
         c = 0
-        print '    Retrieving titles in the namespace %d' % (namespace)
+        print ('    Retrieving titles in the namespace %d' % (namespace))
         apfrom = '!'
         while apfrom:
             sys.stderr.write('.')  # progress
@@ -274,7 +287,7 @@ def getPageTitlesAPI(config={}, session=None):
                     r = session.get(url=config['api'], params=params, timeout=30)
                     break
                 except ConnectionError as err:
-                    print "Connection error: %s" % (str(err),)
+                    print ("Connection error: %s" % (str(err),))
                     retryCount += 1
                     time.sleep(20)
             handleStatusCode(r)
@@ -294,12 +307,12 @@ def getPageTitlesAPI(config={}, session=None):
                 elif 'apfrom' in jsontitles['continue']:
                     apfrom = jsontitles['continue']['apfrom']
 
-            # print apfrom
-            # print jsontitles
+            # print (apfrom)
+            # print (jsontitles)
             try:
                 allpages = jsontitles['query']['allpages']
             except KeyError:
-                print "The allpages API returned nothing. Exit."
+                print ("The allpages API returned nothing. Exit.")
                 sys.exit(1)
 
             # Hack for old versions of MediaWiki API where result is dict
@@ -312,13 +325,13 @@ def getPageTitlesAPI(config={}, session=None):
             c += len(allpages)
 
             if len(titles) != len(set(titles)):
-                print 'Probably a loop, switching to next namespace. Duplicate title:'
-                print title
+                print ('Probably a loop, switching to next namespace. Duplicate title:')
+                print (title)
                 titles = list(set(titles))
                 apfrom = ''
 
             delay(config=config, session=session)
-        print '    %d titles retrieved in the namespace %d' % (c, namespace)
+        print ('    %d titles retrieved in the namespace %d' % (c, namespace))
 
 def getPageTitlesScraper(config={}, session=None):
     """ Scrape the list of page titles from Special:Allpages """
@@ -326,7 +339,7 @@ def getPageTitlesScraper(config={}, session=None):
     namespaces, namespacenames = getNamespacesScraper(
         config=config, session=session)
     for namespace in namespaces:
-        print '    Retrieving titles in the namespace', namespace
+        print ('    Retrieving titles in the namespace', namespace)
         url = '%s?title=Special:Allpages&namespace=%s' % (
             config['index'], namespace)
         r = session.get(url=url, timeout=30)
@@ -385,9 +398,9 @@ def getPageTitlesScraper(config={}, session=None):
                     raw2 = r2.text
                     raw2 = cleanHTML(raw2)
                     rawacum += raw2  # merge it after removed junk
-                    print '    Reading', name, len(raw2), 'bytes', \
+                    print ('    Reading', name, len(raw2), 'bytes', \
                         len(re.findall(r_suballpages, raw2)), 'subpages', \
-                        len(re.findall(r_title, raw2)), 'pages'
+                        len(re.findall(r_title, raw2)), 'pages')
 
                 delay(config=config, session=session)
             c += 1
@@ -400,7 +413,7 @@ def getPageTitlesScraper(config={}, session=None):
                 if t not in titles:
                     titles.append(t)
                     c += 1
-        print '    %d titles retrieved in the namespace %d' % (c, namespace)
+        print ('    %d titles retrieved in the namespace %d' % (c, namespace))
     return titles
 
 
@@ -409,40 +422,40 @@ def getPageTitles(config={}, session=None):
     # http://en.wikipedia.org/wiki/Special:AllPages
     # http://archiveteam.org/index.php?title=Special:AllPages
     # http://www.wikanda.es/wiki/Especial:Todas
-    print 'Loading page titles from namespaces = %s' % (config['namespaces'] and ','.join([str(i) for i in config['namespaces']]) or 'None')
-    print 'Excluding titles from namespaces = %s' % (config['exnamespaces'] and ','.join([str(i) for i in config['exnamespaces']]) or 'None')
+    print ('Loading page titles from namespaces = %s' % (config['namespaces'] and ','.join([str(i) for i in config['namespaces']]) or 'None'))
+    print ('Excluding titles from namespaces = %s' % (config['exnamespaces'] and ','.join([str(i) for i in config['exnamespaces']]) or 'None'))
 
     titles = []
     if 'api' in config and config['api']:
         try:
             titles = getPageTitlesAPI(config=config, session=session)
         except:
-            print "Error: could not get page titles from the API"
+            print ("Error: could not get page titles from the API")
             titles = getPageTitlesScraper(config=config, session=session)
     elif 'index' in config and config['index']:
         titles = getPageTitlesScraper(config=config, session=session)
 
     titlesfilename = '%s-%s-titles.txt' % (
         domain2prefix(config=config), config['date'])
-    titlesfile = open('%s/%s' % (config['path'], titlesfilename), 'wt')
+    titlesfile = open('%s/%s' % (config['path'], titlesfilename), 'wb')
     c = 0
     for title in titles:
-        titlesfile.write(title.encode('utf-8') + "\n")
+        titlesfile.write(title.encode('utf-8') + b"\n")
         c += 1
     # TODO: Sort to remove dupes? In CZ, Widget:AddThis appears two times:
     # main namespace and widget namespace.
     # We can use sort -u in UNIX, but is it worth it?
-    titlesfile.write(u'--END--\n')
+    titlesfile.write(b'--END--\n')
     titlesfile.close()
-    print 'Titles saved at...', titlesfilename
+    print ('Titles saved at...', titlesfilename)
 
-    print '%d page titles loaded' % (c)
+    print ('%d page titles loaded' % (c))
     return titlesfilename
 
 def getImageNames(config={}, session=None):
     """ Get list of image names """
 
-    print 'Retrieving image filenames'
+    print ('Retrieving image filenames')
     images = []
     if 'api' in config and config['api']:
         images = getImageNamesAPI(config=config, session=session)
@@ -452,7 +465,7 @@ def getImageNames(config={}, session=None):
     # images = list(set(images)) # it is a list of lists
     images.sort()
 
-    print '%d image names loaded' % (len(images))
+    print ('%d image names loaded' % (len(images)))
     return images
 
 
@@ -462,11 +475,11 @@ def getXMLHeader(config={}, session=None):
     # similar to: <mediawiki xmlns="http://www.mediawiki.org/xml/export-0.3/"
     # xmlns:x....
     randomtitle = 'Main_Page'  # previously AMF5LKE43MNFGHKSDMRTJ
-    print config['api']
+    print (config['api'])
     if config['xmlrevisions'] and config['api'] and config['api'].endswith("api.php"):
         xml = None
         try:
-            print 'Getting the XML header from the API'
+            print ('Getting the XML header from the API')
             r = session.get(config['api'] + '?action=query&revids=1&export&format=json', timeout=10)
             xml = r.json()['query']['export']['*']
             if not xml:
@@ -487,7 +500,7 @@ def getXMLHeader(config={}, session=None):
         except ExportAbortedError:
             try:
                 if config['api']:
-                    print "Trying the local name for the Special namespace instead"
+                    print ("Trying the local name for the Special namespace instead")
                     r = session.post(
                     url=config['api'],
                     params={
@@ -509,11 +522,11 @@ def getXMLHeader(config={}, session=None):
     if not re.match(r"\s*<mediawiki", xml):
         if config['xmlrevisions']:
             # Try again the old way
-            print 'Export test via the API failed. Wiki too old? Trying without xmlrevisions.'
+            print ('Export test via the API failed. Wiki too old? Trying without xmlrevisions.')
             config['xmlrevisions'] = False
             header, config = getXMLHeader(config=config, session=session)
         else:
-            print 'XML export on this wiki is broken, quitting.'
+            print ('XML export on this wiki is broken, quitting.')
             logerror(u'XML export on this wiki is broken, quitting.')
             sys.exit()
     return header, config
@@ -559,17 +572,17 @@ def getXMLPageCore(headers={}, params={}, config={}, session=None):
         if c > 0 and c < maxretries:
             wait = increment * c < maxseconds and increment * \
                 c or maxseconds  # incremental until maxseconds
-            print '    In attempt %d, XML for "%s" is wrong. Waiting %d seconds and reloading...' %(c, params['pages'], wait)
+            print ('    In attempt %d, XML for "%s" is wrong. Waiting %d seconds and reloading...' %(c, params['pages'], wait))
             time.sleep(wait)
             # reducing server load requesting smallest chunks (if curonly then
             # limit = 1 from mother function)
             if params['limit'] > 1:
                 params['limit'] = params['limit'] / 2  # half
         if c >= maxretries:
-            print '    We have retried %d times' % (c)
-            print '    MediaWiki error for "%s", network error or whatever...' % (params['pages'])
+            print ('    We have retried %d times' % (c))
+            print ('    MediaWiki error for "%s", network error or whatever...' % (params['pages']))
             if config['failfast']:
-                print "Exit, it will be for another time"
+                print ("Exit, it will be for another time")
                 sys.exit()
             # If it's not already what we tried: our last chance, preserve only the last revision...
             # config['curonly'] means that the whole dump is configured to save only the last,
@@ -577,7 +590,7 @@ def getXMLPageCore(headers={}, params={}, config={}, session=None):
             # fallback, because it's set by the following if and passed to
             # getXMLPageCore
             if not config['curonly'] and not 'curonly' in params:
-                print '    Trying to save only the last revision for this page...'
+                print ('    Trying to save only the last revision for this page...')
                 params['curonly'] = 1
                 logerror(
                     config=config,
@@ -591,7 +604,7 @@ def getXMLPageCore(headers={}, params={}, config={}, session=None):
                     session=session
                 )
             else:
-                print '    Saving in the errors log, and skipping...'
+                print ('    Saving in the errors log, and skipping...')
                 logerror(
                     config=config,
                     text=u'Error while retrieving the last revision of "%s". Skipping.' %
@@ -604,7 +617,7 @@ def getXMLPageCore(headers={}, params={}, config={}, session=None):
             handleStatusCode(r)
             xml = fixBOM(r)
         except requests.exceptions.ConnectionError as e:
-            print '    Connection error: %s'%(str(e[0]))
+            print ('    Connection error: %s'%(str(e[0])))
             xml = ''
         c += 1
 
@@ -667,7 +680,7 @@ def getXMLPage(config={}, title='', verbose=True, session=None):
                 xml2 = getXMLPageCore(
                     params=params, config=config, session=session)
             except MemoryError:
-                print "The page's history exceeds our memory, halving limit."
+                print ("The page's history exceeds our memory, halving limit.")
                 params['limit'] = params['limit'] / 2
                 continue
 
@@ -677,7 +690,7 @@ def getXMLPage(config={}, title='', verbose=True, session=None):
                     # again the same XML, this wiki does not support params in
                     # Special:Export, offer complete XML up to X edits (usually
                     # 1000)
-                    print 'ATTENTION: This wiki does not allow some parameters in Special:Export, therefore pages with large histories may be truncated'
+                    print ('ATTENTION: This wiki does not allow some parameters in Special:Export, therefore pages with large histories may be truncated')
                     truncated = True
                     break
                 else:
@@ -698,7 +711,7 @@ def getXMLPage(config={}, title='', verbose=True, session=None):
                         xml2 = xml2.split("</page>")[0]
                         yield '  <revision>' + ('<revision>'.join(xml2.split('<revision>')[1:]))
                     except MemoryError:
-                        print "The page's history exceeds our memory, halving limit."
+                        print ("The page's history exceeds our memory, halving limit.")
                         params['limit'] = params['limit'] / 2
                         continue
                     xml = xml2
@@ -709,9 +722,9 @@ def getXMLPage(config={}, title='', verbose=True, session=None):
 
     if verbose:
         if (numberofedits == 1):
-           print '    %s, 1 edit' % (title.strip())
+           print ('    %s, 1 edit' % (title.strip()))
         else:
-           print '    %s, %d edits' % (title.strip(), numberofedits)
+           print ('    %s, %d edits' % (title.strip(), numberofedits))
 
 
 def cleanXML(xml=''):
@@ -729,7 +742,7 @@ def generateXMLDump(config={}, titles=[], start=None, session=None):
     # TODO: titles is now unused.
 
     header, config = getXMLHeader(config=config, session=session)
-    footer = '</mediawiki>\n'  # new line at the end
+    footer = b'</mediawiki>\n'  # new line at the end
     xmlfilename = '%s-%s-%s.xml' % (domain2prefix(config=config),
                                     config['date'],
                                     config['curonly'] and 'current' or 'history')
@@ -737,7 +750,7 @@ def generateXMLDump(config={}, titles=[], start=None, session=None):
     lock = True
 
     if config['xmlrevisions']:
-        print 'Retrieving the XML for every page from the beginning'
+        print ('Retrieving the XML for every page from the beginning')
         xmlfile = open('%s/%s' % (config['path'], xmlfilename), 'w')
         xmlfile.write(header.encode('utf-8'))
         try:
@@ -745,26 +758,26 @@ def generateXMLDump(config={}, titles=[], start=None, session=None):
             for xml in getXMLRevisions(config=config, session=session):
                 numrevs = len(re.findall(r_timestamp, xml))
                 # Due to how generators work, it's expected this may be less
-                print "%d more revisions exported" % numrevs
+                print ("%d more revisions exported" % numrevs)
                 xml = cleanXML(xml=xml)
                 xmlfile.write(xml.encode('utf-8'))
         except AttributeError:
-            print "This wikitools module version is not working"
+            print ("This wikitools module version is not working")
             sys.exit()
     else:
-        print 'Retrieving the XML for every page from "%s"' % (start and start or 'start')
+        print ('Retrieving the XML for every page from "%s"' % (start and start or 'start'))
         if start:
-            print "Removing the last chunk of past XML dump: it is probably incomplete."
+            print ("Removing the last chunk of past XML dump: it is probably incomplete.")
             for i in reverse_readline('%s/%s' % (config['path'], xmlfilename), truncate=True):
                 pass
         else:
             # requested complete xml dump
             lock = False
-            xmlfile = open('%s/%s' % (config['path'], xmlfilename), 'w')
+            xmlfile = open('%s/%s' % (config['path'], xmlfilename), 'wb')
             xmlfile.write(header.encode('utf-8'))
             xmlfile.close()
 
-        xmlfile = open('%s/%s' % (config['path'], xmlfilename), 'a')
+        xmlfile = open('%s/%s' % (config['path'], xmlfilename), 'ab')
         c = 1
         for title in readTitles(config, start):
             if not title.strip():
@@ -775,7 +788,7 @@ def generateXMLDump(config={}, titles=[], start=None, session=None):
                 continue
             delay(config=config, session=session)
             if c % 10 == 0:
-                print 'Downloaded %d pages' % (c)
+                print ('Downloaded %d pages' % (c))
             try:
                 for xml in getXMLPage(config=config, title=title, session=session):
                     xml = cleanXML(xml=xml)
@@ -794,7 +807,7 @@ def generateXMLDump(config={}, titles=[], start=None, session=None):
 
     xmlfile.write(footer)
     xmlfile.close()
-    print 'XML dump saved at...', xmlfilename
+    print ('XML dump saved at...', xmlfilename)
 
 def getXMLRevisions(config={}, session=None, allpages=False):
     site = wikitools.wiki.Wiki(config['api'])
@@ -805,7 +818,7 @@ def getXMLRevisions(config={}, session=None, allpages=False):
 
     try:
         for namespace in namespaces:
-            print "Trying to export all revisions from namespace %s" % namespace
+            print ("Trying to export all revisions from namespace %s" % namespace)
             arvparams = {
                 'action': 'query',
                 'list': 'allrevisions',
@@ -832,7 +845,7 @@ def getXMLRevisions(config={}, session=None, allpages=False):
                     for page in result['query']['allrevisions']:
                         for revision in page['revisions']:
                             revids.append(str(revision['revid']))
-                    print "%d more revisions listed, until %s" % (len(revids), revids[-1])
+                    print ("%d more revisions listed, until %s" % (len(revids), revids[-1]))
 
                     exportparams = {
                         'action': 'query',
@@ -845,7 +858,7 @@ def getXMLRevisions(config={}, session=None, allpages=False):
                         yield exportresult['query']['export']['*']
 
     except KeyError:
-        print "Warning. Could not use allrevisions, wiki too old."
+        print ("Warning. Could not use allrevisions, wiki too old.")
         if config['curonly']:
             for title in readTitles(config):
                 exportparams = {
@@ -885,7 +898,7 @@ def getXMLRevisions(config={}, session=None, allpages=False):
                     yield xml
 
     except wikitools.api.APIError:
-        print "This wikitools version seems not to work for us. Exiting."
+        print ("This wikitools version seems not to work for us. Exiting.")
         sys.exit()
 
 def makeXmlFromPage(page):
@@ -989,11 +1002,11 @@ def saveImageNames(config={}, images=[], session=None):
 
     imagesfilename = '%s-%s-images.txt' % (
         domain2prefix(config=config), config['date'])
-    imagesfile = open('%s/%s' % (config['path'], imagesfilename), 'w')
+    imagesfile = open('%s/%s' % (config['path'], imagesfilename), 'wb')
     imagesfile.write(
-        ('\n'.join(
+        (u'\n'.join(
             [
-                '%s\t%s\t%s' %
+                u'%s\t%s\t%s' %
                 (filename,
                  url,
                  uploader) for filename,
@@ -1002,10 +1015,10 @@ def saveImageNames(config={}, images=[], session=None):
             ).encode('utf-8')
          )
     )
-    imagesfile.write('\n--END--')
+    imagesfile.write(b'\n--END--')
     imagesfile.close()
 
-    print 'Image filenames and URLs saved at...', imagesfilename
+    print ('Image filenames and URLs saved at...', imagesfilename)
 
 
 def curateImageURL(config={}, url=''):
@@ -1019,7 +1032,7 @@ def curateImageURL(config={}, url=''):
         domainalone = config['api'].split(
             '://')[0] + '://' + config['api'].split('://')[1].split('/')[0]
     else:
-        print 'ERROR: no index nor API'
+        print ('ERROR: no index nor API')
         sys.exit()
 
     if url.startswith('//'):  # Orain wikifarm returns URLs starting with //
@@ -1031,7 +1044,7 @@ def curateImageURL(config={}, url=''):
         # concat http(s) + domain + relative url
         url = u'%s/%s' % (domainalone, url)
     url = undoHTMLEntities(text=url)
-    # url = urllib.unquote(url) #do not use unquote with url, it break some
+    # url = unquote(url) #do not use unquote with url, it break some
     # urls with odd chars
     url = re.sub(' ', '_', url)
 
@@ -1062,18 +1075,18 @@ def getImageNamesScraper(config={}, session=None):
         delay(config=config, session=session)
         # delicate wiki
         if re.search(
-                ur'(?i)(allowed memory size of \d+ bytes exhausted|Call to a member function getURL)',
+                u'(?i)(allowed memory size of \\d+ bytes exhausted|Call to a member function getURL)',
                 raw):
             if limit > 10:
-                print 'Error: listing %d images in a chunk is not possible, trying tiny chunks' % (limit)
+                print ('Error: listing %d images in a chunk is not possible, trying tiny chunks' % (limit))
                 limit = limit / 10
                 continue
             elif retries > 0:  # waste retries, then exit
                 retries -= 1
-                print 'Retrying...'
+                print ('Retrying...')
                 continue
             else:
-                print 'No more retries, exit...'
+                print ('No more retries, exit...')
                 break
 
         raw = cleanHTML(raw)
@@ -1116,12 +1129,12 @@ def getImageNamesScraper(config={}, session=None):
             url = curateImageURL(config=config, url=url)
             filename = re.sub('_', ' ', i.group('filename'))
             filename = undoHTMLEntities(text=filename)
-            filename = urllib.unquote(filename)
+            filename = unquote(filename)
             uploader = re.sub('_', ' ', i.group('uploader'))
             uploader = undoHTMLEntities(text=uploader)
-            uploader = urllib.unquote(uploader)
+            uploader = unquote(uploader)
             images.append([filename, url, uploader])
-            # print filename, url
+            # print (filename, url)
 
         if re.search(r_next, raw):
             new_offset = re.findall(r_next, raw)[0]
@@ -1135,9 +1148,9 @@ def getImageNamesScraper(config={}, session=None):
             offset = ''
 
     if (len(images) == 1):
-        print '    Found 1 image'
+        print ('    Found 1 image')
     else:
-        print '    Found %d images' % (len(images))
+        print ('    Found %d images' % (len(images)))
 
     images.sort()
     return images
@@ -1178,18 +1191,24 @@ def getImageNamesAPI(config={}, session=None):
                     aifrom = jsonimages['continue']['aicontinue']
                 elif 'aifrom' in jsonimages['continue']:
                     aifrom = jsonimages['continue']['aifrom']
-            # print aifrom
+            # print (aifrom)
 
             for image in jsonimages['query']['allimages']:
                 url = image['url']
                 url = curateImageURL(config=config, url=url)
-                # encoding to ascii is needed to work around this horrible bug:
-                # http://bugs.python.org/issue8136
                 if 'api' in config and '.wikia.com' in config['api']:
                     #to avoid latest?cb=20120816112532 in filenames
-                    filename = unicode(urllib.unquote((re.sub('_', ' ', url.split('/')[-3])).encode('ascii', 'ignore')), 'utf-8')
+                    filename = re.sub(u'_', u' ', url.split('/')[-3])
                 else:
-                    filename = unicode(urllib.unquote((re.sub('_', ' ', url.split('/')[-1])).encode('ascii', 'ignore')), 'utf-8')
+                    filename = re.sub(u'_', u' ', url.split('/')[-1])
+
+                if sys.version_info < (3, 0):
+                    # encoding to ascii is needed to work around this horrible bug:
+                    # http://bugs.python.org/issue8136
+                    filename = unquote(filename.encode('ascii', 'ignore')).decode('utf-8')
+                else:
+                    filename = unquote(filename)
+
                 uploader = re.sub('_', ' ', image['user'])
                 images.append([filename, url, uploader])
         else:
@@ -1228,8 +1247,8 @@ def getImageNamesAPI(config={}, session=None):
                     if 'gapfrom' in jsonimages['query-continue']['allpages']:
                         gapfrom = jsonimages[
                             'query-continue']['allpages']['gapfrom']
-                # print gapfrom
-                # print jsonimages['query']
+                # print (gapfrom)
+                # print (jsonimages['query'])
 
                 for image, props in jsonimages['query']['pages'].items():
                     url = props['imageinfo'][0]['url']
@@ -1245,9 +1264,9 @@ def getImageNamesAPI(config={}, session=None):
                 break
 
     if (len(images) == 1):
-        print '    Found 1 image'
+        print ('    Found 1 image')
     else:
-        print '    Found %d images' % (len(images))
+        print ('    Found %d images' % (len(images)))
 
     return images
 
@@ -1270,10 +1289,10 @@ def generateImageDump(config={}, other={}, images=[], start='', session=None):
     """ Save files and descriptions using a file list """
 
     # fix use subdirectories md5
-    print 'Retrieving images from "%s"' % (start and start or 'start')
+    print ('Retrieving images from "%s"' % (start and start or 'start'))
     imagepath = '%s/images' % (config['path'])
     if not os.path.isdir(imagepath):
-        print 'Creating "%s" directory' % (imagepath)
+        print ('Creating "%s" directory' % (imagepath))
         os.makedirs(imagepath)
 
     c = 0
@@ -1290,11 +1309,11 @@ def generateImageDump(config={}, other={}, images=[], start='', session=None):
         # saving file
         # truncate filename if length > 100 (100 + 32 (md5) = 132 < 143 (crash
         # limit). Later .desc is added to filename, so better 100 as max)
-        filename2 = urllib.unquote(filename)
+        filename2 = unquote(filename)
         if len(filename2) > other['filenamelimit']:
             # split last . (extension) and then merge
             filename2 = truncateFilename(other=other, filename=filename2)
-            print 'Filename is too long, truncating. Now it is:', filename2
+            print ('Filename is too long, truncating. Now it is:', filename2)
         filename3 = u'%s/%s' % (imagepath, filename2)
         imagefile = open(filename3, 'wb')
         r = requests.get(url=url)
@@ -1318,9 +1337,9 @@ def generateImageDump(config={}, other={}, images=[], start='', session=None):
                 text=u'The page "%s" was missing in the wiki (probably deleted)' % (title.decode('utf-8'))
             )
 
-        f = open('%s/%s.desc' % (imagepath, filename2), 'w')
+        f = open('%s/%s.desc' % (imagepath, filename2), 'wb')
         # <text xml:space="preserve" bytes="36">Banner featuring SG1, SGA, SGU teams</text>
-        if not re.search(r'</mediawiki>', xmlfiledesc):
+        if not re.search('</mediawiki>', xmlfiledesc):
             # failure when retrieving desc? then save it as empty .desc
             xmlfiledesc = ''
         f.write(xmlfiledesc.encode('utf-8'))
@@ -1328,9 +1347,9 @@ def generateImageDump(config={}, other={}, images=[], start='', session=None):
         delay(config=config, session=session)
         c += 1
         if c % 10 == 0:
-            print '    Downloaded %d images' % (c)
+            print ('    Downloaded %d images' % (c))
 
-    print 'Downloaded %d images' % (c)
+    print ('Downloaded %d images' % (c))
 
 
 def saveLogs(config={}, session=None):
@@ -1378,9 +1397,9 @@ def loadConfig(config={}, configfilename=''):
 
     try:
         with open('%s/%s' % (config['path'], configfilename), 'r') as infile:
-            config = cPickle.load(infile)
+            config = pickle.load(infile)
     except:
-        print 'There is no config file. we can\'t resume. Start a new dump.'
+        print ('There is no config file. we can\'t resume. Start a new dump.')
         sys.exit()
 
     return config
@@ -1389,8 +1408,8 @@ def loadConfig(config={}, configfilename=''):
 def saveConfig(config={}, configfilename=''):
     """ Save config file """
 
-    with open('%s/%s' % (config['path'], configfilename), 'w') as outfile:
-        cPickle.dump(config, outfile)
+    with open('%s/%s' % (config['path'], configfilename), 'wb') as outfile:
+        pickle.dump(config, outfile)
 
 
 def welcome():
@@ -1431,10 +1450,10 @@ def welcome():
 
 def bye():
     """ Closing message """
-    print "---> Congratulations! Your dump is complete <---"
-    print "If you found any bug, report a new issue here: https://github.com/WikiTeam/wikiteam/issues"
-    print "If this is a public wiki, please, consider publishing this dump. Do it yourself as explained in https://github.com/WikiTeam/wikiteam/wiki/Tutorial#Publishing_the_dump or contact us at https://github.com/WikiTeam/wikiteam"
-    print "Good luck! Bye!"
+    print ("---> Congratulations! Your dump is complete <---")
+    print ("If you found any bug, report a new issue here: https://github.com/WikiTeam/wikiteam/issues")
+    print ("If this is a public wiki, please, consider publishing this dump. Do it yourself as explained in https://github.com/WikiTeam/wikiteam/wiki/Tutorial#Publishing_the_dump or contact us at https://github.com/WikiTeam/wikiteam")
+    print ("Good luck! Bye!")
 
 
 def getParameters(params=[]):
@@ -1523,33 +1542,33 @@ def getParameters(params=[]):
         help="Avoid resuming, discard failing wikis quickly. Useful only for mass downloads.")
 
     args = parser.parse_args()
-    # print args
+    # print (args)
 
     # Don't mix download params and meta info params
     if (args.xml or args.images) and \
             (args.get_wiki_engine):
-        print 'ERROR: Don\'t mix download params and meta info params'
+        print ('ERROR: Don\'t mix download params and meta info params')
         parser.print_help()
         sys.exit(1)
 
     # No download params and no meta info params? Exit
     if (not args.xml and not args.images) and \
             (not args.get_wiki_engine):
-        print 'ERROR: Use at least one download param or meta info param'
+        print ('ERROR: Use at least one download param or meta info param')
         parser.print_help()
         sys.exit(1)
 
     # Execute meta info params
     if args.wiki:
         if args.get_wiki_engine:
-            print getWikiEngine(url=args.wiki)
+            print (getWikiEngine(url=args.wiki))
             sys.exit()
 
     # Create session
-    cj = cookielib.MozillaCookieJar()
+    cj = CookieJar.MozillaCookieJar()
     if args.cookies:
         cj.load(args.cookies)
-        print 'Using cookies from %s' % args.cookies
+        print ('Using cookies from %s' % args.cookies)
 
     session = requests.Session()
     try:
@@ -1572,8 +1591,8 @@ def getParameters(params=[]):
     # check URLs
     for url in [args.api, args.index, args.wiki]:
         if url and (not url.startswith('http://') and not url.startswith('https://')):
-            print url
-            print 'ERROR: URLs must start with http:// or https://\n'
+            print (url)
+            print ('ERROR: URLs must start with http:// or https://\n')
             parser.print_help()
             sys.exit(1)
 
@@ -1589,7 +1608,7 @@ def getParameters(params=[]):
                 if not index:
                     index = index2
             else:
-                print 'ERROR: Unsupported wiki. Wiki engines supported are: MediaWiki'
+                print ('ERROR: Unsupported wiki. Wiki engines supported are: MediaWiki')
                 sys.exit(1)
         else:
             if api == '':
@@ -1597,8 +1616,8 @@ def getParameters(params=[]):
             elif index == '':
                 index = '/'.join(api.split('/')[:-1]) + '/index.php'
 
-    # print api
-    # print index
+    # print (api)
+    # print (index)
     index2 = None
 
     if api:
@@ -1611,26 +1630,26 @@ def getParameters(params=[]):
                 check = checkAPI(api=api, session=session)
                 break
             except requests.exceptions.ConnectionError as e:
-                print 'Connection error: %s'%(str(e))
+                print ('Connection error: %s'%(str(e)))
                 retry += 1
-                print "Start retry attempt %d in %d seconds."%(retry+1, retrydelay)
+                print ("Start retry attempt %d in %d seconds."%(retry+1, retrydelay))
                 time.sleep(retrydelay)
     if api and check:
         index2 = check[1]
         api = check[2]
-        print 'API is OK: ' + api
+        print ('API is OK: ' + api)
     else:
         if index and not args.wiki:
-            print 'API not available. Trying with index.php only.'
+            print ('API not available. Trying with index.php only.')
         else:
-            print 'Error in API. Please, provide a correct path to API'
+            print ('Error in API. Please, provide a correct path to API')
             sys.exit(1)
 
     if index and checkIndex(
             index=index,
             cookies=args.cookies,
             session=session):
-        print 'index.php is OK'
+        print ('index.php is OK')
     else:
         index = index2
         if index and index.startswith('//'):
@@ -1639,7 +1658,7 @@ def getParameters(params=[]):
                 index=index,
                 cookies=args.cookies,
                 session=session):
-            print 'index.php is OK'
+            print ('index.php is OK')
         else:
             try:
                 index = '/'.join(index.split('/')[:-1])
@@ -1649,16 +1668,16 @@ def getParameters(params=[]):
                     index=index,
                     cookies=args.cookies,
                     session=session):
-                print 'index.php is OK'
+                print ('index.php is OK')
             else:
-                print 'Error in index.php.'
+                print ('Error in index.php.')
                 if not args.xmlrevisions:
-                    print 'Please, provide a correct path to index.php or use --xmlrevisions. Terminating.'
+                    print ('Please, provide a correct path to index.php or use --xmlrevisions. Terminating.')
                     sys.exit(1)
 
     # check user and pass (one requires both)
     if (args.user and not args.password) or (args.password and not args.user):
-        print 'ERROR: Both --user and --pass are required for authentication.'
+        print ('ERROR: Both --user and --pass are required for authentication.')
         parser.print_help()
         sys.exit(1)
 
@@ -1670,7 +1689,7 @@ def getParameters(params=[]):
         if re.search(
                 r'[^\d, \-]',
                 args.namespaces) and args.namespaces.lower() != 'all':
-            print "Invalid namespace values.\nValid format is integer(s) separated by commas"
+            print ("Invalid namespace values.\nValid format is integer(s) separated by commas")
             sys.exit()
         else:
             ns = re.sub(' ', '', args.namespaces)
@@ -1682,19 +1701,19 @@ def getParameters(params=[]):
     # Process namespace exclusions
     if args.exnamespaces:
         if re.search(r'[^\d, \-]', args.exnamespaces):
-            print "Invalid namespace values.\nValid format is integer(s) separated by commas"
+            print ("Invalid namespace values.\nValid format is integer(s) separated by commas")
             sys.exit(1)
         else:
             ns = re.sub(' ', '', args.exnamespaces)
             if ns.lower() == 'all':
-                print 'You cannot exclude all namespaces.'
+                print ('You cannot exclude all namespaces.')
                 sys.exit(1)
             else:
                 exnamespaces = [int(i) for i in ns.split(',')]
 
     # --curonly requires --xml
     if args.curonly and not args.xml:
-        print "--curonly requires --xml\n"
+        print ("--curonly requires --xml\n")
         parser.print_help()
         sys.exit(1)
 
@@ -1735,7 +1754,7 @@ def checkAPI(api=None, session=None):
     global cj
     # handle redirects
     for i in range(4):
-        print 'Checking API...', api
+        print ('Checking API...', api)
         r = session.post(
             url=api,
             data={
@@ -1750,7 +1769,7 @@ def checkAPI(api=None, session=None):
             p = r.url
             api = urlunparse([p.scheme, p.netloc, p.path, '', '', ''])
         elif r.status_code > 400:
-            print "MediaWiki API URL not found or giving error: HTTP %d" % r.status_code
+            print ("MediaWiki API URL not found or giving error: HTTP %d" % r.status_code)
             return False
     if "MediaWiki API is not enabled for this site." in r.text:
         return False
@@ -1763,11 +1782,11 @@ def checkAPI(api=None, session=None):
                     result['query']['general']['script']
                 return ( True, index, api )
             except KeyError:
-                print "MediaWiki API seems to work but returned no index URL"
+                print ("MediaWiki API seems to work but returned no index URL")
                 return (True, None, api)
     except ValueError:
-        print repr(r.text)
-        print "MediaWiki API returned data we could not parse"
+        print (repr(r.text))
+        print ("MediaWiki API returned data we could not parse")
         return False
     return False
 
@@ -1776,17 +1795,17 @@ def checkIndex(index=None, cookies=None, session=None):
     """ Checking index.php availability """
     r = session.post(url=index, data={'title': 'Special:Version'}, timeout=30)
     raw = r.text
-    print 'Checking index.php...', index
+    print ('Checking index.php...', index)
     # Workaround for issue 71
     if re.search(
             r'(Special:Badtitle</a>|class="permissions-errors"|"wgCanonicalSpecialPageName":"Badtitle"|Login Required</h1>)',
             raw) and not cookies:
-        print "ERROR: This wiki requires login and we are not authenticated"
+        print ("ERROR: This wiki requires login and we are not authenticated")
         return False
     if re.search(
             r'(page-Index_php|"wgPageName":"Index.php"|"firstHeading"><span dir="auto">Index.php</span>)',
             raw):
-        print "Looks like the page called Index.php, not index.php itself"
+        print ("Looks like the page called Index.php, not index.php itself")
         return False
     if re.search(
             r'(This wiki is powered by|<h2 id="mw-version-license">|meta name="generator" content="MediaWiki)',
@@ -1831,7 +1850,7 @@ def checkXMLIntegrity(config={}, titles=[], session=None):
     """ Check XML dump integrity, to detect broken XML chunks """
     return
 
-    print 'Verifying dump...'
+    print ('Verifying dump...')
     checktitles = 0
     checkpageopen = 0
     checkpageclose = 0
@@ -1861,21 +1880,21 @@ def checkXMLIntegrity(config={}, titles=[], session=None):
     if (checktitles == checkpageopen and checktitles == checkpageclose and checkrevisionopen == checkrevisionclose):
         pass
     else:
-        print 'XML dump seems to be corrupted.'
+        print ('XML dump seems to be corrupted.')
         reply = ''
         if config['failfast']:
             reply = 'yes'
         while reply.lower() not in ['yes', 'y', 'no', 'n']:
-            reply = raw_input('Regenerate a new dump ([yes, y], [no, n])? ')
+            reply = input('Regenerate a new dump ([yes, y], [no, n])? ')
         if reply.lower() in ['yes', 'y']:
             generateXMLDump(config=config, titles=titles, session=session)
         elif reply.lower() in ['no', 'n']:
-            print 'Not generating a new dump.'
+            print ('Not generating a new dump.')
 
 
 def createNewDump(config={}, other={}):
     images = []
-    print 'Trying generating a new dump into a new directory...'
+    print ('Trying generating a new dump into a new directory...')
     if config['xml']:
         getPageTitles(config=config, session=other['session'])
         titles=readTitles(config)
@@ -1898,7 +1917,7 @@ def createNewDump(config={}, other={}):
 
 def resumePreviousDump(config={}, other={}):
     images = []
-    print 'Resuming previous dump process...'
+    print ('Resuming previous dump process...')
     if config['xml']:
         titles=readTitles(config)
         try:
@@ -1914,9 +1933,9 @@ def resumePreviousDump(config={}, other={}):
             lasttitle = ''  # probably file does not exists
         if lasttitle == '--END--':
             # titles list is complete
-            print 'Title list was completed in the previous session'
+            print ('Title list was completed in the previous session')
         else:
-            print 'Title list is incomplete. Reloading...'
+            print ('Title list is incomplete. Reloading...')
             # do not resume, reload, to avoid inconsistences, deleted pages or
             # so
             getPageTitles(config=config, session=other['session'])
@@ -1948,10 +1967,10 @@ def resumePreviousDump(config={}, other={}):
             pass  # probably file does not exists
 
         if xmliscomplete:
-            print 'XML dump was completed in the previous session'
+            print ('XML dump was completed in the previous session')
         elif lastxmltitle:
             # resuming...
-            print 'Resuming XML dump from "%s"' % (lastxmltitle)
+            print ('Resuming XML dump from "%s"' % (lastxmltitle))
             titles = readTitles(config, start=lastxmltitle)
             generateXMLDump(
                 config=config,
@@ -1960,7 +1979,7 @@ def resumePreviousDump(config={}, other={}):
                 session=other['session'])
         else:
             # corrupt? only has XML header?
-            print 'XML is corrupt? Regenerating...'
+            print ('XML is corrupt? Regenerating...')
             titles = readTitles(config)
             generateXMLDump(
                 config=config, titles=titles, session=other['session'])
@@ -1986,9 +2005,9 @@ def resumePreviousDump(config={}, other={}):
         except:
             pass  # probably file doesnot exists
         if lastimage == u'--END--':
-            print 'Image list was completed in the previous session'
+            print ('Image list was completed in the previous session')
         else:
-            print 'Image list is incomplete. Reloading...'
+            print ('Image list is incomplete. Reloading...')
             # do not resume, reload, to avoid inconsistences, deleted images or
             # so
             images = getImageNames(config=config, session=other['session'])
@@ -2015,10 +2034,10 @@ def resumePreviousDump(config={}, other={}):
                 complete = False
                 break
             c += 1
-        print '%d images were found in the directory from a previous session' % (c)
+        print ('%d images were found in the directory from a previous session' % (c))
         if complete:
             # image dump is complete
-            print 'Image dump was completed in the previous session'
+            print ('Image dump was completed in the previous session')
         else:
             # we resume from previous image, which may be corrupted (or missing
             # .desc)  by the previous session ctrl-c or abort
@@ -2038,15 +2057,15 @@ def saveSpecialVersion(config={}, session=None):
     """ Save Special:Version as .html, to preserve extensions details """
 
     if os.path.exists('%s/Special:Version.html' % (config['path'])):
-        print 'Special:Version.html exists, do not overwrite'
+        print ('Special:Version.html exists, do not overwrite')
     else:
-        print 'Downloading Special:Version with extensions and other related info'
+        print ('Downloading Special:Version with extensions and other related info')
         r = session.post(
             url=config['index'], params={'title': 'Special:Version'}, timeout=10)
         raw = r.text
         delay(config=config, session=session)
         raw = removeIP(raw=raw)
-        with open('%s/Special:Version.html' % (config['path']), 'w') as outfile:
+        with open('%s/Special:Version.html' % (config['path']), 'wb') as outfile:
             outfile.write(raw.encode('utf-8'))
 
 
@@ -2054,14 +2073,14 @@ def saveIndexPHP(config={}, session=None):
     """ Save index.php as .html, to preserve license details available at the botom of the page """
 
     if os.path.exists('%s/index.html' % (config['path'])):
-        print 'index.html exists, do not overwrite'
+        print ('index.html exists, do not overwrite')
     else:
-        print 'Downloading index.php (Main Page) as index.html'
+        print ('Downloading index.php (Main Page) as index.html')
         r = session.post(url=config['index'], params={}, timeout=10)
         raw = r.text
         delay(config=config, session=session)
         raw = removeIP(raw=raw)
-        with open('%s/index.html' % (config['path']), 'w') as outfile:
+        with open('%s/index.html' % (config['path']), 'wb') as outfile:
             outfile.write(raw.encode('utf-8'))
 
 def saveSiteInfo(config={}, session=None):
@@ -2069,9 +2088,9 @@ def saveSiteInfo(config={}, session=None):
 
     if config['api']:
         if os.path.exists('%s/siteinfo.json' % (config['path'])):
-            print 'siteinfo.json exists, do not overwrite'
+            print ('siteinfo.json exists, do not overwrite')
         else:
-            print 'Downloading site info as siteinfo.json'
+            print ('Downloading site info as siteinfo.json')
 
             # MediaWiki 1.13+
             r = session.post(
@@ -2105,8 +2124,8 @@ def saveSiteInfo(config={}, session=None):
                     timeout=10)
             result = getJSON(r)
             delay(config=config, session=session)
-            with open('%s/siteinfo.json' % (config['path']), 'w') as outfile:
-                outfile.write(json.dumps(result, indent=4, sort_keys=True))
+            with open('%s/siteinfo.json' % (config['path']), 'wb') as outfile:
+                outfile.write(json.dumps(result, indent=4, sort_keys=True).encode('utf-8'))
 
 
 def avoidWikimediaProjects(config={}, other={}):
@@ -2119,12 +2138,12 @@ def avoidWikimediaProjects(config={}, other={}):
     if config['index']:
         url = url + config['index']
     if re.findall(
-            r'(?i)(wikipedia|wikisource|wiktionary|wikibooks|wikiversity|wikimedia|wikispecies|wikiquote|wikinews|wikidata|wikivoyage)\.org',
+            '(?i)(wikipedia|wikisource|wiktionary|wikibooks|wikiversity|wikimedia|wikispecies|wikiquote|wikinews|wikidata|wikivoyage)\\.org',
             url):
-        print 'PLEASE, DO NOT USE THIS SCRIPT TO DOWNLOAD WIKIMEDIA PROJECTS!'
-        print 'Download the dumps from http://dumps.wikimedia.org'
+        print ('PLEASE, DO NOT USE THIS SCRIPT TO DOWNLOAD WIKIMEDIA PROJECTS!')
+        print ('Download the dumps from http://dumps.wikimedia.org')
         if not other['force']:
-            print 'Thanks!'
+            print ('Thanks!')
             sys.exit()
 
 
@@ -2140,73 +2159,73 @@ def getWikiEngine(url=''):
 
     wikiengine = 'Unknown'
     if re.search(
-            ur'(?im)(<meta name="generator" content="DokuWiki)|dokuwiki__site',
+            u'(?im)(<meta name="generator" content="DokuWiki)|dokuwiki__site',
             result):
         wikiengine = 'DokuWiki'
-    elif re.search(ur'(?im)(alt="Powered by MediaWiki"|<meta name="generator" content="MediaWiki)', result):
+    elif re.search(u'(?im)(alt="Powered by MediaWiki"|<meta name="generator" content="MediaWiki)', result):
         wikiengine = 'MediaWiki'
-    elif re.search(ur'(?im)(>MoinMoin Powered</a>|<option value="LocalSiteMap">)', result):
+    elif re.search(u'(?im)(>MoinMoin Powered</a>|<option value="LocalSiteMap">)', result):
         wikiengine = 'MoinMoin'
-    elif re.search(ur'(?im)(twikiCurrentTopicLink|twikiCurrentWebHomeLink|twikiLink)', result):
+    elif re.search(u'(?im)(twikiCurrentTopicLink|twikiCurrentWebHomeLink|twikiLink)', result):
         wikiengine = 'TWiki'
-    elif re.search(ur'(?im)(<!--PageHeaderFmt-->)', result):
+    elif re.search(u'(?im)(<!--PageHeaderFmt-->)', result):
         wikiengine = 'PmWiki'
-    elif re.search(ur'(?im)(<meta name="generator" content="PhpWiki|<meta name="PHPWIKI_VERSION)', result):
+    elif re.search(u'(?im)(<meta name="generator" content="PhpWiki|<meta name="PHPWIKI_VERSION)', result):
         wikiengine = 'PhpWiki'
-    elif re.search(ur'(?im)(<meta name="generator" content="Tiki Wiki|Powered by <a href="http://(www\.)?tiki\.org"| id="tiki-(top|main)")', result):
+    elif re.search(u'(?im)(<meta name="generator" content="Tiki Wiki|Powered by <a href="http://(www\\.)?tiki\\.org"| id="tiki-(top|main)")', result):
         wikiengine = 'TikiWiki'
-    elif re.search(ur'(?im)(foswikiNoJs|<meta name="foswiki\.|foswikiTable|foswikiContentFooter)', result):
+    elif re.search(u'(?im)(foswikiNoJs|<meta name="foswiki\\.|foswikiTable|foswikiContentFooter)', result):
         wikiengine = 'FosWiki'
-    elif re.search(ur'(?im)(<meta http-equiv="powered by" content="MojoMojo)', result):
+    elif re.search(u'(?im)(<meta http-equiv="powered by" content="MojoMojo)', result):
         wikiengine = 'MojoMojo'
-    elif re.search(ur'(?im)(id="xwiki(content|nav_footer|platformversion|docinfo|maincontainer|data)|/resources/js/xwiki/xwiki|XWiki\.webapppath)', result):
+    elif re.search(u'(?im)(id="xwiki(content|nav_footer|platformversion|docinfo|maincontainer|data)|/resources/js/xwiki/xwiki|XWiki\\.webapppath)', result):
         wikiengine = 'XWiki'
-    elif re.search(ur'(?im)(<meta id="confluence-(base-url|context-path)")', result):
+    elif re.search(u'(?im)(<meta id="confluence-(base-url|context-path)")', result):
         wikiengine = 'Confluence'
-    elif re.search(ur'(?im)(<meta name="generator" content="Banana Dance)', result):
+    elif re.search(u'(?im)(<meta name="generator" content="Banana Dance)', result):
         wikiengine = 'Banana Dance'
-    elif re.search(ur'(?im)(Wheeled by <a class="external-link" href="http://www\.wagn\.org">|<body id="wagn">)', result):
+    elif re.search(u'(?im)(Wheeled by <a class="external-link" href="http://www\\.wagn\\.org">|<body id="wagn">)', result):
         wikiengine = 'Wagn'
-    elif re.search(ur'(?im)(<meta name="generator" content="MindTouch)', result):
+    elif re.search(u'(?im)(<meta name="generator" content="MindTouch)', result):
         wikiengine = 'MindTouch'  # formerly DekiWiki
-    elif re.search(ur'(?im)(<div class="wikiversion">\s*(<p>)?JSPWiki|xmlns:jspwiki="http://www\.jspwiki\.org")', result):
+    elif re.search(u'(?im)(<div class="wikiversion">\\s*(<p>)?JSPWiki|xmlns:jspwiki="http://www\\.jspwiki\\.org")', result):
         wikiengine = 'JSPWiki'
-    elif re.search(ur'(?im)(Powered by:?\s*(<br ?/>)?\s*<a href="http://kwiki\.org">|\bKwikiNavigation\b)', result):
+    elif re.search(u'(?im)(Powered by:?\\s*(<br ?/>)?\\s*<a href="http://kwiki\\.org">|\\bKwikiNavigation\\b)', result):
         wikiengine = 'Kwiki'
-    elif re.search(ur'(?im)(Powered by <a href="http://www\.anwiki\.com")', result):
+    elif re.search(u'(?im)(Powered by <a href="http://www\\.anwiki\\.com")', result):
         wikiengine = 'Anwiki'
-    elif re.search(ur'(?im)(<meta name="generator" content="Aneuch|is powered by <em>Aneuch</em>|<!-- start of Aneuch markup -->)', result):
+    elif re.search(u'(?im)(<meta name="generator" content="Aneuch|is powered by <em>Aneuch</em>|<!-- start of Aneuch markup -->)', result):
         wikiengine = 'Aneuch'
-    elif re.search(ur'(?im)(<meta name="generator" content="bitweaver)', result):
+    elif re.search(u'(?im)(<meta name="generator" content="bitweaver)', result):
         wikiengine = 'bitweaver'
-    elif re.search(ur'(?im)(powered by <a href="[^"]*\bzwiki.org(/[^"]*)?">)', result):
+    elif re.search(u'(?im)(powered by <a href="[^"]*\\bzwiki.org(/[^"]*)?">)', result):
         wikiengine = 'Zwiki'
     # WakkaWiki forks
-    elif re.search(ur'(?im)(<meta name="generator" content="WikkaWiki|<a class="ext" href="(http://wikka\.jsnx\.com/|http://wikkawiki\.org/)">)', result):
+    elif re.search(u'(?im)(<meta name="generator" content="WikkaWiki|<a class="ext" href="(http://wikka\\.jsnx\\.com/|http://wikkawiki\\.org/)">)', result):
         wikiengine = 'WikkaWiki'  # formerly WikkaWakkaWiki
-    elif re.search(ur'(?im)(<meta name="generator" content="CoMa Wiki)', result):
+    elif re.search(u'(?im)(<meta name="generator" content="CoMa Wiki)', result):
         wikiengine = 'CoMaWiki'
-    elif re.search(ur'(?im)(Fonctionne avec <a href="http://www\.wikini\.net)', result):
+    elif re.search(u'(?im)(Fonctionne avec <a href="http://www\\.wikini\\.net)', result):
         wikiengine = 'WikiNi'
-    elif re.search(ur'(?im)(Powered by <a href="[^"]*CitiWiki">CitiWiki</a>)', result):
+    elif re.search(u'(?im)(Powered by <a href="[^"]*CitiWiki">CitiWiki</a>)', result):
         wikiengine = 'CitiWiki'
-    elif re.search(ur'(?im)(Powered by <a href="http://wackowiki\.com/|title="WackoWiki")', result):
+    elif re.search(u'(?im)(Powered by <a href="http://wackowiki\\.com/|title="WackoWiki")', result):
         wikiengine = 'WackoWiki'
-    elif re.search(ur'(?im)(Powered by <a href="http://www\.wakkawiki\.com)', result):
+    elif re.search(u'(?im)(Powered by <a href="http://www\\.wakkawiki\\.com)', result):
         # This may not work for heavily modded/themed installations, e.g.
         # http://operawiki.info/
         wikiengine = 'WakkaWiki'
     # Custom wikis used by wiki farms
-    elif re.search(ur'(?im)(var wikispaces_page|<div class="WikispacesContent)', result):
+    elif re.search(u'(?im)(var wikispaces_page|<div class="WikispacesContent)', result):
         wikiengine = 'Wikispaces'
-    elif re.search(ur'(?im)(Powered by <a href="http://www\.wikidot\.com">|wikidot-privacy-button-hovertip|javascript:WIKIDOT\.page)', result):
+    elif re.search(u'(?im)(Powered by <a href="http://www\\.wikidot\\.com">|wikidot-privacy-button-hovertip|javascript:WIKIDOT\\.page)', result):
         wikiengine = 'Wikidot'
-    elif re.search(ur'(?im)(IS_WETPAINT_USER|wetpaintLoad|WPC-bodyContentContainer)', result):
+    elif re.search(u'(?im)(IS_WETPAINT_USER|wetpaintLoad|WPC-bodyContentContainer)', result):
         wikiengine = 'Wetpaint'
-    elif re.search(ur'(?im)(<div id="footer-pbwiki">|ws-nav-search|PBinfo *= *{)', result):
+    elif re.search(u'(?im)(<div id="footer-pbwiki">|ws-nav-search|PBinfo *= *{)', result):
         # formerly PBwiki
         wikiengine = 'PBworks'
-    # if wikiengine == 'Unknown': print result
+    # if wikiengine == 'Unknown': print (result)
 
     return wikiengine
 
@@ -2223,7 +2242,7 @@ def mwGetAPIAndIndex(url=''):
 
     # API
     m = re.findall(
-        ur'(?im)<\s*link\s*rel="EditURI"\s*type="application/rsd\+xml"\s*href="([^>]+?)\?action=rsd"\s*/\s*>',
+        u'(?im)<\\s*link\\s*rel="EditURI"\\s*type="application/rsd\\+xml"\\s*href="([^>]+?)\\?action=rsd"\\s*/\\s*>',
         result)
     if m:
         api = m[0]
@@ -2234,13 +2253,13 @@ def mwGetAPIAndIndex(url=''):
 
     # Index.php
     m = re.findall(
-        ur'<li id="ca-viewsource"[^>]*?>\s*(?:<span>)?\s*<a href="([^\?]+?)\?',
+        u'<li id="ca-viewsource"[^>]*?>\\s*(?:<span>)?\\s*<a href="([^\\?]+?)\\?',
         result)
     if m:
         index = m[0]
     else:
         m = re.findall(
-            ur'<li id="ca-history"[^>]*?>\s*(?:<span>)?\s*<a href="([^\?]+?)\?',
+            u'<li id="ca-history"[^>]*?>\\s*(?:<span>)?\\s*<a href="([^\\?]+?)\\?',
             result)
         if m:
             index = m[0]
@@ -2251,10 +2270,10 @@ def mwGetAPIAndIndex(url=''):
         if api:
             if len(
                 re.findall(
-                    ur'/index\.php5\?',
+                    u'/index\\.php5\\?',
                     result)) > len(
                 re.findall(
-                    ur'/index\.php\?',
+                    u'/index\\.php\\?',
                     result)):
                 index = '/'.join(api.split('/')[:-1]) + '/index.php5'
             else:
@@ -2269,8 +2288,8 @@ def main(params=[]):
     config, other = getParameters(params=params)
     avoidWikimediaProjects(config=config, other=other)
 
-    print welcome()
-    print 'Analysing %s' % (config['api'] and config['api'] or config['index'])
+    print (welcome())
+    print ('Analysing %s' % (config['api'] and config['api'] or config['index']))
 
     # creating path or resuming if desired
     c = 2
@@ -2278,32 +2297,32 @@ def main(params=[]):
     originalpath = config['path']
     # do not enter if resume is requested from begining
     while not other['resume'] and os.path.isdir(config['path']):
-        print '\nWarning!: "%s" path exists' % (config['path'])
+        print ('\nWarning!: "%s" path exists' % (config['path']))
         reply = ''
         if config['failfast']:
             retry = 'yes'
         while reply.lower() not in ['yes', 'y', 'no', 'n']:
-            reply = raw_input(
+            reply = input(
                 'There is a dump in "%s", probably incomplete.\nIf you choose resume, to avoid conflicts, the parameters you have chosen in the current session will be ignored\nand the parameters available in "%s/%s" will be loaded.\nDo you want to resume ([yes, y], [no, n])? ' %
                 (config['path'],
                  config['path'],
                     configfilename))
         if reply.lower() in ['yes', 'y']:
             if not os.path.isfile('%s/%s' % (config['path'], configfilename)):
-                print 'No config file found. I can\'t resume. Aborting.'
+                print ('No config file found. I can\'t resume. Aborting.')
                 sys.exit()
-            print 'You have selected: YES'
+            print ('You have selected: YES')
             other['resume'] = True
             break
         elif reply.lower() in ['no', 'n']:
-            print 'You have selected: NO'
+            print ('You have selected: NO')
             other['resume'] = False
         config['path'] = '%s-%d' % (originalpath, c)
-        print 'Trying to use path "%s"...' % (config['path'])
+        print ('Trying to use path "%s"...' % (config['path']))
         c += 1
 
     if other['resume']:
-        print 'Loading config file...'
+        print ('Loading config file...')
         config = loadConfig(config=config, configfilename=configfilename)
     else:
         os.mkdir(config['path'])
