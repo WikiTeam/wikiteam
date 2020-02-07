@@ -29,7 +29,7 @@ def getlist(wikia, wkfrom = 1, wkto = 100):
     return request.query()['query']['wkdomains']
 
 def getall():
-    wikia = wiki.Wiki('http://community.wikia.com/api.php')
+    wikia = wiki.Wiki('https://community.fandom.com/api.php')
     offset = 0
     limit = 100
     domains = {}
