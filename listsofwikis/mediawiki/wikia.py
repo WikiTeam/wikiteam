@@ -54,7 +54,11 @@ def getall():
 def main():
     domains = getall()
     with open('wikia.com', 'w') as out:
-		out.write('\n'.join(str(domains[i]['domain']) for i in domains))
+        out.write('\n'.join(str(domains[i]['domain']) for i in domains))
+    
+    # TODO: Remove the following code entirely. All Wikia wikis can now be
+    # assumed to be undumped.
+    return
 
     undumped = []
     # Or we could iterate over each sublist while we get it?
