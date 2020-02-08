@@ -199,7 +199,7 @@ def getNamespacesAPI(config={}, session=None):
     namespaces = config['namespaces']
     namespacenames = {0: ''}  # main is 0, no prefix
     if namespaces:
-        r = session.post(
+        r = session.get(
             url=config['api'],
             params={
                 'action': 'query',
@@ -271,7 +271,7 @@ def getPageTitlesAPI(config={}, session=None):
             retryCount = 0
             while retryCount < config["retries"]:
                 try:
-                    r = session.post(url=config['api'], data=params, timeout=30)
+                    r = session.get(url=config['api'], params=params, timeout=30)
                     break
                 except ConnectionError as err:
                     print "Connection error: %s" % (str(err),)
@@ -488,7 +488,7 @@ def getXMLHeader(config={}, session=None):
             try:
                 if config['api']:
                     print "Trying the local name for the Special namespace instead"
-                    r = session.post(
+                    r = session.get(
                     url=config['api'],
                     params={
                         'action': 'query',
@@ -1158,7 +1158,7 @@ def getImageNamesAPI(config={}, session=None):
             'format': 'json',
             'ailimit': 500}
         # FIXME Handle HTTP Errors HERE
-        r = session.post(url=config['api'], params=params, timeout=30)
+        r = session.get(url=config['api'], params=params, timeout=30)
         handleStatusCode(r)
         jsonimages = getJSON(r)
         delay(config=config, session=session)
@@ -1216,7 +1216,7 @@ def getImageNamesAPI(config={}, session=None):
                 'iiprop': 'user|url',
                 'format': 'json'}
             # FIXME Handle HTTP Errors HERE
-            r = session.post(url=config['api'], params=params, timeout=30)
+            r = session.get(url=config['api'], params=params, timeout=30)
             handleStatusCode(r)
             jsonimages = getJSON(r)
             delay(config=config, session=session)
@@ -1736,9 +1736,9 @@ def checkAPI(api=None, session=None):
     # handle redirects
     for i in range(4):
         print 'Checking API...', api
-        r = session.post(
+        r = session.get(
             url=api,
-            data={
+            params={
                 'action': 'query',
                 'meta': 'siteinfo',
                 'format': 'json'},
@@ -2074,7 +2074,7 @@ def saveSiteInfo(config={}, session=None):
             print 'Downloading site info as siteinfo.json'
 
             # MediaWiki 1.13+
-            r = session.post(
+            r = session.get(
                 url=config['api'],
                 params={
                     'action': 'query',
@@ -2085,7 +2085,7 @@ def saveSiteInfo(config={}, session=None):
                 timeout=10)
             # MediaWiki 1.11-1.12
             if not 'query' in getJSON(r):
-                r = session.post(
+                r = session.get(
                     url=config['api'],
                     params={
                         'action': 'query',
@@ -2095,7 +2095,7 @@ def saveSiteInfo(config={}, session=None):
                     timeout=10)
             # MediaWiki 1.8-1.10
             if not 'query' in getJSON(r):
-                r = session.post(
+                r = session.get(
                     url=config['api'],
                     params={
                         'action': 'query',
