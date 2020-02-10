@@ -213,7 +213,7 @@ def getNamespacesAPI(config={}, session=None):
         try:
             nsquery = result['query']['namespaces']
         except KeyError:
-            print "Error: could not get namespaces from the API request"
+            print "Error: could not get namespaces from the API request."
             print "HTTP %d" % r.status_code
             print r.text
             return None
@@ -1741,6 +1741,7 @@ def getParameters(params=[]):
     else:
         if index and not args.wiki:
             print 'API not available. Trying with index.php only.'
+            args.api = None
         else:
             print 'Error in API. Please, provide a correct path to API'
             sys.exit(1)
