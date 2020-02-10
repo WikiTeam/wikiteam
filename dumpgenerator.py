@@ -257,14 +257,14 @@ def getPageTitlesAPI(config={}, session=None):
 
         c = 0
         print '    Retrieving titles in the namespace %d' % (namespace)
-        apfrom = '!'
+        apfrom = ''
         while apfrom:
             sys.stderr.write('.')  # progress
             params = {
                 'action': 'query',
                 'list': 'allpages',
                 'apnamespace': namespace,
-                'apfrom': apfrom.encode('utf-8'),
+                'apfrom': apfrom,
                 'format': 'json',
                 'aplimit': 500}
 
