@@ -423,10 +423,24 @@ def getXMLHeader(config={}, session=None):
             # Export and exportnowrap exist from MediaWiki 1.15, allpages from 1.18
             r = session.get(config['api'] + '?action=query&export=1&exportnowrap=1&list=allpages&aplimit=1', timeout=10)
             xml = r.text
+            # Otherwise try without exportnowrap, e.g. Wikia returns a blank page on 1.19
+            if not xml:
+                r = session.get(config['api'] + '?action=query&export=1&list=allpages&aplimit=1&format=json', timeout=10)
+                try:
+                    xml = r.json()['query']['export']['*']
+                except KeyError:
+                    xml = None
             if not xml:
                 # Do without a generator, use our usual trick of a random page title
                 r = session.get(config['api'] + '?action=query&export=1&exportnowrap=1&titles=' + randomtitle, timeout=10)
                 xml = r.text
+            # Again try without exportnowrap
+            if not xml:
+                r = session.get(config['api'] + '?action=query&export=1&format=json&titles=' + randomtitle, timeout=10)
+                try:
+                    xml = r.json()['query']['export']['*']
+                except KeyError:
+                    xml = None
         except requests.exceptions.RetryError:
             pass
 
@@ -1302,7 +1316,7 @@ def getImageNamesAPI(config={}, session=None):
                 url = curateImageURL(config=config, url=url)
                 # encoding to ascii is needed to work around this horrible bug:
                 # http://bugs.python.org/issue8136
-                if 'api' in config and '.wikia.com' in config['api']:
+                if 'api' in config and ('.wikia.' in config['api'] or '.fandom.com' in config['api']):
                     #to avoid latest?cb=20120816112532 in filenames
                     filename = unicode(urllib.unquote((re.sub('_', ' ', url.split('/')[-3])).encode('ascii', 'ignore')), 'utf-8')
                 else:
