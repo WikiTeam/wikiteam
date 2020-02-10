@@ -840,7 +840,12 @@ def getXMLRevisions(config={}, session=None, allpages=False):
                 print("Trying to get wikitext from the allrevisions API and to build the XML")
                 while True:
                     try:
-                        arvrequest = site.api(**arvparams)
+                        arvrequest = site.api(http_method=config['http_method'], **arvparams)
+                    except requests.exceptions.HTTPError as e:
+                        if e.response.status_code == 405 and config['http_method'] == "POST":
+                            print("POST request to the API failed, retrying with GET")
+                            config['http_method'] = "GET"
+                            continue
                     except requests.exceptions.ReadTimeout as err:
                         # Hopefully temporary, just wait a bit and continue with the same request.
                         # No point putting a limit to retries, we'd need to abort everything.
@@ -865,7 +870,13 @@ def getXMLRevisions(config={}, session=None, allpages=False):
                 print("Trying to list the revisions and to export them one by one")
                 # We only need the revision ID, all the rest will come from the raw export
                 arvparams['arvprop'] = 'ids'
-                arvrequest = site.api(**arvparams)
+                try:
+                    arvrequest = site.api(http_method=config['http_method'], **arvparams)
+                except requests.exceptions.HTTPError as e:
+                    if e.response.status_code == 405 and config['http_method'] == "POST":
+                        print("POST request to the API failed, retrying with GET")
+                        config['http_method'] = "GET"
+                        continue
                 exportparams = {
                     'action': 'query',
                     'export': '1',
@@ -888,7 +899,14 @@ def getXMLRevisions(config={}, session=None, allpages=False):
                     # chooses to give us only the latest for each page
                     for revid in revids:
                         exportparams['revids'] = revid
-                        exportrequest = site.api(**exportparams)
+                        try:
+                            exportrequest = site.api(http_method=config['http_method'], **exportparams)
+                        except requests.exceptions.HTTPError as e:
+                            if e.response.status_code == 405 and config['http_method'] == "POST":
+                                print("POST request to the API failed, retrying with GET")
+                                config['http_method'] = "GET"
+                                exportrequest = site.api(http_method=config['http_method'], **exportparams)
+
                         # This gives us a self-standing <mediawiki> element
                         # but we only need the inner <page>: we can live with
                         # duplication and non-ordering of page titles, but the
@@ -900,7 +918,12 @@ def getXMLRevisions(config={}, session=None, allpages=False):
                         # Get the new ones
                         arvparams['arvcontinue'] = arvrequest['continue']['arvcontinue']
                         try:
-                            arvrequest = site.api(**arvparams)
+                            arvrequest = site.api(http_method=config['http_method'], **arvparams)
+                        except requests.exceptions.HTTPError as e:
+                            if e.response.status_code == 405 and config['http_method'] == "POST":
+                                print("POST request to the API failed, retrying with GET")
+                                config['http_method'] = "GET"
+                                arvrequest = site.api(http_method=config['http_method'], **arvparams)
                         except requests.exceptions.ReadTimeout as err:
                             # As above
                             print("ERROR: {}".format(str(err)))
@@ -932,7 +955,14 @@ def getXMLRevisions(config={}, session=None, allpages=False):
                     'titles': title,
                     'export': '1',
                 }
-                exportrequest = site.api(**exportparams)
+                try:
+                    exportrequest = site.api(http_method=config['http_method'], **exportparams)
+                except requests.exceptions.HTTPError as e:
+                    if e.response.status_code == 405 and config['http_method'] == "POST":
+                        print("POST request to the API failed, retrying with GET")
+                        config['http_method'] = "GET"
+                        exportrequest = site.api(http_method=config['http_method'], **exportparams)
+
                 xml = exportrequest['query']['export']['*']
                 c += 1
                 if c % 10 == 0:
@@ -959,7 +989,14 @@ def getXMLRevisions(config={}, session=None, allpages=False):
                     'rvlimit': 50,
                     'rvprop': 'ids|timestamp|user|userid|size|sha1|contentmodel|comment|content',
                 }
-                prequest = site.api(**pparams)
+                try:
+                    prequest = site.api(http_method=config['http_method'], **pparams)
+                except requests.exceptions.HTTPError as e:
+                    if e.response.status_code == 405 and config['http_method'] == "POST":
+                        print("POST request to the API failed, retrying with GET")
+                        config['http_method'] = "GET"
+                        exportrequest = site.api(http_method=config['http_method'], **exportparams)
+
                 c += 1
                 if c % 10 == 0:
                     print('Downloaded {} pages'.format(c))
@@ -987,7 +1024,13 @@ def getXMLRevisions(config={}, session=None, allpages=False):
                     if 'continue' in prequest.keys():
                         print("Getting more revisions for page {}".format(title))
                         pparams['rvcontinue'] = prequest['continue']['rvcontinue']
-                        prequest = site.api(**pparams)
+                        try:
+                            prequest = site.api(http_method=config['http_method'], **pparams)
+                        except requests.exceptions.HTTPError as e:
+                            if e.response.status_code == 405 and config['http_method'] == "POST":
+                                print("POST request to the API failed, retrying with GET")
+                                config['http_method'] = "GET"
+                                prequest = site.api(http_method=config['http_method'], **pparams)
                     # mwclient seems to rewrite query-continue
                     #if 'query-continue' in prequest.keys():
                     #    pparams['rvcontinue'] = prequest['query-continue']['revisions']['rvcontinue']
@@ -1826,6 +1869,7 @@ def getParameters(params=[]):
         'date': datetime.datetime.now().strftime('%Y%m%d'),
         'api': api,
         'failfast': args.failfast,
+        'http_method': "POST",
         'index': index,
         'images': args.images,
         'logs': False,
