@@ -46,9 +46,9 @@ except ImportError:
     print "Please install or update the Requests module."
     sys.exit(1)
 try:
-    import wikitools
+    import mwclient
 except ImportError:
-    print "Please install the wikitools 1.3+ module if you want to use --xmlrevisions."
+    print "Please install the mwclient module if you want to use --xmlrevisions."
 try:
     from lxml import etree
     from lxml.builder import E
@@ -213,7 +213,7 @@ def getNamespacesAPI(config={}, session=None):
         try:
             nsquery = result['query']['namespaces']
         except KeyError:
-            print "Error: could not get namespaces from the API request"
+            print "Error: could not get namespaces from the API request."
             print "HTTP %d" % r.status_code
             print r.text
             return None
@@ -257,14 +257,14 @@ def getPageTitlesAPI(config={}, session=None):
 
         c = 0
         print '    Retrieving titles in the namespace %d' % (namespace)
-        apfrom = '!'
+        apfrom = ''
         while apfrom:
             sys.stderr.write('.')  # progress
             params = {
                 'action': 'query',
                 'list': 'allpages',
                 'apnamespace': namespace,
-                'apfrom': apfrom.encode('utf-8'),
+                'apfrom': apfrom,
                 'format': 'json',
                 'aplimit': 500}
 
@@ -273,7 +273,7 @@ def getPageTitlesAPI(config={}, session=None):
                 try:
                     r = session.get(url=config['api'], params=params, timeout=30)
                     break
-                except ConnectionError as err:
+                except requests.exceptions.ConnectionError as err:
                     print "Connection error: %s" % (str(err),)
                     retryCount += 1
                     time.sleep(20)
@@ -463,14 +463,17 @@ def getXMLHeader(config={}, session=None):
     # xmlns:x....
     randomtitle = 'Main_Page'  # previously AMF5LKE43MNFGHKSDMRTJ
     print config['api']
+    xml = ''
     if config['xmlrevisions'] and config['api'] and config['api'].endswith("api.php"):
         xml = None
         try:
             print 'Getting the XML header from the API'
-            r = session.get(config['api'] + '?action=query&revids=1&export&format=json', timeout=10)
-            xml = r.json()['query']['export']['*']
+            # Export and exportnowrap exist from MediaWiki 1.15, allpages from 1.18
+            r = session.get(config['api'] + '?action=query&export=1&exportnowrap=1&list=allpages&aplimit=1', timeout=10)
+            xml = r.text
             if not xml:
-                r = session.get(config['api'] + '?action=query&revids=1&export&exportnowrap', timeout=10)
+                # Do without a generator, use our usual trick of a random page title
+                r = session.get(config['api'] + '?action=query&export=1&exportnowrap=1&titles=' + randomtitle, timeout=10)
                 xml = r.text
         except requests.exceptions.RetryError:
             pass
@@ -714,8 +717,18 @@ def getXMLPage(config={}, title='', verbose=True, session=None):
            print '    %s, %d edits' % (title.strip(), numberofedits)
 
 
+def makeXmlPageFromRaw(xml):
+    """ Discard the metadata around a <page> element in <mediawiki> string"""
+    root = etree.XML(xml)
+    find = etree.XPath("//*[local-name() = 'page']")
+    # The tag will inherit the namespace, like:
+    # <page xmlns="http://www.mediawiki.org/xml/export-0.10/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    # FIXME: pretty_print doesn't seem to work, only adds a newline
+    return etree.tostring(find(root)[0], pretty_print=True)
+
+
 def cleanXML(xml=''):
-    """ Trim redundant info """
+    """ Trim redundant info from the XML however it comes """
     # do not touch XML codification, leave AS IS
     if re.search(r'</siteinfo>\n', xml):
         xml = xml.split('</siteinfo>\n')[1]
@@ -745,11 +758,13 @@ def generateXMLDump(config={}, titles=[], start=None, session=None):
             for xml in getXMLRevisions(config=config, session=session):
                 numrevs = len(re.findall(r_timestamp, xml))
                 # Due to how generators work, it's expected this may be less
+                # TODO: get the page title and reuse the usual format "X title, y edits"
                 print "%d more revisions exported" % numrevs
                 xml = cleanXML(xml=xml)
                 xmlfile.write(xml.encode('utf-8'))
-        except AttributeError:
-            print "This wikitools module version is not working"
+        except AttributeError as e:
+            print(e)
+            print "This API library version is not working"
             sys.exit()
     else:
         print 'Retrieving the XML for every page from "%s"' % (start and start or 'start')
@@ -797,7 +812,11 @@ def generateXMLDump(config={}, titles=[], start=None, session=None):
     print 'XML dump saved at...', xmlfilename
 
 def getXMLRevisions(config={}, session=None, allpages=False):
-    site = wikitools.wiki.Wiki(config['api'])
+    # FIXME: actually figure out the various strategies for each MediaWiki version
+    apiurl = urlparse(config['api'])
+    # FIXME: force the protocol we asked for! Or don't verify SSL if we asked HTTP?
+    # https://github.com/WikiTeam/wikiteam/issues/358
+    site = mwclient.Site(apiurl.netloc, apiurl.path.replace("api.php", ""), scheme=apiurl.scheme)
     if not 'all' in config['namespaces']:
         namespaces = config['namespaces']
     else:
@@ -806,6 +825,7 @@ def getXMLRevisions(config={}, session=None, allpages=False):
     try:
         for namespace in namespaces:
             print "Trying to export all revisions from namespace %s" % namespace
+            # arvgeneratexml exists but was deprecated in 1.26 (while arv is from 1.27?!)
             arvparams = {
                 'action': 'query',
                 'list': 'allrevisions',
@@ -817,105 +837,250 @@ def getXMLRevisions(config={}, session=None, allpages=False):
                 # Skip flags, presumably needed to add <minor/> which is in the schema.
                 # Also missing: parentid and contentformat.
                 arvparams['arvprop'] = 'ids|timestamp|user|userid|size|sha1|contentmodel|comment|content'
-                arvrequest = wikitools.api.APIRequest(site, arvparams)
-                results = arvrequest.queryGen()
-                for result in results:
-                    for page in result['query']['allrevisions']:
+                print("Trying to get wikitext from the allrevisions API and to build the XML")
+                while True:
+                    try:
+                        arvrequest = site.api(http_method=config['http_method'], **arvparams)
+                    except requests.exceptions.HTTPError as e:
+                        if e.response.status_code == 405 and config['http_method'] == "POST":
+                            print("POST request to the API failed, retrying with GET")
+                            config['http_method'] = "GET"
+                            continue
+                    except requests.exceptions.ReadTimeout as err:
+                        # Hopefully temporary, just wait a bit and continue with the same request.
+                        # No point putting a limit to retries, we'd need to abort everything.
+                        # TODO: reuse the retry logic of the checkAPI phase? Or force mwclient
+                        # to use the retry adapter we use for our own requests session?
+                        print("ERROR: {}".format(str(err)))
+                        print("Sleeping for 20 seconds")
+                        time.sleep(20)
+                        continue
+
+                    for page in arvrequest['query']['allrevisions']:
                         yield makeXmlFromPage(page)
+                    if 'continue' in arvrequest:
+                        arvparams['arvcontinue'] = arvrequest['continue']['arvcontinue']
+                    else:
+                        # End of continuation. We are done with this namespace.
+                        break
+
             else:
+                # FIXME: this is not curonly, just different strategy to do all revisions
                 # Just cycle through revision IDs and use the XML as is
+                print("Trying to list the revisions and to export them one by one")
+                # We only need the revision ID, all the rest will come from the raw export
                 arvparams['arvprop'] = 'ids'
-                arvrequest = wikitools.api.APIRequest(site, arvparams)
-                arvresults = arvrequest.queryGen()
-                for result in arvresults:
+                try:
+                    arvrequest = site.api(http_method=config['http_method'], **arvparams)
+                except requests.exceptions.HTTPError as e:
+                    if e.response.status_code == 405 and config['http_method'] == "POST":
+                        print("POST request to the API failed, retrying with GET")
+                        config['http_method'] = "GET"
+                        continue
+                exportparams = {
+                    'action': 'query',
+                    'export': '1',
+                }
+                # Skip the namespace if it's empty
+                if len(arvrequest['query']['allrevisions']) < 1:
+                    continue
+                # Repeat the arvrequest with new arvparams until done
+                while True:
+                    # Reset revision IDs from the previous batch from arv
                     revids = []
-                    for page in result['query']['allrevisions']:
+                    for page in arvrequest['query']['allrevisions']:
                         for revision in page['revisions']:
                             revids.append(str(revision['revid']))
                     print "%d more revisions listed, until %s" % (len(revids), revids[-1])
 
-                    exportparams = {
-                        'action': 'query',
-                        'revids': '|'.join(revids),
-                        'export': '1',
-                    }
-                    exportrequest = wikitools.api.APIRequest(site, exportparams)
-                    exportresults = exportrequest.queryGen()
-                    for exportresult in exportresults:
-                        yield exportresult['query']['export']['*']
+                    # We can now get the XML for one revision at a time
+                    # FIXME: we can actually get them in batches as we used to
+                    # but need to figure out the continuation and avoid that the API
+                    # chooses to give us only the latest for each page
+                    for revid in revids:
+                        exportparams['revids'] = revid
+                        try:
+                            exportrequest = site.api(http_method=config['http_method'], **exportparams)
+                        except requests.exceptions.HTTPError as e:
+                            if e.response.status_code == 405 and config['http_method'] == "POST":
+                                print("POST request to the API failed, retrying with GET")
+                                config['http_method'] = "GET"
+                                exportrequest = site.api(http_method=config['http_method'], **exportparams)
 
+                        # This gives us a self-standing <mediawiki> element
+                        # but we only need the inner <page>: we can live with
+                        # duplication and non-ordering of page titles, but the
+                        # repeated header is confusing and would not even be valid
+                        xml = exportrequest['query']['export']['*']
+                        yield makeXmlPageFromRaw(xml)
+                        
+                    if 'continue' in arvrequest:
+                        # Get the new ones
+                        arvparams['arvcontinue'] = arvrequest['continue']['arvcontinue']
+                        try:
+                            arvrequest = site.api(http_method=config['http_method'], **arvparams)
+                        except requests.exceptions.HTTPError as e:
+                            if e.response.status_code == 405 and config['http_method'] == "POST":
+                                print("POST request to the API failed, retrying with GET")
+                                config['http_method'] = "GET"
+                                arvrequest = site.api(http_method=config['http_method'], **arvparams)
+                        except requests.exceptions.ReadTimeout as err:
+                            # As above
+                            print("ERROR: {}".format(str(err)))
+                            print("Sleeping for 20 seconds")
+                            time.sleep(20)
+                            # But avoid rewriting the same revisions
+                            arvrequest['query']['allrevisions'] = []
+                            continue
+                    else:
+                        # End of continuation. We are done with this namespace.
+                        break
+                    
     except KeyError:
-        print "Warning. Could not use allrevisions, wiki too old."
+        # TODO: check whether the KeyError was really for a missing arv API
+        print "Warning. Could not use allrevisions. Wiki too old?"
         if config['curonly']:
+            # The raw XML export in the API gets a title and gives the latest revision.
+            # We could also use the allpages API as generator but let's be consistent.
+            print("Getting titles to export the latest revision for each")
+            c = 0
             for title in readTitles(config):
+                # TODO: respect verbose flag, reuse output from getXMLPage
+                print('    {}'.format(title.strip()))
+                # TODO: as we're doing one page and revision at a time, we might
+                # as well use xml format and exportnowrap=1 to use the string of,
+                # XML as is, but need to check how well the library handles it.
                 exportparams = {
                     'action': 'query',
                     'titles': title,
                     'export': '1',
                 }
-                exportrequest = wikitools.api.APIRequest(site, exportparams)
-                exportresults = exportrequest.queryGen()
-                for exportresult in exportresults:
-                    yield exportresult['query']['export']['*']
+                try:
+                    exportrequest = site.api(http_method=config['http_method'], **exportparams)
+                except requests.exceptions.HTTPError as e:
+                    if e.response.status_code == 405 and config['http_method'] == "POST":
+                        print("POST request to the API failed, retrying with GET")
+                        config['http_method'] = "GET"
+                        exportrequest = site.api(http_method=config['http_method'], **exportparams)
+
+                xml = exportrequest['query']['export']['*']
+                c += 1
+                if c % 10 == 0:
+                    print('Downloaded {} pages'.format(c))
+                # Because we got the fancy XML from the JSON format, clean it:
+                yield makeXmlPageFromRaw(xml)
         else:
+            # This is the closest to what we usually do with Special:Export:
+            # take one title at a time and try to get all revisions exported.
+            # It differs from the allrevisions method because it actually needs
+            # to be input the page titles; otherwise, the requests are similar.
+            # The XML needs to be made manually because the export=1 option
+            # refuses to return an arbitrary number of revisions (see above).
+            print("Getting titles to export all the revisions of each")
+            c = 0
             for title in readTitles(config):
+                print('    {}'.format(title.strip()))
+                # Try and ask everything. At least on MediaWiki 1.16, uknown props are discarded:
+                # "warnings":{"revisions":{"*":"Unrecognized values for parameter 'rvprop': userid, sha1, contentmodel"}}}
                 pparams = {
                     'action': 'query',
                     'titles': title,
                     'prop': 'revisions',
-                    'rvlimit': 'max',
+                    'rvlimit': 50,
                     'rvprop': 'ids|timestamp|user|userid|size|sha1|contentmodel|comment|content',
-                    'rawcontinue': 'yes'
                 }
-                prequest = wikitools.api.APIRequest(site, pparams)
                 try:
-                    results = prequest.query()
-                    pages = results['query']['pages']
+                    prequest = site.api(http_method=config['http_method'], **pparams)
+                except requests.exceptions.HTTPError as e:
+                    if e.response.status_code == 405 and config['http_method'] == "POST":
+                        print("POST request to the API failed, retrying with GET")
+                        config['http_method'] = "GET"
+                        exportrequest = site.api(http_method=config['http_method'], **exportparams)
+
+                c += 1
+                if c % 10 == 0:
+                    print('Downloaded {} pages'.format(c))
+                # The array is called "pages" even if there's only one.
+                # TODO: we could actually batch titles a bit here if desired. How many?
+                try:
+                    pages = prequest['query']['pages']
                 except KeyError:
                     raise PageMissingError(title, xml='')
-                for page in pages:
-                    try:
-                        xml = makeXmlFromPage(pages[page])
-                    except PageMissingError:
-                        logerror(
-                            config=config,
-                            text=u'Error: empty revision from API. Could not export page: %s' % (title.decode('utf-8'))
-                        )
-                        continue
-                    yield xml
+                # Be ready to iterate if there is continuation.
+                while True:
+                    # Go through the data we got to build the XML.
+                    for page in pages:
+                        try:
+                            xml = makeXmlFromPage(pages[page])
+                            yield xml
+                        except PageMissingError:
+                            logerror(
+                                config=config,
+                                text=u'Error: empty revision from API. Could not export page: %s' % (title.decode('utf-8'))
+                            )
+                            continue
 
-    except wikitools.api.APIError:
-        print "This wikitools version seems not to work for us. Exiting."
+                    # Get next batch of revisions if there's more.
+                    if 'continue' in prequest.keys():
+                        print("Getting more revisions for page {}".format(title))
+                        pparams['rvcontinue'] = prequest['continue']['rvcontinue']
+                        try:
+                            prequest = site.api(http_method=config['http_method'], **pparams)
+                        except requests.exceptions.HTTPError as e:
+                            if e.response.status_code == 405 and config['http_method'] == "POST":
+                                print("POST request to the API failed, retrying with GET")
+                                config['http_method'] = "GET"
+                                prequest = site.api(http_method=config['http_method'], **pparams)
+                    # mwclient seems to rewrite query-continue
+                    #if 'query-continue' in prequest.keys():
+                    #    pparams['rvcontinue'] = prequest['query-continue']['revisions']['rvcontinue']
+                    else:
+                        break
+
+
+    except mwclient.errors.MwClientError:
+        print "This mwclient version seems not to work for us. Exiting."
         sys.exit()
 
 def makeXmlFromPage(page):
     """ Output an XML document as a string from a page as in the API JSON """
     try:
         p = E.page(
-                E.title(page['title']),
+                E.title(to_unicode(page['title'])),
                 E.ns(to_unicode(page['ns'])),
                 E.id(to_unicode(page['pageid'])),
         )
         for rev in page['revisions']:
+            # Older releases like MediaWiki 1.16 do not return all fields.
+            if 'userid' in rev:
+                userid = rev['userid']
+            else:
+                userid = 0
+            if 'size' in rev:
+                size = rev['size']
+            else:
+                size = 0
             revision = E.revision(
                 E.id(to_unicode(rev['revid'])),
                 E.parentid(to_unicode(rev['parentid'])),
                 E.timestamp(rev['timestamp']),
                 E.contributor(
-                        E.id(to_unicode(rev['userid'])),
+                        E.id(to_unicode(userid)),
                         E.username(to_unicode(rev['user'])),
                 ),
-                E.comment(rev['comment']),
-                E.text(rev['*'], space="preserve", bytes=to_unicode(rev['size'])),
+                E.text(rev['*'], space="preserve", bytes=to_unicode(size)),
             )
+            if 'comment' in rev:
+                revision.append(E.comment(to_unicode(rev['comment'])))
             if 'contentmodel' in rev:
                 revision.append(E.model(rev['contentmodel']))
             # The sha1 may not have been backfilled on older wikis or lack for other reasons (Wikia).
             if 'sha1' in rev:
                 revision.append(E.sha1(rev['sha1']))
             p.append(revision)
-    except KeyError:
-        raise PageMissingError(page['title'], '')
+    except KeyError as e:
+        print(e)
+        raise PageMissingError(page['title'], e)
     return etree.tostring(p, pretty_print=True)
 
 def readTitles(config={}, start=None):
@@ -1622,6 +1787,7 @@ def getParameters(params=[]):
     else:
         if index and not args.wiki:
             print 'API not available. Trying with index.php only.'
+            args.api = None
         else:
             print 'Error in API. Please, provide a correct path to API'
             sys.exit(1)
@@ -1703,6 +1869,7 @@ def getParameters(params=[]):
         'date': datetime.datetime.now().strftime('%Y%m%d'),
         'api': api,
         'failfast': args.failfast,
+        'http_method': "POST",
         'index': index,
         'images': args.images,
         'logs': False,
