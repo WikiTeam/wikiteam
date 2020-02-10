@@ -915,11 +915,12 @@ def getXMLRevisions(config={}, session=None, allpages=False):
             # The XML needs to be made manually because the export=1 option
             # refuses to return an arbitrary number of revisions (see above).
             for title in readTitles(config):
+                # Try and ask everything. At least on MediaWiki 1.16, uknown props are discarded:
+                # "warnings":{"revisions":{"*":"Unrecognized values for parameter 'rvprop': userid, sha1, contentmodel"}}}
                 pparams = {
                     'action': 'query',
                     'titles': title,
                     'prop': 'revisions',
-                    'rvlimit': 'max',
                     'rvprop': 'ids|timestamp|user|userid|size|sha1|contentmodel|comment|content',
                 }
                 prequest = site.api(**pparams)
