@@ -273,7 +273,7 @@ def getPageTitlesAPI(config={}, session=None):
                 try:
                     r = session.get(url=config['api'], params=params, timeout=30)
                     break
-                except ConnectionError as err:
+                except requests.exceptions.ConnectionError as err:
                     print "Connection error: %s" % (str(err),)
                     retryCount += 1
                     time.sleep(20)
