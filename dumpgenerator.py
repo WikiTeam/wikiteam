@@ -808,6 +808,7 @@ def generateXMLDump(config={}, titles=[], start=None, session=None):
     print 'XML dump saved at...', xmlfilename
 
 def getXMLRevisions(config={}, session=None, allpages=False):
+    # FIXME: actually figure out the various strategies for each MediaWiki version
     apiurl = urlparse(config['api'])
     # FIXME: force the protocol we asked for! Or don't verify SSL if we asked HTTP?
     # https://github.com/WikiTeam/wikiteam/issues/358
@@ -889,6 +890,8 @@ def getXMLRevisions(config={}, session=None, allpages=False):
         if config['curonly']:
             # The raw XML export in the API gets a title and gives the latest revision
             for title in readTitles(config):
+                # TODO: as we're doing one page and revision at a time,
+                # we might as well use xml format and exportnowrap=1
                 exportparams = {
                     'action': 'query',
                     'titles': title,
