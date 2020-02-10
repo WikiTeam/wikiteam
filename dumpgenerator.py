@@ -472,7 +472,7 @@ def getXMLHeader(config={}, session=None):
                 xml = pme.xml
             except ExportAbortedError:
                 pass
-    
+
     header = xml.split('</mediawiki>')[0]
     if not re.match(r"\s*<mediawiki", xml):
         if config['xmlrevisions']:
