@@ -463,6 +463,7 @@ def getXMLHeader(config={}, session=None):
     # xmlns:x....
     randomtitle = 'Main_Page'  # previously AMF5LKE43MNFGHKSDMRTJ
     print config['api']
+    xml = ''
     if config['xmlrevisions'] and config['api'] and config['api'].endswith("api.php"):
         xml = None
         try:
