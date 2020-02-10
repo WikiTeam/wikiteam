@@ -468,10 +468,12 @@ def getXMLHeader(config={}, session=None):
         xml = None
         try:
             print 'Getting the XML header from the API'
-            r = session.get(config['api'] + '?action=query&revids=1&export&format=json', timeout=10)
-            xml = r.json()['query']['export']['*']
+            # Export and exportnowrap exist from MediaWiki 1.15, allpages from 1.18
+            r = session.get(config['api'] + '?action=query&export=1&exportnowrap=1&list=allpages&aplimit=1', timeout=10)
+            xml = r.text
             if not xml:
-                r = session.get(config['api'] + '?action=query&revids=1&export&exportnowrap', timeout=10)
+                # Do without a generator, use our usual trick of a random page title
+                r = session.get(config['api'] + '?action=query&export=1&exportnowrap=1&titles=' + randomtitle, timeout=10)
                 xml = r.text
         except requests.exceptions.RetryError:
             pass
