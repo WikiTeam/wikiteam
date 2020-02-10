@@ -850,12 +850,14 @@ def getXMLRevisions(config={}, session=None, allpages=False):
                 print("Trying to list the revisions and to export them one by one")
                 # We only need the revision ID, all the rest will come from the raw export
                 arvparams['arvprop'] = 'ids'
+                arvrequest = site.api(**arvparams)
+                # Skip the namespace if it's empty
+                if len(arvrequest['query']['allrevisions']) < 1:
+                    continue
                 # Repeat the arvrequest with new arvparams until done
                 while True:
                     # Reset revision IDs from the previous batch from arv
                     revids = []
-                    # Get the new ones
-                    arvrequest = site.api(**arvparams)
                     for page in arvrequest['query']['allrevisions']:
                         for revision in page['revisions']:
                             revids.append(str(revision['revid']))
@@ -879,19 +881,22 @@ def getXMLRevisions(config={}, session=None, allpages=False):
                         yield makeXmlPageFromRaw(xml)
                         
                     if 'continue' in arvrequest:
+                        # Get the new ones
                         arvparams['arvcontinue'] = arvrequest['continue']['arvcontinue']
+                        arvrequest = site.api(**arvparams)
                     else:
                         # End of continuation. We are done with this namespace.
                         break
                     
-
     except KeyError:
+        # TODO: check whether the KeyError was really for a missing arv API
         print "Warning. Could not use allrevisions. Wiki too old?"
         if config['curonly']:
             # The raw XML export in the API gets a title and gives the latest revision
             for title in readTitles(config):
-                # TODO: as we're doing one page and revision at a time,
-                # we might as well use xml format and exportnowrap=1
+                # TODO: as we're doing one page and revision at a time, we might
+                # as well use xml format and exportnowrap=1 to use the string of,
+                # XML as is, but need to check how well the library handles it.
                 exportparams = {
                     'action': 'query',
                     'titles': title,
@@ -899,8 +904,13 @@ def getXMLRevisions(config={}, session=None, allpages=False):
                 }
                 exportrequest = site.api(**exportparams)
                 xml = exportrequest['query']['export']['*']
+                # Because we got the fancy XML from the JSON format, clean it:
                 yield makeXmlPageFromRaw(xml)
         else:
+            # This is the closest to what we usually do with Special:Export:
+            # take one title at a time and try to get all revisions exported.
+            # The XML needs to be made manually because the export=1 option
+            # refuses to return an arbitrary number of revisions (see above).
             for title in readTitles(config):
                 pparams = {
                     'action': 'query',
@@ -908,7 +918,6 @@ def getXMLRevisions(config={}, session=None, allpages=False):
                     'prop': 'revisions',
                     'rvlimit': 'max',
                     'rvprop': 'ids|timestamp|user|userid|size|sha1|contentmodel|comment|content',
-                    'rawcontinue': 'yes'
                 }
                 prequest = site.api(**pparams)
                 try:
