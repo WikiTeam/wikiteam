@@ -755,6 +755,7 @@ def generateXMLDump(config={}, titles=[], start=None, session=None):
             for xml in getXMLRevisions(config=config, session=session):
                 numrevs = len(re.findall(r_timestamp, xml))
                 # Due to how generators work, it's expected this may be less
+                # TODO: get the page title and reuse the usual format "X title, y edits"
                 print "%d more revisions exported" % numrevs
                 xml = cleanXML(xml=xml)
                 xmlfile.write(xml.encode('utf-8'))
@@ -835,7 +836,18 @@ def getXMLRevisions(config={}, session=None, allpages=False):
                 arvparams['arvprop'] = 'ids|timestamp|user|userid|size|sha1|contentmodel|comment|content'
                 print("Trying to get wikitext from the allrevisions API and to build the XML")
                 while True:
-                    arvrequest = site.api(**arvparams)
+                    try:
+                        arvrequest = site.api(**arvparams)
+                    except requests.exceptions.ReadTimeout as err:
+                        # Hopefully temporary, just wait a bit and continue with the same request.
+                        # No point putting a limit to retries, we'd need to abort everything.
+                        # TODO: reuse the retry logic of the checkAPI phase? Or force mwclient
+                        # to use the retry adapter we use for our own requests session?
+                        print("ERROR: {}".format(str(err)))
+                        print("Sleeping for 20 seconds")
+                        time.sleep(20)
+                        continue
+
                     for page in arvrequest['query']['allrevisions']:
                         yield makeXmlFromPage(page)
                     if 'continue' in arvrequest:
@@ -851,6 +863,10 @@ def getXMLRevisions(config={}, session=None, allpages=False):
                 # We only need the revision ID, all the rest will come from the raw export
                 arvparams['arvprop'] = 'ids'
                 arvrequest = site.api(**arvparams)
+                exportparams = {
+                    'action': 'query',
+                    'export': '1',
+                }
                 # Skip the namespace if it's empty
                 if len(arvrequest['query']['allrevisions']) < 1:
                     continue
@@ -862,14 +878,11 @@ def getXMLRevisions(config={}, session=None, allpages=False):
                         for revision in page['revisions']:
                             revids.append(str(revision['revid']))
                     print "%d more revisions listed, until %s" % (len(revids), revids[-1])
+
                     # We can now get the XML for one revision at a time
                     # FIXME: we can actually get them in batches as we used to
                     # but need to figure out the continuation and avoid that the API
                     # chooses to give us only the latest for each page
-                    exportparams = {
-                        'action': 'query',
-                        'export': '1',
-                    }
                     for revid in revids:
                         exportparams['revids'] = revid
                         exportrequest = site.api(**exportparams)
@@ -883,7 +896,16 @@ def getXMLRevisions(config={}, session=None, allpages=False):
                     if 'continue' in arvrequest:
                         # Get the new ones
                         arvparams['arvcontinue'] = arvrequest['continue']['arvcontinue']
-                        arvrequest = site.api(**arvparams)
+                        try:
+                            arvrequest = site.api(**arvparams)
+                        except requests.exceptions.ReadTimeout as err:
+                            # As above
+                            print("ERROR: {}".format(str(err)))
+                            print("Sleeping for 20 seconds")
+                            time.sleep(20)
+                            # But avoid rewriting the same revisions
+                            arvrequest['query']['allrevisions'] = []
+                            continue
                     else:
                         # End of continuation. We are done with this namespace.
                         break
@@ -894,7 +916,11 @@ def getXMLRevisions(config={}, session=None, allpages=False):
         if config['curonly']:
             # The raw XML export in the API gets a title and gives the latest revision.
             # We could also use the allpages API as generator but let's be consistent.
+            print("Getting titles to export the latest revision for each")
+            c = 0
             for title in readTitles(config):
+                # TODO: respect verbose flag, reuse output from getXMLPage
+                print('    {}'.format(title.strip()))
                 # TODO: as we're doing one page and revision at a time, we might
                 # as well use xml format and exportnowrap=1 to use the string of,
                 # XML as is, but need to check how well the library handles it.
@@ -905,6 +931,9 @@ def getXMLRevisions(config={}, session=None, allpages=False):
                 }
                 exportrequest = site.api(**exportparams)
                 xml = exportrequest['query']['export']['*']
+                c += 1
+                if c % 10 == 0:
+                    print('Downloaded {} pages'.format(c))
                 # Because we got the fancy XML from the JSON format, clean it:
                 yield makeXmlPageFromRaw(xml)
         else:
@@ -914,16 +943,23 @@ def getXMLRevisions(config={}, session=None, allpages=False):
             # to be input the page titles; otherwise, the requests are similar.
             # The XML needs to be made manually because the export=1 option
             # refuses to return an arbitrary number of revisions (see above).
+            print("Getting titles to export all the revisions of each")
+            c = 0
             for title in readTitles(config):
+                print('    {}'.format(title.strip()))
                 # Try and ask everything. At least on MediaWiki 1.16, uknown props are discarded:
                 # "warnings":{"revisions":{"*":"Unrecognized values for parameter 'rvprop': userid, sha1, contentmodel"}}}
                 pparams = {
                     'action': 'query',
                     'titles': title,
                     'prop': 'revisions',
+                    'rvlimit': 50,
                     'rvprop': 'ids|timestamp|user|userid|size|sha1|contentmodel|comment|content',
                 }
                 prequest = site.api(**pparams)
+                c += 1
+                if c % 10 == 0:
+                    print('Downloaded {} pages'.format(c))
                 # The array is called "pages" even if there's only one.
                 # TODO: we could actually batch titles a bit here if desired. How many?
                 try:
@@ -936,18 +972,21 @@ def getXMLRevisions(config={}, session=None, allpages=False):
                     for page in pages:
                         try:
                             xml = makeXmlFromPage(pages[page])
+                            yield xml
                         except PageMissingError:
                             logerror(
                                 config=config,
                                 text=u'Error: empty revision from API. Could not export page: %s' % (title.decode('utf-8'))
                             )
                             continue
-                        yield xml
 
                     # Get next batch of revisions if there's more.
                     if 'continue' in prequest:
+                        print("Getting more revisions for page {}".format(title))
                         pparams['rvcontinue'] = prequest['rvcontinue']
                         prequest = site.api(**pparams)
+                    else:
+                        break
 
 
     except mwclient.errors.MwClientError:
@@ -958,30 +997,41 @@ def makeXmlFromPage(page):
     """ Output an XML document as a string from a page as in the API JSON """
     try:
         p = E.page(
-                E.title(page['title']),
+                E.title(to_unicode(page['title'])),
                 E.ns(to_unicode(page['ns'])),
                 E.id(to_unicode(page['pageid'])),
         )
         for rev in page['revisions']:
+            # Older releases like MediaWiki 1.16 do not return all fields.
+            if 'userid' in rev:
+                userid = rev['userid']
+            else:
+                userid = 0
+            if 'size' in rev:
+                size = rev['size']
+            else:
+                size = 0
             revision = E.revision(
                 E.id(to_unicode(rev['revid'])),
                 E.parentid(to_unicode(rev['parentid'])),
                 E.timestamp(rev['timestamp']),
                 E.contributor(
-                        E.id(to_unicode(rev['userid'])),
+                        E.id(to_unicode(userid)),
                         E.username(to_unicode(rev['user'])),
                 ),
-                E.comment(rev['comment']),
-                E.text(rev['*'], space="preserve", bytes=to_unicode(rev['size'])),
+                E.text(rev['*'], space="preserve", bytes=to_unicode(size)),
             )
+            if 'comment' in rev:
+                revision.append(E.comment(to_unicode(rev['comment'])))
             if 'contentmodel' in rev:
                 revision.append(E.model(rev['contentmodel']))
             # The sha1 may not have been backfilled on older wikis or lack for other reasons (Wikia).
             if 'sha1' in rev:
                 revision.append(E.sha1(rev['sha1']))
             p.append(revision)
-    except KeyError:
-        raise PageMissingError(page['title'], '')
+    except KeyError as e:
+        print(e)
+        raise PageMissingError(page['title'], e)
     return etree.tostring(p, pretty_print=True)
 
 def readTitles(config={}, start=None):
