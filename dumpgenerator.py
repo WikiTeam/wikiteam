@@ -892,7 +892,8 @@ def getXMLRevisions(config={}, session=None, allpages=False):
         # TODO: check whether the KeyError was really for a missing arv API
         print "Warning. Could not use allrevisions. Wiki too old?"
         if config['curonly']:
-            # The raw XML export in the API gets a title and gives the latest revision
+            # The raw XML export in the API gets a title and gives the latest revision.
+            # We could also use the allpages API as generator but let's be consistent.
             for title in readTitles(config):
                 # TODO: as we're doing one page and revision at a time, we might
                 # as well use xml format and exportnowrap=1 to use the string of,
@@ -909,6 +910,8 @@ def getXMLRevisions(config={}, session=None, allpages=False):
         else:
             # This is the closest to what we usually do with Special:Export:
             # take one title at a time and try to get all revisions exported.
+            # It differs from the allrevisions method because it actually needs
+            # to be input the page titles; otherwise, the requests are similar.
             # The XML needs to be made manually because the export=1 option
             # refuses to return an arbitrary number of revisions (see above).
             for title in readTitles(config):
@@ -920,21 +923,31 @@ def getXMLRevisions(config={}, session=None, allpages=False):
                     'rvprop': 'ids|timestamp|user|userid|size|sha1|contentmodel|comment|content',
                 }
                 prequest = site.api(**pparams)
+                # The array is called "pages" even if there's only one.
+                # TODO: we could actually batch titles a bit here if desired. How many?
                 try:
-                    results = prequest.query()
-                    pages = results['query']['pages']
+                    pages = prequest['query']['pages']
                 except KeyError:
                     raise PageMissingError(title, xml='')
-                for page in pages:
-                    try:
-                        xml = makeXmlFromPage(pages[page])
-                    except PageMissingError:
-                        logerror(
-                            config=config,
-                            text=u'Error: empty revision from API. Could not export page: %s' % (title.decode('utf-8'))
-                        )
-                        continue
-                    yield xml
+                # Be ready to iterate if there is continuation.
+                while True:
+                    # Go through the data we got to build the XML.
+                    for page in pages:
+                        try:
+                            xml = makeXmlFromPage(pages[page])
+                        except PageMissingError:
+                            logerror(
+                                config=config,
+                                text=u'Error: empty revision from API. Could not export page: %s' % (title.decode('utf-8'))
+                            )
+                            continue
+                        yield xml
+
+                    # Get next batch of revisions if there's more.
+                    if 'continue' in prequest:
+                        pparams['rvcontinue'] = prequest['rvcontinue']
+                        prequest = site.api(**pparams)
+
 
     except mwclient.errors.MwClientError:
         print "This mwclient version seems not to work for us. Exiting."
