@@ -257,65 +257,17 @@ def getPageTitlesAPI(config={}, session=None):
 
         c = 0
         print '    Retrieving titles in the namespace %d' % (namespace)
-        apfrom = ''
-        while apfrom:
-            sys.stderr.write('.')  # progress
-            params = {
-                'action': 'query',
-                'list': 'allpages',
-                'apnamespace': namespace,
-                'apfrom': apfrom,
-                'format': 'json',
-                'aplimit': 500}
+        apiurl = urlparse(config['api'])
+        site = mwclient.Site(apiurl.netloc, apiurl.path.replace("api.php", ""), scheme=apiurl.scheme)
+        for page in site.allpages(namespace=namespace):
+            title = page.name
+            titles.append(title)
+            c += 1
+            yield title
 
-            retryCount = 0
-            while retryCount < config["retries"]:
-                try:
-                    r = session.get(url=config['api'], params=params, timeout=30)
-                    break
-                except requests.exceptions.ConnectionError as err:
-                    print "Connection error: %s" % (str(err),)
-                    retryCount += 1
-                    time.sleep(20)
-            handleStatusCode(r)
-            # FIXME Handle HTTP errors here!
-            jsontitles = getJSON(r)
-            apfrom = ''
-            if 'query-continue' in jsontitles and 'allpages' in jsontitles[
-                    'query-continue']:
-                if 'apcontinue' in jsontitles['query-continue']['allpages']:
-                    apfrom = jsontitles[
-                        'query-continue']['allpages']['apcontinue']
-                elif 'apfrom' in jsontitles['query-continue']['allpages']:
-                    apfrom = jsontitles['query-continue']['allpages']['apfrom']
-            elif 'continue' in jsontitles:
-                if 'apcontinue' in jsontitles['continue']:
-                    apfrom = jsontitles['continue']['apcontinue']
-                elif 'apfrom' in jsontitles['continue']:
-                    apfrom = jsontitles['continue']['apfrom']
-
-            # print apfrom
-            # print jsontitles
-            try:
-                allpages = jsontitles['query']['allpages']
-            except KeyError:
-                print "The allpages API returned nothing. Exit."
-                sys.exit(1)
-
-            # Hack for old versions of MediaWiki API where result is dict
-            if isinstance(allpages, dict):
-                allpages = allpages.values()
-            for page in allpages:
-                title = page['title']
-                titles.append(title)
-                yield title
-            c += len(allpages)
-
-            if len(titles) != len(set(titles)):
-                print 'Probably a loop, switching to next namespace. Duplicate title:'
-                print title
-                titles = list(set(titles))
-                apfrom = ''
+        if len(titles) != len(set(titles)):
+            print 'Probably a loop, switching to next namespace'
+            titles = list(set(titles))
 
             delay(config=config, session=session)
         print '    %d titles retrieved in the namespace %d' % (c, namespace)
@@ -465,16 +417,29 @@ def getXMLHeader(config={}, session=None):
     print config['api']
     xml = ''
     if config['xmlrevisions'] and config['api'] and config['api'].endswith("api.php"):
-        xml = None
         try:
             print 'Getting the XML header from the API'
             # Export and exportnowrap exist from MediaWiki 1.15, allpages from 1.18
-            r = session.get(config['api'] + '?action=query&export=1&exportnowrap=1&list=allpages&aplimit=1', timeout=10)
+            r = requests.get(config['api'] + '?action=query&export=1&exportnowrap=1&list=allpages&aplimit=1', timeout=10)
             xml = r.text
-            if not xml:
+            # Otherwise try without exportnowrap, e.g. Wikia returns a blank page on 1.19
+            if not re.match(r"\s*<mediawiki", xml):
+                r = requests.get(config['api'] + '?action=query&export=1&list=allpages&aplimit=1&format=json', timeout=10)
+                try:
+                    xml = r.json()['query']['export']['*']
+                except KeyError:
+                    pass
+            if not re.match(r"\s*<mediawiki", xml):
                 # Do without a generator, use our usual trick of a random page title
-                r = session.get(config['api'] + '?action=query&export=1&exportnowrap=1&titles=' + randomtitle, timeout=10)
+                r = requests.get(config['api'] + '?action=query&export=1&exportnowrap=1&titles=' + randomtitle, timeout=10)
                 xml = r.text
+            # Again try without exportnowrap
+            if not re.match(r"\s*<mediawiki", xml):
+                r = requests.get(config['api'] + '?action=query&export=1&format=json&titles=' + randomtitle, timeout=10)
+                try:
+                    xml = r.json()['query']['export']['*']
+                except KeyError:
+                    pass
         except requests.exceptions.RetryError:
             pass
 
@@ -532,8 +497,8 @@ def getUserAgent():
     """ Return a cool user-agent to hide Python user-agent """
     useragents = [
         # firefox
-        'Mozilla/5.0 (X11; Linux i686; rv:24.0) Gecko/20100101 Firefox/24.0',
-        'Mozilla/5.0 (X11; Linux x86_64; rv:28.0) Gecko/20100101  Firefox/28.0',
+        'Mozilla/5.0 (X11; Linux x86_64; rv:72.0) Gecko/20100101 Firefox/72.0',
+        'Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101 Firefox/68.0',
     ]
     return useragents[0]
 
@@ -1038,7 +1003,8 @@ def getXMLRevisions(config={}, session=None, allpages=False):
                         break
 
 
-    except mwclient.errors.MwClientError:
+    except mwclient.errors.MwClientError as e:
+        print(e)
         print "This mwclient version seems not to work for us. Exiting."
         sys.exit()
 
@@ -1350,7 +1316,7 @@ def getImageNamesAPI(config={}, session=None):
                 url = curateImageURL(config=config, url=url)
                 # encoding to ascii is needed to work around this horrible bug:
                 # http://bugs.python.org/issue8136
-                if 'api' in config and '.wikia.com' in config['api']:
+                if 'api' in config and ('.wikia.' in config['api'] or '.fandom.com' in config['api']):
                     #to avoid latest?cb=20120816112532 in filenames
                     filename = unicode(urllib.unquote((re.sub('_', ' ', url.split('/')[-3])).encode('ascii', 'ignore')), 'utf-8')
                 else:
