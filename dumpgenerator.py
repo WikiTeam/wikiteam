@@ -257,65 +257,17 @@ def getPageTitlesAPI(config={}, session=None):
 
         c = 0
         print '    Retrieving titles in the namespace %d' % (namespace)
-        apfrom = ''
-        while apfrom:
-            sys.stderr.write('.')  # progress
-            params = {
-                'action': 'query',
-                'list': 'allpages',
-                'apnamespace': namespace,
-                'apfrom': apfrom,
-                'format': 'json',
-                'aplimit': 500}
+        apiurl = urlparse(config['api'])
+        site = mwclient.Site(apiurl.netloc, apiurl.path.replace("api.php", ""), scheme=apiurl.scheme)
+        for page in site.allpages(namespace=namespace):
+            title = page.name
+            titles.append(title)
+            c += 1
+            yield title
 
-            retryCount = 0
-            while retryCount < config["retries"]:
-                try:
-                    r = session.get(url=config['api'], params=params, timeout=30)
-                    break
-                except requests.exceptions.ConnectionError as err:
-                    print "Connection error: %s" % (str(err),)
-                    retryCount += 1
-                    time.sleep(20)
-            handleStatusCode(r)
-            # FIXME Handle HTTP errors here!
-            jsontitles = getJSON(r)
-            apfrom = ''
-            if 'query-continue' in jsontitles and 'allpages' in jsontitles[
-                    'query-continue']:
-                if 'apcontinue' in jsontitles['query-continue']['allpages']:
-                    apfrom = jsontitles[
-                        'query-continue']['allpages']['apcontinue']
-                elif 'apfrom' in jsontitles['query-continue']['allpages']:
-                    apfrom = jsontitles['query-continue']['allpages']['apfrom']
-            elif 'continue' in jsontitles:
-                if 'apcontinue' in jsontitles['continue']:
-                    apfrom = jsontitles['continue']['apcontinue']
-                elif 'apfrom' in jsontitles['continue']:
-                    apfrom = jsontitles['continue']['apfrom']
-
-            # print apfrom
-            # print jsontitles
-            try:
-                allpages = jsontitles['query']['allpages']
-            except KeyError:
-                print "The allpages API returned nothing. Exit."
-                sys.exit(1)
-
-            # Hack for old versions of MediaWiki API where result is dict
-            if isinstance(allpages, dict):
-                allpages = allpages.values()
-            for page in allpages:
-                title = page['title']
-                titles.append(title)
-                yield title
-            c += len(allpages)
-
-            if len(titles) != len(set(titles)):
-                print 'Probably a loop, switching to next namespace. Duplicate title:'
-                print title
-                titles = list(set(titles))
-                apfrom = ''
+        if len(titles) != len(set(titles)):
+            print 'Probably a loop, switching to next namespace'
+            titles = list(set(titles))
 
             delay(config=config, session=session)
         print '    %d titles retrieved in the namespace %d' % (c, namespace)
