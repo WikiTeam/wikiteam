@@ -984,10 +984,13 @@ def getXMLRevisions(config={}, session=None, allpages=False):
                             continue
 
                     # Get next batch of revisions if there's more.
-                    if 'continue' in prequest:
+                    if 'continue' in prequest.keys():
                         print("Getting more revisions for page {}".format(title))
-                        pparams['rvcontinue'] = prequest['rvcontinue']
+                        pparams['rvcontinue'] = prequest['continue']['rvcontinue']
                         prequest = site.api(**pparams)
+                    # mwclient seems to rewrite query-continue
+                    #if 'query-continue' in prequest.keys():
+                    #    pparams['rvcontinue'] = prequest['query-continue']['revisions']['rvcontinue']
                     else:
                         break
 
