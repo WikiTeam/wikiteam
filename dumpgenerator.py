@@ -417,16 +417,29 @@ def getXMLHeader(config={}, session=None):
     print config['api']
     xml = ''
     if config['xmlrevisions'] and config['api'] and config['api'].endswith("api.php"):
-        xml = None
         try:
             print 'Getting the XML header from the API'
             # Export and exportnowrap exist from MediaWiki 1.15, allpages from 1.18
-            r = session.get(config['api'] + '?action=query&export=1&exportnowrap=1&list=allpages&aplimit=1', timeout=10)
+            r = requests.get(config['api'] + '?action=query&export=1&exportnowrap=1&list=allpages&aplimit=1', timeout=10)
             xml = r.text
-            if not xml:
+            # Otherwise try without exportnowrap, e.g. Wikia returns a blank page on 1.19
+            if not re.match(r"\s*<mediawiki", xml):
+                r = requests.get(config['api'] + '?action=query&export=1&list=allpages&aplimit=1&format=json', timeout=10)
+                try:
+                    xml = r.json()['query']['export']['*']
+                except KeyError:
+                    pass
+            if not re.match(r"\s*<mediawiki", xml):
                 # Do without a generator, use our usual trick of a random page title
-                r = session.get(config['api'] + '?action=query&export=1&exportnowrap=1&titles=' + randomtitle, timeout=10)
+                r = requests.get(config['api'] + '?action=query&export=1&exportnowrap=1&titles=' + randomtitle, timeout=10)
                 xml = r.text
+            # Again try without exportnowrap
+            if not re.match(r"\s*<mediawiki", xml):
+                r = requests.get(config['api'] + '?action=query&export=1&format=json&titles=' + randomtitle, timeout=10)
+                try:
+                    xml = r.json()['query']['export']['*']
+                except KeyError:
+                    pass
         except requests.exceptions.RetryError:
             pass
 
@@ -459,7 +472,7 @@ def getXMLHeader(config={}, session=None):
                 xml = pme.xml
             except ExportAbortedError:
                 pass
-
+    
     header = xml.split('</mediawiki>')[0]
     if not re.match(r"\s*<mediawiki", xml):
         if config['xmlrevisions']:
@@ -484,8 +497,8 @@ def getUserAgent():
     """ Return a cool user-agent to hide Python user-agent """
     useragents = [
         # firefox
-        'Mozilla/5.0 (X11; Linux i686; rv:24.0) Gecko/20100101 Firefox/24.0',
-        'Mozilla/5.0 (X11; Linux x86_64; rv:28.0) Gecko/20100101  Firefox/28.0',
+        'Mozilla/5.0 (X11; Linux x86_64; rv:72.0) Gecko/20100101 Firefox/72.0',
+        'Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101 Firefox/68.0',
     ]
     return useragents[0]
 
@@ -990,7 +1003,8 @@ def getXMLRevisions(config={}, session=None, allpages=False):
                         break
 
 
-    except mwclient.errors.MwClientError:
+    except mwclient.errors.MwClientError as e:
+        print(e)
         print "This mwclient version seems not to work for us. Exiting."
         sys.exit()
 
@@ -1302,7 +1316,7 @@ def getImageNamesAPI(config={}, session=None):
                 url = curateImageURL(config=config, url=url)
                 # encoding to ascii is needed to work around this horrible bug:
                 # http://bugs.python.org/issue8136
-                if 'api' in config and '.wikia.com' in config['api']:
+                if 'api' in config and ('.wikia.' in config['api'] or '.fandom.com' in config['api']):
                     #to avoid latest?cb=20120816112532 in filenames
                     filename = unicode(urllib.unquote((re.sub('_', ' ', url.split('/')[-3])).encode('ascii', 'ignore')), 'utf-8')
                 else:
