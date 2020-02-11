@@ -724,7 +724,7 @@ def generateXMLDump(config={}, titles=[], start=None, session=None):
                 numrevs = len(re.findall(r_timestamp, xml))
                 # Due to how generators work, it's expected this may be less
                 # TODO: get the page title and reuse the usual format "X title, y edits"
-                print "%d more revisions exported" % numrevs
+                print "        %d more revisions exported" % numrevs
                 xml = cleanXML(xml=xml)
                 xmlfile.write(xml.encode('utf-8'))
         except AttributeError as e:
@@ -856,7 +856,7 @@ def getXMLRevisions(config={}, session=None, allpages=False):
                     for page in arvrequest['query']['allrevisions']:
                         for revision in page['revisions']:
                             revids.append(str(revision['revid']))
-                    print "%d more revisions listed, until %s" % (len(revids), revids[-1])
+                    print "        %d more revisions listed, until %s" % (len(revids), revids[-1])
 
                     # We can now get the XML for one revision at a time
                     # FIXME: we can actually get them in batches as we used to
