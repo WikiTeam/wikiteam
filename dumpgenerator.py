@@ -962,9 +962,6 @@ def getXMLRevisions(config={}, session=None, allpages=False):
                         config['http_method'] = "GET"
                         exportrequest = site.api(http_method=config['http_method'], **exportparams)
 
-                c += 1
-                if c % 10 == 0:
-                    print('Downloaded {} pages'.format(c))
                 # The array is called "pages" even if there's only one.
                 # TODO: we could actually batch titles a bit here if desired. How many?
                 try:
@@ -974,9 +971,9 @@ def getXMLRevisions(config={}, session=None, allpages=False):
                 # Be ready to iterate if there is continuation.
                 while True:
                     # Go through the data we got to build the XML.
-                    for page in pages:
+                    for pageid in pages:
                         try:
-                            xml = makeXmlFromPage(pages[page])
+                            xml = makeXmlFromPage(pages[pageid])
                             yield xml
                         except PageMissingError:
                             logerror(
@@ -989,18 +986,23 @@ def getXMLRevisions(config={}, session=None, allpages=False):
                     if 'continue' in prequest.keys():
                         print("Getting more revisions for page {}".format(title))
                         pparams['rvcontinue'] = prequest['continue']['rvcontinue']
-                        try:
-                            prequest = site.api(http_method=config['http_method'], **pparams)
-                        except requests.exceptions.HTTPError as e:
-                            if e.response.status_code == 405 and config['http_method'] == "POST":
-                                print("POST request to the API failed, retrying with GET")
-                                config['http_method'] = "GET"
-                                prequest = site.api(http_method=config['http_method'], **pparams)
-                    # mwclient seems to rewrite query-continue
-                    #if 'query-continue' in prequest.keys():
-                    #    pparams['rvcontinue'] = prequest['query-continue']['revisions']['rvcontinue']
+                    elif 'query-continue' in prequest.keys():
+                        rvstartid = prequest['query-continue']['revisions']['rvstartid']
+                        pparams['rvstartid'] = rvstartid
                     else:
                         break
+
+                    try:
+                        prequest = site.api(http_method=config['http_method'], **pparams)
+                    except requests.exceptions.HTTPError as e:
+                        if e.response.status_code == 405 and config['http_method'] == "POST":
+                            print("POST request to the API failed, retrying with GET")
+                            config['http_method'] = "GET"
+                            prequest = site.api(http_method=config['http_method'], **pparams)
+
+                c += 1
+                if c % 10 == 0:
+                    print('Downloaded {} pages'.format(c))
 
 
     except mwclient.errors.MwClientError as e:
