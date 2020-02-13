@@ -782,6 +782,7 @@ def getXMLRevisions(config={}, session=None, allpages=False):
     # FIXME: force the protocol we asked for! Or don't verify SSL if we asked HTTP?
     # https://github.com/WikiTeam/wikiteam/issues/358
     site = mwclient.Site(apiurl.netloc, apiurl.path.replace("api.php", ""), scheme=apiurl.scheme)
+
     if not 'all' in config['namespaces']:
         namespaces = config['namespaces']
     else:
@@ -794,7 +795,7 @@ def getXMLRevisions(config={}, session=None, allpages=False):
             arvparams = {
                 'action': 'query',
                 'list': 'allrevisions',
-                'arvlimit': 500,
+                'arvlimit': 50,
                 'arvnamespace': namespace
             }
             if not config['curonly']:
@@ -962,14 +963,14 @@ def getXMLRevisions(config={}, session=None, allpages=False):
                         config['http_method'] = "GET"
                         exportrequest = site.api(http_method=config['http_method'], **exportparams)
 
-                # The array is called "pages" even if there's only one.
-                # TODO: we could actually batch titles a bit here if desired. How many?
-                try:
-                    pages = prequest['query']['pages']
-                except KeyError:
-                    raise PageMissingError(title, xml='')
                 # Be ready to iterate if there is continuation.
                 while True:
+                    # The array is called "pages" even if there's only one.
+                    # TODO: we could actually batch titles a bit here if desired. How many?
+                    try:
+                        pages = prequest['query']['pages']
+                    except KeyError:
+                        raise PageMissingError(title, xml='')
                     # Go through the data we got to build the XML.
                     for pageid in pages:
                         try:
@@ -1033,10 +1034,10 @@ def makeXmlFromPage(page):
                 E.parentid(to_unicode(rev['parentid'])),
                 E.timestamp(rev['timestamp']),
                 E.contributor(
-                        E.id(to_unicode(userid)),
                         E.username(to_unicode(rev['user'])),
+                        E.id(to_unicode(userid)),
                 ),
-                E.text(rev['*'], space="preserve", bytes=to_unicode(size)),
+                E.text(to_unicode(rev['*']), space="preserve", bytes=to_unicode(size)),
             )
             if 'comment' in rev:
                 revision.append(E.comment(to_unicode(rev['comment'])))
@@ -1049,7 +1050,7 @@ def makeXmlFromPage(page):
     except KeyError as e:
         print(e)
         raise PageMissingError(page['title'], e)
-    return etree.tostring(p, pretty_print=True)
+    return etree.tostring(p, pretty_print=True, encoding='unicode')
 
 def readTitles(config={}, start=None):
     """ Read title list from a file, from the title "start" """
@@ -1289,7 +1290,7 @@ def getImageNamesAPI(config={}, session=None):
             'aiprop': 'url|user',
             'aifrom': aifrom,
             'format': 'json',
-            'ailimit': 500}
+            'ailimit': 50}
         # FIXME Handle HTTP Errors HERE
         r = session.get(url=config['api'], params=params, timeout=30)
         handleStatusCode(r)
@@ -1343,7 +1344,7 @@ def getImageNamesAPI(config={}, session=None):
                 'action': 'query',
                 'generator': 'allpages',
                 'gapnamespace': 6,
-                'gaplimit': 500,
+                'gaplimit': 50,
                 'gapfrom': gapfrom,
                 'prop': 'imageinfo',
                 'iiprop': 'user|url',
@@ -1735,23 +1736,13 @@ def getParameters(params=[]):
     index2 = None
 
     if api:
-        retry = 0
-        maxretries = args.retries
-        retrydelay = 20
-        check = None
-        while retry < maxretries:
-            try:
-                check = checkAPI(api=api, session=session)
-                break
-            except requests.exceptions.ConnectionError as e:
-                print 'Connection error: %s'%(str(e))
-                retry += 1
-                print "Start retry attempt %d in %d seconds."%(retry+1, retrydelay)
-                time.sleep(retrydelay)
+        check, checkedapi = checkRetryAPI(api, args.retries, args.xmlrevisions, session)
+
     if api and check:
+        # Replace the index URL we got from the API check
         index2 = check[1]
-        api = check[2]
-        print 'API is OK: ' + api
+        api = checkedapi
+        print 'API is OK: ' + checkedapi
     else:
         if index and not args.wiki:
             print 'API not available. Trying with index.php only.'
@@ -1864,6 +1855,42 @@ def getParameters(params=[]):
 
     return config, other
 
+
+def checkRetryAPI(api=None, retries=5, apiclient=False, session=None):
+    """ Call checkAPI and mwclient if necessary """
+    retry = 0
+    retrydelay = 20
+    check = None
+    while retry < retries:
+        try:
+            check = checkAPI(api, session=session)
+            break
+        except requests.exceptions.ConnectionError as e:
+            print 'Connection error: %s'%(str(e))
+            retry += 1
+            print "Start retry attempt %d in %d seconds."%(retry+1, retrydelay)
+            time.sleep(retrydelay)
+
+    if check and apiclient:
+        apiurl = urlparse(api)
+        try:
+            site = mwclient.Site(apiurl.netloc, apiurl.path.replace("api.php", ""), scheme=apiurl.scheme)
+        except KeyError:
+            # Probably KeyError: 'query'
+            if apiurl.scheme == "https":
+                newscheme = "http"
+                api = api.replace("https://", "http://")
+            else:
+                newscheme = "https"
+                api = api.replace("http://", "https://")
+            print("WARNING: The provided API URL did not work with mwclient. Switched protocol to: {}".format(newscheme))
+
+            try:
+                site = mwclient.Site(apiurl.netloc, apiurl.path.replace("api.php", ""), scheme=newscheme)
+            except KeyError:
+                check = False
+
+    return check, api
 
 def checkAPI(api=None, session=None):
     """ Checking API availability """
