@@ -795,7 +795,7 @@ def getXMLRevisions(config={}, session=None, allpages=False):
             arvparams = {
                 'action': 'query',
                 'list': 'allrevisions',
-                'arvlimit': 500,
+                'arvlimit': 50,
                 'arvnamespace': namespace
             }
             if not config['curonly']:
@@ -1290,7 +1290,7 @@ def getImageNamesAPI(config={}, session=None):
             'aiprop': 'url|user',
             'aifrom': aifrom,
             'format': 'json',
-            'ailimit': 500}
+            'ailimit': 50}
         # FIXME Handle HTTP Errors HERE
         r = session.get(url=config['api'], params=params, timeout=30)
         handleStatusCode(r)
@@ -1344,7 +1344,7 @@ def getImageNamesAPI(config={}, session=None):
                 'action': 'query',
                 'generator': 'allpages',
                 'gapnamespace': 6,
-                'gaplimit': 500,
+                'gaplimit': 50,
                 'gapfrom': gapfrom,
                 'prop': 'imageinfo',
                 'iiprop': 'user|url',
