@@ -782,6 +782,7 @@ def getXMLRevisions(config={}, session=None, allpages=False):
     # FIXME: force the protocol we asked for! Or don't verify SSL if we asked HTTP?
     # https://github.com/WikiTeam/wikiteam/issues/358
     site = mwclient.Site(apiurl.netloc, apiurl.path.replace("api.php", ""), scheme=apiurl.scheme)
+
     if not 'all' in config['namespaces']:
         namespaces = config['namespaces']
     else:
@@ -1735,23 +1736,13 @@ def getParameters(params=[]):
     index2 = None
 
     if api:
-        retry = 0
-        maxretries = args.retries
-        retrydelay = 20
-        check = None
-        while retry < maxretries:
-            try:
-                check = checkAPI(api=api, session=session)
-                break
-            except requests.exceptions.ConnectionError as e:
-                print 'Connection error: %s'%(str(e))
-                retry += 1
-                print "Start retry attempt %d in %d seconds."%(retry+1, retrydelay)
-                time.sleep(retrydelay)
+        check, checkedapi = checkRetryAPI(api, args.retries, args.xmlrevisions, session)
+
     if api and check:
+        # Replace the index URL we got from the API check
         index2 = check[1]
-        api = check[2]
-        print 'API is OK: ' + api
+        api = checkedapi
+        print 'API is OK: ' + checkedapi
     else:
         if index and not args.wiki:
             print 'API not available. Trying with index.php only.'
@@ -1864,6 +1855,42 @@ def getParameters(params=[]):
 
     return config, other
 
+
+def checkRetryAPI(api=None, retries=5, apiclient=False, session=None):
+    """ Call checkAPI and mwclient if necessary """
+    retry = 0
+    retrydelay = 20
+    check = None
+    while retry < retries:
+        try:
+            check = checkAPI(api, session=session)
+            break
+        except requests.exceptions.ConnectionError as e:
+            print 'Connection error: %s'%(str(e))
+            retry += 1
+            print "Start retry attempt %d in %d seconds."%(retry+1, retrydelay)
+            time.sleep(retrydelay)
+
+    if check and apiclient:
+        apiurl = urlparse(api)
+        try:
+            site = mwclient.Site(apiurl.netloc, apiurl.path.replace("api.php", ""), scheme=apiurl.scheme)
+        except KeyError:
+            # Probably KeyError: 'query'
+            if apiurl.scheme == "https":
+                newscheme = "http"
+                api = api.replace("https://", "http://")
+            else:
+                newscheme = "https"
+                api = api.replace("http://", "https://")
+            print("WARNING: The provided API URL did not work with mwclient. Switched protocol to: {}".format(newscheme))
+
+            try:
+                site = mwclient.Site(apiurl.netloc, apiurl.path.replace("api.php", ""), scheme=newscheme)
+            except KeyError:
+                check = False
+
+    return check, api
 
 def checkAPI(api=None, session=None):
     """ Checking API availability """
