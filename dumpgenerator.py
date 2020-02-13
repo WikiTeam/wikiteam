@@ -1033,12 +1033,16 @@ def makeXmlFromPage(page):
                 E.id(to_unicode(rev['revid'])),
                 E.parentid(to_unicode(rev['parentid'])),
                 E.timestamp(rev['timestamp']),
-                E.contributor(
-                        E.username(to_unicode(rev['user'])),
-                        E.id(to_unicode(userid)),
-                ),
                 E.text(to_unicode(rev['*']), space="preserve", bytes=to_unicode(size)),
             )
+            # The username may be deleted/suppressed
+            if 'user' in rev:
+                revision.append(E.contributor(
+                        E.username(to_unicode(rev['user'])),
+                        E.id(to_unicode(userid)),
+                ))
+            else:
+                revision.append(E.contributor(deleted="deleted"))
             if 'comment' in rev:
                 revision.append(E.comment(to_unicode(rev['comment'])))
             if 'contentmodel' in rev:
