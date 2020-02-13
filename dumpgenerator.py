@@ -1033,10 +1033,10 @@ def makeXmlFromPage(page):
                 E.parentid(to_unicode(rev['parentid'])),
                 E.timestamp(rev['timestamp']),
                 E.contributor(
-                        E.id(to_unicode(userid)),
                         E.username(to_unicode(rev['user'])),
+                        E.id(to_unicode(userid)),
                 ),
-                E.text(rev['*'], space="preserve", bytes=to_unicode(size)),
+                E.text(to_unicode(rev['*']), space="preserve", bytes=to_unicode(size)),
             )
             if 'comment' in rev:
                 revision.append(E.comment(to_unicode(rev['comment'])))
@@ -1049,7 +1049,7 @@ def makeXmlFromPage(page):
     except KeyError as e:
         print(e)
         raise PageMissingError(page['title'], e)
-    return etree.tostring(p, pretty_print=True)
+    return etree.tostring(p, pretty_print=True, encoding='unicode')
 
 def readTitles(config={}, start=None):
     """ Read title list from a file, from the title "start" """
