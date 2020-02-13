@@ -962,14 +962,14 @@ def getXMLRevisions(config={}, session=None, allpages=False):
                         config['http_method'] = "GET"
                         exportrequest = site.api(http_method=config['http_method'], **exportparams)
 
-                # The array is called "pages" even if there's only one.
-                # TODO: we could actually batch titles a bit here if desired. How many?
-                try:
-                    pages = prequest['query']['pages']
-                except KeyError:
-                    raise PageMissingError(title, xml='')
                 # Be ready to iterate if there is continuation.
                 while True:
+                    # The array is called "pages" even if there's only one.
+                    # TODO: we could actually batch titles a bit here if desired. How many?
+                    try:
+                        pages = prequest['query']['pages']
+                    except KeyError:
+                        raise PageMissingError(title, xml='')
                     # Go through the data we got to build the XML.
                     for pageid in pages:
                         try:
