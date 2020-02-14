@@ -715,12 +715,16 @@ def generateXMLDump(config={}, titles=[], start=None, session=None):
     lock = True
 
     if config['xmlrevisions']:
-        print 'Retrieving the XML for every page from the beginning'
-        xmlfile = open('%s/%s' % (config['path'], xmlfilename), 'w')
-        xmlfile.write(header.encode('utf-8'))
+        if start:
+            print("WARNING: will try to start the download from title: {}".format(start))
+            xmlfile = open('%s/%s' % (config['path'], xmlfilename), 'a')
+        else:
+            print 'Retrieving the XML for every page from the beginning'
+            xmlfile = open('%s/%s' % (config['path'], xmlfilename), 'w')
+            xmlfile.write(header.encode('utf-8'))
         try:
             r_timestamp = r'<timestamp>([^<]+)</timestamp>'
-            for xml in getXMLRevisions(config=config, session=session):
+            for xml in getXMLRevisions(config=config, session=session, start=start):
                 numrevs = len(re.findall(r_timestamp, xml))
                 # Due to how generators work, it's expected this may be less
                 # TODO: get the page title and reuse the usual format "X title, y edits"
@@ -776,7 +780,7 @@ def generateXMLDump(config={}, titles=[], start=None, session=None):
     xmlfile.close()
     print 'XML dump saved at...', xmlfilename
 
-def getXMLRevisions(config={}, session=None, allpages=False):
+def getXMLRevisions(config={}, session=None, allpages=False, start=None):
     # FIXME: actually figure out the various strategies for each MediaWiki version
     apiurl = urlparse(config['api'])
     # FIXME: force the protocol we asked for! Or don't verify SSL if we asked HTTP?
@@ -790,7 +794,7 @@ def getXMLRevisions(config={}, session=None, allpages=False):
 
     try:
         for namespace in namespaces:
-            print "Trying to export all revisions from namespace %s" % namespace
+            print("Trying to export all revisions from namespace %s" % namespace)
             # arvgeneratexml exists but was deprecated in 1.26 (while arv is from 1.27?!)
             arvparams = {
                 'action': 'query',
@@ -910,7 +914,7 @@ def getXMLRevisions(config={}, session=None, allpages=False):
             # We could also use the allpages API as generator but let's be consistent.
             print("Getting titles to export the latest revision for each")
             c = 0
-            for title in readTitles(config):
+            for title in readTitles(config, start=start):
                 # TODO: respect verbose flag, reuse output from getXMLPage
                 print('    {}'.format(title.strip()))
                 # TODO: as we're doing one page and revision at a time, we might
@@ -944,7 +948,7 @@ def getXMLRevisions(config={}, session=None, allpages=False):
             # refuses to return an arbitrary number of revisions (see above).
             print("Getting titles to export all the revisions of each")
             c = 0
-            for title in readTitles(config):
+            for title in readTitles(config, start=start):
                 print('    {}'.format(title.strip()))
                 # Try and ask everything. At least on MediaWiki 1.16, uknown props are discarded:
                 # "warnings":{"revisions":{"*":"Unrecognized values for parameter 'rvprop': userid, sha1, contentmodel"}}}
