@@ -1945,6 +1945,9 @@ def checkAPI(api=None, session=None):
 def checkIndex(index=None, cookies=None, session=None):
     """ Checking index.php availability """
     r = session.post(url=index, data={'title': 'Special:Version'}, timeout=30)
+    if r.status_code >= 400:
+        print("ERROR: The wiki returned status code HTTP {}".format({}))
+        return False
     raw = r.text
     print 'Checking index.php...', index
     # Workaround for issue 71
