@@ -22,8 +22,7 @@ import re
 import subprocess
 import sys
 import time
-import urllib
-import urllib2
+import requests
 import urlparse
 import StringIO
 from xml.sax.saxutils import quoteattr
@@ -117,13 +116,10 @@ def upload(wikis, config={}, uploadeddumps=[]):
                 #get metadata from api.php
                 #first sitename and base url
                 params = {'action': 'query', 'meta': 'siteinfo', 'format': 'xml'}
-                data = urllib.urlencode(params)
-                req = urllib2.Request(url=wiki, data=data, headers=headers)
-                xml = ''
                 try:
-                    f = urllib2.urlopen(req, timeout=10)
-                    xml = f.read()
-                    f.close()
+                    r = requests.get(url=wiki, params=params, headers=headers)
+                    if r.status_code < 400:
+                        xml = r.text
                 except:
                     pass
 
@@ -152,13 +148,11 @@ def upload(wikis, config={}, uploadeddumps=[]):
 
                 #now copyright info from API
                 params = {'action': 'query', 'siprop': 'general|rightsinfo', 'format': 'xml'}
-                data = urllib.urlencode(params)
-                req = urllib2.Request(url=wiki, data=data, headers=headers)
                 xml = ''
                 try:
-                    f = urllib2.urlopen(req, timeout=10)
-                    xml = f.read()
-                    f.close()
+                    r = requests.get(url=wiki, params=params, headers=headers)
+                    if r.status_code < 400:
+                        xml = r.text
                 except:
                     pass
 
@@ -170,11 +164,15 @@ def upload(wikis, config={}, uploadeddumps=[]):
                 except:
                     pass
 
+                if rightsinfourl == "https://www.fandom.com/licensing":
+                    # Link the default license directly instead
+                    rightsinfourl = "https://creativecommons.org/licenses/by-sa/3.0/"    
+
                 raw = ''
                 try:
-                    f = urllib.urlopen(baseurl, timeout=10)
-                    raw = f.read()
-                    f.close()
+                    r = requests.get(url=baseurl, headers=headers)
+                    if r.status_code < 400:
+                        raw = r.text
                 except:
                     pass
 
@@ -240,7 +238,7 @@ def upload(wikis, config={}, uploadeddumps=[]):
                 uploadeddumps.append(dump)
                 log(wiki, dump, 'ok', config)
                 if logourl:
-                    logo = StringIO.StringIO(urllib.urlopen(urlparse.urljoin(wiki, logourl), timeout=10).read())
+                    logo = StringIO.StringIO(requests.get(urlparse.urljoin(wiki, logourl), timeout=10).content)
                     logoextension = logourl.split('.')[-1] if logourl.split('.') else 'unknown'
                     logo.name = 'wiki-' + wikiname + '_logo.' + logoextension
                     item.upload(logo, access_key=accesskey, secret_key=secretkey, verbose=True)
