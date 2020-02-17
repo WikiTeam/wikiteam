@@ -24,7 +24,7 @@ import sys
 import time
 import requests
 import urlparse
-import StringIO
+from io import BytesIO
 from xml.sax.saxutils import quoteattr
 from internetarchive import get_item
 
@@ -120,7 +120,7 @@ def upload(wikis, config={}, uploadeddumps=[]):
                     r = requests.get(url=wiki, params=params, headers=headers)
                     if r.status_code < 400:
                         xml = r.text
-                except:
+                except requests.exceptions.ConnectionError as e:
                     pass
 
                 sitename = ''
@@ -147,13 +147,13 @@ def upload(wikis, config={}, uploadeddumps=[]):
                     lang = convertlang.has_key(lang.lower()) and convertlang[lang.lower()] or lang.lower()
 
                 #now copyright info from API
-                params = {'action': 'query', 'siprop': 'general|rightsinfo', 'format': 'xml'}
+                params = {'action': 'query', 'meta': 'siteinfo', 'siprop': 'general|rightsinfo', 'format': 'xml'}
                 xml = ''
                 try:
                     r = requests.get(url=wiki, params=params, headers=headers)
                     if r.status_code < 400:
                         xml = r.text
-                except:
+                except requests.exceptions.ConnectionError as e:
                     pass
 
                 rightsinfourl = ''
@@ -164,20 +164,17 @@ def upload(wikis, config={}, uploadeddumps=[]):
                 except:
                     pass
 
-                if rightsinfourl == "https://www.fandom.com/licensing":
-                    # Link the default license directly instead
-                    rightsinfourl = "https://creativecommons.org/licenses/by-sa/3.0/"    
-
                 raw = ''
                 try:
                     r = requests.get(url=baseurl, headers=headers)
                     if r.status_code < 400:
                         raw = r.text
-                except:
+                except requests.exceptions.ConnectionError as e:
                     pass
 
                 #or copyright info from #footer in mainpage
                 if baseurl and not rightsinfourl and not rightsinfotext:
+                    print("INFO: Getting license from the HTML")
                     rightsinfotext = ''
                     rightsinfourl = ''
                     try:
@@ -191,7 +188,14 @@ def upload(wikis, config={}, uploadeddumps=[]):
                     if rightsinfotext and not rightsinfourl:
                         rightsinfourl = baseurl + '#footer'
                 try:
-                    logourl = re.findall(ur'p-logo["\'][^>]*>\s*<a [^>]*background-image:\s*(?:url\()?([^;)"]+)', raw)[0]
+                    logourl = re.findall(ur'p-logo["\'][^>]*>\s*<a [^>]*background-image:\s*(?:url\()?([^;)"]+)', raw)
+                    if logourl:
+                        logourl = logourl[0]
+                    else:
+                        logourl = re.findall(ur'"wordmark-image">[^<]*<a[^>]*>[^<]*<img src="([^"]+)"', raw)[0]
+                    if 'http' not in logourl:
+                        # Probably a relative path, construct the absolute path
+                        logourl = urlparse.urljoin(wiki, logourl)
                 except:
                     pass
 
@@ -199,11 +203,15 @@ def upload(wikis, config={}, uploadeddumps=[]):
                 wikititle = "Wiki - %s" % (sitename) # Wiki - ECGpedia
                 wikidesc = "<a href=\"%s\">%s</a> dumped with <a href=\"https://github.com/WikiTeam/wikiteam\" rel=\"nofollow\">WikiTeam</a> tools." % (baseurl, sitename)# "<a href=\"http://en.ecgpedia.org/\" rel=\"nofollow\">ECGpedia,</a>: a free electrocardiography (ECG) tutorial and textbook to which anyone can contribute, designed for medical professionals such as cardiac care nurses and physicians. Dumped with <a href=\"https://github.com/WikiTeam/wikiteam\" rel=\"nofollow\">WikiTeam</a> tools."
                 wikikeys = ['wiki', 'wikiteam', 'MediaWiki', sitename, wikiname] # ecg; ECGpedia; wiki; wikiteam; MediaWiki
+
                 if not rightsinfourl and not rightsinfotext:
                     wikikeys.append('unknowncopyright')
-
+                if "www.fandom.com" in rightsinfourl and "/licensing" in rightsinfourl:
+                    # Link the default license directly instead
+                    rightsinfourl = "https://creativecommons.org/licenses/by-sa/3.0/"
                 wikilicenseurl = rightsinfourl # http://creativecommons.org/licenses/by-nc-sa/3.0/
                 wikirights = rightsinfotext # e.g. http://en.ecgpedia.org/wiki/Frequently_Asked_Questions : hard to fetch automatically, could be the output of API's rightsinfo if it's not a usable licenseurl or "Unknown copyright status" if nothing is found.
+
                 wikiurl = wiki # we use api here http://en.ecgpedia.org/api.php
             else:
                 print 'Item already exists.'
@@ -236,15 +244,23 @@ def upload(wikis, config={}, uploadeddumps=[]):
                 item.modify_metadata(md) # update
                 print 'You can find it in https://archive.org/details/wiki-%s' % (wikiname)
                 uploadeddumps.append(dump)
-                log(wiki, dump, 'ok', config)
-                if logourl:
-                    logo = StringIO.StringIO(requests.get(urlparse.urljoin(wiki, logourl), timeout=10).content)
-                    logoextension = logourl.split('.')[-1] if logourl.split('.') else 'unknown'
-                    logo.name = 'wiki-' + wikiname + '_logo.' + logoextension
-                    item.upload(logo, access_key=accesskey, secret_key=secretkey, verbose=True)
             except Exception as e:
                 print wiki, dump, 'Error when uploading?'
-                print e.message
+                print(e)
+            try:
+                log(wiki, dump, 'ok', config)
+                if logourl:
+                    logo = BytesIO(requests.get(logourl, timeout=10).content)
+                    if '.png' in logourl:
+                        logoextension = 'png'
+                    elif logourl.split('.'):
+                        logoextension = logourl.split('.')[-1]
+                    else:
+                        logoextension = 'unknown'
+                    logoname = 'wiki-' + wikiname + '_logo.' + logoextension
+                    item.upload({logoname: logo}, access_key=accesskey, secret_key=secretkey, verbose=True)
+            except requests.exceptions.ConnectionError:
+                print(e)
 
             c += 1
 
