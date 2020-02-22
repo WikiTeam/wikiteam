@@ -959,6 +959,7 @@ def getXMLRevisions(config={}, session=None, allpages=False, start=None):
                     'rvlimit': 50,
                     'rvprop': 'ids|timestamp|user|userid|size|sha1|contentmodel|comment|content',
                 }
+                # TODO: we could actually batch titles a bit here if desired. How many?
                 try:
                     prequest = site.api(http_method=config['http_method'], **pparams)
                 except requests.exceptions.HTTPError as e:
@@ -969,12 +970,17 @@ def getXMLRevisions(config={}, session=None, allpages=False, start=None):
 
                 # Be ready to iterate if there is continuation.
                 while True:
+                    # Get the revision data returned by the API: prequest is the initial request
+                    # or the new one after continuation at the bottom of this while loop.
                     # The array is called "pages" even if there's only one.
-                    # TODO: we could actually batch titles a bit here if desired. How many?
                     try:
                         pages = prequest['query']['pages']
                     except KeyError:
-                        raise PageMissingError(title, xml='')
+                        logerror(
+                                config=config,
+                                text=u'Error: page inaccessible? Could not export page: %s' % (title.decode('utf-8'))
+                            )
+                        break
                     # Go through the data we got to build the XML.
                     for pageid in pages:
                         try:
@@ -1005,6 +1011,7 @@ def getXMLRevisions(config={}, session=None, allpages=False, start=None):
                             config['http_method'] = "GET"
                             prequest = site.api(http_method=config['http_method'], **pparams)
 
+                # We're done iterating for this title.
                 c += 1
                 if c % 10 == 0:
                     print('Downloaded {} pages'.format(c))
