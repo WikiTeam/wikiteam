@@ -970,7 +970,11 @@ def getXMLRevisions(config={}, session=None, allpages=False):
                 try:
                     pages = prequest['query']['pages']
                 except KeyError:
-                    raise PageMissingError(title, xml='')
+                    logerror(
+                                config=config,
+                                text=u'Error: page inaccessible? Could not export page: %s' % (title.decode('utf-8'))
+                            )
+                    continue
                 # Be ready to iterate if there is continuation.
                 while True:
                     # Go through the data we got to build the XML.
