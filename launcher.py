@@ -46,7 +46,7 @@ def main():
         #check if compressed, in that case dump was finished previously
         compressed = False
         for f in os.listdir('.'):
-            if f.startswith(prefix) and f.endswith('.7z'):
+            if f.endswith('.7z') and f.split("-")[0] == prefix:
                 compressed = True
                 zipfilename = f
                 break #stop searching, dot not explore subdirectories
@@ -71,7 +71,7 @@ def main():
         wikidir = ''
         for f in os.listdir('.'):
             # Does not find numbered wikidumps not verify directories
-            if f.startswith(prefix) and f.endswith('wikidump'):
+            if f.endswith('wikidump') and f.split("-")[0] == prefix:
                 wikidir = f
                 started = True
                 break #stop searching, dot not explore subdirectories
@@ -89,7 +89,7 @@ def main():
             #save wikidir now
             for f in os.listdir('.'):
                 # Does not find numbered wikidumps not verify directories
-                if f.startswith(prefix) and f.endswith('wikidump'):
+                if f.endswith('wikidump') and f.split("-")[0] == prefix:
                     wikidir = f
                     break #stop searching, dot not explore subdirectories
 
