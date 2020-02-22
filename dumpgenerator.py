@@ -715,16 +715,20 @@ def generateXMLDump(config={}, titles=[], start=None, session=None):
     lock = True
 
     if config['xmlrevisions']:
-        print 'Retrieving the XML for every page from the beginning'
-        xmlfile = open('%s/%s' % (config['path'], xmlfilename), 'w')
-        xmlfile.write(header.encode('utf-8'))
+        if start:
+            print("WARNING: will try to start the download from title: {}".format(start))
+            xmlfile = open('%s/%s' % (config['path'], xmlfilename), 'a')
+        else:
+            print 'Retrieving the XML for every page from the beginning'
+            xmlfile = open('%s/%s' % (config['path'], xmlfilename), 'w')
+            xmlfile.write(header.encode('utf-8'))
         try:
             r_timestamp = r'<timestamp>([^<]+)</timestamp>'
-            for xml in getXMLRevisions(config=config, session=session):
+            for xml in getXMLRevisions(config=config, session=session, start=start):
                 numrevs = len(re.findall(r_timestamp, xml))
                 # Due to how generators work, it's expected this may be less
                 # TODO: get the page title and reuse the usual format "X title, y edits"
-                print "%d more revisions exported" % numrevs
+                print "        %d more revisions exported" % numrevs
                 xml = cleanXML(xml=xml)
                 xmlfile.write(xml.encode('utf-8'))
         except AttributeError as e:
@@ -776,12 +780,13 @@ def generateXMLDump(config={}, titles=[], start=None, session=None):
     xmlfile.close()
     print 'XML dump saved at...', xmlfilename
 
-def getXMLRevisions(config={}, session=None, allpages=False):
+def getXMLRevisions(config={}, session=None, allpages=False, start=None):
     # FIXME: actually figure out the various strategies for each MediaWiki version
     apiurl = urlparse(config['api'])
     # FIXME: force the protocol we asked for! Or don't verify SSL if we asked HTTP?
     # https://github.com/WikiTeam/wikiteam/issues/358
     site = mwclient.Site(apiurl.netloc, apiurl.path.replace("api.php", ""), scheme=apiurl.scheme)
+
     if not 'all' in config['namespaces']:
         namespaces = config['namespaces']
     else:
@@ -789,12 +794,12 @@ def getXMLRevisions(config={}, session=None, allpages=False):
 
     try:
         for namespace in namespaces:
-            print "Trying to export all revisions from namespace %s" % namespace
+            print("Trying to export all revisions from namespace %s" % namespace)
             # arvgeneratexml exists but was deprecated in 1.26 (while arv is from 1.27?!)
             arvparams = {
                 'action': 'query',
                 'list': 'allrevisions',
-                'arvlimit': 500,
+                'arvlimit': 50,
                 'arvnamespace': namespace
             }
             if not config['curonly']:
@@ -856,7 +861,7 @@ def getXMLRevisions(config={}, session=None, allpages=False):
                     for page in arvrequest['query']['allrevisions']:
                         for revision in page['revisions']:
                             revids.append(str(revision['revid']))
-                    print "%d more revisions listed, until %s" % (len(revids), revids[-1])
+                    print "        %d more revisions listed, until %s" % (len(revids), revids[-1])
 
                     # We can now get the XML for one revision at a time
                     # FIXME: we can actually get them in batches as we used to
@@ -909,7 +914,7 @@ def getXMLRevisions(config={}, session=None, allpages=False):
             # We could also use the allpages API as generator but let's be consistent.
             print("Getting titles to export the latest revision for each")
             c = 0
-            for title in readTitles(config):
+            for title in readTitles(config, start=start):
                 # TODO: respect verbose flag, reuse output from getXMLPage
                 print('    {}'.format(title.strip()))
                 # TODO: as we're doing one page and revision at a time, we might
@@ -943,7 +948,7 @@ def getXMLRevisions(config={}, session=None, allpages=False):
             # refuses to return an arbitrary number of revisions (see above).
             print("Getting titles to export all the revisions of each")
             c = 0
-            for title in readTitles(config):
+            for title in readTitles(config, start=start):
                 print('    {}'.format(title.strip()))
                 # Try and ask everything. At least on MediaWiki 1.16, uknown props are discarded:
                 # "warnings":{"revisions":{"*":"Unrecognized values for parameter 'rvprop': userid, sha1, contentmodel"}}}
@@ -977,10 +982,16 @@ def getXMLRevisions(config={}, session=None, allpages=False):
                     continue
                 # Be ready to iterate if there is continuation.
                 while True:
+                    # The array is called "pages" even if there's only one.
+                    # TODO: we could actually batch titles a bit here if desired. How many?
+                    try:
+                        pages = prequest['query']['pages']
+                    except KeyError:
+                        raise PageMissingError(title, xml='')
                     # Go through the data we got to build the XML.
-                    for page in pages:
+                    for pageid in pages:
                         try:
-                            xml = makeXmlFromPage(pages[page])
+                            xml = makeXmlFromPage(pages[pageid])
                             yield xml
                         except PageMissingError:
                             logerror(
@@ -993,18 +1004,23 @@ def getXMLRevisions(config={}, session=None, allpages=False):
                     if 'continue' in prequest.keys():
                         print("Getting more revisions for page {}".format(title))
                         pparams['rvcontinue'] = prequest['continue']['rvcontinue']
-                        try:
-                            prequest = site.api(http_method=config['http_method'], **pparams)
-                        except requests.exceptions.HTTPError as e:
-                            if e.response.status_code == 405 and config['http_method'] == "POST":
-                                print("POST request to the API failed, retrying with GET")
-                                config['http_method'] = "GET"
-                                prequest = site.api(http_method=config['http_method'], **pparams)
-                    # mwclient seems to rewrite query-continue
-                    #if 'query-continue' in prequest.keys():
-                    #    pparams['rvcontinue'] = prequest['query-continue']['revisions']['rvcontinue']
+                    elif 'query-continue' in prequest.keys():
+                        rvstartid = prequest['query-continue']['revisions']['rvstartid']
+                        pparams['rvstartid'] = rvstartid
                     else:
                         break
+
+                    try:
+                        prequest = site.api(http_method=config['http_method'], **pparams)
+                    except requests.exceptions.HTTPError as e:
+                        if e.response.status_code == 405 and config['http_method'] == "POST":
+                            print("POST request to the API failed, retrying with GET")
+                            config['http_method'] = "GET"
+                            prequest = site.api(http_method=config['http_method'], **pparams)
+
+                c += 1
+                if c % 10 == 0:
+                    print('Downloaded {} pages'.format(c))
 
 
     except mwclient.errors.MwClientError as e:
@@ -1034,12 +1050,16 @@ def makeXmlFromPage(page):
                 E.id(to_unicode(rev['revid'])),
                 E.parentid(to_unicode(rev['parentid'])),
                 E.timestamp(rev['timestamp']),
-                E.contributor(
-                        E.id(to_unicode(userid)),
-                        E.username(to_unicode(rev['user'])),
-                ),
-                E.text(rev['*'], space="preserve", bytes=to_unicode(size)),
+                E.text(to_unicode(rev['*']), space="preserve", bytes=to_unicode(size)),
             )
+            # The username may be deleted/suppressed
+            if 'user' in rev:
+                revision.append(E.contributor(
+                        E.username(to_unicode(rev['user'])),
+                        E.id(to_unicode(userid)),
+                ))
+            else:
+                revision.append(E.contributor(deleted="deleted"))
             if 'comment' in rev:
                 revision.append(E.comment(to_unicode(rev['comment'])))
             if 'contentmodel' in rev:
@@ -1051,7 +1071,7 @@ def makeXmlFromPage(page):
     except KeyError as e:
         print(e)
         raise PageMissingError(page['title'], e)
-    return etree.tostring(p, pretty_print=True)
+    return etree.tostring(p, pretty_print=True, encoding='unicode')
 
 def readTitles(config={}, start=None):
     """ Read title list from a file, from the title "start" """
@@ -1291,7 +1311,7 @@ def getImageNamesAPI(config={}, session=None):
             'aiprop': 'url|user',
             'aifrom': aifrom,
             'format': 'json',
-            'ailimit': 500}
+            'ailimit': 50}
         # FIXME Handle HTTP Errors HERE
         r = session.get(url=config['api'], params=params, timeout=30)
         handleStatusCode(r)
@@ -1345,7 +1365,7 @@ def getImageNamesAPI(config={}, session=None):
                 'action': 'query',
                 'generator': 'allpages',
                 'gapnamespace': 6,
-                'gaplimit': 500,
+                'gaplimit': 50,
                 'gapfrom': gapfrom,
                 'prop': 'imageinfo',
                 'iiprop': 'user|url',
@@ -1737,23 +1757,13 @@ def getParameters(params=[]):
     index2 = None
 
     if api:
-        retry = 0
-        maxretries = args.retries
-        retrydelay = 20
-        check = None
-        while retry < maxretries:
-            try:
-                check = checkAPI(api=api, session=session)
-                break
-            except requests.exceptions.ConnectionError as e:
-                print 'Connection error: %s'%(str(e))
-                retry += 1
-                print "Start retry attempt %d in %d seconds."%(retry+1, retrydelay)
-                time.sleep(retrydelay)
+        check, checkedapi = checkRetryAPI(api, args.retries, args.xmlrevisions, session)
+
     if api and check:
+        # Replace the index URL we got from the API check
         index2 = check[1]
-        api = check[2]
-        print 'API is OK: ' + api
+        api = checkedapi
+        print 'API is OK: ' + checkedapi
     else:
         if index and not args.wiki:
             print 'API not available. Trying with index.php only.'
@@ -1866,6 +1876,42 @@ def getParameters(params=[]):
 
     return config, other
 
+
+def checkRetryAPI(api=None, retries=5, apiclient=False, session=None):
+    """ Call checkAPI and mwclient if necessary """
+    retry = 0
+    retrydelay = 20
+    check = None
+    while retry < retries:
+        try:
+            check = checkAPI(api, session=session)
+            break
+        except requests.exceptions.ConnectionError as e:
+            print 'Connection error: %s'%(str(e))
+            retry += 1
+            print "Start retry attempt %d in %d seconds."%(retry+1, retrydelay)
+            time.sleep(retrydelay)
+
+    if check and apiclient:
+        apiurl = urlparse(api)
+        try:
+            site = mwclient.Site(apiurl.netloc, apiurl.path.replace("api.php", ""), scheme=apiurl.scheme)
+        except KeyError:
+            # Probably KeyError: 'query'
+            if apiurl.scheme == "https":
+                newscheme = "http"
+                api = api.replace("https://", "http://")
+            else:
+                newscheme = "https"
+                api = api.replace("http://", "https://")
+            print("WARNING: The provided API URL did not work with mwclient. Switched protocol to: {}".format(newscheme))
+
+            try:
+                site = mwclient.Site(apiurl.netloc, apiurl.path.replace("api.php", ""), scheme=newscheme)
+            except KeyError:
+                check = False
+
+    return check, api
 
 def checkAPI(api=None, session=None):
     """ Checking API availability """
