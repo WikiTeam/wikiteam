@@ -82,9 +82,9 @@ def main():
         # typically they don't provide any crawl-delay value in their robots.txt).
         if started and wikidir: #then resume
             print 'Resuming download, using directory', wikidir
-            subprocess.call('./dumpgenerator.py --api=%s --xml --images --resume --path=%s' % (wiki, wikidir), shell=True)
+            subprocess.call(['python2', 'dumpgenerator.py', '--api={}'.format(wiki), '--xml', '--images', '--resume', '--path={}'.format(wikidir)], shell=False)
         else: #download from scratch
-            subprocess.call('./dumpgenerator.py --api=%s --xml --images --delay=1' % wiki, shell=True)
+            subprocess.call(['python2', 'dumpgenerator.py', '--api={}'.format(wiki), '--xml', '--images'], shell=False)
             started = True
             #save wikidir now
             for f in os.listdir('.'):
