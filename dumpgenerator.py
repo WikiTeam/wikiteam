@@ -751,7 +751,7 @@ def generateXMLDump(config={}, titles=[], start=None, session=None):
         xmlfile = open('%s/%s' % (config['path'], xmlfilename), 'a')
         c = 1
         for title in readTitles(config, start):
-            if not title.strip():
+            if not title:
                 continue
             if title == start:  # start downloading from start, included
                 lock = False
@@ -767,8 +767,7 @@ def generateXMLDump(config={}, titles=[], start=None, session=None):
             except PageMissingError:
                 logerror(
                     config=config,
-                    text=u'The page "%s" was missing in the wiki (probably deleted)' %
-                    (title.decode('utf-8'))
+                    text=u'The page "%s" was missing in the wiki (probably deleted)' % title
                 )
             # here, XML is a correct <page> </page> chunk or
             # an empty string due to a deleted page (logged in errors log) or
@@ -906,7 +905,8 @@ def getXMLRevisions(config={}, session=None, allpages=False, start=None):
                         # End of continuation. We are done with this namespace.
                         break
                     
-    except KeyError:
+    except (KeyError, mwclient.errors.InvalidResponse) as e:
+        print(e)
         # TODO: check whether the KeyError was really for a missing arv API
         print "Warning. Could not use allrevisions. Wiki too old?"
         if config['curonly']:
@@ -916,7 +916,7 @@ def getXMLRevisions(config={}, session=None, allpages=False, start=None):
             c = 0
             for title in readTitles(config, start=start):
                 # TODO: respect verbose flag, reuse output from getXMLPage
-                print('    {}'.format(title.strip()))
+                print(u'    {}'.format(title))
                 # TODO: as we're doing one page and revision at a time, we might
                 # as well use xml format and exportnowrap=1 to use the string of,
                 # XML as is, but need to check how well the library handles it.
@@ -948,18 +948,23 @@ def getXMLRevisions(config={}, session=None, allpages=False, start=None):
             # refuses to return an arbitrary number of revisions (see above).
             print("Getting titles to export all the revisions of each")
             c = 0
-            for title in readTitles(config, start=start):
-                print('    {}'.format(title.strip()))
+            titlelist = []
+            # TODO: Decide a suitable number of a batched request. Careful:
+            # batched responses may not return all revisions.
+            for titlelist in readTitles(config, start=start, batch=False):
+                if type(titlelist) is not list:
+                    titlelist = [titlelist]
+                for title in titlelist:
+                    print(u'    {}'.format(title))
                 # Try and ask everything. At least on MediaWiki 1.16, uknown props are discarded:
                 # "warnings":{"revisions":{"*":"Unrecognized values for parameter 'rvprop': userid, sha1, contentmodel"}}}
                 pparams = {
                     'action': 'query',
-                    'titles': title,
+                    'titles': '|'.join(titlelist),
                     'prop': 'revisions',
-                    'rvlimit': 50,
+                    #'rvlimit': 50,
                     'rvprop': 'ids|timestamp|user|userid|size|sha1|contentmodel|comment|content',
                 }
-                # TODO: we could actually batch titles a bit here if desired. How many?
                 try:
                     prequest = site.api(http_method=config['http_method'], **pparams)
                 except requests.exceptions.HTTPError as e:
@@ -967,6 +972,12 @@ def getXMLRevisions(config={}, session=None, allpages=False, start=None):
                         print("POST request to the API failed, retrying with GET")
                         config['http_method'] = "GET"
                         exportrequest = site.api(http_method=config['http_method'], **exportparams)
+                except mwclient.errors.InvalidResponse:
+                    logerror(
+                                config=config,
+                                text=u'Error: page inaccessible? Could not export page: %s' % ("; ".join(titlelist))
+                            )
+                    continue
 
                 # Be ready to iterate if there is continuation.
                 while True:
@@ -978,7 +989,7 @@ def getXMLRevisions(config={}, session=None, allpages=False, start=None):
                     except KeyError:
                         logerror(
                                 config=config,
-                                text=u'Error: page inaccessible? Could not export page: %s' % (title.decode('utf-8'))
+                                text=u'Error: page inaccessible? Could not export page: %s' % ("; ".join(titlelist))
                             )
                         break
                     # Go through the data we got to build the XML.
@@ -989,14 +1000,15 @@ def getXMLRevisions(config={}, session=None, allpages=False, start=None):
                         except PageMissingError:
                             logerror(
                                 config=config,
-                                text=u'Error: empty revision from API. Could not export page: %s' % (title.decode('utf-8'))
+                                text=u'Error: empty revision from API. Could not export page: %s' % ("; ".join(titlelist))
                             )
                             continue
 
                     # Get next batch of revisions if there's more.
                     if 'continue' in prequest.keys():
-                        print("Getting more revisions for page {}".format(title))
-                        pparams['rvcontinue'] = prequest['continue']['rvcontinue']
+                        print("Getting more revisions for the page")
+                        for key, value in prequest['continue']:
+                            params[key] = value
                     elif 'query-continue' in prequest.keys():
                         rvstartid = prequest['query-continue']['revisions']['rvstartid']
                         pparams['rvstartid'] = rvstartid
@@ -1011,8 +1023,10 @@ def getXMLRevisions(config={}, session=None, allpages=False, start=None):
                             config['http_method'] = "GET"
                             prequest = site.api(http_method=config['http_method'], **pparams)
 
-                # We're done iterating for this title.
-                c += 1
+                # We're done iterating for this title or titles.
+                c += len(titlelist)
+                # Reset for the next batch.
+                titlelist = []
                 if c % 10 == 0:
                     print('Downloaded {} pages'.format(c))
 
@@ -1042,7 +1056,6 @@ def makeXmlFromPage(page):
                 size = 0
             revision = E.revision(
                 E.id(to_unicode(rev['revid'])),
-                E.parentid(to_unicode(rev['parentid'])),
                 E.timestamp(rev['timestamp']),
                 E.text(to_unicode(rev['*']), space="preserve", bytes=to_unicode(size)),
             )
@@ -1058,6 +1071,9 @@ def makeXmlFromPage(page):
                 revision.append(E.comment(to_unicode(rev['comment'])))
             if 'contentmodel' in rev:
                 revision.append(E.model(rev['contentmodel']))
+            # Sometimes a missing parentid is not replaced with a 0 as it should.
+            if 'parentid' in rev:
+                revision.append(E.parentid(to_unicode(rev['parentid'])))
             # The sha1 may not have been backfilled on older wikis or lack for other reasons (Wikia).
             if 'sha1' in rev:
                 revision.append(E.sha1(rev['sha1']))
@@ -1067,28 +1083,37 @@ def makeXmlFromPage(page):
         raise PageMissingError(page['title'], e)
     return etree.tostring(p, pretty_print=True, encoding='unicode')
 
-def readTitles(config={}, start=None):
+def readTitles(config={}, start=None, batch=False):
     """ Read title list from a file, from the title "start" """
 
     titlesfilename = '%s-%s-titles.txt' % (
         domain2prefix(config=config), config['date'])
     titlesfile = open('%s/%s' % (config['path'], titlesfilename), 'r')
 
+    titlelist = []
     seeking = False
     if start:
         seeking = True
 
     with titlesfile as f:
         for line in f:
-            if line.strip() == '--END--':
+            title = line.decode("utf-8").strip()
+            if title == '--END--':
                 break
-            elif seeking and line.strip() != start:
+            elif seeking and title != start:
                 continue
-            elif seeking and line.strip() == start:
+            elif seeking and title == start:
                 seeking = False
-                yield line.strip()
+
+            if not batch:
+                yield title
             else:
-                yield line.strip()
+                titlelist.append(title)
+                if len(titlelist) < batch:
+                    continue
+                else:
+                    yield titlelist
+                    titlelist = []
 
 def reverse_readline(filename, buf_size=8192, truncate=False):
     """a generator that returns the lines of a file in reverse order"""
@@ -1953,7 +1978,7 @@ def checkIndex(index=None, cookies=None, session=None):
     """ Checking index.php availability """
     r = session.post(url=index, data={'title': 'Special:Version'}, timeout=30)
     if r.status_code >= 400:
-        print("ERROR: The wiki returned status code HTTP {}".format({}))
+        print("ERROR: The wiki returned status code HTTP {}".format(r.status_code))
         return False
     raw = r.text
     print 'Checking index.php...', index
@@ -2164,7 +2189,7 @@ def resumePreviousDump(config={}, other={}):
             lastimage = lines[-1]
             f.close()
         except:
-            pass  # probably file doesnot exists
+            pass  # probably file does not exists
         if lastimage == u'--END--':
             print 'Image list was completed in the previous session'
         else:

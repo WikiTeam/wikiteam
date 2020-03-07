@@ -46,7 +46,7 @@ def main():
         #check if compressed, in that case dump was finished previously
         compressed = False
         for f in os.listdir('.'):
-            if f.startswith(prefix) and f.endswith('.7z'):
+            if f.endswith('.7z') and f.split("-")[0] == prefix:
                 compressed = True
                 zipfilename = f
                 break #stop searching, dot not explore subdirectories
@@ -71,7 +71,7 @@ def main():
         wikidir = ''
         for f in os.listdir('.'):
             # Does not find numbered wikidumps not verify directories
-            if f.startswith(prefix) and f.endswith('wikidump'):
+            if f.endswith('wikidump') and f.split("-")[0] == prefix:
                 wikidir = f
                 started = True
                 break #stop searching, dot not explore subdirectories
@@ -82,14 +82,14 @@ def main():
         # typically they don't provide any crawl-delay value in their robots.txt).
         if started and wikidir: #then resume
             print 'Resuming download, using directory', wikidir
-            subprocess.call('./dumpgenerator.py --api=%s --xml --images --resume --path=%s' % (wiki, wikidir), shell=True)
+            subprocess.call(['python2', 'dumpgenerator.py', '--api={}'.format(wiki), '--xml', '--images', '--resume', '--path={}'.format(wikidir)], shell=False)
         else: #download from scratch
-            subprocess.call('./dumpgenerator.py --api=%s --xml --images --delay=1' % wiki, shell=True)
+            subprocess.call(['python2', 'dumpgenerator.py', '--api={}'.format(wiki), '--xml', '--images'], shell=False)
             started = True
             #save wikidir now
             for f in os.listdir('.'):
                 # Does not find numbered wikidumps not verify directories
-                if f.startswith(prefix) and f.endswith('wikidump'):
+                if f.endswith('wikidump') and f.split("-")[0] == prefix:
                     wikidir = f
                     break #stop searching, dot not explore subdirectories
 
