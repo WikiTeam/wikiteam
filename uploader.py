@@ -143,6 +143,8 @@ def upload(wikis, config={}, uploadeddumps=[]):
                     sitename = wikiname
                 if not baseurl:
                     baseurl = re.sub(ur"(?im)/api\.php", ur"", wiki)
+                # Convert protocol-relative URLs
+                baseurl = re.sub('^//', 'https://', baseurl)
                 if lang:
                     lang = convertlang.has_key(lang.lower()) and convertlang[lang.lower()] or lang.lower()
 
