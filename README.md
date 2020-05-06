@@ -27,7 +27,11 @@ This is a very quick guide for the most used features of WikiTeam tools. For fur
 
 ### Requirements
 
-Confirm you satisfy the requirements:
+If you have both [pipenv](https://github.com/pypa/pipenv) and [pyenv](https://github.com/pyenv/pyenv), you can install all the project dependencies isolated from your system with the following command:
+
+`pipenv install`
+
+Otherwise you can use the traditional way(using pip), first, confirm you satisfy the requirements:
 
 `pip install --upgrade -r requirements.txt`
 
@@ -41,11 +45,19 @@ To download any wiki, use one of the following options:
 
 `python dumpgenerator.py http://wiki.domain.org --xml --images` (complete XML histories and images)
 
+`pipenv run dump http://wiki.domain.org --xml --images` <sup>**pipenv version**</sup>
+
 If the script can't find itself the API and/or index.php paths, then you can provide them:
 
 `python dumpgenerator.py --api=http://wiki.domain.org/w/api.php --xml --images`
 
+`pipenv run dump --api=http://wiki.domain.org/w/api.php --xml --images` <sup>**pipenv version**</sup>
+
+
 `python dumpgenerator.py --api=http://wiki.domain.org/w/api.php --index=http://wiki.domain.org/w/index.php --xml --images`
+
+`pipenv run dump --api=http://wiki.domain.org/w/api.php --index=http://wiki.domain.org/w/index.php --xml --images` <sup>**pipenv version**</sup>
+
 
 If you only want the XML histories, just use `--xml`. For only the images, just `--images`. For only the current version of every page, `--xml --curonly`.
 
@@ -53,9 +65,13 @@ You can resume an aborted download:
 
 `python dumpgenerator.py --api=http://wiki.domain.org/w/api.php --xml --images --resume --path=/path/to/incomplete-dump`
 
+`pipenv run dump --api=http://wiki.domain.org/w/api.php --xml --images --resume --path=/path/to/incomplete-dump` <sup>**pipenv version**</sup>
+
 See more options:
 
 `python dumpgenerator.py --help`
+
+`pipenv run dump --help` <sup>**pipenv version**</sup>
 
 ### Download Wikimedia dumps
 
@@ -63,9 +79,14 @@ To download [Wikimedia XML dumps](http://dumps.wikimedia.org/backup-index.html) 
 
 `python wikipediadownloader.py` (download all projects)
 
+`pipenv run wikipediadownloader` <sup>**pipenv version**</sup>
+
+
 See more options:
 
 `python wikipediadownloader.py --help`
+
+`pipenv run wikipediadownloader --help` <sup>**pipenv version**</sup>
 
 ### Download Wikimedia Commons images
 
@@ -75,22 +96,25 @@ There is a script for this, but we have [uploaded the tarballs](https://archive.
 
 [![Build Status](https://travis-ci.org/WikiTeam/wikiteam.svg)](https://travis-ci.org/WikiTeam/wikiteam)
 
-You can run tests easily by using the [tox](https://pypi.python.org/pypi/tox) command.  It is probably already present in your operating system, you would need version 1.6.  If it is not, you can download it from pypi with: `pip install tox`.
+You can run tests easily by using the [tox](https://pypi.python.org/pypi/tox) command.  It is probably already present in your operating system, you would need version 1.6.  If it is not, you can download it from pypi with: `pip install tox` (if you aren't using pipenv already).
 
 Example usage:
 
-    $ tox
-    py27 runtests: commands[0] | nosetests --nocapture --nologcapture
-    Checking http://wiki.annotation.jp/api.php
-    Trying to parse かずさアノテーション - ソーシャル・ゲノム・アノテーション.jpg from API
-    Retrieving image filenames
-    .    Found 266 images
-    .
-    -------------------------------------------
-    Ran 1 test in 2.253s
+```
+$ tox # or pipenv run tox
+py27 runtests: commands[0] | nosetests --nocapture --nologcapture
+Checking http://wiki.annotation.jp/api.php
+Trying to parse かずさアノテーション - ソーシャル・ゲノム・アノテーション.jpg from API
+Retrieving image filenames
+.    Found 266 images
+.
+-------------------------------------------
+Ran 1 test in 2.253s
 
-    OK
-    _________________ summary _________________
-      py27: commands succeeded
-      congratulations :)
-    $
+OK
+_________________ summary _________________
+  py27: commands succeeded
+  congratulations :)
+$
+
+```
