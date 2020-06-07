@@ -27,6 +27,8 @@ This is a very quick guide for the most used features of WikiTeam tools. For fur
 
 ### Requirements
 
+Requires <a href="https://www.python.org/downloads/release/python-278/">Python 2.7</a>.
+
 Confirm you satisfy the requirements:
 
 `pip install --upgrade -r requirements.txt`
