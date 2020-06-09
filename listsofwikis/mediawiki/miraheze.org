@@ -1590,6 +1590,7 @@ https://scritturacollaborativa.miraheze.org/w/api.php
 https://scruffy.miraheze.org/w/api.php
 https://sd53.miraheze.org/w/api.php
 https://sdehockey.miraheze.org/w/api.php
+https://sdiy.miraheze.org/w/api.php
 https://sdkb.miraheze.org/w/api.php
 https://sdmkrakow.miraheze.org/w/api.php
 https://sdtkparent.miraheze.org/w/api.php
@@ -1640,6 +1641,7 @@ https://silicon.miraheze.org/w/api.php
 https://silverkettle.miraheze.org/w/api.php
 https://silvertin.miraheze.org/w/api.php
 https://silzkind.miraheze.org/w/api.php
+https://simpleelectronics.miraheze.org/w/api.php
 https://simplicitysolutionsgroup.miraheze.org/w/api.php
 https://singop.miraheze.org/w/api.php
 https://sinoustalk.miraheze.org/w/api.php
@@ -1791,6 +1793,7 @@ https://tekken.miraheze.org/w/api.php
 https://telemetry.miraheze.org/w/api.php
 https://teleport.miraheze.org/w/api.php
 https://teleswiki.miraheze.org/w/api.php
+https://template.miraheze.org/w/api.php
 https://tenetmsd.miraheze.org/w/api.php
 https://tennis.miraheze.org/w/api.php
 https://terriblespace.miraheze.org/w/api.php
