@@ -142,7 +142,7 @@ def handleStatusCode(response):
 
     elif statuscode == 401 or statuscode == 403:
         print "Authentication required."
-        print "Please use --userpass."
+        print "Please use --user and --pass."
         print response.url
 
     elif statuscode == 404:
