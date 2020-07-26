@@ -82,10 +82,16 @@ def getVersion():
     return(__VERSION__)
 
 
-def truncateFilename(other={}, filename=''):
-    """ Truncate filenames when downloading images with large filenames """
-    return filename[:other['filenamelimit']] + \
-        md5(filename.encode('utf-8')).hexdigest() + '.' + filename.split('.')[-1]
+def sanitizeFilename(other={}, filename=''):
+    """ Strip forward slashes and truncate overlong filenames. """
+    """ Also insert a hash when the filename was modified to try to """
+    """ avoid name collisions. """
+    if '/' in filename or len(filename) > other['filenamelimit']:
+        filename = filename.replace('/', '%2F')
+        hash = md5(filename.encode('utf-8')).hexdigest()
+        extension = '.' + filename.split('.')[-1]
+        filename = filename[:other['filenamelimit']] + hash + extension
+    return filename
 
 
 def delay(config={}, session=None):
@@ -1462,13 +1468,10 @@ def generateImageDump(config={}, other={}, images=[], start='', session=None):
         delay(config=config, session=session)
 
         # saving file
-        # truncate filename if length > 100 (100 + 32 (md5) = 132 < 143 (crash
-        # limit). Later .desc is added to filename, so better 100 as max)
-        filename2 = urllib.unquote(filename)
-        if len(filename2) > other['filenamelimit']:
-            # split last . (extension) and then merge
-            filename2 = truncateFilename(other=other, filename=filename2)
-            print 'Filename is too long, truncating. Now it is:', filename2
+        # quote forward slashes and truncate filename if length > 100
+        # (100 + 32 (md5) = 132 < 143 (crash limit). Later .desc is
+        # added to filename, so better 100 as max)
+        filename2 = sanitizeFilename(other=other, filename=urllib.unquote(filename))
         filename3 = u'%s/%s' % (imagepath, filename2)
         imagefile = open(filename3, 'wb')
         r = requests.get(url=url)
@@ -2201,8 +2204,12 @@ def resumePreviousDump(config={}, other={}):
         # checking images directory
         listdir = []
         try:
-            listdir = [n.decode('utf-8') for n in os.listdir('%s/images' % (config['path']))]
-        except:
+            files = os.listdir('%s/images' % (config['path']))
+            try:
+                listdir = [n.decode('utf-8') for n in files]
+            except:
+                listdir = files
+        except OSError:
             pass  # probably directory does not exist
         listdir.sort()
         complete = True
@@ -2213,9 +2220,7 @@ def resumePreviousDump(config={}, other={}):
             lastfilename2 = lastfilename
             # return always the complete filename, not the truncated
             lastfilename = filename
-            filename2 = filename
-            if len(filename2) > other['filenamelimit']:
-                filename2 = truncateFilename(other=other, filename=filename2)
+            filename2 = sanitizeFilename(other=other, filename=filename)
             if filename2 not in listdir:
                 complete = False
                 break
