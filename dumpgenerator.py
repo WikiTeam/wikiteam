@@ -575,6 +575,9 @@ def getXMLPageCore(headers={}, params={}, config={}, session=None):
         except requests.exceptions.ConnectionError as e:
             print '    Connection error: %s'%(str(e[0]))
             xml = ''
+        except requests.exceptions.ReadTimeout as e:
+            print '    Read timeout: %s'%(str(e[0]))
+            xml = ''       
         c += 1
 
     return xml
