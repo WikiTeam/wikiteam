@@ -62,7 +62,7 @@ class TestDumpgenerator(unittest.TestCase):
         tests = [
             # Alone wikis
             #['http://wiki.annotation.jp/index.php', 'http://wiki.annotation.jp/api.php', u'かずさアノテーション - ソーシャル・ゲノム・アノテーション.jpg'],
-            ['https://www.archiveteam.org/index.php', 'https://www.archiveteam.org/api.php', u'Archive-is 2013-07-02 17-05-40.png'],
+            ['https://archiveteam.org/index.php', 'https://archiveteam.org/api.php', u'Archive-is 2013-07-02 17-05-40.png'],
             #['http://skilledtests.com/wiki/index.php', 'http://skilledtests.com/wiki/api.php', u'Benham\'s disc (animated).gif'],
             
             # Editthis wikifarm
@@ -146,7 +146,7 @@ class TestDumpgenerator(unittest.TestCase):
         print '\n', '#'*73, '\n', 'test_getPageTitles', '\n', '#'*73
         tests = [
             # Alone wikis
-            ['https://www.archiveteam.org/index.php', 'https://www.archiveteam.org/api.php', u'April Fools\' Day'],
+            ['https://archiveteam.org/index.php', 'https://archiveteam.org/api.php', u'April Fools\' Day'],
             #['http://skilledtests.com/wiki/index.php', 'http://skilledtests.com/wiki/api.php', u'Conway\'s Game of Life'],
 
             # Test old allpages API behaviour
@@ -273,7 +273,7 @@ class TestDumpgenerator(unittest.TestCase):
         print '\n', '#'*73, '\n', 'test_mwGetAPIAndIndex', '\n', '#'*73
         tests = [
             # Alone wikis
-            ['https://www.archiveteam.org', 'https://www.archiveteam.org/api.php', 'https://www.archiveteam.org/index.php'],
+            ['https://archiveteam.org', 'https://archiveteam.org/api.php', 'https://archiveteam.org/index.php'],
             #['http://skilledtests.com/wiki/', 'http://skilledtests.com/wiki/api.php', 'http://skilledtests.com/wiki/index.php'],
             
             # Editthis wikifarm
