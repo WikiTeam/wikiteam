@@ -1520,9 +1520,14 @@ def generateImageDump(config={}, other={}, images=[], start='', session=None):
 
         f = open('%s/%s.desc' % (imagepath, filename2), 'w')
         # <text xml:space="preserve" bytes="36">Banner featuring SG1, SGA, SGU teams</text>
-        if not re.search(r'</mediawiki>', xmlfiledesc):
+        if not re.search(r'</page>', xmlfiledesc):
             # failure when retrieving desc? then save it as empty .desc
             xmlfiledesc = ''
+
+        # Fixup the XML
+        if xmlfiledesc is not '' and not re.search(r'</mediawiki>', xmlfiledesc):
+            xmlfiledesc += '</mediawiki>'
+
         f.write(xmlfiledesc.encode('utf-8'))
         f.close()
         delay(config=config, session=session)
