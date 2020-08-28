@@ -299,9 +299,10 @@ def getPageTitlesScraper(config={}, session=None):
         else:
             pass  # perhaps no subpages
 
-        # 3 is the current deep of English Wikipedia for Special:Allpages
-        deep = 3
+        # Should be enought subpages on Special:Allpages
+        deep = 50
         c = 0
+        oldfr = ''
         checked_suballpages = []
         rawacum = raw
         while r_suballpages and re.search(r_suballpages, raw) and c < deep:
@@ -309,6 +310,11 @@ def getPageTitlesScraper(config={}, session=None):
             m = re.compile(r_suballpages).finditer(raw)
             for i in m:
                 fr = i.group('from')
+                currfr = fr
+
+                if oldfr == currfr:
+                    # We are looping, exit the loop
+                    pass
 
                 if r_suballpages == r_suballpages1:
                     to = i.group('to')
@@ -329,19 +335,23 @@ def getPageTitlesScraper(config={}, session=None):
                     url = '%s?title=Special:Allpages&from=%s&namespace=%s' % (
                         config['index'], name, namespace)
 
+
+
                 if name not in checked_suballpages:
                     # to avoid reload dupe subpages links
                     checked_suballpages.append(name)
                     delay(config=config, session=session)
-                    r2 = session.get(url=url, timeout=10)
-                    raw2 = r2.text
-                    raw2 = cleanHTML(raw2)
-                    rawacum += raw2  # merge it after removed junk
-                    print '    Reading', name, len(raw2), 'bytes', \
-                        len(re.findall(r_suballpages, raw2)), 'subpages', \
-                        len(re.findall(r_title, raw2)), 'pages'
+                    r = session.get(url=url, timeout=10)
+                    #print 'Fetching URL: ', url
+                    raw = r.text
+                    raw = cleanHTML(raw)
+                    rawacum += raw  # merge it after removed junk
+                    print '    Reading', name, len(raw), 'bytes', \
+                        len(re.findall(r_suballpages, raw)), 'subpages', \
+                        len(re.findall(r_title, raw)), 'pages'
 
                 delay(config=config, session=session)
+            oldfr = currfr
             c += 1
 
         c = 0
@@ -497,8 +507,9 @@ def getUserAgent():
     """ Return a cool user-agent to hide Python user-agent """
     useragents = [
         # firefox
-        'Mozilla/5.0 (X11; Linux x86_64; rv:72.0) Gecko/20100101 Firefox/72.0',
-        'Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101 Firefox/68.0',
+        #'Mozilla/5.0 (X11; Linux x86_64; rv:72.0) Gecko/20100101 Firefox/72.0',
+        #'Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101 Firefox/68.0',
+        'Mozilla/5.0 (Windows NT 10.0; rv:78.0) Gecko/20100101 Firefox/78.0'
     ]
     return useragents[0]
 
@@ -574,6 +585,9 @@ def getXMLPageCore(headers={}, params={}, config={}, session=None):
         except requests.exceptions.ConnectionError as e:
             print '    Connection error: %s'%(str(e[0]))
             xml = ''
+        except requests.exceptions.ReadTimeout as e:
+            print '    Read timeout: %s'%(str(e[0]))
+            xml = ''       
         c += 1
 
     return xml
@@ -1471,7 +1485,29 @@ def generateImageDump(config={}, other={}, images=[], start='', session=None):
             print 'Filename is too long, truncating. Now it is:', filename2
         filename3 = u'%s/%s' % (imagepath, filename2)
         imagefile = open(filename3, 'wb')
-        r = requests.get(url=url)
+
+        r = session.head(url=url, allow_redirects=True)
+        original_url_redirected = len(r.history) > 0
+
+        if original_url_redirected:
+            #print 'Site is redirecting us to: ', r.url
+            original_url = url
+            url = r.url
+
+        r = session.get(url=url, allow_redirects=False)
+
+        # Try to fix a broken HTTP to HTTPS redirect
+        if r.status_code ==  404 and  original_url_redirected:
+           if original_url.split("://")[0] == "http" and url.split("://")[0] == "https":
+              url = 'https://' + original_url.split("://")[1]
+              #print 'Maybe a broken http to https redirect, trying ', url
+              r = session.get(url=url, allow_redirects=False)
+
+        if r.status_code ==  404:
+              logerror(
+                  config=config,
+                  text=u'File %s at URL %s is missing' % (filename2,url))
+
         imagefile.write(r.content)
         imagefile.close()
         # saving description if any
@@ -1494,9 +1530,14 @@ def generateImageDump(config={}, other={}, images=[], start='', session=None):
 
         f = open('%s/%s.desc' % (imagepath, filename2), 'w')
         # <text xml:space="preserve" bytes="36">Banner featuring SG1, SGA, SGU teams</text>
-        if not re.search(r'</mediawiki>', xmlfiledesc):
+        if not re.search(r'</page>', xmlfiledesc):
             # failure when retrieving desc? then save it as empty .desc
             xmlfiledesc = ''
+
+        # Fixup the XML
+        if xmlfiledesc is not '' and not re.search(r'</mediawiki>', xmlfiledesc):
+            xmlfiledesc += '</mediawiki>'
+
         f.write(xmlfiledesc.encode('utf-8'))
         f.close()
         delay(config=config, session=session)

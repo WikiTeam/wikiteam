@@ -62,7 +62,7 @@ class TestDumpgenerator(unittest.TestCase):
         tests = [
             # Alone wikis
             #['http://wiki.annotation.jp/index.php', 'http://wiki.annotation.jp/api.php', u'かずさアノテーション - ソーシャル・ゲノム・アノテーション.jpg'],
-            ['https://www.archiveteam.org/index.php', 'https://www.archiveteam.org/api.php', u'Archive-is 2013-07-02 17-05-40.png'],
+            ['https://archiveteam.org/index.php', 'https://archiveteam.org/api.php', u'Archive-is 2013-07-02 17-05-40.png'],
             #['http://skilledtests.com/wiki/index.php', 'http://skilledtests.com/wiki/api.php', u'Benham\'s disc (animated).gif'],
             
             # Editthis wikifarm
@@ -146,7 +146,7 @@ class TestDumpgenerator(unittest.TestCase):
         print '\n', '#'*73, '\n', 'test_getPageTitles', '\n', '#'*73
         tests = [
             # Alone wikis
-            ['https://www.archiveteam.org/index.php', 'https://www.archiveteam.org/api.php', u'April Fools\' Day'],
+            ['https://archiveteam.org/index.php', 'https://archiveteam.org/api.php', u'April Fools\' Day'],
             #['http://skilledtests.com/wiki/index.php', 'http://skilledtests.com/wiki/api.php', u'Conway\'s Game of Life'],
 
             # Test old allpages API behaviour
@@ -206,7 +206,7 @@ class TestDumpgenerator(unittest.TestCase):
         tests = [
             ['https://www.dokuwiki.org', 'DokuWiki'],
             #['http://wiki.openwrt.org', 'DokuWiki'],
-            ['http://skilledtests.com/wiki/', 'MediaWiki'],
+            #['http://skilledtests.com/wiki/', 'MediaWiki'],
             #['http://moinmo.in', 'MoinMoin'],
             ['https://wiki.debian.org', 'MoinMoin'],
             ['http://twiki.org/cgi-bin/view/', 'TWiki'],
@@ -219,9 +219,9 @@ class TestDumpgenerator(unittest.TestCase):
             ['http://www.wasteflake.com/', 'TikiWiki'],
             ['http://foswiki.org/', 'FosWiki'],
             ['http://www.w3c.br/Home/WebHome', 'FosWiki'],
-            ['http://mojomojo.org/', 'MojoMojo'],
-            ['http://wiki.catalystframework.org/wiki/', 'MojoMojo'],
-            ['https://www.ictu.nl/archief/wiki.noiv.nl/xwiki/bin/view/Main', 'XWiki'],
+            #['http://mojomojo.org/', 'MojoMojo'],
+            #['http://wiki.catalystframework.org/wiki/', 'MojoMojo'],
+            #['https://www.ictu.nl/archief/wiki.noiv.nl/xwiki/bin/view/Main', 'XWiki'],
             #['https://web.archive.org/web/20080517021020id_/http://berlin.xwiki.com/xwiki/bin/view/Main/WebHome', 'XWiki'],
             ['http://www.xwiki.org/xwiki/bin/view/Main/WebHome', 'XWiki'],
             ['https://confluence.atlassian.com/', 'Confluence'],
@@ -229,32 +229,32 @@ class TestDumpgenerator(unittest.TestCase):
             ['https://confluence.sakaiproject.org/', 'Confluence'],
             #['http://demo.bananadance.org/', 'Banana Dance'],
             ['http://wagn.org/', 'Wagn'],
-            ['http://wiki.ace-mod.net/', 'Wagn'],
+            #['http://wiki.ace-mod.net/', 'Wagn'],
             #['https://success.mindtouch.com/', 'MindTouch'],
             #['https://jspwiki.apache.org/', 'JSPWiki'],
             ['http://www.ihear.com/FreeCLAS/', 'JSPWiki'],
             ['http://www.wikkawiki.org/HomePage', 'WikkaWiki'],
-            ['http://puppylinux.org/wikka/', 'WikkaWiki'],
-            ['http://cs.netsville.com/wiki/wikka.php', 'WikkaWiki'],
+            #['http://puppylinux.org/wikka/', 'WikkaWiki'],
+            ['https://www.cybersphere.net/', 'MediaWiki'],
             #['http://web.archive.org/web/20060717202033id_/http://www.comawiki.org/CoMa.php?CoMa=startseite', 'CoMaWiki'],
             ['http://bootbook.de/CoMa.php', 'CoMaWiki'],
             #['http://wikini.net/wakka.php', 'WikiNi'],
             ['http://wiki.raydium.org/wiki/', 'WikiNi'],
-            ['http://wiki.cs.cityu.edu.hk/CitiWiki/SourceCode', 'CitiWiki'],
-            ['http://wackowiki.sourceforge.net/test/', 'WackoWiki'],
+            #['http://wiki.cs.cityu.edu.hk/CitiWiki/SourceCode', 'CitiWiki'],
+            #['http://wackowiki.sourceforge.net/test/', 'WackoWiki'],
             ['http://www.sw4me.com/wiki/', 'WackoWiki'],
-            ['http://lslwiki.net/lslwiki/wakka.php', 'WakkaWiki'],
+            #['http://lslwiki.net/lslwiki/wakka.php', 'WakkaWiki'],
             ['http://kw.pm.org/wiki/index.cgi', 'Kwiki'],
             ['http://wiki.wubi.org/index.cgi', 'Kwiki'],
             #['http://perl.bristolbath.org/index.cgi', 'Kwiki'],
-            ['http://www.anwiki.com/', 'Anwiki'],
-            ['http://www.anw.fr/', 'Anwiki'],
+            #['http://www.anwiki.com/', 'Anwiki'],
+            #['http://www.anw.fr/', 'Anwiki'],
             ['http://www.aneuch.org/', 'Aneuch'],
             ['http://doc.myunixhost.com/', 'Aneuch'],
             ['http://www.bitweaver.org/wiki/index.php', 'bitweaver'],
             ['http://wiki.e-shell.org/Home', 'Zwiki'],
             ['http://leo.zwiki.org/', 'Zwiki'],
-            ['http://accessibility4all.wikispaces.com/', 'Wikispaces'],
+            #['http://accessibility4all.wikispaces.com/', 'Wikispaces'],
             ['http://darksouls.wikidot.com/', 'Wikidot'],
             ['http://www.wikifoundrycentral.com/', 'Wetpaint'],
             ['http://wiki.openid.net/', 'PBworks'],
@@ -273,7 +273,7 @@ class TestDumpgenerator(unittest.TestCase):
         print '\n', '#'*73, '\n', 'test_mwGetAPIAndIndex', '\n', '#'*73
         tests = [
             # Alone wikis
-            ['https://www.archiveteam.org', 'https://www.archiveteam.org/api.php', 'https://www.archiveteam.org/index.php'],
+            ['https://archiveteam.org', 'https://archiveteam.org/api.php', 'https://archiveteam.org/index.php'],
             #['http://skilledtests.com/wiki/', 'http://skilledtests.com/wiki/api.php', 'http://skilledtests.com/wiki/index.php'],
             
             # Editthis wikifarm
