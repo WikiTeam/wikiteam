@@ -299,9 +299,10 @@ def getPageTitlesScraper(config={}, session=None):
         else:
             pass  # perhaps no subpages
 
-        # 3 is the current deep of English Wikipedia for Special:Allpages
-        deep = 3
+        # Should be enought subpages on Special:Allpages
+        deep = 50
         c = 0
+        oldfr = ''
         checked_suballpages = []
         rawacum = raw
         while r_suballpages and re.search(r_suballpages, raw) and c < deep:
@@ -309,6 +310,11 @@ def getPageTitlesScraper(config={}, session=None):
             m = re.compile(r_suballpages).finditer(raw)
             for i in m:
                 fr = i.group('from')
+                currfr = fr
+
+                if oldfr == currfr:
+                    # We are looping, exit the loop
+                    pass
 
                 if r_suballpages == r_suballpages1:
                     to = i.group('to')
@@ -329,19 +335,23 @@ def getPageTitlesScraper(config={}, session=None):
                     url = '%s?title=Special:Allpages&from=%s&namespace=%s' % (
                         config['index'], name, namespace)
 
+
+
                 if name not in checked_suballpages:
                     # to avoid reload dupe subpages links
                     checked_suballpages.append(name)
                     delay(config=config, session=session)
-                    r2 = session.get(url=url, timeout=10)
-                    raw2 = r2.text
-                    raw2 = cleanHTML(raw2)
-                    rawacum += raw2  # merge it after removed junk
-                    print '    Reading', name, len(raw2), 'bytes', \
-                        len(re.findall(r_suballpages, raw2)), 'subpages', \
-                        len(re.findall(r_title, raw2)), 'pages'
+                    r = session.get(url=url, timeout=10)
+                    #print 'Fetching URL: ', url
+                    raw = r.text
+                    raw = cleanHTML(raw)
+                    rawacum += raw  # merge it after removed junk
+                    print '    Reading', name, len(raw), 'bytes', \
+                        len(re.findall(r_suballpages, raw)), 'subpages', \
+                        len(re.findall(r_title, raw)), 'pages'
 
                 delay(config=config, session=session)
+            oldfr = currfr
             c += 1
 
         c = 0
