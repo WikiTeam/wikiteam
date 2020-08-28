@@ -206,7 +206,7 @@ class TestDumpgenerator(unittest.TestCase):
         tests = [
             ['https://www.dokuwiki.org', 'DokuWiki'],
             #['http://wiki.openwrt.org', 'DokuWiki'],
-            ['http://skilledtests.com/wiki/', 'MediaWiki'],
+            #['http://skilledtests.com/wiki/', 'MediaWiki'],
             #['http://moinmo.in', 'MoinMoin'],
             ['https://wiki.debian.org', 'MoinMoin'],
             ['http://twiki.org/cgi-bin/view/', 'TWiki'],
