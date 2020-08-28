@@ -1475,7 +1475,29 @@ def generateImageDump(config={}, other={}, images=[], start='', session=None):
             print 'Filename is too long, truncating. Now it is:', filename2
         filename3 = u'%s/%s' % (imagepath, filename2)
         imagefile = open(filename3, 'wb')
-        r = requests.get(url=url)
+
+        r = session.head(url=url, allow_redirects=True)
+        original_url_redirected = len(r.history) > 0
+
+        if original_url_redirected:
+            #print 'Site is redirecting us to: ', r.url
+            original_url = url
+            url = r.url
+
+        r = session.get(url=url, allow_redirects=False)
+
+        # Try to fix a broken HTTP to HTTPS redirect
+        if r.status_code ==  404 and  original_url_redirected:
+           if original_url.split("://")[0] == "http" and url.split("://")[0] == "https":
+              url = 'https://' + original_url.split("://")[1]
+              #print 'Maybe a broken http to https redirect, trying ', url
+              r = session.get(url=url, allow_redirects=False)
+
+        if r.status_code ==  404:
+              logerror(
+                  config=config,
+                  text=u'File %s at URL %s is missing' % (filename2,url))
+
         imagefile.write(r.content)
         imagefile.close()
         # saving description if any
