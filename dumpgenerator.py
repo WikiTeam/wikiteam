@@ -1337,7 +1337,7 @@ def getImageNamesAPI(config={}, session=None):
     aifrom = '!'
     images = []
     while aifrom:
-        sys.stderr.write('.')  # progress
+        print '.'  # progress
         params = {
             'action': 'query',
             'list': 'allimages',
@@ -1388,7 +1388,7 @@ def getImageNamesAPI(config={}, session=None):
         gapfrom = '!'
         images = []
         while gapfrom:
-            sys.stderr.write('.')  # progress
+            print '.'  # progress
             # Some old APIs doesn't have allimages query
             # In this case use allpages (in nm=6) as generator for imageinfo
             # Example:
