@@ -39,7 +39,7 @@ If you don't have `wget`, you will need to install it first (or use `curl` or an
 ```bash
 $ wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
 ```
-2. Install
+2. Install `miniconda` using the downloaded script:
 ```bash
 $ bash Miniconda3-latest-Linux-x86_64.sh
 ```
