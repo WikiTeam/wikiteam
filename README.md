@@ -33,15 +33,9 @@ Per-platform instructions for `miniconda` can be found [here](https://docs.conda
 
 ### Generic `miniconda` Instructions for Linux x86-64
 
-If you don't have `wget`, you will need to install it first (or use `curl` or another download method).
-
-1. Download `miniconda`:
+1. Download and install `miniconda`:
 ```bash
-$ wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
-```
-2. Install `miniconda` using the downloaded script:
-```bash
-$ bash Miniconda3-latest-Linux-x86_64.sh
+$ curl -s https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh | bash
 ```
 3. Restart `bash`:
 ```bash
