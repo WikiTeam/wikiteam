@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 # Copyright (C) 2011-2014 WikiTeam
@@ -24,98 +24,110 @@ import urllib
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description='Downloader of Wikimedia dumps')
-    #parser.add_argument('-f', '--families', help='Choose which family projects to download (e.g. all, wikipedia, wikibooks, wikinews, wikiquote, wikisource, wikivoyage, wiktionary)', required=False)
+    parser = argparse.ArgumentParser(description="Downloader of Wikimedia dumps")
+    # parser.add_argument('-f', '--families', help='Choose which family projects to download (e.g. all, wikipedia, wikibooks, wikinews, wikiquote, wikisource, wikivoyage, wiktionary)', required=False)
     parser.add_argument(
-        '-r', '--maxretries', help='Max retries to download a dump when md5sum doesn\'t fit. Default: 3', required=False)
+        "-r",
+        "--maxretries",
+        help="Max retries to download a dump when md5sum doesn't fit. Default: 3",
+        required=False,
+    )
     parser.add_argument(
-        '-s', '--start', help='Start to download from this project (e.g.: eswiki, itwikisource, etc)', required=False)
+        "-s",
+        "--start",
+        help="Start to download from this project (e.g.: eswiki, itwikisource, etc)",
+        required=False,
+    )
     args = parser.parse_args()
 
     maxretries = 3
     if args.maxretries and int(args.maxretries) >= 0:
         maxretries = int(args.maxretries)
 
-    dumpsdomain = 'http://dumps.wikimedia.org'
-    f = urllib.urlopen('%s/backup-index.html' % (dumpsdomain))
+    dumpsdomain = "http://dumps.wikimedia.org"
+    f = urllib.urlopen("%s/backup-index.html" % (dumpsdomain))
     raw = f.read()
     f.close()
 
     m = re.compile(
-        r'<a href="(?P<project>[^>]+)/(?P<date>\d+)">[^<]+</a>: <span class=\'done\'>Dump complete</span>').finditer(raw)
+        r'<a href="(?P<project>[^>]+)/(?P<date>\d+)">[^<]+</a>: <span class=\'done\'>Dump complete</span>'
+    ).finditer(raw)
     projects = []
     for i in m:
-        projects.append([i.group('project'), i.group('date')])
+        projects.append([i.group("project"), i.group("date")])
     projects.reverse()  # download oldest dumps first
-    #projects = [['enwiki', '20130805']]
+    # projects = [['enwiki', '20130805']]
 
     start = args.start
     for project, date in projects:
         if start:
             if start != project:
-                print 'Skipping %s, %s' % (project, date)
+                print("Skipping %s, %s" % (project, date))
                 continue
             else:
-                start = ''  # reset
+                start = ""  # reset
 
-        print '-' * 50, '\n', 'Checking', project, date, '\n', '-' * 50
+        print("-" * 50, "\n", "Checking", project, date, "\n", "-" * 50)
         time.sleep(1)  # ctrl-c
-        f = urllib.urlopen('%s/%s/%s/' % (dumpsdomain, project, date))
+        f = urllib.urlopen("%s/%s/%s/" % (dumpsdomain, project, date))
         htmlproj = f.read()
-        # print htmlproj
+        # print (htmlproj)
         f.close()
 
-        for dumpclass in ['pages-meta-history\d*\.xml[^\.]*\.7z']:
+        for dumpclass in ["pages-meta-history\d*\.xml[^\.]*\.7z"]:
             corrupted = True
             maxretries2 = maxretries
             while corrupted and maxretries2 > 0:
                 maxretries2 -= 1
-                m = re.compile(r'<a href="(?P<urldump>/%s/%s/%s-%s-%s)">' %
-                               (project, date, project, date, dumpclass)).finditer(htmlproj)
+                m = re.compile(
+                    r'<a href="(?P<urldump>/%s/%s/%s-%s-%s)">'
+                    % (project, date, project, date, dumpclass)
+                ).finditer(htmlproj)
                 urldumps = []
                 # enwiki is splitted in several files, thats why we need a loop
                 # here
                 for i in m:
-                    urldumps.append(
-                        '%s/%s' % (dumpsdomain, i.group('urldump')))
+                    urldumps.append("%s/%s" % (dumpsdomain, i.group("urldump")))
 
-                # print urldumps
+                # print (urldumps)
                 for urldump in urldumps:
-                    dumpfilename = urldump.split('/')[-1]
-                    path = '%s/%s' % (dumpfilename[0], project)
+                    dumpfilename = urldump.split("/")[-1]
+                    path = "%s/%s" % (dumpfilename[0], project)
                     if not os.path.exists(path):
                         os.makedirs(path)
-                    os.system('wget -c %s -O %s/%s' %
-                              (urldump, path, dumpfilename))
+                    os.system("wget -c %s -O %s/%s" % (urldump, path, dumpfilename))
 
                     # md5check
-                    os.system('md5sum %s/%s > md5' % (path, dumpfilename))
-                    f = open('md5', 'r')
+                    os.system("md5sum %s/%s > md5" % (path, dumpfilename))
+                    f = open("md5", "r")
                     raw = f.read()
                     f.close()
                     md51 = re.findall(
-                        r'(?P<md5>[a-f0-9]{32})\s+%s/%s' % (path, dumpfilename), raw)[0]
-                    print md51
+                        r"(?P<md5>[a-f0-9]{32})\s+%s/%s" % (path, dumpfilename), raw
+                    )[0]
+                    print(md51)
 
                     f = urllib.urlopen(
-                        '%s/%s/%s/%s-%s-md5sums.txt' % (dumpsdomain, project, date, project, date))
+                        "%s/%s/%s/%s-%s-md5sums.txt"
+                        % (dumpsdomain, project, date, project, date)
+                    )
                     raw = f.read()
                     f.close()
-                    f = open('%s/%s-%s-md5sums.txt' %
-                             (path, project, date), 'w')
+                    f = open("%s/%s-%s-md5sums.txt" % (path, project, date), "w")
                     f.write(raw)
                     f.close()
                     md52 = re.findall(
-                        r'(?P<md5>[a-f0-9]{32})\s+%s' % (dumpfilename), raw)[0]
-                    print md52
+                        r"(?P<md5>[a-f0-9]{32})\s+%s" % (dumpfilename), raw
+                    )[0]
+                    print(md52)
 
                     if md51 == md52:
-                        print 'md5sum is correct for this file, horay! \o/'
-                        print '\n' * 3
+                        print("md5sum is correct for this file, horay! \o/")
+                        print("\n" * 3)
                         corrupted = False
                     else:
-                        os.remove('%s/%s' % (path, dumpfilename))
+                        os.remove("%s/%s" % (path, dumpfilename))
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()

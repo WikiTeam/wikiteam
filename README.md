@@ -27,47 +27,47 @@ This is a very quick guide for the most used features of WikiTeam tools. For fur
 
 ### Requirements
 
-Requires <a href="https://www.python.org/downloads/release/python-278/">Python 2.7</a>.
+Requires <a href="https://www.python.org/downloads/release/python-278/">Python 3.9</a>.
 
 Confirm you satisfy the requirements:
 
-`pip install --upgrade -r requirements.txt`
+`pip install pipenv`
 
 or, if you don't have enough permissions for the above,
 
-`pip install --user --upgrade -r requirements.txt`
+`pip install --user pipenv`
 
 ### Download any wiki
 
 To download any wiki, use one of the following options:
 
-`python dumpgenerator.py http://wiki.domain.org --xml --images` (complete XML histories and images)
+`pipenv run dumpgenerator http://wiki.domain.org --xml --images` (complete XML histories and images)
 
 If the script can't find itself the API and/or index.php paths, then you can provide them:
 
-`python dumpgenerator.py --api=http://wiki.domain.org/w/api.php --xml --images`
+`pipenv run dumpgenerator --api=http://wiki.domain.org/w/api.php --xml --images`
 
-`python dumpgenerator.py --api=http://wiki.domain.org/w/api.php --index=http://wiki.domain.org/w/index.php --xml --images`
+`pipenv run dumpgenerator --api=http://wiki.domain.org/w/api.php --index=http://wiki.domain.org/w/index.php --xml --images`
 
 If you only want the XML histories, just use `--xml`. For only the images, just `--images`. For only the current version of every page, `--xml --curonly`.
 
 You can resume an aborted download:
 
-`python dumpgenerator.py --api=http://wiki.domain.org/w/api.php --xml --images --resume --path=/path/to/incomplete-dump`
+`pipenv run dumpgenerator --api=http://wiki.domain.org/w/api.php --xml --images --resume --path=/path/to/incomplete-dump`
 
 See more options:
 
-`python dumpgenerator.py --help`
+`pipenv run dumpgenerator --help`
 
 ### Download Wikimedia dumps
 
 To download [Wikimedia XML dumps](http://dumps.wikimedia.org/backup-index.html) (Wikipedia, Wikibooks, Wikinews, etc) you can run:
 
-`python wikipediadownloader.py` (download all projects)
+`pipenv run wikipediadownloader` (download all projects)
 
 See more options:
 
-`python wikipediadownloader.py --help`
+`pipenv run wikipediadownloader --help`
 
 ### Download Wikimedia Commons images
 

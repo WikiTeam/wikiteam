@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 # Copyright (C) 2014 WikiTeam developers
@@ -16,7 +16,9 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import re
+
 import requests
+
 
 def main():
     headers = {
@@ -32,7 +34,7 @@ def main():
         raw = r.text
         m = re.findall(ur'<td><a href="([^>]+?)"', raw)
         for i in m:
-            print i
+            print (i)
     
 if __name__ == '__main__':
     main()

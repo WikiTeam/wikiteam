@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 # Copyright (C) 2018 WikiTeam developers
@@ -27,7 +27,8 @@ import subprocess
 import sys
 import time
 import urllib.request
-#from internetarchive import get_item
+
+# from internetarchive import get_item
 
 # Requirements:
 # zip command (apt-get install zip)
@@ -44,173 +45,264 @@ else:
     sys.exit()
 """
 
-def saveURL(wikidomain='', url='', filename='', path='', overwrite=False, iteration=1):
-    filename2 = '%s/%s' % (wikidomain, filename)
+
+def saveURL(wikidomain="", url="", filename="", path="", overwrite=False, iteration=1):
+    filename2 = "%s/%s" % (wikidomain, filename)
     if path:
-        filename2 = '%s/%s/%s' % (wikidomain, path, filename)
+        filename2 = "%s/%s/%s" % (wikidomain, path, filename)
     if os.path.exists(filename2):
         if not overwrite:
-            print('Warning: file exists on disk. Skipping download. Force download with parameter --overwrite')
+            print(
+                "Warning: file exists on disk. Skipping download. Force download with parameter --overwrite"
+            )
             return
     opener = urllib.request.build_opener()
-    opener.addheaders = [('User-agent', 'Mozilla/5.0')]
+    opener.addheaders = [("User-agent", "Mozilla/5.0")]
     urllib.request.install_opener(opener)
     try:
         urllib.request.urlretrieve(url, filename2)
     except:
-        sleep = 10 # seconds
+        sleep = 10  # seconds
         maxsleep = 30
         while sleep <= maxsleep:
             try:
-                print('Error while retrieving: %s' % (url))
-                print('Retry in %s seconds...' % (sleep))
+                print("Error while retrieving: %s" % (url))
+                print("Retry in %s seconds..." % (sleep))
                 time.sleep(sleep)
                 urllib.request.urlretrieve(url, filename2)
                 return
             except:
                 sleep = sleep * 2
-        print('Download failed')
-    
-    #sometimes wikispaces returns invalid data, redownload in that cases
-    #only 'pages'. 'files' binaries are a pain to open and check
-    if (os.path.exists(filename2) and 'pages' in path) or \
-        (os.path.exists(filename2) and path == '' and filename2.split('.')[-1] in ['xml', 'html', 'csv']):
+        print("Download failed")
+
+    # sometimes wikispaces returns invalid data, redownload in that cases
+    # only 'pages'. 'files' binaries are a pain to open and check
+    if (os.path.exists(filename2) and "pages" in path) or (
+        os.path.exists(filename2)
+        and path == ""
+        and filename2.split(".")[-1] in ["xml", "html", "csv"]
+    ):
         sleep2 = 60 * iteration
-        raw = ''
+        raw = ""
         try:
-            with open(filename2, 'r', encoding='utf-8') as f:
+            with open(filename2, "r", encoding="utf-8") as f:
                 raw = f.read()
         except:
-            with open(filename2, 'r', encoding='latin-1') as f:
+            with open(filename2, "r", encoding="latin-1") as f:
                 raw = f.read()
-        if re.findall(r'(?im)<title>TES and THE Status</title>', raw):
-            print('Warning: invalid content. Waiting %d seconds and re-downloading' % (sleep2))
+        if re.findall(r"(?im)<title>TES and THE Status</title>", raw):
+            print(
+                "Warning: invalid content. Waiting %d seconds and re-downloading"
+                % (sleep2)
+            )
             time.sleep(sleep2)
-            saveURL(wikidomain=wikidomain, url=url, filename=filename, path=path, overwrite=overwrite, iteration=iteration+1)
+            saveURL(
+                wikidomain=wikidomain,
+                url=url,
+                filename=filename,
+                path=path,
+                overwrite=overwrite,
+                iteration=iteration + 1,
+            )
 
-def undoHTMLEntities(text=''):
-    """ Undo some HTML codes """
+
+def undoHTMLEntities(text=""):
+    """Undo some HTML codes"""
 
     # i guess only < > & " ' need conversion
     # http://www.w3schools.com/html/html_entities.asp
-    text = re.sub('&lt;', '<', text)
-    text = re.sub('&gt;', '>', text)
-    text = re.sub('&amp;', '&', text)
-    text = re.sub('&quot;', '"', text)
-    text = re.sub('&#039;', '\'', text)
+    text = re.sub("&lt;", "<", text)
+    text = re.sub("&gt;", ">", text)
+    text = re.sub("&amp;", "&", text)
+    text = re.sub("&quot;", '"', text)
+    text = re.sub("&#039;", "'", text)
 
     return text
 
-def convertHTML2Wikitext(wikidomain='', filename='', path=''):
-    wikitext = ''
-    wikitextfile = '%s/%s/%s' % (wikidomain, path, filename)
+
+def convertHTML2Wikitext(wikidomain="", filename="", path=""):
+    wikitext = ""
+    wikitextfile = "%s/%s/%s" % (wikidomain, path, filename)
     if not os.path.exists(wikitextfile):
-        print('Error retrieving wikitext, page is a redirect probably')
+        print("Error retrieving wikitext, page is a redirect probably")
         return
-    with open(wikitextfile, 'r') as f:
+    with open(wikitextfile, "r") as f:
         wikitext = f.read()
-    with open(wikitextfile, 'w') as f:
-        m = re.findall(r'(?im)<div class="WikispacesContent WikispacesBs3">\s*<pre>', wikitext)
+    with open(wikitextfile, "w") as f:
+        m = re.findall(
+            r'(?im)<div class="WikispacesContent WikispacesBs3">\s*<pre>', wikitext
+        )
         if m:
             try:
-                wikitext = wikitext.split(m[0])[1].split('</pre>')[0].strip()
+                wikitext = wikitext.split(m[0])[1].split("</pre>")[0].strip()
                 wikitext = undoHTMLEntities(text=wikitext)
             except:
                 pass
         f.write(wikitext)
 
-def downloadPage(wikidomain='', wikiurl='', pagename='', overwrite=False):
-    pagenameplus = re.sub(' ', '+', pagename)
+
+def downloadPage(wikidomain="", wikiurl="", pagename="", overwrite=False):
+    pagenameplus = re.sub(" ", "+", pagename)
     pagename_ = urllib.parse.quote(pagename)
-    
-    #page current revision (html & wikitext)
-    pageurl = '%s/%s' % (wikiurl, pagename_)
-    filename = '%s.html' % (pagenameplus)
-    print('Downloading page: %s' % (filename))
-    saveURL(wikidomain=wikidomain, url=pageurl, filename=filename, path='pages', overwrite=overwrite)
-    pageurl2 = '%s/page/code/%s' % (wikiurl, pagename_)
-    filename2 = '%s.wikitext' % (pagenameplus)
-    print('Downloading page: %s' % (filename2))
-    saveURL(wikidomain=wikidomain, url=pageurl2, filename=filename2, path='pages', overwrite=overwrite)
-    convertHTML2Wikitext(wikidomain=wikidomain, filename=filename2, path='pages')
-    
-    #csv with page history
-    csvurl = '%s/page/history/%s?utable=WikiTablePageHistoryList&ut_csv=1' % (wikiurl, pagename_)
-    csvfilename = '%s.history.csv' % (pagenameplus)
-    print('Downloading page: %s' % (csvfilename))
-    saveURL(wikidomain=wikidomain, url=csvurl, filename=csvfilename, path='pages', overwrite=overwrite)
 
-def downloadFile(wikidomain='', wikiurl='', filename='', overwrite=False):
-    filenameplus = re.sub(' ', '+', filename)
+    # page current revision (html & wikitext)
+    pageurl = "%s/%s" % (wikiurl, pagename_)
+    filename = "%s.html" % (pagenameplus)
+    print("Downloading page: %s" % (filename))
+    saveURL(
+        wikidomain=wikidomain,
+        url=pageurl,
+        filename=filename,
+        path="pages",
+        overwrite=overwrite,
+    )
+    pageurl2 = "%s/page/code/%s" % (wikiurl, pagename_)
+    filename2 = "%s.wikitext" % (pagenameplus)
+    print("Downloading page: %s" % (filename2))
+    saveURL(
+        wikidomain=wikidomain,
+        url=pageurl2,
+        filename=filename2,
+        path="pages",
+        overwrite=overwrite,
+    )
+    convertHTML2Wikitext(wikidomain=wikidomain, filename=filename2, path="pages")
+
+    # csv with page history
+    csvurl = "%s/page/history/%s?utable=WikiTablePageHistoryList&ut_csv=1" % (
+        wikiurl,
+        pagename_,
+    )
+    csvfilename = "%s.history.csv" % (pagenameplus)
+    print("Downloading page: %s" % (csvfilename))
+    saveURL(
+        wikidomain=wikidomain,
+        url=csvurl,
+        filename=csvfilename,
+        path="pages",
+        overwrite=overwrite,
+    )
+
+
+def downloadFile(wikidomain="", wikiurl="", filename="", overwrite=False):
+    filenameplus = re.sub(" ", "+", filename)
     filename_ = urllib.parse.quote(filename)
-    
-    #file full resolution
-    fileurl = '%s/file/view/%s' % (wikiurl, filename_)
-    filename = filenameplus
-    print('Downloading file: %s' % (filename))
-    saveURL(wikidomain=wikidomain, url=fileurl, filename=filename, path='files', overwrite=overwrite)
-    
-    #csv with file history
-    csvurl = '%s/file/detail/%s?utable=WikiTablePageList&ut_csv=1' % (wikiurl, filename_)
-    csvfilename = '%s.history.csv' % (filenameplus)
-    print('Downloading file: %s' % (csvfilename))
-    saveURL(wikidomain=wikidomain, url=csvurl, filename=csvfilename, path='files', overwrite=overwrite)
 
-def downloadPagesAndFiles(wikidomain='', wikiurl='', overwrite=False):
-    print('Downloading Pages and Files from %s' % (wikiurl))
-    #csv all pages and files
-    csvurl = '%s/space/content?utable=WikiTablePageList&ut_csv=1' % (wikiurl)
-    saveURL(wikidomain=wikidomain, url=csvurl, filename='pages-and-files.csv', path='')
-    #download every page and file
+    # file full resolution
+    fileurl = "%s/file/view/%s" % (wikiurl, filename_)
+    filename = filenameplus
+    print("Downloading file: %s" % (filename))
+    saveURL(
+        wikidomain=wikidomain,
+        url=fileurl,
+        filename=filename,
+        path="files",
+        overwrite=overwrite,
+    )
+
+    # csv with file history
+    csvurl = "%s/file/detail/%s?utable=WikiTablePageList&ut_csv=1" % (
+        wikiurl,
+        filename_,
+    )
+    csvfilename = "%s.history.csv" % (filenameplus)
+    print("Downloading file: %s" % (csvfilename))
+    saveURL(
+        wikidomain=wikidomain,
+        url=csvurl,
+        filename=csvfilename,
+        path="files",
+        overwrite=overwrite,
+    )
+
+
+def downloadPagesAndFiles(wikidomain="", wikiurl="", overwrite=False):
+    print("Downloading Pages and Files from %s" % (wikiurl))
+    # csv all pages and files
+    csvurl = "%s/space/content?utable=WikiTablePageList&ut_csv=1" % (wikiurl)
+    saveURL(wikidomain=wikidomain, url=csvurl, filename="pages-and-files.csv", path="")
+    # download every page and file
     totallines = 0
-    with open('%s/pages-and-files.csv' % (wikidomain), 'r') as f:
+    with open("%s/pages-and-files.csv" % (wikidomain), "r") as f:
         totallines = len(f.read().splitlines()) - 1
-    with open('%s/pages-and-files.csv' % (wikidomain), 'r') as csvfile:
+    with open("%s/pages-and-files.csv" % (wikidomain), "r") as csvfile:
         filesc = 0
         pagesc = 0
-        print('This wiki has %d pages and files' % (totallines))
-        rows = csv.reader(csvfile, delimiter=',', quotechar='"')
+        print("This wiki has %d pages and files" % (totallines))
+        rows = csv.reader(csvfile, delimiter=",", quotechar='"')
         for row in rows:
-            if row[0] == 'file':
+            if row[0] == "file":
                 filesc += 1
                 filename = row[1]
-                downloadFile(wikidomain=wikidomain, wikiurl=wikiurl, filename=filename, overwrite=overwrite)
-            elif row[0] == 'page':
+                downloadFile(
+                    wikidomain=wikidomain,
+                    wikiurl=wikiurl,
+                    filename=filename,
+                    overwrite=overwrite,
+                )
+            elif row[0] == "page":
                 pagesc += 1
                 pagename = row[1]
-                downloadPage(wikidomain=wikidomain, wikiurl=wikiurl, pagename=pagename, overwrite=overwrite)
+                downloadPage(
+                    wikidomain=wikidomain,
+                    wikiurl=wikiurl,
+                    pagename=pagename,
+                    overwrite=overwrite,
+                )
             if (filesc + pagesc) % 10 == 0:
-                print('  Progress: %d of %d' % ((filesc + pagesc), totallines))
-        print('  Progress: %d of %d' % ((filesc + pagesc), totallines))
-    print('Downloaded %d pages' % (pagesc))
-    print('Downloaded %d files' % (filesc))
+                print("  Progress: %d of %d" % ((filesc + pagesc), totallines))
+        print("  Progress: %d of %d" % ((filesc + pagesc), totallines))
+    print("Downloaded %d pages" % (pagesc))
+    print("Downloaded %d files" % (filesc))
 
-def downloadSitemap(wikidomain='', wikiurl='', overwrite=False):
-    print('Downloading sitemap.xml')
-    saveURL(wikidomain=wikidomain, url=wikiurl, filename='sitemap.xml', path='', overwrite=overwrite)
 
-def downloadMainPage(wikidomain='', wikiurl='', overwrite=False):
-    print('Downloading index.html')
-    saveURL(wikidomain=wikidomain, url=wikiurl, filename='index.html', path='', overwrite=overwrite)
+def downloadSitemap(wikidomain="", wikiurl="", overwrite=False):
+    print("Downloading sitemap.xml")
+    saveURL(
+        wikidomain=wikidomain,
+        url=wikiurl,
+        filename="sitemap.xml",
+        path="",
+        overwrite=overwrite,
+    )
 
-def downloadLogo(wikidomain='', wikiurl='', overwrite=False):
-    index = '%s/index.html' % (wikidomain)
+
+def downloadMainPage(wikidomain="", wikiurl="", overwrite=False):
+    print("Downloading index.html")
+    saveURL(
+        wikidomain=wikidomain,
+        url=wikiurl,
+        filename="index.html",
+        path="",
+        overwrite=overwrite,
+    )
+
+
+def downloadLogo(wikidomain="", wikiurl="", overwrite=False):
+    index = "%s/index.html" % (wikidomain)
     if os.path.exists(index):
-        raw = ''
+        raw = ""
         try:
-            with open(index, 'r', encoding='utf-8') as f:
+            with open(index, "r", encoding="utf-8") as f:
                 raw = f.read()
         except:
-            with open(index, 'r', encoding='latin-1') as f:
+            with open(index, "r", encoding="latin-1") as f:
                 raw = f.read()
         m = re.findall(r'class="WikiLogo WikiElement"><img src="([^<> "]+?)"', raw)
         if m:
             logourl = m[0]
-            logofilename = logourl.split('/')[-1]
-            print('Downloading logo')
-            saveURL(wikidomain=wikidomain, url=logourl, filename=logofilename, path='', overwrite=overwrite)
+            logofilename = logourl.split("/")[-1]
+            print("Downloading logo")
+            saveURL(
+                wikidomain=wikidomain,
+                url=logourl,
+                filename=logofilename,
+                path="",
+                overwrite=overwrite,
+            )
             return logofilename
-    return ''
+    return ""
+
 
 def printhelp():
     helptext = """This script downloads (and uploads) WikiSpaces wikis.
@@ -237,38 +329,43 @@ python3 wikispaces.py https://mywiki.wikispaces.com --upload
     print(helptext)
     sys.exit()
 
+
 def duckduckgo():
     opener = urllib.request.build_opener()
-    opener.addheaders = [('User-agent', 'Mozilla/5.0')]
+    opener.addheaders = [("User-agent", "Mozilla/5.0")]
     urllib.request.install_opener(opener)
-    
+
     wikis = []
     ignorewikis = [
-        'https://wikispaces.com', 
-        'https://www.wikispaces.com', 
-        'https://wikispaces.net', 
-        'https://www.wikispaces.net', 
+        "https://wikispaces.com",
+        "https://www.wikispaces.com",
+        "https://wikispaces.net",
+        "https://www.wikispaces.net",
     ]
     for i in range(1, 100000):
-        url = 'https://duckduckgo.com/html/?q=%s%%20%s%%20site:wikispaces.com' % (random.randint(100, 5000), random.randint(1000, 9999))
-        print('URL search', url)
+        url = "https://duckduckgo.com/html/?q=%s%%20%s%%20site:wikispaces.com" % (
+            random.randint(100, 5000),
+            random.randint(1000, 9999),
+        )
+        print("URL search", url)
         try:
-            html = urllib.request.urlopen(url).read().decode('utf-8')
+            html = urllib.request.urlopen(url).read().decode("utf-8")
         except:
-            print('Search error')
+            print("Search error")
             time.sleep(30)
             continue
         html = urllib.parse.unquote(html)
-        m = re.findall(r'://([^/]+?\.wikispaces\.com)', html)
+        m = re.findall(r"://([^/]+?\.wikispaces\.com)", html)
         for wiki in m:
-            wiki = 'https://' + wiki
-            wiki = re.sub(r'https://www\.', 'https://', wiki)
+            wiki = "https://" + wiki
+            wiki = re.sub(r"https://www\.", "https://", wiki)
             if not wiki in wikis and not wiki in ignorewikis:
                 wikis.append(wiki)
                 yield wiki
-        sleep = random.randint(5,20)
-        print('Sleeping %d seconds' % (sleep))
+        sleep = random.randint(5, 20)
+        print("Sleeping %d seconds" % (sleep))
         time.sleep(sleep)
+
 
 def main():
     upload = False
@@ -281,157 +378,218 @@ def main():
     if not param:
         printhelp()
     if len(sys.argv) > 2:
-        if '--upload' in sys.argv:
+        if "--upload" in sys.argv:
             upload = True
-        if '--admin' in sys.argv:
+        if "--admin" in sys.argv:
             isadmin = True
-        if '--overwrite' in sys.argv:
+        if "--overwrite" in sys.argv:
             overwrite = True
-        if '--overwrite-ia' in sys.argv:
+        if "--overwrite-ia" in sys.argv:
             overwriteia = True
-        if '--help' in sys.argv:
+        if "--help" in sys.argv:
             printhelp()
-    
+
     wikilist = []
-    if '://' in param:
-        wikilist.append(param.rstrip('/'))
-    elif param.lower() == 'duckduckgo':
+    if "://" in param:
+        wikilist.append(param.rstrip("/"))
+    elif param.lower() == "duckduckgo":
         wikilist = duckduckgo()
-        #for wiki in wikilist:
+        # for wiki in wikilist:
         #    print(wiki)
     else:
-        with open(param, 'r') as f:
+        with open(param, "r") as f:
             wikilist = f.read().strip().splitlines()
             wikilist2 = []
             for wiki in wikilist:
-                wikilist2.append(wiki.rstrip('/'))
+                wikilist2.append(wiki.rstrip("/"))
             wikilist = wikilist2
-    
+
     for wikiurl in wikilist:
-        wikidomain = wikiurl.split('://')[1].split('/')[0]
-        print('\n')
-        print('#'*40,'\n Downloading:', wikiurl)
-        print('#'*40,'\n')
-        
+        wikidomain = wikiurl.split("://")[1].split("/")[0]
+        print("\n")
+        print("#" * 40, "\n Downloading:", wikiurl)
+        print("#" * 40, "\n")
+
         if upload and not overwriteia:
-            itemid = 'wiki-%s' % (wikidomain)
+            itemid = "wiki-%s" % (wikidomain)
             try:
-                iahtml = ''
+                iahtml = ""
                 try:
-                    iahtml = urllib.request.urlopen('https://archive.org/details/%s' % (itemid)).read().decode('utf-8')
+                    iahtml = (
+                        urllib.request.urlopen(
+                            "https://archive.org/details/%s" % (itemid)
+                        )
+                        .read()
+                        .decode("utf-8")
+                    )
                 except:
                     time.sleep(10)
-                    iahtml = urllib.request.urlopen('https://archive.org/details/%s' % (itemid)).read().decode('utf-8')
-                if iahtml and not re.findall(r'(?im)Item cannot be found', iahtml):
+                    iahtml = (
+                        urllib.request.urlopen(
+                            "https://archive.org/details/%s" % (itemid)
+                        )
+                        .read()
+                        .decode("utf-8")
+                    )
+                if iahtml and not re.findall(r"(?im)Item cannot be found", iahtml):
                     if not overwriteia:
-                        print('Warning: item exists on Internet Archive. Skipping wiki. Force with parameter --overwrite-ia')
-                        print('You can find it in https://archive.org/details/%s' % (itemid))
+                        print(
+                            "Warning: item exists on Internet Archive. Skipping wiki. Force with parameter --overwrite-ia"
+                        )
+                        print(
+                            "You can find it in https://archive.org/details/%s"
+                            % (itemid)
+                        )
                         time.sleep(1)
                         continue
             except:
                 pass
-        
-        dirfiles = '%s/files' % (wikidomain)
+
+        dirfiles = "%s/files" % (wikidomain)
         if not os.path.exists(dirfiles):
-            print('Creating directory %s' % (dirfiles))
+            print("Creating directory %s" % (dirfiles))
             os.makedirs(dirfiles)
-        dirpages = '%s/pages' % (wikidomain)
+        dirpages = "%s/pages" % (wikidomain)
         if not os.path.exists(dirpages):
-            print('Creating directory %s' % (dirpages))
+            print("Creating directory %s" % (dirpages))
             os.makedirs(dirpages)
-        sitemapurl = 'https://%s/sitemap.xml' % (wikidomain)
-        
+        sitemapurl = "https://%s/sitemap.xml" % (wikidomain)
+
         downloadSitemap(wikidomain=wikidomain, wikiurl=sitemapurl, overwrite=overwrite)
-        if not os.path.exists('%s/sitemap.xml' % (wikidomain)):
-            print('Error, wiki was probably deleted. Skiping wiki...')
+        if not os.path.exists("%s/sitemap.xml" % (wikidomain)):
+            print("Error, wiki was probably deleted. Skiping wiki...")
             continue
         else:
-            sitemapraw = ''
+            sitemapraw = ""
             try:
-                with open('%s/sitemap.xml' % (wikidomain), encoding='utf-8') as g:
+                with open("%s/sitemap.xml" % (wikidomain), encoding="utf-8") as g:
                     sitemapraw = g.read()
             except:
-                with open('%s/sitemap.xml' % (wikidomain), encoding='latin-1') as g:
+                with open("%s/sitemap.xml" % (wikidomain), encoding="latin-1") as g:
                     sitemapraw = g.read()
-            if re.search(r'(?im)<h1>This wiki has been deactivated</h1>', sitemapraw):
-                print('Error, wiki was deactivated. Skiping wiki...')
+            if re.search(r"(?im)<h1>This wiki has been deactivated</h1>", sitemapraw):
+                print("Error, wiki was deactivated. Skiping wiki...")
                 continue
-        
+
         downloadMainPage(wikidomain=wikidomain, wikiurl=wikiurl, overwrite=overwrite)
-        if not os.path.exists('%s/index.html' % (wikidomain)):
-            print('Error, wiki was probably deleted or expired. Skiping wiki...')
+        if not os.path.exists("%s/index.html" % (wikidomain)):
+            print("Error, wiki was probably deleted or expired. Skiping wiki...")
             continue
         else:
-            indexraw = ''
+            indexraw = ""
             try:
-                with open('%s/index.html' % (wikidomain), encoding='utf-8') as g:
+                with open("%s/index.html" % (wikidomain), encoding="utf-8") as g:
                     indexraw = g.read()
             except:
-                with open('%s/index.html' % (wikidomain), encoding='latin-1') as g:
+                with open("%s/index.html" % (wikidomain), encoding="latin-1") as g:
                     indexraw = g.read()
-            if re.search(r'(?im)<h1>Subscription Expired</h1>', indexraw):
-                print('Error, wiki subscription expired. Skiping wiki...')
+            if re.search(r"(?im)<h1>Subscription Expired</h1>", indexraw):
+                print("Error, wiki subscription expired. Skiping wiki...")
                 continue
-        
-        downloadPagesAndFiles(wikidomain=wikidomain, wikiurl=wikiurl, overwrite=overwrite)
-        logofilename = downloadLogo(wikidomain=wikidomain, wikiurl=wikiurl, overwrite=overwrite)
-        
+
+        downloadPagesAndFiles(
+            wikidomain=wikidomain, wikiurl=wikiurl, overwrite=overwrite
+        )
+        logofilename = downloadLogo(
+            wikidomain=wikidomain, wikiurl=wikiurl, overwrite=overwrite
+        )
+
         if upload:
-            itemid = 'wiki-%s' % (wikidomain)
-            print('\nCompressing dump...')
+            itemid = "wiki-%s" % (wikidomain)
+            print("\nCompressing dump...")
             wikidir = wikidomain
             os.chdir(wikidir)
-            print('Changed directory to', os.getcwd())
-            wikizip = '%s.zip' % (wikidomain)
-            subprocess.call('zip' + ' -r ../%s files/ pages/ index.html pages-and-files.csv sitemap.xml %s' % (wikizip, logofilename), shell=True)
-            os.chdir('..')
-            print('Changed directory to', os.getcwd())
-            
-            print('\nUploading to Internet Archive...')
-            indexfilename = '%s/index.html' % (wikidir)
+            print("Changed directory to", os.getcwd())
+            wikizip = "%s.zip" % (wikidomain)
+            subprocess.call(
+                "zip"
+                + " -r ../%s files/ pages/ index.html pages-and-files.csv sitemap.xml %s"
+                % (wikizip, logofilename),
+                shell=True,
+            )
+            os.chdir("..")
+            print("Changed directory to", os.getcwd())
+
+            print("\nUploading to Internet Archive...")
+            indexfilename = "%s/index.html" % (wikidir)
             if not os.path.exists(indexfilename):
-                print('\nError dump incomplete, skipping upload\n')
+                print("\nError dump incomplete, skipping upload\n")
                 continue
-            indexhtml = ''
+            indexhtml = ""
             try:
-                with open(indexfilename, 'r', encoding='utf-8') as f:
+                with open(indexfilename, "r", encoding="utf-8") as f:
                     indexhtml = f.read()
             except:
-                with open(indexfilename, 'r', encoding='latin-1') as f:
+                with open(indexfilename, "r", encoding="latin-1") as f:
                     indexhtml = f.read()
-            
-            wikititle = ''
+
+            wikititle = ""
             try:
-                wikititle = indexhtml.split('wiki: {')[1].split('}')[0].split("text: '")[1].split("',")[0].strip()
+                wikititle = (
+                    indexhtml.split("wiki: {")[1]
+                    .split("}")[0]
+                    .split("text: '")[1]
+                    .split("',")[0]
+                    .strip()
+                )
             except:
                 wikititle = wikidomain
             if not wikititle:
                 wikititle = wikidomain
             wikititle = wikititle.replace("\\'", " ")
             wikititle = wikititle.replace('\\"', " ")
-            itemtitle = 'Wiki - %s' % wikititle
-            itemdesc = '<a href=\"%s\">%s</a> dumped with <a href=\"https://github.com/WikiTeam/wikiteam\" rel=\"nofollow\">WikiTeam</a> tools.' % (wikiurl, wikititle)
-            itemtags = ['wiki', 'wikiteam', 'wikispaces', wikititle, wikidomain.split('.wikispaces.com')[0], wikidomain]
+            itemtitle = "Wiki - %s" % wikititle
+            itemdesc = (
+                '<a href="%s">%s</a> dumped with <a href="https://github.com/WikiTeam/wikiteam" rel="nofollow">WikiTeam</a> tools.'
+                % (wikiurl, wikititle)
+            )
+            itemtags = [
+                "wiki",
+                "wikiteam",
+                "wikispaces",
+                wikititle,
+                wikidomain.split(".wikispaces.com")[0],
+                wikidomain,
+            ]
             itemoriginalurl = wikiurl
-            itemlicenseurl = ''
-            m = ''
+            itemlicenseurl = ""
+            m = ""
             try:
-                m = re.findall(r'<a rel="license" href="([^<>]+?)">', indexhtml.split('<div class="WikiLicense')[1].split('</div>')[0])
+                m = re.findall(
+                    r'<a rel="license" href="([^<>]+?)">',
+                    indexhtml.split('<div class="WikiLicense')[1].split("</div>")[0],
+                )
             except:
-                m = ''
+                m = ""
             if m:
                 itemlicenseurl = m[0]
             if not itemlicenseurl:
-                itemtags.append('unknowncopyright')
-            itemtags_ = ' '.join(["--metadata='subject:%s'" % (tag) for tag in itemtags])
-            itemcollection = isadmin and 'wikiteam' or 'opensource'
-            itemlang = 'Unknown'
+                itemtags.append("unknowncopyright")
+            itemtags_ = " ".join(
+                ["--metadata='subject:%s'" % (tag) for tag in itemtags]
+            )
+            itemcollection = isadmin and "wikiteam" or "opensource"
+            itemlang = "Unknown"
             itemdate = datetime.datetime.now().strftime("%Y-%m-%d")
-            itemlogo = logofilename and '%s/%s' % (wikidir, logofilename) or ''                
-            callplain = "ia upload %s %s %s --metadata='mediatype:web' --metadata='collection:%s' --metadata='title:%s' --metadata='description:%s' --metadata='language:%s' --metadata='last-updated-date:%s' --metadata='originalurl:%s' %s %s" % (itemid, wikizip, itemlogo and itemlogo or '', itemcollection, itemtitle, itemdesc, itemlang, itemdate, itemoriginalurl, itemlicenseurl and "--metadata='licenseurl:%s'" % (itemlicenseurl) or '', itemtags_)
+            itemlogo = logofilename and "%s/%s" % (wikidir, logofilename) or ""
+            callplain = "ia upload %s %s %s --metadata='mediatype:web' --metadata='collection:%s' --metadata='title:%s' --metadata='description:%s' --metadata='language:%s' --metadata='last-updated-date:%s' --metadata='originalurl:%s' %s %s" % (
+                itemid,
+                wikizip,
+                itemlogo and itemlogo or "",
+                itemcollection,
+                itemtitle,
+                itemdesc,
+                itemlang,
+                itemdate,
+                itemoriginalurl,
+                itemlicenseurl
+                and "--metadata='licenseurl:%s'" % (itemlicenseurl)
+                or "",
+                itemtags_,
+            )
             print(callplain)
             subprocess.call(callplain, shell=True)
-            
+
             """
             md = {
                 'mediatype': 'web',
@@ -450,9 +608,10 @@ def main():
             if itemlogo:
                 item.upload(itemlogo, access_key=accesskey, secret_key=secretkey, verbose=True)
             """
-            
-            print('You can find it in https://archive.org/details/%s' % (itemid))
+
+            print("You can find it in https://archive.org/details/%s" % (itemid))
             os.remove(wikizip)
+
 
 if __name__ == "__main__":
     main()

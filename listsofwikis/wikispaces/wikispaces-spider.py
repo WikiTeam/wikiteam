@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 # Copyright (C) 2016 wikiTeam
@@ -19,7 +19,8 @@ import csv
 import random
 import re
 import time
-import urllib2
+import urllib
+
 
 def loadUsers():
     users = {}
@@ -46,7 +47,7 @@ def saveUsers(users):
     output = [u'%s,%s' % (x, y) for x, y in users.items()]
     output.sort()
     output = u'\n'.join(output)
-    f.write(output.encode('utf-8'))
+    f.write(str(output))
     f.close()
     
 def saveWikis(wikis):
@@ -54,14 +55,14 @@ def saveWikis(wikis):
     output = [u'%s,%s' % (x, y) for x, y in wikis.items()]
     output.sort()
     output = u'\n'.join(output)
-    f.write(output.encode('utf-8'))
+    f.write(str(output))
     f.close()
 
 def getUsers(wiki):
     wikiurl = 'https://%s.wikispaces.com/wiki/members?utable=WikiTableMemberList&ut_csv=1' % (wiki)
     try:
-        wikireq = urllib2.Request(wikiurl, headers={ 'User-Agent': 'Mozilla/5.0' })
-        wikicsv = urllib2.urlopen(wikireq)
+        wikireq = urllib.Request(wikiurl, headers={ 'User-Agent': 'Mozilla/5.0' })
+        wikicsv = urllib.urlopen(wikireq)
         reader = csv.reader(wikicsv, delimiter=',', quotechar='"')
         headers = next(reader, None)
         usersfound = {}
@@ -69,14 +70,14 @@ def getUsers(wiki):
             usersfound[row[0]] = u'?'
         return usersfound
     except:
-        print 'Error reading', wikiurl
+        print ('Error reading', wikiurl)
         return {}
 
 def getWikis(user):
     wikiurl = 'https://www.wikispaces.com/user/view/%s' % (user)
     try:
-        wikireq = urllib2.Request(wikiurl, headers={ 'User-Agent': 'Mozilla/5.0' })
-        html = urllib2.urlopen(wikireq).read()
+        wikireq = urllib.Request(wikiurl, headers={ 'User-Agent': 'Mozilla/5.0' })
+        html = urllib.urlopen(wikireq).read()
         if 'Wikis: ' in html:
             html = html.split('Wikis: ')[1].split('</div>')[0]
             wikisfound = {}
@@ -85,7 +86,7 @@ def getWikis(user):
             return wikisfound
         return {}
     except:
-        print 'Error reading', wikiurl
+        print ('Error reading', wikiurl)
         return {}
 
 def main():
@@ -96,16 +97,16 @@ def main():
     
     usersc = len(users)
     wikisc = len(wikis)
-    print 'Loading files'
-    print 'Loaded', usersc, 'users'
-    print 'Loaded', wikisc, 'wikis'
+    print ('Loading files')
+    print ('Loaded', usersc, 'users')
+    print ('Loaded', wikisc, 'wikis')
     
     # find more users
-    print 'Scanning wikis for more users'
+    print ('Scanning wikis for more users')
     for wiki, numusers in wikis.items():
         if numusers != '?': #we have scanned this wiki before, skiping
             continue
-        print 'Scanning https://%s.wikispaces.com for users' % (wiki)
+        print ('Scanning https://%s.wikispaces.com for users' % (wiki))
         users2 = getUsers(wiki)
         wikis[wiki] = len(users2)
         c = 0
@@ -113,7 +114,7 @@ def main():
             if x2 not in users.keys():
                 users[x2] = u'?'
                 c += 1
-        print 'Found %s new users' % (c)
+        print ('Found %s new users' % (c))
         if c > 0:
             if random.randint(0,rand) == 0:
                 saveUsers(users)
@@ -127,11 +128,11 @@ def main():
     users = loadUsers()
     
     # find more wikis
-    print 'Scanning users for more wikis'
+    print ('Scanning users for more wikis')
     for user, numwikis in users.items():
         if numwikis != '?': #we have scanned this user before, skiping
             continue
-        print 'Scanning https://www.wikispaces.com/user/view/%s for wikis' % (user)
+        print ('Scanning https://www.wikispaces.com/user/view/%s for wikis' % (user))
         wikis2 = getWikis(user)
         users[user] = len(wikis2)
         c = 0
@@ -139,7 +140,7 @@ def main():
             if x2 not in wikis.keys():
                 wikis[x2] = u'?'
                 c += 1
-        print 'Found %s new wikis' % (c)
+        print ('Found %s new wikis' % (c))
         if c > 0:
             if random.randint(0,rand) == 0:
                 saveWikis(wikis)
@@ -152,9 +153,9 @@ def main():
     saveUsers(users)
     users = loadUsers()
     
-    print '\nSummary:'
-    print 'Found', len(users)-usersc, 'new users'
-    print 'Found', len(wikis)-wikisc, 'new wikis'
+    print ('\nSummary:')
+    print ('Found', len(users)-usersc, 'new users')
+    print ('Found', len(wikis)-wikisc, 'new wikis')
 
 if __name__ == '__main__':
     main()

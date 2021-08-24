@@ -19,42 +19,49 @@ import random
 import re
 import sys
 import time
+
 import requests
+
 
 def main():
     wikis = []
-    with open('wikidot-spider2.txt', 'r') as f:
+    with open("wikidot-spider2.txt", "r") as f:
         wikis = f.read().strip().splitlines()
-    
+
     for i in range(1, 1000000):
         url = random.choice(wikis)
-        urlrandom = url.endswith('/') and (url + 'random-site.php') or (url + '/' + 'random-site.php')
-        print('URL exploring %s' % urlrandom)
+        urlrandom = (
+            url.endswith("/")
+            and (url + "random-site.php")
+            or (url + "/" + "random-site.php")
+        )
+        print("URL exploring %s" % urlrandom)
         try:
             r = requests.get(urlrandom)
         except:
             continue
-        redirect = ''
-        if r.url and r.url.endswith('wikidot.com'):
+        redirect = ""
+        if r.url and r.url.endswith("wikidot.com"):
             redirect = r.url
             print(redirect)
         else:
             continue
         wikis.append(redirect)
-        
-        with open('wikidot-spider2.txt', 'w') as f:
+
+        with open("wikidot-spider2.txt", "w") as f:
             wikis2 = []
             for wiki in wikis:
-                wiki = re.sub(r'https?://www\.', 'http://', wiki)
+                wiki = re.sub(r"https?://www\.", "http://", wiki)
                 if not wiki in wikis2:
                     wikis2.append(wiki)
             wikis = wikis2
             wikis.sort()
-            f.write('\n'.join(wikis))
-        print('%d wikis found' % (len(wikis)))
-        sleep = random.randint(1,5)
-        print('Sleeping %d seconds' % (sleep))
+            f.write("\n".join(wikis))
+        print("%d wikis found" % (len(wikis)))
+        sleep = random.randint(1, 5)
+        print("Sleeping %d seconds" % (sleep))
         time.sleep(sleep)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()

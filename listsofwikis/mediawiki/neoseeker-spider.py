@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 # Copyright (C) 2014-2017 WikiTeam developers
@@ -16,7 +16,9 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import re
+
 import requests
+
 
 def main():
     headers = {
@@ -29,7 +31,7 @@ def main():
     m = re.findall(ur'<li><a href=\'([^>]+?)/wiki/\'>', raw)
     m.sort()
     for i in m:
-        print i + '/w/api.php'
+        print (i + '/w/api.php')
     
 if __name__ == '__main__':
     main()

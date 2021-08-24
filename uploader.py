@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 # Copyright (C) 2011-2016 WikiTeam
@@ -15,17 +15,16 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import getopt
 import argparse
+import getopt
 import os
 import re
 import subprocess
-import sys
 import time
-import requests
-import urlparse
+import urllib.parse
 from io import BytesIO
-from xml.sax.saxutils import quoteattr
+
+import requests
 from internetarchive import get_item
 
 import dumpgenerator
@@ -48,22 +47,22 @@ def upload(wikis, config={}, uploadeddumps=[]):
 
     filelist = os.listdir(dumpdir)
     for wiki in wikis:
-        print "#"*73
-        print "# Uploading", wiki
-        print "#"*73
+        print ("#"*73)
+        print ("# Uploading", wiki)
+        print ("#"*73)
         wiki = wiki.lower()
         configtemp = config
         try:
             prefix = dumpgenerator.domain2prefix(config={'api': wiki})
         except KeyError:
-            print "ERROR: could not produce the prefix for %s" % wiki
+            print ("ERROR: could not produce the prefix for %s" % wiki)
         config = configtemp
 
         wikiname = prefix.split('-')[0]
         dumps = []
         for f in filelist:
             if f.startswith('%s-' % (wikiname)) and (f.endswith('-wikidump.7z') or f.endswith('-history.xml.7z')):
-                print "%s found" % f
+                print ("%s found" % f)
                 dumps.append(f)
                 # Re-introduce the break here if you only need to upload one file
                 # and the I/O is too slow
@@ -78,10 +77,10 @@ def upload(wikis, config={}, uploadeddumps=[]):
                     rmline='rm -rf %s-%s-wikidump/' % (wikiname, wikidate)
                     # With -f the deletion might have happened before and we won't know
                     if not os.system(rmline):
-                        print 'DELETED %s-%s-wikidump/' % (wikiname, wikidate)
+                        print ('DELETED %s-%s-wikidump/' % (wikiname, wikidate))
                 if config.prune_wikidump and dump.endswith('wikidump.7z'):
                         # Simplistic quick&dirty check for the presence of this file in the item
-                        print "Checking content in previously uploaded files"
+                        print ("Checking content in previously uploaded files")
                         stdout, stderr = subprocess.Popen(["md5sum", dumpdir + '/' + dump], stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
                         dumphash = re.sub(' +.+\n?', '', stdout)
 
@@ -89,22 +88,22 @@ def upload(wikis, config={}, uploadeddumps=[]):
                             log(wiki, dump, 'verified', config)
                             rmline='rm -rf %s' % dumpdir + '/' + dump
                             if not os.system(rmline):
-                                print 'DELETED ' + dumpdir + '/' + dump
-                            print '%s was uploaded before, skipping...' % (dump)
+                                print ('DELETED ' + dumpdir + '/' + dump)
+                            print ('%s was uploaded before, skipping...' % (dump))
                             continue
                         else:
-                            print 'ERROR: The online item misses ' + dump
+                            print ('ERROR: The online item misses ' + dump)
                             log(wiki, dump, 'missing', config)
                             # We'll exit this if and go upload the dump
                 else:
-                    print '%s was uploaded before, skipping...' % (dump)
+                    print ('%s was uploaded before, skipping...' % (dump))
                     continue
             else:
-                print '%s was not uploaded before' % dump
+                print ('%s was not uploaded before' % dump)
 
             time.sleep(0.1)
             wikidate_text = wikidate[0:4]+'-'+wikidate[4:6]+'-'+wikidate[6:8]
-            print wiki, wikiname, wikidate, dump
+            print (wiki, wikiname, wikidate, dump)
 
             # Does the item exist already?
             ismissingitem = not item.exists
@@ -197,7 +196,7 @@ def upload(wikis, config={}, uploadeddumps=[]):
                         logourl = re.findall(ur'"wordmark-image">[^<]*<a[^>]*>[^<]*<img src="([^"]+)"', raw)[0]
                     if 'http' not in logourl:
                         # Probably a relative path, construct the absolute path
-                        logourl = urlparse.urljoin(wiki, logourl)
+                        logourl = urllib.parse.urljoin(wiki, logourl)
                 except:
                     pass
 
@@ -216,7 +215,7 @@ def upload(wikis, config={}, uploadeddumps=[]):
 
                 wikiurl = wiki # we use api here http://en.ecgpedia.org/api.php
             else:
-                print 'Item already exists.'
+                print ('Item already exists.')
                 lang = 'foo'
                 wikititle = 'foo'
                 wikidesc = 'foo'
@@ -235,7 +234,7 @@ def upload(wikis, config={}, uploadeddumps=[]):
                     'language': lang,
                     'last-updated-date': wikidate_text,
                     'subject': '; '.join(wikikeys), # Keywords should be separated by ; but it doesn't matter much; the alternative is to set one per field with subject[0], subject[1], ...
-                    'licenseurl': wikilicenseurl and urlparse.urljoin(wiki, wikilicenseurl),
+                    'licenseurl': wikilicenseurl and urllib.parse.urljoin(wiki, wikilicenseurl),
                     'rights': wikirights,
                     'originalurl': wikiurl,
                 }
@@ -244,10 +243,10 @@ def upload(wikis, config={}, uploadeddumps=[]):
             try:
                 item.upload(dumpdir + '/' + dump, metadata=md, access_key=accesskey, secret_key=secretkey, verbose=True, queue_derive=False)
                 item.modify_metadata(md) # update
-                print 'You can find it in https://archive.org/details/wiki-%s' % (wikiname)
+                print ('You can find it in https://archive.org/details/wiki-%s' % (wikiname))
                 uploadeddumps.append(dump)
             except Exception as e:
-                print wiki, dump, 'Error when uploading?'
+                print (wiki, dump, 'Error when uploading?')
                 print(e)
             try:
                 log(wiki, dump, 'ok', config)
@@ -294,7 +293,7 @@ Use --help to print this help.""")
         uploadeddumps = [l.split(';')[1] for l in open('uploader-%s.log' % (listfile), 'r').read().strip().splitlines() if len(l.split(';'))>1]
     except:
         pass
-    print '%d dumps uploaded previously' % (len(uploadeddumps))
+    print ('%d dumps uploaded previously' % (len(uploadeddumps)))
     wikis = open(listfile, 'r').read().strip().splitlines()
 
     upload(wikis, config, uploadeddumps)

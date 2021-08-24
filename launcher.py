@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 # Copyright (C) 2011-2016 WikiTeam
@@ -26,19 +26,20 @@ import time
 
 import dumpgenerator
 
+
 def main():
     if len(sys.argv) < 2:
-        print 'python script.py file-with-apis.txt'
+        print ('python script.py file-with-apis.txt')
         sys.exit()
 
-    print 'Reading list of APIs from', sys.argv[1]
+    print ('Reading list of APIs from', sys.argv[1])
     wikis = open(sys.argv[1], 'r').read().splitlines()
-    print '%d APIs found' % (len(wikis))
+    print ('%d APIs found' % (len(wikis)))
 
     for wiki in wikis:
-        print "#"*73
-        print "# Downloading", wiki
-        print "#"*73
+        print ("#"*73)
+        print ("# Downloading", wiki)
+        print ("#"*73)
         wiki = wiki.lower()
         # Make the prefix in standard way; api and index must be defined, not important which is which
         prefix = dumpgenerator.domain2prefix(config={'api': wiki, 'index': wiki})
@@ -52,17 +53,17 @@ def main():
                 break #stop searching, dot not explore subdirectories
 
         if compressed:
-            print 'Skipping... This wiki was downloaded and compressed before in', zipfilename
+            print ('Skipping... This wiki was downloaded and compressed before in', zipfilename)
             # Get the archive's file list.
             if ( ( ( sys.version_info[0] == 3 ) and ( sys.version_info[1] > 0 ) ) or ( ( sys.version_info[0] == 2 ) and ( sys.version_info[1] > 6 ) ) ):
                 archivecontent = subprocess.check_output (['7z', 'l', zipfilename])
                 if re.search(ur"%s.+-history\.xml" % (prefix), archivecontent) is None:
                     # We should perhaps not create an archive in this case, but we continue anyway.
-                    print "ERROR: The archive contains no history!"
+                    print ("ERROR: The archive contains no history!")
                 if re.search(ur"Special:Version\.html", archivecontent) is None:
-                    print "WARNING: The archive doesn't contain Special:Version.html, this may indicate that download didn't finish."
+                    print ("WARNING: The archive doesn't contain Special:Version.html, this may indicate that download didn't finish.")
             else:
-                print "WARNING: Content of the archive not checked, we need python 2.7+ or 3.1+."
+                print ("WARNING: Content of the archive not checked, we need python 2.7+ or 3.1+.")
                 # TODO: Find a way like grep -q below without doing a 7z l multiple times?
             continue
 
@@ -81,10 +82,10 @@ def main():
         # such as editthis.info, wiki-site.com, wikkii (adjust the value as needed;
         # typically they don't provide any crawl-delay value in their robots.txt).
         if started and wikidir: #then resume
-            print 'Resuming download, using directory', wikidir
-            subprocess.call(['python2', 'dumpgenerator.py', '--api={}'.format(wiki), '--xml', '--images', '--resume', '--path={}'.format(wikidir)], shell=False)
+            print ('Resuming download, using directory', wikidir)
+            subprocess.call(['python3', 'dumpgenerator.py', '--api={}'.format(wiki), '--xml', '--images', '--resume', '--path={}'.format(wikidir)], shell=False)
         else: #download from scratch
-            subprocess.call(['python2', 'dumpgenerator.py', '--api={}'.format(wiki), '--xml', '--images'], shell=False)
+            subprocess.call(['python3', 'dumpgenerator.py', '--api={}'.format(wiki), '--xml', '--images'], shell=False)
             started = True
             #save wikidir now
             for f in os.listdir('.'):
@@ -98,7 +99,7 @@ def main():
         finished = False
         if started and wikidir and prefix:
             if (subprocess.call (['tail -n 1 %s/%s-history.xml | grep -q "</mediawiki>"' % (wikidir, prefix)], shell=True) ):
-                print "No </mediawiki> tag found: dump failed, needs fixing; resume didn't work. Exiting."
+                print ("No </mediawiki> tag found: dump failed, needs fixing; resume didn't work. Exiting.")
             else:
                 finished = True
         # You can also issue this on your working directory to find all incomplete dumps:
@@ -108,7 +109,7 @@ def main():
         if finished:
             time.sleep(1)
             os.chdir(wikidir)
-            print 'Changed directory to', os.getcwd()
+            print ('Changed directory to', os.getcwd())
             # Basic integrity check for the xml. The script doesn't actually do anything, so you should check if it's broken. Nothing can be done anyway, but redownloading.
             subprocess.call('grep "<title>" *.xml -c;grep "<page>" *.xml -c;grep "</page>" *.xml -c;grep "<revision>" *.xml -c;grep "</revision>" *.xml -c', shell=True)
             # Make a non-solid archive with all the text and metadata at default compression. You can also add config.txt if you don't care about your computer and user names being published or you don't use full paths so that they're not stored in it.
@@ -123,7 +124,7 @@ def main():
             subprocess.call('7z' + ' a -ms=off -mx=1 ../%s-wikidump.7z.tmp %s-images.txt images/' % (prefix, prefix), shell=True)
             subprocess.call('mv' + ' ../%s-wikidump.7z.tmp ../%s-wikidump.7z' % (prefix, prefix), shell=True)
             os.chdir('..')
-            print 'Changed directory to', os.getcwd()
+            print ('Changed directory to', os.getcwd())
             time.sleep(1)
 
 if __name__ == "__main__":

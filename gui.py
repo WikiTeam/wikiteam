@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 # Copyright (C) 2011-2012 WikiTeam
@@ -19,13 +19,13 @@ import os
 import platform
 import random
 import re
-from Tkinter import *
-import ttk
-import tkMessageBox
-import thread
+import threading
 import time
 import urllib
 import webbrowser
+from tkinter import (LEFT, SUNKEN, Button, E, Entry, Label, LabelFrame, Menu,
+                     N, OptionMenu, S, Scrollbar, StringVar, Text, Tk, W,
+                     messagebox, ttk)
 
 import dumpgenerator
 
@@ -102,7 +102,7 @@ class App:
         self.optionmenu11var.set("api.php")
         self.optionmenu11 = OptionMenu(self.labelframe11, self.optionmenu11var, self.optionmenu11var.get(), "index.php")
         self.optionmenu11.grid(row=0, column=2)
-        self.button11 = Button(self.labelframe11, text="Check", command=lambda: thread.start_new_thread(self.checkURL, ()), width=5)
+        self.button11 = Button(self.labelframe11, text="Check", command=lambda: threading.start_new_threading(self.checkURL, ()), width=5)
         self.button11.grid(row=0, column=3)
         #batch download labelframe
         self.label12 = Label(self.labelframe12, text="Wiki URLs:")
@@ -174,12 +174,12 @@ class App:
         self.tree.heading('status', text='Status')
         self.tree.grid(row=2, column=0, columnspan=9, sticky=W+E+N+S)
         [self.tree.heading(column, text=column, command=lambda: self.treeSortColumn(column=column, reverse=False)) for column in columns]        
-        #self.tree.bind("<Double-1>", (lambda: thread.start_new_thread(self.downloadDump, ())))
+        #self.tree.bind("<Double-1>", (lambda: threading.start_new_threading(self.downloadDump, ())))
         self.tree.tag_configure('downloaded', background='lightgreen')
         self.tree.tag_configure('nodownloaded', background='white')
-        self.button21 = Button(self.frame2, text="Load available dumps", command=lambda: thread.start_new_thread(self.loadAvailableDumps, ()), width=15)
+        self.button21 = Button(self.frame2, text="Load available dumps", command=lambda: threading.start_new_threading(self.loadAvailableDumps, ()), width=15)
         self.button21.grid(row=3, column=0)
-        self.button23 = Button(self.frame2, text="Download selection", command=lambda: thread.start_new_thread(self.downloadDump, ()), width=15)
+        self.button23 = Button(self.frame2, text="Download selection", command=lambda: threading.start_new_threading(self.downloadDump, ()), width=15)
         self.button23.grid(row=3, column=4)
         self.button22 = Button(self.frame2, text="Clear list", command=self.deleteAvailableDumps, width=10)
         self.button22.grid(row=3, column=8, columnspan=2)
@@ -213,7 +213,7 @@ class App:
         #end menu
     
     def blocked(self):
-        tkMessageBox.showerror("Error", "There is a task in progress. Please, wait.")
+        messagebox.showerror("Error", "There is a task in progress. Please, wait.")
     
     def checkURL(self):
         if re.search(ur"(?im)^https?://[^/]+\.[^/]+/", self.entry11.get()): #well-constructed URL?, one dot at least, aaaaa.com, but bb.aaaaa.com is allowed too
@@ -234,7 +234,7 @@ class App:
                     self.entry11.config(background='red')
                     self.msg('index.php is incorrect!', level='error')
         else:
-            tkMessageBox.showerror("Error", "You have to write a correct api.php or index.php URL.")
+            messagebox.showerror("Error", "You have to write a correct api.php or index.php URL.")
     
     def sumSizes(self, sizes):
         total = 0
@@ -266,15 +266,15 @@ class App:
         dumpgenerator.main(params=params)
 
         #check dump
-        """
+       """
     
     def msg(self, msg='', level=''):
         levels = { 'ok': 'lightgreen', 'warning': 'yellow', 'error': 'red' }
         if levels.has_key(level.lower()):
-            print '%s: %s' % (level.upper(), msg)
+            print ('%s: %s' % (level.upper(), msg))
             self.status.config(text='%s: %s' % (level.upper(), msg), background=levels[level.lower()])
         else:
-            print msg
+            print (msg)
             self.status.config(text=msg, background='grey')
     
     def treeSortColumn(self, column, reverse=False):
@@ -326,7 +326,7 @@ class App:
             else:
                 self.msg('Problems in %d dumps. Downloaded %d of %d (and %d were previously downloaded).' % (len(items)-(c+d), c, len(items), d), level='error')
         else:
-            tkMessageBox.showerror("Error", "You have to select some dumps to download.")
+            messagebox.showerror("Error", "You have to select some dumps to download.")
         self.clearAvailableDumps()
         self.showAvailableDumps()
         self.filterAvailableDumps()
@@ -410,7 +410,7 @@ class App:
         wikifarms_r = re.compile(ur"(%s)" % ('|'.join(wikifarms.keys())))
         c = 0
         for mirror, url, regexp in self.urls:
-            print 'Loading data from', mirror, url
+            print ('Loading data from', mirror, url)
             self.msg(msg='Please wait... Loading data from %s %s' % (mirror, url))
             f = urllib.urlopen(url)
             m = re.compile(regexp).finditer(f.read())
@@ -452,7 +452,7 @@ class App:
         self.msg("Feature not implemented for the moment. Contributions are welcome.", level='warning')
     
 def askclose():
-    if tkMessageBox.askokcancel("Quit", "Do you really wish to exit?"):
+    if messagebox.askokcancel("Quit", "Do you really wish to exit?"):
         root.destroy()
 
 if __name__ == "__main__":

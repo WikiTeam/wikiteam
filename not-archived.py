@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 # not-archived.py List of not archived wikis, using WikiApiary data
@@ -20,6 +20,7 @@
 
 import re
 import urllib
+
 
 def getdomain(wiki):
     domain = wiki
@@ -46,7 +47,7 @@ def main():
         for i in m:
             domain = getdomain(i[1])
             if domain not in donewikis and not domain.endswith('editthis.info') and not domain.endswith('wiki-site.com'):
-                print i[1], i[2], i[3], i[0]
+                print (i[1], i[2], i[3], i[0])
         
         if not re.search(ur'rel="nofollow">Next</a>', raw):
             break

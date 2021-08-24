@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 # Copyright (C) 2014 WikiTeam developers
@@ -17,8 +17,10 @@
 
 import random
 import re
-import requests
 import time
+
+import requests
+
 
 def main():
     headers = {
@@ -33,7 +35,7 @@ def main():
         
         m = re.findall(ur'(?im)<h3 class="r"><a href=\"([^ ]+?)" onmouse', raw)
         for i in m:
-            print i
+            print (i)
         
         if re.search(ur'id="ofr"', raw): #resultados omitidos, final
             break
