@@ -47,33 +47,33 @@ Once `poetry` is installed, in the `wikiteam3` directory, run:
 
 To download any wiki, in the `wikiteam3` directory, use one of the following options:
 
-`poetry run python dumpgenerator http://wiki.domain.org --xml --images` (complete XML histories and images)
+`poetry run python dumpgenerator.py http://wiki.domain.org --xml --images` (complete XML histories and images)
 
 If the script can't find itself the API and/or index.php paths, then you can provide them:
 
-`poetry run python dumpgenerator --api=http://wiki.domain.org/w/api.php --xml --images`
+`poetry run python dumpgenerator.py --api=http://wiki.domain.org/w/api.php --xml --images`
 
-`poetry run python dumpgenerator --api=http://wiki.domain.org/w/api.php --index=http://wiki.domain.org/w/index.php --xml --images`
+`poetry run python dumpgenerator.py --api=http://wiki.domain.org/w/api.php --index=http://wiki.domain.org/w/index.php --xml --images`
 
 If you only want the XML histories, just use `--xml`. For only the images, just `--images`. For only the current version of every page, `--xml --curonly`.
 
 You can resume an aborted download:
 
-`poetry run python dumpgenerator --api=http://wiki.domain.org/w/api.php --xml --images --resume --path=/path/to/incomplete-dump`
+`poetry run python dumpgenerator.py --api=http://wiki.domain.org/w/api.php --xml --images --resume --path=/path/to/incomplete-dump`
 
 See more options:
 
-`poetry run python dumpgenerator --help`
+`poetry run python dumpgenerator.py --help`
 
 ### Download Wikimedia dumps
 
 To download [Wikimedia XML dumps](http://dumps.wikimedia.org/backup-index.html) (Wikipedia, Wikibooks, Wikinews, etc) you can run:
 
-`poetry run python wikipediadownloader` (download all projects)
+`poetry run python wikipediadownloader.py` (download all projects)
 
 See more options:
 
-`poetry run python wikipediadownloader --help`
+`poetry run python wikipediadownloader.py --help`
 
 ### Download Wikimedia Commons images
 
@@ -82,6 +82,8 @@ There is a script for this, but we have [uploaded the tarballs](https://archive.
 ## Developers
 
 [![Build Status](https://travis-ci.org/WikiTeam/wikiteam.svg)](https://travis-ci.org/WikiTeam/wikiteam)
+
+> **Note:** Tests are not currently working. These instructions will be updated ASAP.
 
 You can run tests easily by using the [tox](https://pypi.python.org/pypi/tox) command.  It is probably already present in your operating system, you would need version 1.6.  If it is not, you can download it from pypi with: `pip install tox`.
 
