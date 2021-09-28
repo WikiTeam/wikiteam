@@ -81,7 +81,7 @@ def truncateFilename(other={}, filename=""):
 def delay(config={}, session=None):
     """Add a delay if configured for that"""
     if config["delay"] > 0:
-        print("Sleeping... %d seconds..." % (config["delay"]))
+        print("Sleeping... %.2f seconds..." % (config["delay"]))
         time.sleep(config["delay"])
 
 
