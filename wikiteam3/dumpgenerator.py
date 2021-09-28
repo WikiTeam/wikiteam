@@ -2261,7 +2261,7 @@ def checkIndex(index=None, cookies=None, session=None):
         print("Looks like the page called Index.php, not index.php itself")
         return False
     if re.search(
-        '(This wiki is powered by|<h2 id="mw-version-license">|meta name="generator" content="MediaWiki)',
+        '(This wiki is powered by|<h2 id="mw-version-license">|meta name="generator" content="MediaWiki|class="mediawiki)',
         raw,
     ):
         return True
@@ -2635,7 +2635,7 @@ def getWikiEngine(url=""):
     ):
         wikiengine = "DokuWiki"
     elif re.search(
-        '(?im)(alt="Powered by MediaWiki"|<meta name="generator" content="MediaWiki)',
+        '(?im)(alt="Powered by MediaWiki"|<meta name="generator" content="MediaWiki|class="mediawiki)',
         result,
     ):
         wikiengine = "MediaWiki"
