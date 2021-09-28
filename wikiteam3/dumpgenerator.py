@@ -849,7 +849,7 @@ def generateXMLDump(config={}, titles=[], start=None, session=None):
             # requested complete xml dump
             lock = False
             xmlfile = open("%s/%s" % (config["path"], xmlfilename), "w")
-            xmlfile.write(bytes(header, 'utf-8'))
+            xmlfile.write(header)
             xmlfile.close()
 
         xmlfile = open("%s/%s" % (config["path"], xmlfilename), "a")
@@ -867,7 +867,7 @@ def generateXMLDump(config={}, titles=[], start=None, session=None):
             try:
                 for xml in getXMLPage(config=config, title=title, session=session):
                     xml = cleanXML(xml=xml)
-                    xmlfile.write(bytes(str(xml), 'utf-8'))
+                    xmlfile.write(str(xml))
             except PageMissingError:
                 logerror(
                     config=config,
