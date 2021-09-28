@@ -415,7 +415,7 @@ def getPageTitles(config={}, session=None):
     # TODO: Sort to remove dupes? In CZ, Widget:AddThis appears two times:
     # main namespace and widget namespace.
     # We can use sort -u in UNIX, but is it worth it?
-    titlesfile.write(u"--END--\n")
+    titlesfile.write("--END--\n")
     titlesfile.close()
     print("Titles saved at...", titlesfilename)
 
@@ -590,7 +590,7 @@ def logerror(config={}, text=""):
                 datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 text,
             )
-            outfile.write(str(output))
+            outfile.write(bytes(str(output), 'utf-8'))
 
 
 def getXMLPageCore(headers={}, params={}, config={}, session=None):
@@ -819,7 +819,7 @@ def generateXMLDump(config={}, titles=[], start=None, session=None):
         else:
             print("Retrieving the XML for every page from the beginning")
             xmlfile = open("%s/%s" % (config["path"], xmlfilename), "wb")
-            xmlfile.write(header)
+            xmlfile.write(bytes(header, 'utf-8'))
         try:
             r_timestamp = "<timestamp>([^<]+)</timestamp>"
             for xml in getXMLRevisions(config=config, session=session, start=start):
@@ -828,7 +828,7 @@ def generateXMLDump(config={}, titles=[], start=None, session=None):
                 # TODO: get the page title and reuse the usual format "X title, y edits"
                 print("        %d more revisions exported" % numrevs)
                 xml = cleanXML(xml=xml)
-                xmlfile.write(str(xml))
+                xmlfile.write(bytes(str(xml), 'utf-8'))
         except AttributeError as e:
             print(e)
             print("This API library version is not working")
@@ -849,7 +849,7 @@ def generateXMLDump(config={}, titles=[], start=None, session=None):
             # requested complete xml dump
             lock = False
             xmlfile = open("%s/%s" % (config["path"], xmlfilename), "w")
-            xmlfile.write(header)
+            xmlfile.write(bytes(header, 'utf-8'))
             xmlfile.close()
 
         xmlfile = open("%s/%s" % (config["path"], xmlfilename), "a")
@@ -867,7 +867,7 @@ def generateXMLDump(config={}, titles=[], start=None, session=None):
             try:
                 for xml in getXMLPage(config=config, title=title, session=session):
                     xml = cleanXML(xml=xml)
-                    xmlfile.write(str(xml))
+                    xmlfile.write(bytes(str(xml), 'utf-8'))
             except PageMissingError:
                 logerror(
                     config=config,
@@ -880,7 +880,7 @@ def generateXMLDump(config={}, titles=[], start=None, session=None):
             # (logged in errors log)
             c += 1
 
-    xmlfile.write(footer)
+    xmlfile.write(bytes(footer, 'utf-8'))
     xmlfile.close()
     print("XML dump saved at...", xmlfilename)
 
@@ -1333,16 +1333,19 @@ def saveImageNames(config={}, images=[], session=None):
     imagesfilename = "%s-%s-images.txt" % (domain2prefix(config=config), config["date"])
     imagesfile = open("%s/%s" % (config["path"], imagesfilename), "w")
     imagesfile.write(
-        (
-            "\n".join(
-                [
-                    "%s\t%s\t%s" % str(filename, url, uploader)
-                    for filename, url, uploader in images
-                ]
-            )
+        bytes(
+            (
+                "\n".join(
+                    [
+                        "%s\t%s\t%s" % str(filename, url, uploader)
+                        for filename, url, uploader in images
+                    ]
+                )
+            ),
+            'utf-8'
         )
     )
-    imagesfile.write("\n--END--")
+    imagesfile.write(bytes("\n--END--", 'utf-8'))
     imagesfile.close()
 
     print("Image filenames and URLs saved at...", imagesfilename)
@@ -1693,7 +1696,7 @@ def generateImageDump(config={}, other={}, images=[], start="", session=None):
                 config=config, text=u"File %s at URL %s is missing" % (filename2, url)
             )
 
-        imagefile.write(r.content)
+        imagefile.write(bytes(r.content, 'utf-8'))
         imagefile.close()
         # saving description if any
         try:
@@ -1730,7 +1733,7 @@ def generateImageDump(config={}, other={}, images=[], start="", session=None):
         if xmlfiledesc != "" and not re.search(r"</mediawiki>", xmlfiledesc):
             xmlfiledesc += "</mediawiki>"
 
-        f.write(str(xmlfiledesc))
+        f.write(bytes(str(xmlfiledesc), 'utf-8'))
         f.close()
         delay(config=config, session=session)
         c += 1
@@ -1843,12 +1846,20 @@ def welcome():
 
 def bye():
     """Closing message"""
+    print("")
     print("---> Congratulations! Your dump is complete <---")
-    print(
-        "If you found any bug, report a new issue here: https://github.com/WikiTeam/wikiteam/issues"
-        "If this is a public wiki, please, consider publishing this dump. Do it yourself as explained in https://github.com/WikiTeam/wikiteam/wiki/Tutorial#Publishing_the_dump or contact us at https://github.com/WikiTeam/wikiteam"
-    )
+    print("")
+    print("If you found any bug, report a new issue here:")
+    print("  https://github.com/WikiTeam/wikiteam/issues")
+    print("")
+    print("If this is a public wiki, please, consider publishing this dump.")
+    print("Do it yourself as explained in:")
+    print("  https://github.com/WikiTeam/wikiteam/wiki/Tutorial#Publishing_the_dump")
+    print("Or contact us at:")
+    print("  https://github.com/WikiTeam/wikiteam")
+    print("")
     print("Good luck! Bye!")
+    print("")
 
 
 def getParameters(params=[]):
@@ -2515,7 +2526,7 @@ def saveSpecialVersion(config={}, session=None):
         delay(config=config, session=session)
         raw = removeIP(raw=raw)
         with open("%s/Special:Version.html" % (config["path"]), "wb") as outfile:
-            outfile.write(raw)
+            outfile.write(bytes(raw, 'utf-8'))
 
 
 def saveIndexPHP(config={}, session=None):
@@ -2530,7 +2541,7 @@ def saveIndexPHP(config={}, session=None):
         delay(config=config, session=session)
         raw = removeIP(raw=raw)
         with open("%s/index.html" % (config["path"]), "wb") as outfile:
-            outfile.write(raw)
+            outfile.write(bytes(raw, 'utf-8'))
 
 
 def saveSiteInfo(config={}, session=None):
