@@ -101,7 +101,7 @@ def cleanHTML(raw=""):
         )[0]
     elif re.search("<!-- content -->", raw):
         raw = raw.split("<!-- content -->")[1].split("<!-- mw_content -->")[0]
-    elif re.search('<article id="WikiaMainContent" class="WikiaMainContent">', raw):
+    elif re.search(r'<article id="WikiaMainContent" class="WikiaMainContent">', raw):
         raw = raw.split('<article id="WikiaMainContent" class="WikiaMainContent">')[
             1
         ].split("</article>")[0]
@@ -161,7 +161,7 @@ def getNamespacesScraper(config={}, session=None):
 
         # [^>]*? to include selected="selected"
         m = re.compile(
-            '<option [^>]*?value="(?P<namespaceid>\d+)"[^>]*?>(?P<namespacename>[^<]+)</option>'
+            r'<option [^>]*?value="(?P<namespaceid>\d+)"[^>]*?>(?P<namespacename>[^<]+)</option>'
         ).finditer(raw)
         if "all" in namespaces:
             namespaces = []
@@ -1393,7 +1393,7 @@ def getImageNamesScraper(config={}, session=None):
     """Retrieve file list: filename, url, uploader"""
 
     # (?<! http://docs.python.org/library/re.html
-    r_next = "(?<!&amp;dir=prev)&amp;offset=(?P<offset>\d+)&amp;"
+    r_next = r"(?<!&amp;dir=prev)&amp;offset=(?P<offset>\d+)&amp;"
     images = []
     offset = "29990101000000"  # january 1, 2999
     limit = 5000
@@ -1435,21 +1435,21 @@ def getImageNamesScraper(config={}, session=None):
         # href="/w/index.php?title=Usuario:Fernandocg&amp;action=edit&amp;redlink=1"
         # class="new" title="Usuario:Fernandocg (página no
         # existe)">Fernandocg</a></td>
-        r_images1 = '(?im)<td class="TablePager_col_img_name"><a href[^>]+title="[^:>]+:(?P<filename>[^>]+)">[^<]+</a>[^<]+<a href="(?P<url>[^>]+/[^>/]+)">[^<]+</a>[^<]+</td>\s*<td class="TablePager_col_img_user_text"><a[^>]+>(?P<uploader>[^<]+)</a></td>'
+        r_images1 = r'(?im)<td class="TablePager_col_img_name"><a href[^>]+title="[^:>]+:(?P<filename>[^>]+)">[^<]+</a>[^<]+<a href="(?P<url>[^>]+/[^>/]+)">[^<]+</a>[^<]+</td>\s*<td class="TablePager_col_img_user_text"><a[^>]+>(?P<uploader>[^<]+)</a></td>'
         # wikijuegos 1.9.5
         # http://softwarelibre.uca.es/wikijuegos/Especial:Imagelist old
         # mediawiki version
-        r_images2 = '(?im)<td class="TablePager_col_links"><a href[^>]+title="[^:>]+:(?P<filename>[^>]+)">[^<]+</a>[^<]+<a href="(?P<url>[^>]+/[^>/]+)">[^<]+</a></td>\s*<td class="TablePager_col_img_timestamp">[^<]+</td>\s*<td class="TablePager_col_img_name">[^<]+</td>\s*<td class="TablePager_col_img_user_text"><a[^>]+>(?P<uploader>[^<]+)</a></td>'
+        r_images2 = r'(?im)<td class="TablePager_col_links"><a href[^>]+title="[^:>]+:(?P<filename>[^>]+)">[^<]+</a>[^<]+<a href="(?P<url>[^>]+/[^>/]+)">[^<]+</a></td>\s*<td class="TablePager_col_img_timestamp">[^<]+</td>\s*<td class="TablePager_col_img_name">[^<]+</td>\s*<td class="TablePager_col_img_user_text"><a[^>]+>(?P<uploader>[^<]+)</a></td>'
         # gentoowiki 1.18
-        r_images3 = '(?im)<td class="TablePager_col_img_name"><a[^>]+title="[^:>]+:(?P<filename>[^>]+)">[^<]+</a>[^<]+<a href="(?P<url>[^>]+)">[^<]+</a>[^<]+</td><td class="TablePager_col_thumb"><a[^>]+><img[^>]+></a></td><td class="TablePager_col_img_size">[^<]+</td><td class="TablePager_col_img_user_text"><a[^>]+>(?P<uploader>[^<]+)</a></td>'
+        r_images3 = r'(?im)<td class="TablePager_col_img_name"><a[^>]+title="[^:>]+:(?P<filename>[^>]+)">[^<]+</a>[^<]+<a href="(?P<url>[^>]+)">[^<]+</a>[^<]+</td><td class="TablePager_col_thumb"><a[^>]+><img[^>]+></a></td><td class="TablePager_col_img_size">[^<]+</td><td class="TablePager_col_img_user_text"><a[^>]+>(?P<uploader>[^<]+)</a></td>'
         # http://www.memoryarchive.org/en/index.php?title=Special:Imagelist&sort=byname&limit=50&wpIlMatch=
         # (<a href="/en/Image:109_0923.JPG" title="Image:109 0923.JPG">desc</a>) <a href="/en/upload/c/cd/109_0923.JPG">109 0923.JPG</a> . . 885,713 bytes . . <a href="/en/User:Bfalconer" title="User:Bfalconer">Bfalconer</a> . . 18:44, 17 November 2005<br />
         r_images4 = '(?im)<a href=[^>]+ title="[^:>]+:(?P<filename>[^>]+)">[^<]+</a>[^<]+<a href="(?P<url>[^>]+)">[^<]+</a>[^<]+<a[^>]+>(?P<uploader>[^<]+)</a>'
         r_images5 = (
-            '(?im)<td class="TablePager_col_img_name">\s*<a href[^>]*?>(?P<filename>[^>]+)</a>\s*\(<a href="(?P<url>[^>]+)">[^<]*?</a>\s*\)\s*</td>\s*'
-            '<td class="TablePager_col_thumb">[^\n\r]*?</td>\s*'
-            '<td class="TablePager_col_img_size">[^<]*?</td>\s*'
-            '<td class="TablePager_col_img_user_text">\s*(<a href="[^>]*?" title="[^>]*?">)?(?P<uploader>[^<]+?)(</a>)?\s*</td>'
+            r'(?im)<td class="TablePager_col_img_name">\s*<a href[^>]*?>(?P<filename>[^>]+)</a>\s*\(<a href="(?P<url>[^>]+)">[^<]*?</a>\s*\)\s*</td>\s*'
+            r'<td class="TablePager_col_thumb">[^\n\r]*?</td>\s*'
+            r'<td class="TablePager_col_img_size">[^<]*?</td>\s*'
+            r'<td class="TablePager_col_img_user_text">\s*(<a href="[^>]*?" title="[^>]*?">)?(?P<uploader>[^<]+?)(</a>)?\s*</td>'
         )
 
         # Select the regexp that returns more results
@@ -2075,7 +2075,7 @@ def getParameters(params=[]):
     # Process namespace inclusions
     if args.namespaces:
         # fix, why - ?  and... --namespaces= all with a space works?
-        if re.search("[^\d, \-]", args.namespaces) and args.namespaces.lower() != "all":
+        if re.search(r"[^\d, \-]", args.namespaces) and args.namespaces.lower() != "all":
             print(
                 "Invalid namespace values.\nValid format is integer(s) separated by commas"
             )
@@ -2271,7 +2271,7 @@ def removeIP(raw=""):
     # http://www.juniper.net/techpubs/software/erx/erx50x/swconfig-routing-vol1/html/ipv6-config5.html
     # weird cases as :: are not included
     raw = re.sub(
-        "(?i)[\da-f]{0,4}:[\da-f]{0,4}:[\da-f]{0,4}:[\da-f]{0,4}:[\da-f]{0,4}:[\da-f]{0,4}:[\da-f]{0,4}:[\da-f]{0,4}",
+        r"(?i)[\da-f]{0,4}:[\da-f]{0,4}:[\da-f]{0,4}:[\da-f]{0,4}:[\da-f]{0,4}:[\da-f]{0,4}:[\da-f]{0,4}:[\da-f]{0,4}",
         "0:0:0:0:0:0:0:0",
         raw,
     )
@@ -2605,7 +2605,7 @@ def avoidWikimediaProjects(config={}, other={}):
     if config["index"]:
         url = url + config["index"]
     if re.findall(
-        "(?i)(wikipedia|wikisource|wiktionary|wikibooks|wikiversity|wikimedia|wikispecies|wikiquote|wikinews|wikidata|wikivoyage)\.org",
+        r"(?i)(wikipedia|wikisource|wiktionary|wikibooks|wikiversity|wikimedia|wikispecies|wikiquote|wikinews|wikidata|wikivoyage)\.org",
         url,
     ):
         print("PLEASE, DO NOT USE THIS SCRIPT TO DOWNLOAD WIKIMEDIA PROJECTS!")
@@ -2651,84 +2651,84 @@ def getWikiEngine(url=""):
     ):
         wikiengine = "PhpWiki"
     elif re.search(
-        '(?im)(<meta name="generator" content="Tiki Wiki|Powered by <a href="http://(www\.)?tiki\.org"| id="tiki-(top|main)")',
+        r'(?im)(<meta name="generator" content="Tiki Wiki|Powered by <a href="http://(www\.)?tiki\.org"| id="tiki-(top|main)")',
         result,
     ):
         wikiengine = "TikiWiki"
     elif re.search(
-        '(?im)(foswikiNoJs|<meta name="foswiki\.|foswikiTable|foswikiContentFooter)',
+        r'(?im)(foswikiNoJs|<meta name="foswiki\.|foswikiTable|foswikiContentFooter)',
         result,
     ):
         wikiengine = "FosWiki"
-    elif re.search('(?im)(<meta http-equiv="powered by" content="MojoMojo)', result):
+    elif re.search(r'(?im)(<meta http-equiv="powered by" content="MojoMojo)', result):
         wikiengine = "MojoMojo"
     elif re.search(
-        '(?im)(id="xwiki(content|nav_footer|platformversion|docinfo|maincontainer|data)|/resources/js/xwiki/xwiki|XWiki\.webapppath)',
+        r'(?im)(id="xwiki(content|nav_footer|platformversion|docinfo|maincontainer|data)|/resources/js/xwiki/xwiki|XWiki\.webapppath)',
         result,
     ):
         wikiengine = "XWiki"
-    elif re.search('(?im)(<meta id="confluence-(base-url|context-path)")', result):
+    elif re.search(r'(?im)(<meta id="confluence-(base-url|context-path)")', result):
         wikiengine = "Confluence"
-    elif re.search('(?im)(<meta name="generator" content="Banana Dance)', result):
+    elif re.search(r'(?im)(<meta name="generator" content="Banana Dance)', result):
         wikiengine = "Banana Dance"
     elif re.search(
-        '(?im)(Wheeled by <a class="external-link" href="http://www\.wagn\.org">|<body id="wagn">)',
+        r'(?im)(Wheeled by <a class="external-link" href="http://www\.wagn\.org">|<body id="wagn">)',
         result,
     ):
         wikiengine = "Wagn"
-    elif re.search('(?im)(<meta name="generator" content="MindTouch)', result):
+    elif re.search(r'(?im)(<meta name="generator" content="MindTouch)', result):
         wikiengine = "MindTouch"  # formerly DekiWiki
     elif re.search(
-        '(?im)(<div class="wikiversion">\s*(<p>)?JSPWiki|xmlns:jspwiki="http://www\.jspwiki\.org")',
+        r'(?im)(<div class="wikiversion">\s*(<p>)?JSPWiki|xmlns:jspwiki="http://www\.jspwiki\.org")',
         result,
     ):
         wikiengine = "JSPWiki"
     elif re.search(
-        '(?im)(Powered by:?\s*(<br ?/>)?\s*<a href="http://kwiki\.org">|\bKwikiNavigation\b)',
+        r'(?im)(Powered by:?\s*(<br ?/>)?\s*<a href="http://kwiki\.org">|\bKwikiNavigation\b)',
         result,
     ):
         wikiengine = "Kwiki"
-    elif re.search('(?im)(Powered by <a href="http://www\.anwiki\.com")', result):
+    elif re.search(r'(?im)(Powered by <a href="http://www\.anwiki\.com")', result):
         wikiengine = "Anwiki"
     elif re.search(
         '(?im)(<meta name="generator" content="Aneuch|is powered by <em>Aneuch</em>|<!-- start of Aneuch markup -->)',
         result,
     ):
         wikiengine = "Aneuch"
-    elif re.search('(?im)(<meta name="generator" content="bitweaver)', result):
+    elif re.search(r'(?im)(<meta name="generator" content="bitweaver)', result):
         wikiengine = "bitweaver"
-    elif re.search('(?im)(powered by <a href="[^"]*\bzwiki.org(/[^"]*)?">)', result):
+    elif re.search(r'(?im)(powered by <a href="[^"]*\bzwiki.org(/[^"]*)?">)', result):
         wikiengine = "Zwiki"
     # WakkaWiki forks
     elif re.search(
-        '(?im)(<meta name="generator" content="WikkaWiki|<a class="ext" href="(http://wikka\.jsnx\.com/|http://wikkawiki\.org/)">)',
+        r'(?im)(<meta name="generator" content="WikkaWiki|<a class="ext" href="(http://wikka\.jsnx\.com/|http://wikkawiki\.org/)">)',
         result,
     ):
         wikiengine = "WikkaWiki"  # formerly WikkaWakkaWiki
-    elif re.search('(?im)(<meta name="generator" content="CoMa Wiki)', result):
+    elif re.search(r'(?im)(<meta name="generator" content="CoMa Wiki)', result):
         wikiengine = "CoMaWiki"
-    elif re.search('(?im)(Fonctionne avec <a href="http://www\.wikini\.net)', result):
+    elif re.search(r'(?im)(Fonctionne avec <a href="http://www\.wikini\.net)', result):
         wikiengine = "WikiNi"
-    elif re.search('(?im)(Powered by <a href="[^"]*CitiWiki">CitiWiki</a>)', result):
+    elif re.search(r'(?im)(Powered by <a href="[^"]*CitiWiki">CitiWiki</a>)', result):
         wikiengine = "CitiWiki"
     elif re.search(
-        '(?im)(Powered by <a href="http://wackowiki\.com/|title="WackoWiki")', result
+        r'(?im)(Powered by <a href="http://wackowiki\.com/|title="WackoWiki")', result
     ):
         wikiengine = "WackoWiki"
-    elif re.search('(?im)(Powered by <a href="http://www\.wakkawiki\.com)', result):
+    elif re.search(r'(?im)(Powered by <a href="http://www\.wakkawiki\.com)', result):
         # This may not work for heavily modded/themed installations, e.g.
         # http://operawiki.info/
         wikiengine = "WakkaWiki"
     # Custom wikis used by wiki farms
-    elif re.search('(?im)(var wikispaces_page|<div class="WikispacesContent)', result):
+    elif re.search(r'(?im)(var wikispaces_page|<div class="WikispacesContent)', result):
         wikiengine = "Wikispaces"
     elif re.search(
-        '(?im)(Powered by <a href="http://www\.wikidot\.com">|wikidot-privacy-button-hovertip|javascript:WIKIDOT\.page)',
+        r'(?im)(Powered by <a href="http://www\.wikidot\.com">|wikidot-privacy-button-hovertip|javascript:WIKIDOT\.page)',
         result,
     ):
         wikiengine = "Wikidot"
     elif re.search(
-        "(?im)(IS_WETPAINT_USER|wetpaintLoad|WPC-bodyContentContainer)", result
+        r"(?im)(IS_WETPAINT_USER|wetpaintLoad|WPC-bodyContentContainer)", result
     ):
         wikiengine = "Wetpaint"
     elif re.search(
@@ -2753,7 +2753,7 @@ def mwGetAPIAndIndex(url=""):
 
     # API
     m = re.findall(
-        '(?im)<\s*link\s*rel="EditURI"\s*type="application/rsd\+xml"\s*href="([^>]+?)\?action=rsd"\s*/\s*>',
+        r'(?im)<\s*link\s*rel="EditURI"\s*type="application/rsd\+xml"\s*href="([^>]+?)\?action=rsd"\s*/\s*>',
         result,
     )
     if m:
@@ -2765,13 +2765,13 @@ def mwGetAPIAndIndex(url=""):
 
     # Index.php
     m = re.findall(
-        '<li id="ca-viewsource"[^>]*?>\s*(?:<span>)?\s*<a href="([^\?]+?)\?', result
+        r'<li id="ca-viewsource"[^>]*?>\s*(?:<span>)?\s*<a href="([^\?]+?)\?', result
     )
     if m:
         index = m[0]
     else:
         m = re.findall(
-            '<li id="ca-history"[^>]*?>\s*(?:<span>)?\s*<a href="([^\?]+?)\?', result
+            r'<li id="ca-history"[^>]*?>\s*(?:<span>)?\s*<a href="([^\?]+?)\?', result
         )
         if m:
             index = m[0]
@@ -2780,8 +2780,8 @@ def mwGetAPIAndIndex(url=""):
             index = "/".join(api.split("/")[:-1]) + "/" + index.split("/")[-1]
     else:
         if api:
-            if len(re.findall("/index\.php5\?", result)) > len(
-                re.findall("/index\.php\?", result)
+            if len(re.findall(r"/index\.php5\?", result)) > len(
+                re.findall(r"/index\.php\?", result)
             ):
                 index = "/".join(api.split("/")[:-1]) + "/index.php5"
             else:

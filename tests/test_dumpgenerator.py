@@ -17,7 +17,7 @@
 
 import datetime
 import os
-# import urllib
+import urllib
 import tempfile
 import time
 import unittest
@@ -27,7 +27,7 @@ from hashlib import md5
 
 import requests
 
-from dumpgenerator import (delay, domain2prefix, getImageNames, getPageTitles,
+from wikiteam3.dumpgenerator import (delay, domain2prefix, getImageNames, getPageTitles,
                            getUserAgent, getWikiEngine, mwGetAPIAndIndex)
 
 
@@ -97,7 +97,7 @@ class TestDumpgenerator(unittest.TestCase):
                 "date": "20150807",
             }
             config_api["path"] = tempfile.mkdtemp()
-            r = requests.get(
+            req = requests.get(
                 url=api,
                 data=
                     {
@@ -107,14 +107,11 @@ class TestDumpgenerator(unittest.TestCase):
                         "format": "json",
                     }
 
-                # headers={"User-Agent": getUserAgent()},
+                ,headers={"User-Agent": getUserAgent()},
             )
-            # f = urllib.request.urlopen(req)
-            print(r)
-            import sys
-            sys.exit(1)
+            f = urllib.request.urlopen(req)
             imagecount = int(r.json()["query"]["statistics"]["images"])
-            # f.close()
+            f.close()
 
             print("Trying to parse", filetocheck, "with API")
             result_api = getImageNames(config=config_api, session=session)

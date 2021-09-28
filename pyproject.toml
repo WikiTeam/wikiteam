@@ -40,14 +40,14 @@ classifiers = [
     "Topic :: Utilities"
 ]
 packages = [
-    { include = "dumpgenerator.py"},
-    { include = "gui.py"},
-    { include = "launcher.py"},
-    { include = "not-archived.py"},
-    { include = "uploader.py"},
-    { include = "wikiadownloader.py"},
-    { include = "wikipediadownloader.py"},
-    { include = "wikispaces.py"}
+    { include = "wikiteam3/dumpgenerator.py"},
+    { include = "wikiteam3/gui.py"},
+    { include = "wikiteam3/launcher.py"},
+    { include = "wikiteam3/not-archived.py"},
+    { include = "wikiteam3/uploader.py"},
+    { include = "wikiteam3/wikiadownloader.py"},
+    { include = "wikiteam3/wikipediadownloader.py"},
+    { include = "wikiteam3/wikispaces.py"}
 ]
 
 [tool.poetry.dependencies]
@@ -64,8 +64,7 @@ wikitools3 = "^3.0.0"
 pymysql = "*"
 
 [tool.poetry.dev-dependencies]
-tox = "^3.24.4"
-nose = "^1.3.7"
+pytest = "^6.2.5"
 requests = "^2.26.0"
 
 [build-system]
