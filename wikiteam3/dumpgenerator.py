@@ -880,7 +880,7 @@ def generateXMLDump(config={}, titles=[], start=None, session=None):
             # (logged in errors log)
             c += 1
 
-    xmlfile.write(bytes(footer, 'utf-8'))
+    xmlfile.write(footer)
     xmlfile.close()
     print("XML dump saved at...", xmlfilename)
 
