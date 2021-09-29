@@ -1,0 +1,83 @@
+[tool.poetry]
+name = "wikiteam3"
+version = "3.0.0"
+description = "Tools for downloading and preserving wikis. We archive wikis, from Wikipedia to tiniest wikis. As of 2020, WikiTeam has preserved more than 250,000 wikis."
+license = "GPL-3.0-or-later"
+authors = ["WikiTeam Contributors <https://github.com/WikiTeam/wikiteam/graphs/contributors>"]
+maintainers = [
+    "Federico Leva <https://github.com/nemobis>",
+    "Elsie Hupp <https://github.com/elsiehupp>"
+]
+readme = "README.md"
+homepage = "https://wiki.archiveteam.org/index.php/WikiTeam"
+repository = "https://github.com/WikiTeam/wikiteam"
+documentation = "https://wikiteam.readthedocs.io"
+keywords = [
+    "archiveteam",
+    "mediawiki",
+    "preservation",
+    "wiki",
+    "wikipedia"
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Intended Audience :: Education",
+    "Intended Audience :: End Users/Desktop",
+    "Intended Audience :: Information Technology",
+    "Intended Audience :: Legal Industry",
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: System Administrators",
+    "Natural Language :: English",
+    "Operating System :: OS Independent",
+    "Topic :: Communications",
+    "Topic :: Internet",
+    "Topic :: Internet :: WWW/HTTP :: Dynamic Content :: Wiki",
+    "Topic :: Scientific/Engineering :: Information Analysis",
+    "Topic :: Sociology :: History",
+    "Topic :: System :: Archiving",
+    "Topic :: System :: Archiving :: Backup",
+    "Topic :: Utilities"
+]
+packages = [
+    { include = "wikiteam3/dumpgenerator/*"},
+    # { include = "wikiteam3/gui.py"},
+    # { include = "wikiteam3/launcher.py"},
+    # { include = "wikiteam3/not-archived.py"},
+    # { include = "wikiteam3/uploader.py"},
+    # { include = "wikiteam3/wikiadownloader.py"},
+    # { include = "wikiteam3/wikipediadownloader.py"},
+    # { include = "wikiteam3/wikispaces.py"}
+]
+
+[tool.poetry.scripts]
+dumpgenerator = "wikiteam3.dumpgenerator:main"
+# gui = "wikiteam3.gui:main"
+# launcher = "wikiteam3.launcher:main"
+# not-archived = "wikiteam3.not-archived:main"
+# uploader = "wikiteam3.uploader:main"
+# wikiadownloader = "wikiteam3.wikiadownloader:main"
+# wikipediadownloader = "wikiteam3.wikipediadownloader:main"
+# wikispaces = "wikiteam3.wikispaces:main"
+
+[tool.poetry.dependencies]
+python = "^3.8"
+requests = "^2.26.0"
+argparse = "^1.4.0"
+internetarchive = "^2.1.0"
+lxml = "^4.6.3"
+mwclient = "^0.10.1"
+PyMySQL = "^1.0.2"
+pywikibot = "^6.6.1"
+urllib3 = "^1.26.7"
+wikitools3 = "^3.0.0"
+pymysql = "*"
+
+[tool.poetry.dev-dependencies]
+pytest = "^6.2.5"
+requests = "^2.26.0"
+flake8 = "^3.9.2"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

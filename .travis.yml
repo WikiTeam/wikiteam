@@ -1,8 +1,9 @@
 language: python
-python: 2.7
+python: 3.8
 install:
-  - pip install tox 
+  - pip install poetry
+  - poetry install
 script:
-  - tox
+  - poetry run pytest --verbose -s
 notifications:
   email: false

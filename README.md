@@ -25,49 +25,55 @@ There are [thousands](http://wikiindex.org) of [wikis](https://wikiapiary.com) i
 
 This is a very quick guide for the most used features of WikiTeam tools. For further information, read the [tutorial](https://github.com/WikiTeam/wikiteam/wiki/Tutorial) and the rest of the [documentation](https://github.com/WikiTeam/wikiteam/wiki). You can also ask in the [mailing list](http://groups.google.com/group/wikiteam-discuss).
 
+These instructions assume you will run WikiTeam from a cloned or downloaded copy of this repository. WikiTeam3 may eventually be available from PyPI, in which case the instructions will vary.
+
 ### Requirements
 
-Requires <a href="https://www.python.org/downloads/release/python-278/">Python 2.7</a>.
+Requires <a href="https://www.python.org/downloads/release/python-380/">Python 3.8</a> or later (less than 4.0).
 
 Confirm you satisfy the requirements:
 
-`pip install --upgrade -r requirements.txt`
+`pip install poetry`
 
 or, if you don't have enough permissions for the above,
 
-`pip install --user --upgrade -r requirements.txt`
+`pip install --user poetry`
+
+Once `poetry` is installed, in the `wikiteam3` directory, run:
+
+`poetry install`
 
 ### Download any wiki
 
-To download any wiki, use one of the following options:
+To download any wiki, in the `wikiteam3` directory, use one of the following options:
 
-`python dumpgenerator.py http://wiki.domain.org --xml --images` (complete XML histories and images)
+`poetry run python dumpgenerator.py http://wiki.domain.org --xml --images` (complete XML histories and images)
 
 If the script can't find itself the API and/or index.php paths, then you can provide them:
 
-`python dumpgenerator.py --api=http://wiki.domain.org/w/api.php --xml --images`
+`poetry run python dumpgenerator.py --api=http://wiki.domain.org/w/api.php --xml --images`
 
-`python dumpgenerator.py --api=http://wiki.domain.org/w/api.php --index=http://wiki.domain.org/w/index.php --xml --images`
+`poetry run python dumpgenerator.py --api=http://wiki.domain.org/w/api.php --index=http://wiki.domain.org/w/index.php --xml --images`
 
 If you only want the XML histories, just use `--xml`. For only the images, just `--images`. For only the current version of every page, `--xml --curonly`.
 
 You can resume an aborted download:
 
-`python dumpgenerator.py --api=http://wiki.domain.org/w/api.php --xml --images --resume --path=/path/to/incomplete-dump`
+`poetry run python dumpgenerator.py --api=http://wiki.domain.org/w/api.php --xml --images --resume --path=/path/to/incomplete-dump`
 
 See more options:
 
-`python dumpgenerator.py --help`
+`poetry run python dumpgenerator.py --help`
 
 ### Download Wikimedia dumps
 
 To download [Wikimedia XML dumps](http://dumps.wikimedia.org/backup-index.html) (Wikipedia, Wikibooks, Wikinews, etc) you can run:
 
-`python wikipediadownloader.py` (download all projects)
+`poetry run python wikipediadownloader.py` (download all projects)
 
 See more options:
 
-`python wikipediadownloader.py --help`
+`poetry run python wikipediadownloader.py --help`
 
 ### Download Wikimedia Commons images
 
@@ -76,6 +82,8 @@ There is a script for this, but we have [uploaded the tarballs](https://archive.
 ## Developers
 
 [![Build Status](https://travis-ci.org/WikiTeam/wikiteam.svg)](https://travis-ci.org/WikiTeam/wikiteam)
+
+> **Note:** Tests are not currently working. These instructions will be updated ASAP.
 
 You can run tests easily by using the [tox](https://pypi.python.org/pypi/tox) command.  It is probably already present in your operating system, you would need version 1.6.  If it is not, you can download it from pypi with: `pip install tox`.
 

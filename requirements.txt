@@ -1,5 +1,0 @@
-argparse>=1.2.1
-internetarchive
-kitchen
-mwclient
-requests>=2.3.0

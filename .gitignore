@@ -1,7 +1,5 @@
 *.pyc
-testing/*.pyc
-testing/dumpgenerator.py
-/.tox
+.pytest_cache
 keys.txt
 batchdownload/keys.txt
 batchdownload/dumpgenerator.py
