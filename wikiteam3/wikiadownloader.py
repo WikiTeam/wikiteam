@@ -21,8 +21,10 @@
 import datetime
 import os
 import re
+import ssl
 import sys
-import urllib
+from urllib.error import HTTPError
+import urllib.request
 
 """ 
 instructions: 
@@ -38,25 +40,9 @@ where wikitostartfrom is the last downloaded wiki in the previous session
 
 """
 
-f = open("wikia.com", "r")
-wikia = f.read().strip().split("\n")
-f.close()
-
-print(len(wikia), "wikis in Wikia list")
-
-start = "!"
-if len(sys.argv) > 1:
-    start = sys.argv[1]
-
-for wiki in wikia:
-    wiki = wiki.lower()
-    prefix = wiki.split("http://")[1]
-    if prefix < start:
-        continue
-    sys.stderr.write("Starting:", wiki)
-
-    f = urllib.urlopen("%s/wiki/Special:Statistics" % (wiki))
-    html = f.read()
+def download(wiki):
+    f = urllib.request.urlopen("%s/wiki/Special:Statistics" % (wiki), context=ssl_context)
+    html = str(f.read())
     f.close()
 
     m = re.compile(
@@ -69,7 +55,7 @@ for wiki in wikia:
         date = "%s-%s-%s" % (i.group("year"), i.group("month"), i.group("day"))
         compression = i.group("compression")
 
-        sys.stderr.write("Downloading", wiki, dump.lower())
+        sys.stderr.write("Downloading: ", wiki, dump.lower())
 
         # {"name":"pages_full.xml.gz","timestamp":1273755409,"mwtimestamp":"20100513125649"}
         # {"name":"pages_current.xml.gz","timestamp":1270731925,"mwtimestamp":"20100408130525"}
@@ -87,5 +73,36 @@ for wiki in wikia:
         )
 
     if not m.search(html):
-        sys.stderr.write(sys.stderr, "Failed to download:", wiki)
-        sys.stderr.write(sys.stderr, wiki)
+        print(" error: no dumps available")
+
+ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS or ssl.VERIFY_X509_TRUSTED_FIRST)
+
+f = open("./wikiteam3/listsofwikis/mediawiki/wikia.com", "r")
+wikia = f.read().strip().split("\n")
+f.close()
+
+print(len(wikia), "wikis in Wikia list")
+
+start = "!"
+if len(sys.argv) > 1:
+    start = sys.argv[1]
+
+for wiki in wikia:
+    wiki = wiki.lower()
+    prefix = ""
+    if "http://" in wiki:
+        prefix = wiki.split("http://")[1]
+    else:
+        prefix = wiki.split(".")[0]
+        wiki = "https://" + wiki
+    if prefix < start:
+        continue
+    print("\n<" + prefix + ">")
+    print(" starting...")
+
+    url = "%s/wiki/Special:Statistics" % (wiki)
+    try:
+        download(wiki)
+
+    except HTTPError as err:
+        print(" error: returned " + str(err))

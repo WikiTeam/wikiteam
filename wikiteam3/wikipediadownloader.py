@@ -45,7 +45,7 @@ def main():
         maxretries = int(args.maxretries)
 
     dumpsdomain = "http://dumps.wikimedia.org"
-    f = urllib.urlopen("%s/backup-index.html" % (dumpsdomain))
+    f = urllib.request.urlopen("%s/backup-index.html" % (dumpsdomain))
     raw = f.read()
     f.close()
 
@@ -69,7 +69,7 @@ def main():
 
         print("-" * 50, "\n", "Checking", project, date, "\n", "-" * 50)
         time.sleep(1)  # ctrl-c
-        f = urllib.urlopen("%s/%s/%s/" % (dumpsdomain, project, date))
+        f = urllib.request.urlopen("%s/%s/%s/" % (dumpsdomain, project, date))
         htmlproj = f.read()
         # print (htmlproj)
         f.close()
@@ -107,7 +107,7 @@ def main():
                     )[0]
                     print(md51)
 
-                    f = urllib.urlopen(
+                    f = urllib.request.urlopen(
                         "%s/%s/%s/%s-%s-md5sums.txt"
                         % (dumpsdomain, project, date, project, date)
                     )

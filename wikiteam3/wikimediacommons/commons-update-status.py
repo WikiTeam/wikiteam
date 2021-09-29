@@ -21,7 +21,7 @@ import urllib
 
 def main():
     queryurl = "https://archive.org/advancedsearch.php?q=collection%3Awikimediacommons&fl[]=identifier&sort[]=&sort[]=&sort[]=&rows=1000&page=1&output=json&callback=callback"
-    raw = urllib.urlopen(queryurl).read()
+    raw = urllib.request.urlopen(queryurl).read()
     raw = raw.split("callback(")[1].strip(")")
     result = json.loads(raw)["response"]["docs"]
 

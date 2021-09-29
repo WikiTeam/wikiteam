@@ -22,7 +22,7 @@
 import re
 import subprocess
 
-from wikitools import api, wiki
+from wikitools3 import api, wiki
 
 
 def getlist(wikia, wkfrom=1, wkto=100):
