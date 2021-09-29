@@ -2132,12 +2132,12 @@ def getParameters(params=[]):
 
     # calculating path, if not defined by user with --path=
     if not config["path"]:
-        config["path"] = "../%s-%s-wikidump" % (
+        config["path"] = "./%s-%s-wikidump" % (
             domain2prefix(config=config, session=session),
             config["date"],
         )
         print("No --path argument provided. Defaulting to:")
-        print("  ../[domain_prefix]-[date]-wikidump")
+        print("  [working_directory]/[domain_prefix]-[date]-wikidump")
         print("Which expands to:")
         print("  " + config["path"])
 
