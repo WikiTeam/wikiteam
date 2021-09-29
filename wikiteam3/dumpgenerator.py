@@ -595,7 +595,7 @@ def logerror(config={}, text=""):
                 datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 text,
             )
-            outfile.write(bytes(str(output), "utf-8"))
+            outfile.write(str(output))
 
 
 def getXMLPageCore(headers={}, params={}, config={}, session=None):
@@ -824,7 +824,7 @@ def generateXMLDump(config={}, titles=[], start=None, session=None):
         else:
             print("Retrieving the XML for every page from the beginning")
             xmlfile = open("%s/%s" % (config["path"], xmlfilename), "wb")
-            xmlfile.write(bytes(header, "utf-8"))
+            xmlfile.write(header)
         try:
             r_timestamp = "<timestamp>([^<]+)</timestamp>"
             for xml in getXMLRevisions(config=config, session=session, start=start):
@@ -833,7 +833,7 @@ def generateXMLDump(config={}, titles=[], start=None, session=None):
                 # TODO: get the page title and reuse the usual format "X title, y edits"
                 print("        %d more revisions exported" % numrevs)
                 xml = cleanXML(xml=xml)
-                xmlfile.write(bytes(str(xml), "utf-8"))
+                xmlfile.write(str(xml))
         except AttributeError as e:
             print(e)
             print("This API library version is not working")
@@ -1338,19 +1338,16 @@ def saveImageNames(config={}, images=[], session=None):
     imagesfilename = "%s-%s-images.txt" % (domain2prefix(config=config), config["date"])
     imagesfile = open("%s/%s" % (config["path"], imagesfilename), "w")
     imagesfile.write(
-        bytes(
-            (
-                "\n".join(
-                    [
-                        "%s\t%s\t%s" % str(filename, url, uploader)
-                        for filename, url, uploader in images
-                    ]
-                )
-            ),
-            "utf-8",
+        (
+            "\n".join(
+                [
+                    filename + "\t" + url + "\t" + uploader
+                    for filename, url, uploader in images
+                ]
+            )
         )
     )
-    imagesfile.write(bytes("\n--END--", "utf-8"))
+    imagesfile.write("\n--END--")
     imagesfile.close()
 
     print("Image filenames and URLs saved at...", imagesfilename)
@@ -1693,7 +1690,7 @@ def generateImageDump(config={}, other={}, images=[], start="", session=None):
                 config=config, text=u"File %s at URL %s is missing" % (filename2, url)
             )
 
-        imagefile.write(bytes(r.content, "utf-8"))
+        imagefile.write(r.content)
         imagefile.close()
         # saving description if any
         try:
@@ -1730,7 +1727,7 @@ def generateImageDump(config={}, other={}, images=[], start="", session=None):
         if xmlfiledesc != "" and not re.search(r"</mediawiki>", xmlfiledesc):
             xmlfiledesc += "</mediawiki>"
 
-        f.write(bytes(str(xmlfiledesc), "utf-8"))
+        f.write(str(xmlfiledesc))
         f.close()
         delay(config=config, session=session)
         c += 1
@@ -2530,7 +2527,7 @@ def saveSpecialVersion(config={}, session=None):
         delay(config=config, session=session)
         raw = removeIP(raw=raw)
         with open("%s/Special:Version.html" % (config["path"]), "wb") as outfile:
-            outfile.write(bytes(raw, "utf-8"))
+            outfile.write(raw)
 
 
 def saveIndexPHP(config={}, session=None):
@@ -2545,7 +2542,7 @@ def saveIndexPHP(config={}, session=None):
         delay(config=config, session=session)
         raw = removeIP(raw=raw)
         with open("%s/index.html" % (config["path"]), "wb") as outfile:
-            outfile.write(bytes(raw, "utf-8"))
+            outfile.write(raw)
 
 
 def saveSiteInfo(config={}, session=None):
