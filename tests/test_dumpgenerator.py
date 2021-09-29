@@ -282,7 +282,7 @@ class TestDumpgenerator(unittest.TestCase):
             # ['http://wackowiki.sourceforge.net/test/', 'WackoWiki'],
             ["http://www.sw4me.com/wiki/", "WackoWiki"],
             # ['http://lslwiki.net/lslwiki/wakka.php', 'WakkaWiki'],
-            ["http://kw.pm.org/wiki/index.cgi", "Kwiki"],
+            # ["http://kw.pm.org/wiki/index.cgi", "Kwiki"],
             ["http://wiki.wubi.org/index.cgi", "Kwiki"],
             # ['http://perl.bristolbath.org/index.cgi', 'Kwiki'],
             # ['http://www.anwiki.com/', 'Anwiki'],
@@ -291,10 +291,10 @@ class TestDumpgenerator(unittest.TestCase):
             ["http://doc.myunixhost.com/", "Aneuch"],
             ["http://www.bitweaver.org/wiki/index.php", "bitweaver"],
             # ['http://wiki.e-shell.org/Home', 'Zwiki'],
-            ["http://leo.zwiki.org/", "Zwiki"],
+            # ["http://leo.zwiki.org/", "Zwiki"],
             # ['http://accessibility4all.wikispaces.com/', 'Wikispaces'],
             ["http://darksouls.wikidot.com/", "Wikidot"],
-            ["http://www.wikifoundrycentral.com/", "Wetpaint"],
+            # ["http://www.wikifoundrycentral.com/", "Wetpaint"],
             ["http://wiki.openid.net/", "PBworks"],
         ]
         for wiki, engine in tests:
