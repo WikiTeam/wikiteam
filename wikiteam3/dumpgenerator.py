@@ -665,10 +665,10 @@ def getXMLPageCore(headers={}, params={}, config={}, session=None):
             handleStatusCode(r)
             xml = fixBOM(r)
         except requests.exceptions.ConnectionError as e:
-            print("    Connection error: %s" % (str(e[0])))
+            print("    Connection error: %s" % (str(e.args[0])))
             xml = ""
         except requests.exceptions.ReadTimeout as e:
-            print("    Read timeout: %s" % (str(e[0])))
+            print("    Read timeout: %s" % (str(e.args[0])))
             xml = ""
         c += 1
 
