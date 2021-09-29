@@ -25,7 +25,6 @@ try:
     import http.cookiejar
     import json
     import os
-    import pickle
     import re
     import sys
     import time
@@ -1782,7 +1781,7 @@ def loadConfig(config={}, configfilename=""):
 
     try:
         with open("%s/%s" % (config["path"], configfilename), "r") as infile:
-            config = pickle.load(infile)
+            config = json.load(infile)
     except:
         print("There is no config file. we can't resume. Start a new dump.")
         sys.exit()
@@ -1793,8 +1792,8 @@ def loadConfig(config={}, configfilename=""):
 def saveConfig(config={}, configfilename=""):
     """Save config file"""
 
-    with open("%s/%s" % (config["path"], configfilename), "wb") as outfile:
-        pickle.dump(config, outfile)
+    with open("%s/%s" % (config["path"], configfilename), "w") as outfile:
+        json.dump(config, outfile)
 
 
 def welcome():
@@ -2793,7 +2792,7 @@ def mwGetAPIAndIndex(url=""):
 
 def main(params=[]):
     """Main function"""
-    configfilename = "config.txt"
+    configfilename = "config.json"
     config, other = getParameters(params=params)
     avoidWikimediaProjects(config=config, other=other)
 
