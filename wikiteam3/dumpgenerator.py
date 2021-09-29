@@ -2527,7 +2527,7 @@ def saveSpecialVersion(config={}, session=None):
         delay(config=config, session=session)
         raw = removeIP(raw=raw)
         with open("%s/Special:Version.html" % (config["path"]), "wb") as outfile:
-            outfile.write(raw)
+            outfile.write(bytes(raw, "utf-8"))
 
 
 def saveIndexPHP(config={}, session=None):
@@ -2542,7 +2542,7 @@ def saveIndexPHP(config={}, session=None):
         delay(config=config, session=session)
         raw = removeIP(raw=raw)
         with open("%s/index.html" % (config["path"]), "wb") as outfile:
-            outfile.write(raw)
+            outfile.write(bytes(raw, "utf-8"))
 
 
 def saveSiteInfo(config={}, session=None):
