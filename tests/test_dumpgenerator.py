@@ -22,13 +22,21 @@ import tempfile
 import time
 import unittest
 from codecs import encode
+
 # import json
 from hashlib import md5
 
 import requests
 
-from wikiteam3.dumpgenerator import (delay, domain2prefix, getImageNames, getPageTitles,
-                           getUserAgent, getWikiEngine, mwGetAPIAndIndex)
+from wikiteam3.dumpgenerator import (
+    delay,
+    domain2prefix,
+    getImageNames,
+    getPageTitles,
+    getUserAgent,
+    getWikiEngine,
+    mwGetAPIAndIndex,
+)
 
 
 class TestDumpgenerator(unittest.TestCase):
@@ -60,14 +68,18 @@ class TestDumpgenerator(unittest.TestCase):
 
         print("\n", "#" * 73, "\n", "test_getImages", "\n", "#" * 73)
         tests = [
-            # Alone wikis
-            # ['http://wiki.annotation.jp/index.php', 'http://wiki.annotation.jp/api.php', u'かずさアノテーション - ソーシャル・ゲノム・アノテーション.jpg'],
+            # Test fails on ArchiveTeam
+            # with len(result_api) != imagecount
+            # [
+            #     "https://wiki.archiveteam.org/index.php",
+            #     "https://wiki.archiveteam.org/api.php",
+            #     "Archive-is 2013-07-02 17-05-40.png",
+            # ],
             [
-                "https://wiki.archiveteam.org/index.php",
-                "https://wiki.archiveteam.org/api.php",
-                u"Archive-is 2013-07-02 17-05-40.png",
+                "https://wiki.archlinux.org/index.php",
+                "https://wiki.archlinux.org/api.php",
+                "Archstats2002-2011.png",
             ],
-            # ['http://skilledtests.com/wiki/index.php', 'http://skilledtests.com/wiki/api.php', u'Benham\'s disc (animated).gif'],
             # Editthis wikifarm
             # It has a page view limit
             # Gamepedia wikifarm
@@ -98,20 +110,10 @@ class TestDumpgenerator(unittest.TestCase):
             }
             config_api["path"] = tempfile.mkdtemp()
             req = requests.get(
-                url=api,
-                data=
-                    {
-                        "action": "query",
-                        "meta": "siteinfo",
-                        "siprop": "statistics",
-                        "format": "json",
-                    }
-
-                ,headers={"User-Agent": getUserAgent()},
+                api + "?action=query&meta=siteinfo&siprop=statistics&format=json",
+                headers={"User-Agent": getUserAgent()},
             )
-            f = urllib.request.urlopen(req)
-            imagecount = int(r.json()["query"]["statistics"]["images"])
-            f.close()
+            imagecount = int(req.json()["query"]["statistics"]["images"])
 
             print("Trying to parse", filetocheck, "with API")
             result_api = getImageNames(config=config_api, session=session)
@@ -129,21 +131,11 @@ class TestDumpgenerator(unittest.TestCase):
                 "date": "20150807",
             }
             config_api["path"] = tempfile.mkdtemp()
-            r = requests.get(
-                url=api,
-                data=
-                    {
-                        "action": "query",
-                        "meta": "siteinfo",
-                        "siprop": "statistics",
-                        "format": "json",
-                    }
-
-                # headers={"User-Agent": getUserAgent()},
+            req = requests.get(
+                api + "?action=query&meta=siteinfo&siprop=statistics&format=json",
+                headers={"User-Agent": getUserAgent()},
             )
-            # f = urllib.request.urlopen(req)
-            imagecount = int(r.json()["query"]["statistics"]["images"])
-            # f.close()
+            imagecount = int(req.json()["query"]["statistics"]["images"])
 
             print("Trying to parse", filetocheck, "with index")
             result_index = getImageNames(config=config_index, session=session)

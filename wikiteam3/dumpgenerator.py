@@ -38,11 +38,15 @@ try:
     from lxml import etree
     from lxml.builder import E
 except ImportError:
-    print("Please install the pipenv with $pip install pipenv.")
-    print("Then rerun dumpgenerator.py with $pipenv run python dumpgenerator.py ...")
+    print(
+        """
+        Please install poetry with:
+            $ pip install poetry.
+        Then rerun dumpgenerator.py with:
+            $ poetry run python dumpgenerator.py
+    """
+    )
     sys.exit(1)
-
-
 
 __VERSION__ = "0.4.0-alpha"  # major, minor, micro: semver.org
 
@@ -86,9 +90,10 @@ def delay(config={}, session=None):
 
 
 def cleanHTML(raw=""):
-    """Extract only the real wiki content and remove rubbish"""
-    """This function is ONLY used to retrieve page titles and file names when no API is available"""
-    """DO NOT use this function to extract page content"""
+    """Extract only the real wiki content and remove rubbish
+    This function is ONLY used to retrieve page titles
+    and file names when no API is available
+    DO NOT use this function to extract page content"""
     # different "tags" used by different MediaWiki versions to mark where
     # starts and ends content
     if re.search("<!-- bodytext -->", raw):
@@ -575,8 +580,8 @@ def getUserAgent():
     """Return a cool user-agent to hide Python user-agent"""
     useragents = [
         # firefox
-        #'Mozilla/5.0 (X11; Linux x86_64; rv:72.0) Gecko/20100101 Firefox/72.0',
-        #'Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101 Firefox/68.0',
+        # 'Mozilla/5.0 (X11; Linux x86_64; rv:72.0) Gecko/20100101 Firefox/72.0',
+        # 'Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101 Firefox/68.0',
         "Mozilla/5.0 (Windows NT 10.0; rv:78.0) Gecko/20100101 Firefox/78.0"
     ]
     return useragents[0]
@@ -590,7 +595,7 @@ def logerror(config={}, text=""):
                 datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 text,
             )
-            outfile.write(bytes(str(output), 'utf-8'))
+            outfile.write(bytes(str(output), "utf-8"))
 
 
 def getXMLPageCore(headers={}, params={}, config={}, session=None):
@@ -632,7 +637,7 @@ def getXMLPageCore(headers={}, params={}, config={}, session=None):
             # params['curonly'] should mean that we've already tried this
             # fallback, because it's set by the following if and passed to
             # getXMLPageCore
-            if not config["curonly"] and not "curonly" in params:
+            if not config["curonly"] and "curonly" not in params:
                 print("    Trying to save only the last revision for this page...")
                 params["curonly"] = 1
                 logerror(
@@ -698,7 +703,7 @@ def getXMLPage(config={}, title="", verbose=True, session=None):
     xml = getXMLPageCore(params=params, config=config, session=session)
     if xml == "":
         raise ExportAbortedError(config["index"])
-    if not "</page>" in xml:
+    if "</page>" not in xml:
         raise PageMissingError(params["title"], xml)
     else:
         # strip these sha1s sums which keep showing up in the export and
@@ -819,7 +824,7 @@ def generateXMLDump(config={}, titles=[], start=None, session=None):
         else:
             print("Retrieving the XML for every page from the beginning")
             xmlfile = open("%s/%s" % (config["path"], xmlfilename), "wb")
-            xmlfile.write(bytes(header, 'utf-8'))
+            xmlfile.write(bytes(header, "utf-8"))
         try:
             r_timestamp = "<timestamp>([^<]+)</timestamp>"
             for xml in getXMLRevisions(config=config, session=session, start=start):
@@ -828,7 +833,7 @@ def generateXMLDump(config={}, titles=[], start=None, session=None):
                 # TODO: get the page title and reuse the usual format "X title, y edits"
                 print("        %d more revisions exported" % numrevs)
                 xml = cleanXML(xml=xml)
-                xmlfile.write(bytes(str(xml), 'utf-8'))
+                xmlfile.write(bytes(str(xml), "utf-8"))
         except AttributeError as e:
             print(e)
             print("This API library version is not working")
@@ -894,7 +899,7 @@ def getXMLRevisions(config={}, session=None, allpages=False, start=None):
         apiurl.netloc, apiurl.path.replace("api.php", ""), scheme=apiurl.scheme
     )
 
-    if not "all" in config["namespaces"]:
+    if "all" not in config["namespaces"]:
         namespaces = config["namespaces"]
     else:
         namespaces, namespacenames = getNamespacesAPI(config=config, session=session)
@@ -1112,7 +1117,7 @@ def getXMLRevisions(config={}, session=None, allpages=False, start=None):
                     "action": "query",
                     "titles": "|".join(titlelist),
                     "prop": "revisions",
-                    #'rvlimit': 50,
+                    # 'rvlimit': 50,
                     "rvprop": "ids|timestamp|user|userid|size|sha1|contentmodel|comment|content",
                 }
                 try:
@@ -1342,10 +1347,10 @@ def saveImageNames(config={}, images=[], session=None):
                     ]
                 )
             ),
-            'utf-8'
+            "utf-8",
         )
     )
-    imagesfile.write(bytes("\n--END--", 'utf-8'))
+    imagesfile.write(bytes("\n--END--", "utf-8"))
     imagesfile.close()
 
     print("Image filenames and URLs saved at...", imagesfilename)
@@ -1382,7 +1387,7 @@ def curateImageURL(config={}, url=""):
         # concat http(s) + domain + relative url
         url = u"%s/%s" % (domainalone, url)
     url = undoHTMLEntities(text=url)
-    # url = urllib.unquote(url) #do not use unquote with url, it break some
+    # url = urllib.parse.unquote(url) #do not use unquote with url, it break some
     # urls with odd chars
     url = re.sub(" ", "_", url)
 
@@ -1470,10 +1475,10 @@ def getImageNamesScraper(config={}, session=None):
             url = curateImageURL(config=config, url=url)
             filename = re.sub("_", " ", i.group("filename"))
             filename = undoHTMLEntities(text=filename)
-            filename = urllib.unquote(filename)
+            filename = urllib.parse.unquote(filename)
             uploader = re.sub("_", " ", i.group("uploader"))
             uploader = undoHTMLEntities(text=uploader)
-            uploader = urllib.unquote(uploader)
+            uploader = urllib.parse.unquote(uploader)
             images.append([filename, url, uploader])
             # print (filename, url)
 
@@ -1540,27 +1545,19 @@ def getImageNamesAPI(config={}, session=None):
                 url = curateImageURL(config=config, url=url)
                 # encoding to ascii is needed to work around this horrible bug:
                 # http://bugs.python.org/issue8136
+                # (ascii encoding removed because of the following)
+                #
+                # unquote() no longer supports bytes-like strings
+                # so unicode may require the following workaround:
+                # https://izziswift.com/how-to-unquote-a-urlencoded-unicode-string-in-python/
                 if "api" in config and (
                     ".wikia." in config["api"] or ".fandom.com" in config["api"]
                 ):
-                    # to avoid latest?cb=20120816112532 in filenames
-                    filename = str(
-                        urllib.unquote(
-                            (re.sub("_", " ", url.split("/")[-3])).encode(
-                                "ascii", "ignore"
-                            )
-                        ),
-                        "utf-8",
-                    )
+                    filename = urllib.parse.unquote(re.sub("_", " ", url.split("/")[-3]))
                 else:
-                    filename = str(
-                        urllib.unquote(
-                            (re.sub("_", " ", url.split("/")[-1])).encode(
-                                "ascii", "ignore"
-                            )
-                        ),
-                        "utf-8",
-                    )
+                    filename = urllib.parse.unquote(re.sub("_", " ", url.split("/")[-1]))
+                if u'%u' in filename:
+                    raise NotImplementedError("Filename " + filename + " contains unicode. Please file an issue with WikiTeam.")
                 uploader = re.sub("_", " ", image["user"])
                 images.append([filename, url, uploader])
         else:
@@ -1663,7 +1660,7 @@ def generateImageDump(config={}, other={}, images=[], start="", session=None):
         # saving file
         # truncate filename if length > 100 (100 + 32 (md5) = 132 < 143 (crash
         # limit). Later .desc is added to filename, so better 100 as max)
-        filename2 = urllib.unquote(filename)
+        filename2 = urllib.parse.unquote(filename)
         if len(filename2) > other["filenamelimit"]:
             # split last . (extension) and then merge
             filename2 = truncateFilename(other=other, filename=filename2)
@@ -1696,7 +1693,7 @@ def generateImageDump(config={}, other={}, images=[], start="", session=None):
                 config=config, text=u"File %s at URL %s is missing" % (filename2, url)
             )
 
-        imagefile.write(bytes(r.content, 'utf-8'))
+        imagefile.write(bytes(r.content, "utf-8"))
         imagefile.close()
         # saving description if any
         try:
@@ -1733,7 +1730,7 @@ def generateImageDump(config={}, other={}, images=[], start="", session=None):
         if xmlfiledesc != "" and not re.search(r"</mediawiki>", xmlfiledesc):
             xmlfiledesc += "</mediawiki>"
 
-        f.write(bytes(str(xmlfiledesc), 'utf-8'))
+        f.write(bytes(str(xmlfiledesc), "utf-8"))
         f.close()
         delay(config=config, session=session)
         c += 1
@@ -2075,7 +2072,10 @@ def getParameters(params=[]):
     # Process namespace inclusions
     if args.namespaces:
         # fix, why - ?  and... --namespaces= all with a space works?
-        if re.search(r"[^\d, \-]", args.namespaces) and args.namespaces.lower() != "all":
+        if (
+            re.search(r"[^\d, \-]", args.namespaces)
+            and args.namespaces.lower() != "all"
+        ):
             print(
                 "Invalid namespace values.\nValid format is integer(s) separated by commas"
             )
@@ -2530,7 +2530,7 @@ def saveSpecialVersion(config={}, session=None):
         delay(config=config, session=session)
         raw = removeIP(raw=raw)
         with open("%s/Special:Version.html" % (config["path"]), "wb") as outfile:
-            outfile.write(bytes(raw, 'utf-8'))
+            outfile.write(bytes(raw, "utf-8"))
 
 
 def saveIndexPHP(config={}, session=None):
@@ -2545,7 +2545,7 @@ def saveIndexPHP(config={}, session=None):
         delay(config=config, session=session)
         raw = removeIP(raw=raw)
         with open("%s/index.html" % (config["path"]), "wb") as outfile:
-            outfile.write(bytes(raw, 'utf-8'))
+            outfile.write(bytes(raw, "utf-8"))
 
 
 def saveSiteInfo(config={}, session=None):
