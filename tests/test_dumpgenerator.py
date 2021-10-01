@@ -342,7 +342,7 @@ class TestDumpgenerator(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    # copying dumpgenerator.py to this directory
-    # shutil.copy2('../dumpgenerator.py', './dumpgenerator.py')
+    # copying py to this directory
+    # shutil.copy2('../py', './py')
 
     unittest.main()

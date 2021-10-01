@@ -42,7 +42,7 @@ def main():
         print("#" * 73)
         wiki = wiki.lower()
         # Make the prefix in standard way; api and index must be defined, not important which is which
-        prefix = dumpgenerator.domain2prefix(config={"api": wiki, "index": wiki})
+        prefix = domain2prefix(config={"api": wiki, "index": wiki})
 
         # check if compressed, in that case dump was finished previously
         compressed = False
@@ -87,7 +87,7 @@ def main():
                 break  # stop searching, dot not explore subdirectories
 
         # time.sleep(60)
-        # Uncomment what above and add --delay=60 in the dumpgenerator.py calls below for broken wiki farms
+        # Uncomment what above and add --delay=60 in the py calls below for broken wiki farms
         # such as editthis.info, wiki-site.com, wikkii (adjust the value as needed;
         # typically they don't provide any crawl-delay value in their robots.txt).
         if started and wikidir:  # then resume
@@ -95,7 +95,7 @@ def main():
             subprocess.call(
                 [
                     "python3",
-                    "dumpgenerator.py",
+                    "py",
                     "--api={}".format(wiki),
                     "--xml",
                     "--images",
@@ -108,7 +108,7 @@ def main():
             subprocess.call(
                 [
                     "python3",
-                    "dumpgenerator.py",
+                    "py",
                     "--api={}".format(wiki),
                     "--xml",
                     "--images",

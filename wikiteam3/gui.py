@@ -337,7 +337,7 @@ class App:
         ):  # well-constructed URL?, one dot at least, aaaaa.com, but bb.aaaaa.com is allowed too
             if self.optionmenu11var.get() == "api.php":
                 self.msg("Please wait... Checking api.php...")
-                if dumpgenerator.checkAPI(self.entry11.get()):
+                if checkAPI(self.entry11.get()):
                     self.entry11.config(background="lightgreen")
                     self.msg("api.php is correct!", level="ok")
                 else:
@@ -345,7 +345,7 @@ class App:
                     self.msg("api.php is incorrect!", level="error")
             elif self.optionmenu11var.get() == "index.php":
                 self.msg("Please wait... Checking index.php...")
-                if dumpgenerator.checkIndexphp(self.entry11.get()):
+                if checkIndexphp(self.entry11.get()):
                     self.entry11.config(background="lightgreen")
                     self.msg("index.php is OK!", level="ok")
                 else:
@@ -383,7 +383,7 @@ class App:
         params = ['--api=http://www.archiveteam.org/api.php', '--xml']
 
         #launch dump
-        dumpgenerator.main(params=params)
+        main(params=params)
 
         #check dump
        """
