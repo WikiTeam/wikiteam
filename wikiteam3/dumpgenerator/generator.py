@@ -1707,36 +1707,42 @@ class DumpGenerator:
                 filename2 = DumpGenerator.truncateFilename(other=other, filename=filename2)
                 print("Filename is too long, truncating. Now it is:", filename2)
             filename3 = u"%s/%s" % (imagepath, filename2)
-            imagefile = open(filename3, "wb")
-
-            r = session.head(url=url, allow_redirects=True)
-            original_url_redirected = len(r.history) > 0
-
-            if original_url_redirected:
-                # print 'Site is redirecting us to: ', r.url
-                original_url = url
-                url = r.url
-
-            r = session.get(url=url, allow_redirects=False)
-
-            # Try to fix a broken HTTP to HTTPS redirect
-            if r.status_code == 404 and original_url_redirected:
-                if (
-                    original_url.split("://")[0] == "http"
-                    and url.split("://")[0] == "https"
-                ):
-                    url = "https://" + original_url.split("://")[1]
-                    # print 'Maybe a broken http to https redirect, trying ', url
-                    r = session.get(url=url, allow_redirects=False)
-
-            if r.status_code == 404:
+            try:
+                imagefile = open(filename3, "wb")
+                
+                r = session.head(url=url, allow_redirects=True)
+                original_url_redirected = len(r.history) > 0
+                
+                if original_url_redirected:
+                    # print 'Site is redirecting us to: ', r.url
+                    original_url = url
+                    url = r.url
+                
+                r = session.get(url=url, allow_redirects=False)
+                
+                # Try to fix a broken HTTP to HTTPS redirect
+                if r.status_code == 404 and original_url_redirected:
+                    if (
+                        original_url.split("://")[0] == "http"
+                        and url.split("://")[0] == "https"
+                    ):
+                        url = "https://" + original_url.split("://")[1]
+                        # print 'Maybe a broken http to https redirect, trying ', url
+                        r = session.get(url=url, allow_redirects=False)
+                
+                if r.status_code == 404:
+                    DumpGenerator.logerror(
+                        config=config, text=u"File %s at URL %s is missing" % (filename2, url)
+                    )
+                
+                imagefile.write(r.content)
+                imagefile.close()
+            except OSError:
                 DumpGenerator.logerror(
-                    config=config, text=u"File %s at URL %s is missing" % (filename2, url)
+                    config=config, text=u"File %s could not be created by OS" % (filename3)
                 )
-
-            imagefile.write(r.content)
-            imagefile.close()
             # saving description if any
+
             try:
                 title = u"Image:%s" % (filename)
                 if (
@@ -1761,18 +1767,24 @@ class DumpGenerator:
                     % (str(title)),
                 )
 
-            f = open("%s/%s.desc" % (imagepath, filename2), "w")
-            # <text xml:space="preserve" bytes="36">Banner featuring SG1, SGA, SGU teams</text>
-            if not re.search(r"</page>", xmlfiledesc):
-                # failure when retrieving desc? then save it as empty .desc
-                xmlfiledesc = ""
+            try:
+                f = open("%s/%s.desc" % (imagepath, filename2), "w", encoding="utf-8")
+                # <text xml:space="preserve" bytes="36">Banner featuring SG1, SGA, SGU teams</text>
+                if not re.search(r"</page>", xmlfiledesc):
+                    # failure when retrieving desc? then save it as empty .desc
+                    xmlfiledesc = ""
+                
+                # Fixup the XML
+                if xmlfiledesc != "" and not re.search(r"</mediawiki>", xmlfiledesc):
+                    xmlfiledesc += "</mediawiki>"
+                
+                f.write(str(xmlfiledesc))
+                f.close()
+            except OSError:
+                DumpGenerator.logerror(
+                    config=config, text=u"File %s/%s.desc could not be created by OS" % (imagepath, filename2)
+                )
 
-            # Fixup the XML
-            if xmlfiledesc != "" and not re.search(r"</mediawiki>", xmlfiledesc):
-                xmlfiledesc += "</mediawiki>"
-
-            f.write(str(xmlfiledesc))
-            f.close()
             DumpGenerator.delay(config=config, session=session)
             c += 1
             if c % 10 == 0:
