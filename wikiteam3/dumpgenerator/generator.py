@@ -107,6 +107,15 @@ class DumpGenerator:
         return __VERSION__
 
 
+    def uprint(*objects, sep=' ', end='\n', file=sys.stdout):
+        enc = file.encoding
+        if enc == 'UTF-8':
+            print(*objects, sep=sep, end=end, file=file)
+        else:
+            f = lambda obj: str(obj).encode(enc, errors='backslashreplace').decode(enc)
+            print(*map(f, objects), sep=sep, end=end, file=file)
+
+
     def truncateFilename(other={}, filename=""):
         """Truncate filenames when downloading images with large filenames"""
         return (
@@ -447,7 +456,7 @@ class DumpGenerator:
             titles = DumpGenerator.getPageTitlesScraper(config=config, session=session)
 
         titlesfilename = "%s-%s-titles.txt" % (DumpGenerator.domain2prefix(config=config), config["date"])
-        titlesfile = open("%s/%s" % (config["path"], titlesfilename), "wt")
+        titlesfile = open("%s/%s" % (config["path"], titlesfilename), "wt", encoding="utf-8")
         c = 0
         for title in titles:
             titlesfile.write(str(title) + "\n")
@@ -625,7 +634,7 @@ class DumpGenerator:
     def logerror(config={}, text=""):
         """Log error in file"""
         if text:
-            with open("%s/errors.log" % (config["path"]), "a") as outfile:
+            with open("%s/errors.log" % (config["path"]), "a", encoding="utf-8") as outfile:
                 output = u"%s: %s\n" % (
                     datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                     text,
@@ -811,9 +820,9 @@ class DumpGenerator:
 
         if verbose:
             if numberofedits == 1:
-                print("    %s, 1 edit" % (title.strip()))
+                DumpGenerator.uprint("    %s, 1 edit" % (title.strip()))
             else:
-                print("    %s, %d edits" % (title.strip(), numberofedits))
+                DumpGenerator.uprint("    %s, %d edits" % (title.strip(), numberofedits))
 
 
     def makeXmlPageFromRaw(xml):
@@ -855,7 +864,7 @@ class DumpGenerator:
                 print(
                     "WARNING: will try to start the download from title: {}".format(start)
                 )
-                xmlfile = open("%s/%s" % (config["path"], xmlfilename), "a")
+                xmlfile = open("%s/%s" % (config["path"], xmlfilename), "a", encoding="utf-8")
             else:
                 print("Retrieving the XML for every page from the beginning")
                 xmlfile = open("%s/%s" % (config["path"], xmlfilename), "wb")
@@ -888,11 +897,11 @@ class DumpGenerator:
             else:
                 # requested complete xml dump
                 lock = False
-                xmlfile = open("%s/%s" % (config["path"], xmlfilename), "w")
+                xmlfile = open("%s/%s" % (config["path"], xmlfilename), "w", encoding="utf-8")
                 xmlfile.write(header)
                 xmlfile.close()
 
-            xmlfile = open("%s/%s" % (config["path"], xmlfilename), "a")
+            xmlfile = open("%s/%s" % (config["path"], xmlfilename), "a", encoding="utf-8")
             c = 1
             for title in DumpGenerator.readTitles(config, start):
                 if not title:
@@ -1295,7 +1304,7 @@ class DumpGenerator:
         """Read title list from a file, from the title "start" """
 
         titlesfilename = "%s-%s-titles.txt" % (DumpGenerator.domain2prefix(config=config), config["date"])
-        titlesfile = open("%s/%s" % (config["path"], titlesfilename), "r")
+        titlesfile = open("%s/%s" % (config["path"], titlesfilename), "r", encoding="utf-8")
 
         titlelist = []
         seeking = False
@@ -1327,7 +1336,7 @@ class DumpGenerator:
         """a generator that returns the lines of a file in reverse order"""
         # Original code by srohde, abdus_salam: cc by-sa 3.0
         # http://stackoverflow.com/a/23646049/718903
-        with open(filename, "r+") as fh:
+        with open(filename, "r+", encoding="utf-8") as fh:
             segment = None
             offset = 0
             fh.seek(0, os.SEEK_END)
@@ -1371,7 +1380,7 @@ class DumpGenerator:
         """Save image list in a file, including filename, url and uploader"""
 
         imagesfilename = "%s-%s-images.txt" % (DumpGenerator.domain2prefix(config=config), config["date"])
-        imagesfile = open("%s/%s" % (config["path"], imagesfilename), "w")
+        imagesfile = open("%s/%s" % (config["path"], imagesfilename), "w", encoding="utf-8")
         imagesfile.write(
             (
                 "\n".join(
@@ -1816,7 +1825,7 @@ class DumpGenerator:
         """Load config file"""
 
         try:
-            with open("%s/%s" % (config["path"], configfilename), "r") as infile:
+            with open("%s/%s" % (config["path"], configfilename), "r", encoding="utf-8") as infile:
                 config = json.load(infile)
         except:
             print("There is no config file. we can't resume. Start a new dump.")
@@ -1828,7 +1837,7 @@ class DumpGenerator:
     def saveConfig(config={}, configfilename=""):
         """Save config file"""
 
-        with open("%s/%s" % (config["path"], configfilename), "w") as outfile:
+        with open("%s/%s" % (config["path"], configfilename), "w", encoding="utf-8") as outfile:
             json.dump(config, outfile)
 
 
@@ -2486,6 +2495,7 @@ class DumpGenerator:
                     "%s/%s-%s-images.txt"
                     % (config["path"], DumpGenerator.domain2prefix(config=config), config["date"]),
                     "r",
+                    encoding="utf-8"
                 )
                 raw = str(f.read(), "utf-8").strip()
                 lines = raw.split("\n")
@@ -2627,7 +2637,7 @@ class DumpGenerator:
                     )
                 result = DumpGenerator.getJSON(r)
                 DumpGenerator.delay(config=config, session=session)
-                with open("%s/siteinfo.json" % (config["path"]), "w") as outfile:
+                with open("%s/siteinfo.json" % (config["path"]), "w", encoding="utf-8") as outfile:
                     outfile.write(json.dumps(result, indent=4, sort_keys=True))
 
 
