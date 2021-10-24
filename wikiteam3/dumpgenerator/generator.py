@@ -186,6 +186,7 @@ class DumpGenerator:
                     "%s/%s-%s-images.txt"
                     % (config["path"], domain2prefix(config=config), config["date"]),
                     "r",
+                    encoding="utf-8"
                 )
                 raw = str(f.read(), "utf-8").strip()
                 lines = raw.split("\n")
