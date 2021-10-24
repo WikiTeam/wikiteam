@@ -45,25 +45,27 @@ Once `poetry` is installed, in the `wikiteam3` directory, run:
 
 ### Download any wiki
 
-To download any wiki, in the `wikiteam3` directory, use one of the following options:
+You should now being able to use the dumpgenerator command anywhere. In Windows, it may not have been added to your path - you can check the location of the relevant Scripts folder when running `poetry install -v`.
 
-`poetry run python dumpgenerator.py http://wiki.domain.org --xml --images` (complete XML histories and images)
+To download any wiki, use one of the following options:
+
+`dumpgenerator http://wiki.domain.org --xml --images` (complete XML histories and images)
 
 If the script can't find itself the API and/or index.php paths, then you can provide them:
 
-`poetry run python dumpgenerator.py --api=http://wiki.domain.org/w/api.php --xml --images`
+`dumpgenerator --api=http://wiki.domain.org/w/api.php --xml --images`
 
-`poetry run python dumpgenerator.py --api=http://wiki.domain.org/w/api.php --index=http://wiki.domain.org/w/index.php --xml --images`
+`dumpgenerator --api=http://wiki.domain.org/w/api.php --index=http://wiki.domain.org/w/index.php --xml --images`
 
 If you only want the XML histories, just use `--xml`. For only the images, just `--images`. For only the current version of every page, `--xml --curonly`.
 
 You can resume an aborted download:
 
-`poetry run python dumpgenerator.py --api=http://wiki.domain.org/w/api.php --xml --images --resume --path=/path/to/incomplete-dump`
+`dumpgenerator --api=http://wiki.domain.org/w/api.php --xml --images --resume --path=/path/to/incomplete-dump`
 
 See more options:
 
-`poetry run python dumpgenerator.py --help`
+`dumpgenerator --help`
 
 ### Download Wikimedia dumps
 
