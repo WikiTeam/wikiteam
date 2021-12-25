@@ -596,7 +596,7 @@ def getXMLPageCore(headers={}, params={}, config={}, session=None):
 def getXMLPage(config={}, title='', verbose=True, session=None):
     """ Get the full history (or current only) of a page """
 
-    # if server errors occurs while retrieving the full page history, it may return [oldest OK versions] + last version, excluding middle revisions, so it would be partialy truncated
+    # if server errors occurs while retrieving the full page history, it may return [oldest OK versions] + last version, excluding middle revisions, so it would be partially truncated
     # http://www.mediawiki.org/wiki/Manual_talk:Parameters_to_Special:Export#Parameters_no_longer_in_use.3F
 
     limit = 1000
@@ -2163,7 +2163,7 @@ def resumePreviousDump(config={}, other={}):
             print 'Title list was completed in the previous session'
         else:
             print 'Title list is incomplete. Reloading...'
-            # do not resume, reload, to avoid inconsistences, deleted pages or
+            # do not resume, reload, to avoid inconsistencies, deleted pages or
             # so
             getPageTitles(config=config, session=other['session'])
 
@@ -2235,7 +2235,7 @@ def resumePreviousDump(config={}, other={}):
             print 'Image list was completed in the previous session'
         else:
             print 'Image list is incomplete. Reloading...'
-            # do not resume, reload, to avoid inconsistences, deleted images or
+            # do not resume, reload, to avoid inconsistencies, deleted images or
             # so
             images = getImageNames(config=config, session=other['session'])
             saveImageNames(config=config, images=images)
