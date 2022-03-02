@@ -4,4 +4,4 @@ keys.txt
 batchdownload/keys.txt
 batchdownload/dumpgenerator.py
 batchdownload/uploader.py
-
+__pycache__

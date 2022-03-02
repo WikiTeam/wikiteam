@@ -40,8 +40,11 @@ where wikitostartfrom is the last downloaded wiki in the previous session
 
 """
 
+
 def download(wiki):
-    f = urllib.request.urlopen("%s/wiki/Special:Statistics" % (wiki), context=ssl_context)
+    f = urllib.request.urlopen(
+        "%s/wiki/Special:Statistics" % (wiki), context=ssl_context
+    )
     html = str(f.read())
     f.close()
 
@@ -74,6 +77,7 @@ def download(wiki):
 
     if not m.search(html):
         print(" error: no dumps available")
+
 
 ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS or ssl.VERIFY_X509_TRUSTED_FIRST)
 

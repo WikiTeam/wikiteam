@@ -1,0 +1,9 @@
+def getJSON(request):
+    """Strip Unicode BOM"""
+    if request.text.startswith(u"\ufeff"):
+        request.encoding = "utf-8-sig"
+    try:
+        return request.json()
+    except:
+        # Maybe an older API version which did not return correct JSON
+        return {}
