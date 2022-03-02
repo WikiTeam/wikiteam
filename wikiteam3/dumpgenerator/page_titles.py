@@ -1,11 +1,12 @@
-import delay
 import mwclient
 import re
 
-from clean_html import cleanHTML, undoHTMLEntities
-from domain import domain2prefix
-from namespaces import getNamespacesAPI, getNamespacesScraper
 from urllib.parse import urlparse
+
+from .delay import delay
+from .domain import domain2prefix
+from .namespaces import getNamespacesAPI, getNamespacesScraper
+from .util import cleanHTML, undoHTMLEntities
 
 
 def getPageTitlesAPI(config={}, session=None):

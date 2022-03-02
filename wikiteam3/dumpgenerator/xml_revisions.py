@@ -3,12 +3,13 @@ import requests
 import sys
 import time
 
-from exceptions import PageMissingError
-from log_error import logerror
-from namespaces import getNamespacesAPI
-from page_titles import readTitles
-from page_xml import makeXmlFromPage, makeXmlPageFromRaw
 from urllib.parse import urlparse
+
+from .exceptions import PageMissingError
+from .log_error import logerror
+from .namespaces import getNamespacesAPI
+from .page_titles import readTitles
+from .page_xml import makeXmlFromPage, makeXmlPageFromRaw
 
 
 def getXMLRevisions(config={}, session=None, allpages=False, start=None):

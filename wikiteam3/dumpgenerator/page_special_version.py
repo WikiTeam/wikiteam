@@ -1,6 +1,7 @@
-import delay
 import os
-from clean_html import removeIP
+
+from .delay import delay
+from .util import removeIP
 
 
 def saveSpecialVersion(config={}, session=None):

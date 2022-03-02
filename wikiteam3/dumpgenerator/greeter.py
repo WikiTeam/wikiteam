@@ -1,6 +1,6 @@
 import datetime
 
-from version import getVersion
+from .version import getVersion
 
 
 def welcome():

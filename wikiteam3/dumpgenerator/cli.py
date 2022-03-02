@@ -6,13 +6,12 @@ import re
 import requests
 import sys
 
-from api_mw import mwGetAPIAndIndex
-from api_retry import checkRetryAPI
-from domain import domain2prefix
-from index_check import checkIndex
-from user_agent import getUserAgent
-from version import getVersion
-from wiki_check import getWikiEngine
+from .api import mwGetAPIAndIndex, checkRetryAPI
+from .domain import domain2prefix
+from .index_check import checkIndex
+from .user_agent import getUserAgent
+from .version import getVersion
+from .wiki_check import getWikiEngine
 
 
 def getParameters(params=[]):

@@ -1,8 +1,7 @@
-import delay
 import re
 
-from get_json import getJSON
-
+from .delay import delay
+from .get_json import getJSON
 
 def getNamespacesScraper(config={}, session=None):
     """Hackishly gets the list of namespaces names and ids from the dropdown in the HTML of Special:AllPages"""

@@ -1,16 +1,16 @@
-import delay
 import re
 import sys
 
-from clean_xml import cleanXML
-from domain import domain2prefix
-from exceptions import PageMissingError
-from log_error import logerror
-from page_titles import readTitles
-from page_xml import getXMLPage
-from readline import reverse_readline
-from xml_header import getXMLHeader
-from xml_revisions import getXMLRevisions
+from .delay import delay
+from .domain import domain2prefix
+from .exceptions import PageMissingError
+from .log_error import logerror
+from .page_titles import readTitles
+from .page_xml import getXMLPage
+from .readline import reverse_readline
+from .util import cleanXML
+from .xml_header import getXMLHeader
+from .xml_revisions import getXMLRevisions
 
 
 def generateXMLDump(config={}, titles=[], start=None, session=None):

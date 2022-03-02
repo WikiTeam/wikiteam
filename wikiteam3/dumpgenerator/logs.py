@@ -1,5 +1,4 @@
-import delay
-
+from .delay import delay
 
 def saveLogs(config={}, session=None):
     """Save Special:Log"""

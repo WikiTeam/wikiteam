@@ -3,11 +3,12 @@ import requests
 import sys
 import time
 
-from exceptions import ExportAbortedError, PageMissingError
-from handle_status_code import handleStatusCode
-from log_error import logerror
 from lxml import etree
 from lxml.builder import E
+
+from .exceptions import ExportAbortedError, PageMissingError
+from .handle_status_code import handleStatusCode
+from .log_error import logerror
 
 
 def getXMLPageCore(headers={}, params={}, config={}, session=None):

@@ -1,8 +1,8 @@
-import delay
 import json
 import os
 
-from get_json import getJSON
+from .delay import delay
+from .get_json import getJSON
 
 
 def saveSiteInfo(config={}, session=None):

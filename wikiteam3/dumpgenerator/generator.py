@@ -1,20 +1,9 @@
 try:
-    import argparse
-    import datetime
     import http.cookiejar
-    import json
     import os
     import re
     import sys
-    import time
-    import urllib
-    from hashlib import md5
-    from urllib.parse import urlparse, urlunparse
 
-    import mwclient
-    import requests
-    from lxml import etree
-    from lxml.builder import E
 except ImportError:
     print(
         """
@@ -26,23 +15,22 @@ except ImportError:
     )
     sys.exit(1)
 
-from clean_html import undoHTMLEntities
-from cli import getParameters
-from config import loadConfig, saveConfig
-from domain import domain2prefix
-from image_dump import generateImageDump
-from image_names import getImageNames, saveImageNames
-from index_php import saveIndexPHP
-from logs import saveLogs
-from page_special_version import saveSpecialVersion
-from page_titles import getPageTitles, readTitles
-from readline import reverse_readline
-from site_info import saveSiteInfo
-from truncate import truncateFilename
-from wiki_avoid import avoidWikimediaProjects
-from greeter import welcome, bye
-from xml_dump import generateXMLDump
-from xml_integrity import checkXMLIntegrity
+from .util import undoHTMLEntities
+from .cli import getParameters
+from .config import loadConfig, saveConfig
+from .domain import domain2prefix
+from .image import Image
+from .index_php import saveIndexPHP
+from .logs import saveLogs
+from .page_special_version import saveSpecialVersion
+from .page_titles import getPageTitles, readTitles
+from .readline import reverse_readline
+from .site_info import saveSiteInfo
+from .truncate import truncateFilename
+from .wiki_avoid import avoidWikimediaProjects
+from .greeter import welcome, bye
+from .xml_dump import generateXMLDump
+from .xml_integrity import checkXMLIntegrity
 
 
 class DumpGenerator:
@@ -110,9 +98,9 @@ class DumpGenerator:
             generateXMLDump(config=config, titles=titles, session=other["session"])
             checkXMLIntegrity(config=config, titles=titles, session=other["session"])
         if config["images"]:
-            images += getImageNames(config=config, session=other["session"])
-            saveImageNames(config=config, images=images, session=other["session"])
-            generateImageDump(
+            images += Image.getImageNames(config=config, session=other["session"])
+            Image.saveImageNames(config=config, images=images, session=other["session"])
+            Image.generateImageDump(
                 config=config, other=other, images=images, session=other["session"]
             )
         if config["logs"]:
@@ -214,8 +202,8 @@ class DumpGenerator:
                 print("Image list is incomplete. Reloading...")
                 # do not resume, reload, to avoid inconsistences, deleted images or
                 # so
-                images = getImageNames(config=config, session=other["session"])
-                saveImageNames(config=config, images=images)
+                images = Image.getImageNames(config=config, session=other["session"])
+                Image.saveImageNames(config=config, images=images)
             # checking images directory
             listdir = []
             try:
@@ -248,7 +236,7 @@ class DumpGenerator:
             else:
                 # we resume from previous image, which may be corrupted (or missing
                 # .desc)  by the previous session ctrl-c or abort
-                generateImageDump(
+                Image.generateImageDump(
                     config=config,
                     other=other,
                     images=images,

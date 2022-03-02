@@ -1,7 +1,7 @@
 import re
 import requests
 
-from user_agent import getUserAgent
+from .user_agent import getUserAgent
 
 
 def getWikiEngine(url=""):

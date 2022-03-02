@@ -3,9 +3,9 @@ import re
 import requests
 import sys
 
-from exceptions import ExportAbortedError, PageMissingError
-from log_error import logerror
-from page_xml import getXMLPage
+from .exceptions import ExportAbortedError, PageMissingError
+from .log_error import logerror
+from .page_xml import getXMLPage
 
 
 def getXMLHeader(config={}, session=None):
