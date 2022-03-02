@@ -45,7 +45,7 @@ Once `poetry` is installed, in the `wikiteam3` directory, run:
 
 ### Download any wiki
 
-You should now being able to use the dumpgenerator command anywhere. In Windows, it may not have been added to your path - you can check the location of the relevant Scripts folder when running `poetry install -v`.
+You should now being able to use the `dumpgenerator` command anywhere. On Windows, it may not have been added to your path - you can check the location of the relevant Scripts folder when running `poetry install -v`.
 
 To download any wiki, use one of the following options:
 
