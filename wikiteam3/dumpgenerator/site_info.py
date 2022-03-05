@@ -52,5 +52,5 @@ def saveSiteInfo(config={}, session=None):
                 )
             result = getJSON(r)
             delay(config=config, session=session)
-            with open("%s/siteinfo.json" % (config["path"]), "w") as outfile:
+            with open("%s/siteinfo.json" % (config["path"]), "w", encoding="utf-8") as outfile:
                 outfile.write(json.dumps(result, indent=4, sort_keys=True))

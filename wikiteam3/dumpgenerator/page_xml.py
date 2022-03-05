@@ -9,6 +9,7 @@ from lxml.builder import E
 from .exceptions import ExportAbortedError, PageMissingError
 from .handle_status_code import handleStatusCode
 from .log_error import logerror
+from .uprint import uprint
 
 
 def getXMLPageCore(headers={}, params={}, config={}, session=None):
@@ -189,9 +190,9 @@ def getXMLPage(config={}, title="", verbose=True, session=None):
 
     if verbose:
         if numberofedits == 1:
-            print("    %s, 1 edit" % (title.strip()))
+            uprint("    %s, 1 edit" % (title.strip()))
         else:
-            print("    %s, %d edits" % (title.strip(), numberofedits))
+            uprint("    %s, %d edits" % (title.strip(), numberofedits))
 
 
 def makeXmlPageFromRaw(xml):

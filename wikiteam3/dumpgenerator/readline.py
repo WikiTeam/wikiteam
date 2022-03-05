@@ -5,7 +5,7 @@ def reverse_readline(filename, buf_size=8192, truncate=False):
     """a generator that returns the lines of a file in reverse order"""
     # Original code by srohde, abdus_salam: cc by-sa 3.0
     # http://stackoverflow.com/a/23646049/718903
-    with open(filename, "r+") as fh:
+    with open(filename, "r+", encoding="utf-8") as fh:
         segment = None
         offset = 0
         fh.seek(0, os.SEEK_END)

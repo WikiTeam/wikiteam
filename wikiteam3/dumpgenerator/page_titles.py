@@ -178,7 +178,7 @@ def getPageTitles(config={}, session=None):
         titles = getPageTitlesScraper(config=config, session=session)
 
     titlesfilename = "%s-%s-titles.txt" % (domain2prefix(config=config), config["date"])
-    titlesfile = open("%s/%s" % (config["path"], titlesfilename), "wt")
+    titlesfile = open("%s/%s" % (config["path"], titlesfilename), "wt", encoding="utf-8")
     c = 0
     for title in titles:
         titlesfile.write(str(title) + "\n")
@@ -198,7 +198,7 @@ def readTitles(config={}, start=None, batch=False):
     """Read title list from a file, from the title "start" """
 
     titlesfilename = "%s-%s-titles.txt" % (domain2prefix(config=config), config["date"])
-    titlesfile = open("%s/%s" % (config["path"], titlesfilename), "r")
+    titlesfile = open("%s/%s" % (config["path"], titlesfilename), "r", encoding="utf-8")
 
     titlelist = []
     seeking = False

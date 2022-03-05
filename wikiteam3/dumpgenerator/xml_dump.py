@@ -32,7 +32,7 @@ def generateXMLDump(config={}, titles=[], start=None, session=None):
             print(
                 "WARNING: will try to start the download from title: {}".format(start)
             )
-            xmlfile = open("%s/%s" % (config["path"], xmlfilename), "a")
+            xmlfile = open("%s/%s" % (config["path"], xmlfilename), "a", encoding="utf-8")
         else:
             print("Retrieving the XML for every page from the beginning")
             xmlfile = open("%s/%s" % (config["path"], xmlfilename), "wb")
@@ -65,11 +65,11 @@ def generateXMLDump(config={}, titles=[], start=None, session=None):
         else:
             # requested complete xml dump
             lock = False
-            xmlfile = open("%s/%s" % (config["path"], xmlfilename), "w")
+            xmlfile = open("%s/%s" % (config["path"], xmlfilename), "w", encoding="utf-8")
             xmlfile.write(header)
             xmlfile.close()
 
-        xmlfile = open("%s/%s" % (config["path"], xmlfilename), "a")
+        xmlfile = open("%s/%s" % (config["path"], xmlfilename), "a", encoding="utf-8")
         c = 1
         for title in readTitles(config, start):
             if not title:
