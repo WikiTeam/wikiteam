@@ -34,8 +34,8 @@ def getPageTitlesAPI(config={}, session=None):
             print("Probably a loop, switching to next namespace")
             titles = list(set(titles))
 
-            delay(config=config, session=session)
         print("    %d titles retrieved in the namespace %d" % (c, namespace))
+        delay(config=config, session=session)
 
 
 def getPageTitlesScraper(config={}, session=None):
