@@ -189,14 +189,15 @@ class DumpGenerator:
                     "r",
                     encoding="utf-8"
                 )
-                raw = str(f.read(), "utf-8").strip()
-                lines = raw.split("\n")
+                lines = f.readlines()
                 for l in lines:
                     if re.search(r"\t", l):
                         images.append(l.split("\t"))
-                lastimage = lines[-1]
+                lastimage = lines[-1].strip()
+                if lastimage == "":
+                    lastimage = lines[-2].strip()
                 f.close()
-            except:
+            except FileNotFoundError:
                 pass  # probably file does not exists
             if lastimage == u"--END--":
                 print("Image list was completed in the previous session")
@@ -209,11 +210,8 @@ class DumpGenerator:
             # checking images directory
             listdir = []
             try:
-                listdir = [
-                    n.decode("utf-8")
-                    for n in os.listdir("%s/images" % (config["path"]))
-                ]
-            except:
+                listdir = os.listdir("%s/images" % (config["path"]))
+            except OSError:
                 pass  # probably directory does not exist
             listdir.sort()
             complete = True
