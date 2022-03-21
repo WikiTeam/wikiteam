@@ -72,11 +72,11 @@ def upload(wikis, config={}, uploadeddumps=[]):
         c = 0
         for dump in dumps:
             wikidate = dump.split('-')[1]
-            item = get_item('wiki-' + wikiname)
-            appended = False
+            identifier = 'wiki-' + wikiname
+            item = get_item(identifier)
             if item.exists and config.append_date and not config.admin:
-                item = get_item('wiki-' + wikiname + '-' + wikidate)
-                appended = True
+                identifier += '-' + wikidate
+                item = get_item(identifier)
             if dump in uploadeddumps:
                 if config.prune_directories:
                     rmline='rm -rf %s-%s-wikidump/' % (wikiname, wikidate)
@@ -248,10 +248,7 @@ def upload(wikis, config={}, uploadeddumps=[]):
             try:
                 item.upload(dumpdir + '/' + dump, metadata=md, access_key=accesskey, secret_key=secretkey, verbose=True, queue_derive=False)
                 item.modify_metadata(md) # update
-                if appended:
-                    print 'You can find it in https://archive.org/details/wiki-%s-%s' % (wikiname, wikidate)
-                else:
-                    print 'You can find it in https://archive.org/details/wiki-%s' % (wikiname)
+                print 'You can find it in https://archive.org/details/%s' % (identifier)
                 uploadeddumps.append(dump)
             except Exception as e:
                 print wiki, dump, 'Error when uploading?'
