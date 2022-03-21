@@ -72,10 +72,9 @@ def upload(wikis, config={}, uploadeddumps=[]):
         c = 0
         for dump in dumps:
             wikidate = dump.split('-')[1]
-            if config.append_date:
+            item = get_item('wiki-' + wikiname)
+            if item.exists and config.append_date:
                 item = get_item('wiki-' + wikiname + '-' + wikidate)
-            else:
-                item = get_item('wiki-' + wikiname)
             if dump in uploadeddumps:
                 if config.prune_directories:
                     rmline='rm -rf %s-%s-wikidump/' % (wikiname, wikidate)
