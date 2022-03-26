@@ -178,7 +178,11 @@ def getParameters(params=[]):
     index2 = None
 
     if api:
-        check, checkedapi = checkRetryAPI(api, args.retries, args.xmlrevisions, session)
+        check, checkedapi = checkRetryAPI(
+            api=api,
+            retries=int(args.retries),
+            apiclient=args.xmlrevisions,
+            session=session)
 
     if api and check:
         # Replace the index URL we got from the API check
