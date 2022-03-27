@@ -7,10 +7,10 @@ from .exceptions import PageMissingError
 from .log_error import logerror
 from .page_titles import readTitles
 from .page_xml import getXMLPage
-from .readline import reverse_readline
 from .util import cleanXML
 from .xml_header import getXMLHeader
 from .xml_revisions import getXMLRevisions
+from .xml_truncate import truncateXMLDump
 
 
 def generateXMLDump(config={}, titles=[], start=None, session=None):
@@ -58,10 +58,7 @@ def generateXMLDump(config={}, titles=[], start=None, session=None):
             print(
                 "Removing the last chunk of past XML dump: it is probably incomplete."
             )
-            for i in reverse_readline(
-                "%s/%s" % (config["path"], xmlfilename), truncate=True
-            ):
-                pass
+            truncateXMLDump("%s/%s" % (config["path"], xmlfilename))
         else:
             # requested complete xml dump
             lock = False

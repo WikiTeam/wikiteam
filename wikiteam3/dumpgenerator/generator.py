@@ -3,6 +3,8 @@ try:
     import os
     import re
     import sys
+    from file_read_backwards import FileReadBackwards
+
 
 except ImportError:
     print(
@@ -24,7 +26,6 @@ from .index_php import saveIndexPHP
 from .logs import saveLogs
 from .page_special_version import saveSpecialVersion
 from .page_titles import getPageTitles, readTitles
-from .readline import reverse_readline
 from .site_info import saveSiteInfo
 from .truncate import truncateFilename
 from .wiki_avoid import avoidWikimediaProjects
@@ -112,17 +113,17 @@ class DumpGenerator:
         if config["xml"]:
             titles = readTitles(config)
             try:
-                lasttitles = reverse_readline(
+                with FileReadBackwards(
                     "%s/%s-%s-titles.txt"
                     % (
                         config["path"],
                         domain2prefix(config=config, session=other["session"]),
                         config["date"],
-                    )
-                )
-                lasttitle = lasttitles.next()
-                if lasttitle == "":
-                    lasttitle = lasttitles.next()
+                    ), encoding="utf-8"
+                ) as frb:
+                    lasttitle = frb.readline().strip()
+                    if lasttitle == "":
+                        lasttitle = frb.readline().strip()
             except:
                 lasttitle = ""  # probably file does not exists
             if lasttitle == "--END--":
@@ -138,25 +139,25 @@ class DumpGenerator:
             xmliscomplete = False
             lastxmltitle = None
             try:
-                f = reverse_readline(
+                with FileReadBackwards(
                     "%s/%s-%s-%s.xml"
                     % (
                         config["path"],
                         domain2prefix(config=config, session=other["session"]),
                         config["date"],
                         config["curonly"] and "current" or "history",
-                    ),
-                )
-                for l in f:
-                    if l == "</mediawiki>":
-                        # xml dump is complete
-                        xmliscomplete = True
-                        break
+                    ), encoding="utf-8"
+                ) as frb:
+                    for l in frb:
+                        if l.strip() == "</mediawiki>":
+                            # xml dump is complete
+                            xmliscomplete = True
+                            break
 
-                    xmltitle = re.search(r"<title>([^<]+)</title>", l)
-                    if xmltitle:
-                        lastxmltitle = undoHTMLEntities(text=xmltitle.group(1))
-                        break
+                        xmltitle = re.search(r"<title>([^<]+)</title>", l)
+                        if xmltitle:
+                            lastxmltitle = undoHTMLEntities(text=xmltitle.group(1))
+                            break
             except:
                 pass  # probably file does not exists
 
@@ -188,14 +189,15 @@ class DumpGenerator:
                     "r",
                     encoding="utf-8"
                 )
-                raw = str(f.read(), "utf-8").strip()
-                lines = raw.split("\n")
+                lines = f.readlines()
                 for l in lines:
                     if re.search(r"\t", l):
                         images.append(l.split("\t"))
-                lastimage = lines[-1]
+                lastimage = lines[-1].strip()
+                if lastimage == "":
+                    lastimage = lines[-2].strip()
                 f.close()
-            except:
+            except FileNotFoundError:
                 pass  # probably file does not exists
             if lastimage == u"--END--":
                 print("Image list was completed in the previous session")
@@ -208,11 +210,8 @@ class DumpGenerator:
             # checking images directory
             listdir = []
             try:
-                listdir = [
-                    n.decode("utf-8")
-                    for n in os.listdir("%s/images" % (config["path"]))
-                ]
-            except:
+                listdir = os.listdir("%s/images" % (config["path"]))
+            except OSError:
                 pass  # probably directory does not exist
             listdir.sort()
             complete = True
