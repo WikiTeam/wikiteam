@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 
 # not-archived.py List of not archived wikis, using WikiApiary data
 # NOTE: unreliable! https://github.com/WikiApiary/WikiApiary/issues/130
@@ -19,9 +18,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import re
-import urllib.request
-
 import ssl
+import urllib.request
 
 
 def getdomain(wiki):

@@ -1,10 +1,11 @@
-import mwclient
 import re
-import requests
 import time
+from urllib.parse import urlparse, urlunparse
+
+import mwclient
+import requests
 
 from .get_json import getJSON
-from urllib.parse import urlparse, urlunparse
 from .user_agent import getUserAgent
 
 
@@ -49,10 +50,6 @@ def checkAPI(api=None, session=None):
         print("MediaWiki API returned data we could not parse")
         return False
     return False
-
-
-
-
 
 
 def mwGetAPIAndIndex(url=""):
@@ -102,7 +99,6 @@ def mwGetAPIAndIndex(url=""):
                 index = "/".join(api.split("/")[:-1]) + "/index.php"
 
     return api, index
-
 
 
 def checkRetryAPI(api=None, retries=5, apiclient=False, session=None):

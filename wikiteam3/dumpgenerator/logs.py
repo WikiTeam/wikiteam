@@ -1,5 +1,6 @@
 from .delay import delay
 
+
 def saveLogs(config={}, session=None):
     """Save Special:Log"""
     # get all logs from Special:Log

@@ -11,13 +11,13 @@
 # Copyright (c) 2013-2014 by Scott D. Boyd - scottdb56@gmail.com
 #
 # ===========================================================================================================================
-# This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
+# This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
 #
-# This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty 
+# This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
 # of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
 #
-# You should have received a copy of the GNU General Public License along with this program.  If not, 
+# You should have received a copy of the GNU General Public License along with this program.  If not,
 # see <http://www.gnu.org/licenses/>.
 # ===========================================================================================================================
 #
@@ -102,11 +102,11 @@ while (<MYURLLIST>) {
          print DEADFILE "$url\n"; $dead++;
       }
     }
-    $c++; $b=$c/10; 
-    if ($b==$a) { 
+    $c++; $b=$c/10;
+    if ($b==$a) {
        print "Checked $c URLs -- ";			# print the progress every 10 URLs
        $a++;
-    } 
+    }
     &PauseRoutine;
   }
 }
@@ -124,7 +124,7 @@ sub Check4api {
       my $tail=substr $base_plus, -1;
       if (!($tail=~/\//)) {				# if the last character of $base_plus is not a "/"
          $base_plus=$base_plus."\/" ;			# then add it
-      } 
+      }
    }
    $apiurl=$base_plus.$apiphp;				# $apiurl is our new URL with api.php tacked on the end
    &PauseRoutine; & Fetch_api;				# pause & then try to get api.php
@@ -133,7 +133,7 @@ sub Check4api {
      &Parse_api;
    }else{						# if no api.php...
      $apiurl=$base_plus.$wapiphp;			# modify the URL
-     &PauseRoutine; & Fetch_api;			# pause & then try to get /w/api.php     
+     &PauseRoutine; & Fetch_api;			# pause & then try to get /w/api.php
      if ($res->is_success) {
        print "Found api.php... "; $doc=$res->content;
        &Parse_api;
@@ -144,10 +144,10 @@ sub Check4api {
           print "Found api.php... "; $doc=$res->content;
           &Parse_api;
         }else{
-          if (/https:\/\//) { 
+          if (/https:\/\//) {
             $scheme="https://";
-          } else { 
-            $scheme="http://"; 
+          } else {
+            $scheme="http://";
           }
           $url = Mojo::URL->new($url);
           $base = $url->host;				# extract just the host from $url & assign it to $base
@@ -155,7 +155,7 @@ sub Check4api {
           my $tail=substr $base, -1;
           if (!($tail=~/\//)) {				# if the last character of $base_plus is not a "/"
           $base=$base."\/" ;				# then add it
-          } 
+          }
           $apiurl=$base.$apiphp;			# $apiurl is our new URL with api.php tacked on the end
           &PauseRoutine; & Fetch_api;			# pause & then try to get api.php
           if ($res->is_success) {
@@ -163,7 +163,7 @@ sub Check4api {
             &Parse_api;
           }else{					# if no api.php...
             $apiurl=$base.$wapiphp;			# modify the URL
-            &PauseRoutine; & Fetch_api;			# pause & then try to get /w/api.php     
+            &PauseRoutine; & Fetch_api;			# pause & then try to get /w/api.php
             if ($res->is_success) {
               print "Found api.php... "; $doc=$res->content;
               &Parse_api;
@@ -190,7 +190,7 @@ sub Check4api {
                       print "There is no api.php OR index.php for this URL\n";
                       print ALIVEFILE "$url\n";
                    }
-                 }else{ 
+                 }else{
                     print ALIVEFILE "$url\n";
                  }
                }else{
@@ -217,7 +217,7 @@ sub Parse_api {
       print "Found a valid api.php and writing it to the list\n";
       print ALIVEFILE "$apiurl\n";			# then it's a MediaWiki wiki - print it to the list
    }elsif ($doc=~/$mwapi2/i) {				# if the api.php contains: "API Home Page" (older version)
-      print "Found a valid api.php and writing it to the list\n"; 
+      print "Found a valid api.php and writing it to the list\n";
       print ALIVEFILE "$apiurl\n";			# then it's a MediaWiki wiki - print it to the list
    }else{
       print "This api.php is not valid.\n";  		# then try to get index.php
@@ -235,10 +235,10 @@ sub Parse_api {
            print "Found a good index.php and writing it to the list\n";
            print ALIVEFILE "$indexurl\n";
         }else{
-           print "There is no api.php OR index.php for $url\n"; 
+           print "There is no api.php OR index.php for $url\n";
            print ALIVEFILE "$url\n";
         }
-      }	
+      }
    }
 }
 
@@ -247,4 +247,3 @@ sub PauseRoutine {
       print "Pausing for $slp seconds...\n\n"; sleep $slp;
    } else { }						# don't pause - go on to the next URL
 }
-

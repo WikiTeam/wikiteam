@@ -7,7 +7,7 @@
 %% merlin.mbs  (with options: `ay,nat,vonx,nm-rvvc,dt-beg,yr-par,yrp-per,num-xser,ser-ed,isbn,edparxc,bkedcap,edby-par,edbyx,in-col,pp,ed,xedn,and-xcom,etal-xc,etal-it,nfss,')
 %% ----------------------------------------
 %% *** "New tesis bibstyle without dois and urls" ***
-%% 
+%%
 %% Copyright 1994-2007 Patrick W Daly
  % ===============================================================
  % IMPORTANT NOTICE:

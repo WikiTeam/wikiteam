@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 
 # Copyright (C) 2011-2014 WikiTeam
 # This program is free software: you can redistribute it and/or modify
@@ -62,19 +61,19 @@ def main():
     for project, date in projects:
         if start:
             if start != project:
-                print("Skipping %s, %s" % (project, date))
+                print(f"Skipping {project}, {date}")
                 continue
             else:
                 start = ""  # reset
 
         print("-" * 50, "\n", "Checking", project, date, "\n", "-" * 50)
         time.sleep(1)  # ctrl-c
-        f = urllib.request.urlopen("%s/%s/%s/" % (dumpsdomain, project, date))
+        f = urllib.request.urlopen(f"{dumpsdomain}/{project}/{date}/")
         htmlproj = f.read()
         # print (htmlproj)
         f.close()
 
-        for dumpclass in ["pages-meta-history\d*\.xml[^\.]*\.7z"]:
+        for dumpclass in [r"pages-meta-history\d*\.xml[^\.]*\.7z"]:
             corrupted = True
             maxretries2 = maxretries
             while corrupted and maxretries2 > 0:
@@ -87,23 +86,23 @@ def main():
                 # enwiki is splitted in several files, thats why we need a loop
                 # here
                 for i in m:
-                    urldumps.append("%s/%s" % (dumpsdomain, i.group("urldump")))
+                    urldumps.append("{}/{}".format(dumpsdomain, i.group("urldump")))
 
                 # print (urldumps)
                 for urldump in urldumps:
                     dumpfilename = urldump.split("/")[-1]
-                    path = "%s/%s" % (dumpfilename[0], project)
+                    path = f"{dumpfilename[0]}/{project}"
                     if not os.path.exists(path):
                         os.makedirs(path)
-                    os.system("wget -c %s -O %s/%s" % (urldump, path, dumpfilename))
+                    os.system(f"wget -c {urldump} -O {path}/{dumpfilename}")
 
                     # md5check
-                    os.system("md5sum %s/%s > md5" % (path, dumpfilename))
-                    f = open("md5", "r")
+                    os.system(f"md5sum {path}/{dumpfilename} > md5")
+                    f = open("md5")
                     raw = f.read()
                     f.close()
                     md51 = re.findall(
-                        r"(?P<md5>[a-f0-9]{32})\s+%s/%s" % (path, dumpfilename), raw
+                        rf"(?P<md5>[a-f0-9]{{32}})\s+{path}/{dumpfilename}", raw
                     )[0]
                     print(md51)
 
@@ -113,7 +112,7 @@ def main():
                     )
                     raw = f.read()
                     f.close()
-                    f = open("%s/%s-%s-md5sums.txt" % (path, project, date), "w")
+                    f = open(f"{path}/{project}-{date}-md5sums.txt", "w")
                     f.write(raw)
                     f.close()
                     md52 = re.findall(
@@ -122,11 +121,11 @@ def main():
                     print(md52)
 
                     if md51 == md52:
-                        print("md5sum is correct for this file, horay! \o/")
+                        print(r"md5sum is correct for this file, horay! \o/")
                         print("\n" * 3)
                         corrupted = False
                     else:
-                        os.remove("%s/%s" % (path, dumpfilename))
+                        os.remove(f"{path}/{dumpfilename}")
 
 
 if __name__ == "__main__":

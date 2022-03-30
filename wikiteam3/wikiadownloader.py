@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 
 # Copyright (C) 2011 WikiTeam
 # This program is free software: you can redistribute it and/or modify
@@ -18,16 +17,8 @@
 # using a list of wikia subdomains, it downloads all dumps available in Special:Statistics pages
 # you can use the list available at the "listofwikis" directory, the file is called wikia.com and it contains +200k wikis
 
-import datetime
-import os
-import re
-import ssl
-import sys
-from urllib.error import HTTPError
-import urllib.request
-
-""" 
-instructions: 
+"""
+instructions:
 
 it requires a list of wikia wikis
 there is one in the repository (listofwikis directory)
@@ -39,6 +30,12 @@ it you want to resume: python wikiadownloader.py wikitostartfrom
 where wikitostartfrom is the last downloaded wiki in the previous session
 
 """
+import os
+import re
+import ssl
+import sys
+import urllib.request
+from urllib.error import HTTPError
 
 
 def download(wiki):
@@ -55,7 +52,7 @@ def download(wiki):
     for i in m.finditer(html):
         urldump = i.group("urldump")
         dump = i.group("dump")
-        date = "%s-%s-%s" % (i.group("year"), i.group("month"), i.group("day"))
+        date = "{}-{}-{}".format(i.group("year"), i.group("month"), i.group("day"))
         compression = i.group("compression")
 
         sys.stderr.write("Downloading: ", wiki, dump.lower())
@@ -81,7 +78,7 @@ def download(wiki):
 
 ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS or ssl.VERIFY_X509_TRUSTED_FIRST)
 
-f = open("./wikiteam3/listsofwikis/mediawiki/wikia.com", "r")
+f = open("./wikiteam3/listsofwikis/mediawiki/wikia.com")
 wikia = f.read().strip().split("\n")
 f.close()
 

@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 
 # Copyright (C) 2011-2016 WikiTeam
 # This program is free software: you can redistribute it and/or modify
@@ -24,14 +23,13 @@ import time
 import urllib.parse
 from io import BytesIO
 
+import dumpgenerator
 import requests
 from internetarchive import get_item
 
-import dumpgenerator
-
 # You need a file named keys.txt with access and secret keys, in two different lines
-accesskey = open("keys.txt", "r").readlines()[0].strip()
-secretkey = open("keys.txt", "r").readlines()[1].strip()
+accesskey = open("keys.txt").readlines()[0].strip()
+secretkey = open("keys.txt").readlines()[1].strip()
 
 # Nothing to change below
 convertlang = {
@@ -51,7 +49,7 @@ convertlang = {
 
 def log(wiki, dump, msg, config={}):
     f = open("uploader-%s.log" % (config.listfile), "a")
-    f.write("\n%s;%s;%s" % (wiki, dump, msg))
+    f.write(f"\n{wiki};{dump};{msg}")
     f.close()
 
 
@@ -90,10 +88,10 @@ def upload(wikis, config={}, uploadeddumps=[]):
             item = get_item("wiki-" + wikiname)
             if dump in uploadeddumps:
                 if config.prune_directories:
-                    rmline = "rm -rf %s-%s-wikidump/" % (wikiname, wikidate)
+                    rmline = f"rm -rf {wikiname}-{wikidate}-wikidump/"
                     # With -f the deletion might have happened before and we won't know
                     if not os.system(rmline):
-                        print("DELETED %s-%s-wikidump/" % (wikiname, wikidate))
+                        print(f"DELETED {wikiname}-{wikidate}-wikidump/")
                 if config.prune_wikidump and dump.endswith("wikidump.7z"):
                     # Simplistic quick&dirty check for the presence of this file in the item
                     print("Checking content in previously uploaded files")
@@ -363,16 +361,13 @@ Use --help to print this help."""
     try:
         uploadeddumps = [
             l.split(";")[1]
-            for l in open("uploader-%s.log" % (listfile), "r")
-            .read()
-            .strip()
-            .splitlines()
+            for l in open("uploader-%s.log" % (listfile)).read().strip().splitlines()
             if len(l.split(";")) > 1
         ]
     except:
         pass
     print("%d dumps uploaded previously" % (len(uploadeddumps)))
-    wikis = open(listfile, "r").read().strip().splitlines()
+    wikis = open(listfile).read().strip().splitlines()
 
     upload(wikis, config, uploadeddumps)
 

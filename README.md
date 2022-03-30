@@ -1,5 +1,6 @@
 # WikiTeam
-### We archive wikis, from Wikipedia to tiniest wikis
+
+## We archive wikis, from Wikipedia to tiniest wikis
 
 **WikiTeam software is a set of tools for archiving wikis.** They work on MediaWiki wikis, but we want to expand to other wiki engines. As of 2020, WikiTeam has preserved more than [250,000 wikis](https://github.com/WikiTeam/wikiteam/wiki/Available-Backups), several wikifarms, regular Wikipedia dumps and [34 TB of Wikimedia Commons images](https://archive.org/details/wikimediacommons).
 
@@ -7,19 +8,20 @@ There are [thousands](http://wikiindex.org) of [wikis](https://wikiapiary.com) i
 
 **WikiTeam** is the [Archive Team](http://www.archiveteam.org) ([GitHub](https://github.com/ArchiveTeam)) subcommittee on wikis. It was founded and originally developed by [Emilio J. Rodríguez-Posada](https://github.com/emijrp), a Wikipedia veteran editor and amateur archivist. Many people have helped by sending suggestions, [reporting bugs](https://github.com/WikiTeam/wikiteam/issues), writing [documentation](https://github.com/WikiTeam/wikiteam/wiki), providing help in the [mailing list](http://groups.google.com/group/wikiteam-discuss) and making [wiki backups](https://github.com/WikiTeam/wikiteam/wiki/Available-Backups). Thanks to all, especially to: [Federico Leva](https://github.com/nemobis), [Alex Buie](https://github.com/ab2525), [Scott Boyd](http://www.sdboyd56.com), [Hydriz](https://github.com/Hydriz), Platonides, Ian McEwen, [Mike Dupont](https://github.com/h4ck3rm1k3), [balr0g](https://github.com/balr0g) and [PiRSquared17](https://github.com/PiRSquared17).
 
-<table border=0 cellpadding=5px>
-<tr><td>
-<a href="https://github.com/WikiTeam/wikiteam/wiki/Tutorial"><img src="https://upload.wikimedia.org/wikipedia/commons/f/f3/Nuvola_apps_Wild.png" width=100px alt="Documentation" title="Documentation"/></a>
-</td><td>
-<a href="https://raw.githubusercontent.com/WikiTeam/wikiteam/master/dumpgenerator.py"><img src="http://upload.wikimedia.org/wikipedia/commons/2/2a/Nuvola_apps_kservices.png" width=100px alt="Source code" title="Source code"/></a>
-</td><td>
-<a href="https://github.com/WikiTeam/wikiteam/wiki/Available-Backups"><img src="https://upload.wikimedia.org/wikipedia/commons/3/37/Nuvola_devices_3floppy_mount.png" width=100px alt="Download available backups" title="Download available backups"/></a>
-</td><td>
-<a href="https://groups.google.com/group/wikiteam-discuss"><img src="https://upload.wikimedia.org/wikipedia/commons/0/0f/Nuvola_apps_kuser.png" width=100px alt="Community" title="Community"/></a>
-</td><td>
-<a href="https://twitter.com/_WikiTeam"><img src="https://upload.wikimedia.org/wikipedia/commons/e/eb/Twitter_logo_initial.png" width=90px alt="Follow us on Twitter" title="Follow us on Twitter"/></a>
-</td></tr>
-</table>
+![Documentation](https://upload.wikimedia.org/wikipedia/commons/f/f3/Nuvola_apps_Wild.png)
+[Documentation](https://github.com/WikiTeam/wikiteam/wiki/Tutorial)
+
+![Source code](http://upload.wikimedia.org/wikipedia/commons/2/2a/Nuvola_apps_kservices.png)
+[Source code](https://raw.githubusercontent.com/WikiTeam/wikiteam/master/dumpgenerator.py)
+
+![Download available backups](https://upload.wikimedia.org/wikipedia/commons/3/37/Nuvola_devices_3floppy_mount.png)
+[Download available backups](https://github.com/WikiTeam/wikiteam/wiki/Available-Backups)
+
+![Community](https://upload.wikimedia.org/wikipedia/commons/0/0f/Nuvola_apps_kuser.png)
+[Community](https://groups.google.com/group/wikiteam-discuss)
+
+![Follow us on Twitter](https://upload.wikimedia.org/wikipedia/commons/e/eb/Twitter_logo_initial.png)
+[Follow us on Twitter](https://twitter.com/_WikiTeam)
 
 ## Quick guide
 
@@ -29,7 +31,7 @@ These instructions assume you will run WikiTeam from a cloned or downloaded copy
 
 ### Requirements
 
-Requires <a href="https://www.python.org/downloads/release/python-380/">Python 3.8</a> or later (less than 4.0).
+Requires [Python 3.8](https://www.python.org/downloads/release/python-380/) or later (less than 4.0).
 
 Confirm you satisfy the requirements:
 

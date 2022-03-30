@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 
 # Copyright (C) 2018 WikiTeam developers
 # This program is free software: you can redistribute it and/or modify
@@ -28,7 +27,7 @@ def main():
     urllib.request.install_opener(opener)
 
     for i in range(1, 100000):
-        url = "https://duckduckgo.com/html/?q=%s%%20%s%%20site:wikidot.com" % (
+        url = "https://duckduckgo.com/html/?q={}%20{}%20site:wikidot.com".format(
             random.randint(100, 5000),
             random.randint(1000, 9999),
         )

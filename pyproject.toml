@@ -73,11 +73,16 @@ urllib3 = "^1.26.7"
 wikitools3 = "^3.0.0"
 pymysql = "*"
 file_read_backwards = "^2.0.0"
+pre-commit-poetry-export = "^0.1.2"
+
+[tool.isort]
+profile = "black"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2.5"
 requests = "^2.26.0"
 flake8 = "^3.9.2"
+pre-commit = "^2.17.0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

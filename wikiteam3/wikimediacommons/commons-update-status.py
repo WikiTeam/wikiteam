@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf8 -*-
 
 # Copyright (C) 2012-2016 WikiTeam developers
 # This program is free software: you can redistribute it and/or modify
@@ -35,21 +34,19 @@ def main():
                 if len(t[0]) == 4:  # YYYY
                     identifiers[t[0]] = identifier
                 elif len(t[0]) == 6:  # YYYYMM
-                    identifiers["%s-%s" % (t[0][:4], t[0][4:6])] = identifier
+                    identifiers[f"{t[0][:4]}-{t[0][4:6]}"] = identifier
                 elif len(t[0]) == 8:  # YYYYMMDD
-                    identifiers[
-                        "%s-%s-%s" % (t[0][:4], t[0][4:6], t[0][6:8])
-                    ] = identifier
+                    identifiers[f"{t[0][:4]}-{t[0][4:6]}-{t[0][6:8]}"] = identifier
                 else:
                     print("ERROR, dont understand date format in %s" % (identifier))
             elif len(t) == 2:
                 if len(t[0]) == 4 and len(t[1]) == 2:  # YYYY-MM
-                    identifiers["%s-%s" % (t[0], t[1])] = identifier
+                    identifiers[f"{t[0]}-{t[1]}"] = identifier
                 else:
                     print("ERROR, dont understand date format in %s" % (identifier))
             elif len(t) == 3:
                 if len(t[0]) == 4 and len(t[1]) == 2 and len(t[2]) == 2:  # YYYY-MM-DD
-                    identifiers["%s-%s-%s" % (t[0], t[1], t[2])] = identifier
+                    identifiers[f"{t[0]}-{t[1]}-{t[2]}"] = identifier
                 else:
                     print("ERROR, dont understand date format in %s" % (identifier))
 
@@ -57,7 +54,7 @@ def main():
     identifiers_list.sort()
 
     rows = [
-        "|-\n| %s || [https://archive.org/details/%s %s] || ??? || ???" % (k, v, v)
+        f"|-\n| {k} || [https://archive.org/details/{v} {v}] || ??? || ???"
         for k, v in identifiers_list
     ]
     output = """

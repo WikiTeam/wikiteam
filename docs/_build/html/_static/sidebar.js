@@ -22,13 +22,13 @@
  */
 
 $(function() {
-  
-  
-  
-  
-  
-  
-  
+
+
+
+
+
+
+
 
   // global elements used by the functions.
   // the 'sidebarbutton' element is defined as global after its

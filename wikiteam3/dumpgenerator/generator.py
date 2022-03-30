@@ -3,6 +3,7 @@ try:
     import os
     import re
     import sys
+
     from file_read_backwards import FileReadBackwards
 
 
@@ -17,10 +18,10 @@ except ImportError:
     )
     sys.exit(1)
 
-from .util import undoHTMLEntities
 from .cli import getParameters
 from .config import loadConfig, saveConfig
 from .domain import domain2prefix
+from .greeter import bye, welcome
 from .image import Image
 from .index_php import saveIndexPHP
 from .logs import saveLogs
@@ -28,8 +29,8 @@ from .page_special_version import saveSpecialVersion
 from .page_titles import getPageTitles, readTitles
 from .site_info import saveSiteInfo
 from .truncate import truncateFilename
+from .util import undoHTMLEntities
 from .wiki_avoid import avoidWikimediaProjects
-from .greeter import welcome, bye
 from .xml_dump import generateXMLDump
 from .xml_integrity import checkXMLIntegrity
 
@@ -60,7 +61,7 @@ class DumpGenerator:
                     % (config["path"], config["path"], configfilename)
                 )
             if reply.lower() in ["yes", "y"]:
-                if not os.path.isfile("%s/%s" % (config["path"], configfilename)):
+                if not os.path.isfile("{}/{}".format(config["path"], configfilename)):
                     print("No config file found. I can't resume. Aborting.")
                     sys.exit()
                 print("You have selected: YES")
@@ -119,7 +120,8 @@ class DumpGenerator:
                         config["path"],
                         domain2prefix(config=config, session=other["session"]),
                         config["date"],
-                    ), encoding="utf-8"
+                    ),
+                    encoding="utf-8",
                 ) as frb:
                     lasttitle = frb.readline().strip()
                     if lasttitle == "":
@@ -146,7 +148,8 @@ class DumpGenerator:
                         domain2prefix(config=config, session=other["session"]),
                         config["date"],
                         config["curonly"] and "current" or "history",
-                    ), encoding="utf-8"
+                    ),
+                    encoding="utf-8",
                 ) as frb:
                     for l in frb:
                         if l.strip() == "</mediawiki>":
@@ -186,8 +189,7 @@ class DumpGenerator:
                 f = open(
                     "%s/%s-%s-images.txt"
                     % (config["path"], domain2prefix(config=config), config["date"]),
-                    "r",
-                    encoding="utf-8"
+                    encoding="utf-8",
                 )
                 lines = f.readlines()
                 for l in lines:
@@ -199,7 +201,7 @@ class DumpGenerator:
                 f.close()
             except FileNotFoundError:
                 pass  # probably file does not exists
-            if lastimage == u"--END--":
+            if lastimage == "--END--":
                 print("Image list was completed in the previous session")
             else:
                 print("Image list is incomplete. Reloading...")

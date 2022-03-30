@@ -5,7 +5,7 @@ def checkIndex(index=None, cookies=None, session=None):
     """Checking index.php availability"""
     r = session.post(url=index, data={"title": "Special:Version"}, timeout=30)
     if r.status_code >= 400:
-        print("ERROR: The wiki returned status code HTTP {}".format(r.status_code))
+        print(f"ERROR: The wiki returned status code HTTP {r.status_code}")
         return False
     raw = r.text
     print("Checking index.php...", index)
