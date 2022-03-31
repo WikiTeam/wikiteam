@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 
 # Copyright (C) 2011-2012 WikiTeam
 # This program is free software: you can redistribute it and/or modify
@@ -14,6 +13,14 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+"""
+TODO:
+
+* basic: GUI to download just a wiki
+
+* advanced: batch downloads, upload to Internet Archive or anywhere
+"""
 
 import os
 import platform
@@ -45,14 +52,6 @@ from tkinter import (
 )
 
 import dumpgenerator
-
-"""
-TODO:
-
-* basic: GUI to download just a wiki
-
-* advanced: batch downloads, upload to Internet Archive or anywhere
-"""
 
 wikifarms = {
     "gentoo_wikicom": "Gentoo Wiki",
@@ -391,9 +390,9 @@ class App:
     def msg(self, msg="", level=""):
         levels = {"ok": "lightgreen", "warning": "yellow", "error": "red"}
         if levels.has_key(level.lower()):
-            print("%s: %s" % (level.upper(), msg))
+            print(f"{level.upper()}: {msg}")
             self.status.config(
-                text="%s: %s" % (level.upper(), msg), background=levels[level.lower()]
+                text=f"{level.upper()}: {msg}", background=levels[level.lower()]
             )
         else:
             print(msg)
@@ -415,7 +414,7 @@ class App:
             downloaded = block_count * (block_size / 1024 / 1024.0)
             percent = downloaded / (total_mb / 100.0)
             if not random.randint(0, 10):
-                msg = "%.1f MB of %.1f MB downloaded (%.1f%%)" % (
+                msg = "{:.1f} MB of {:.1f} MB downloaded ({:.1f}%)".format(
                     downloaded,
                     total_mb,
                     percent <= 100 and percent or 100,
@@ -462,7 +461,7 @@ class App:
                         filepath,
                         reporthook=self.downloadProgress,
                     )
-                    msg = "%s size is %s bytes large. Download successful!" % (
+                    msg = "{} size is {} bytes large. Download successful!".format(
                         self.dumps[int(item)][0],
                         os.path.getsize(filepath),
                     )
@@ -634,7 +633,7 @@ class App:
         c = 0
         for mirror, url, regexp in self.urls:
             print("Loading data from", mirror, url)
-            self.msg(msg="Please wait... Loading data from %s %s" % (mirror, url))
+            self.msg(msg=f"Please wait... Loading data from {mirror} {url}")
             f = urllib.request.urlopen(url)
             m = re.compile(regexp).finditer(f.read())
             for i in m:
@@ -653,7 +652,7 @@ class App:
                 date = "Unknown"
                 if re.search(r"\-(\d{8})[\.-]", filename):
                     date = re.findall(r"\-(\d{4})(\d{2})(\d{2})[\.-]", filename)[0]
-                    date = "%s-%s-%s" % (date[0], date[1], date[2])
+                    date = f"{date[0]}-{date[1]}-{date[2]}"
                 elif re.search(r"\-(\d{4}\-\d{2}\-\d{2})[\.-]", filename):
                     date = re.findall(r"\-(\d{4}\-\d{2}\-\d{2})[\.-]", filename)[0]
                 downloadurl = ""
@@ -704,7 +703,7 @@ if __name__ == "__main__":
     x = (root.winfo_screenwidth() / 2) - (width / 2)
     y = (root.winfo_screenheight() / 2) - (height / 2)
     root.geometry("%dx%d+%d+%d" % (width, height, x, y))
-    root.title("%s (version %s)" % (NAME, VERSION))
+    root.title(f"{NAME} (version {VERSION})")
     root.protocol("WM_DELETE_WINDOW", askclose)
     # logo
     # imagelogo = PhotoImage(file = 'logo.gif')

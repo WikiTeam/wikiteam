@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 
 # Copyright (C) 2011-2016 WikiTeam developers
 # This program is free software: you can redistribute it and/or modify
@@ -17,20 +16,14 @@
 
 import datetime
 import os
-import urllib
 import tempfile
 import time
 import unittest
-from codecs import encode
-
-# import json
-from hashlib import md5
 
 import requests
 
 from wikiteam3.dumpgenerator import (
     delay,
-    domain2prefix,
     getImageNames,
     getPageTitles,
     getUserAgent,
@@ -151,21 +144,17 @@ class TestDumpgenerator(unittest.TestCase):
                 self.assertEqual(
                     filename_api,
                     result_index[c][0],
-                    u"{0} and {1} are different".format(
-                        filename_api, result_index[c][0]
-                    ),
+                    f"{filename_api} and {result_index[c][0]} are different",
                 )
                 self.assertEqual(
                     url_api,
                     result_index[c][1],
-                    u"{0} and {1} are different".format(url_api, result_index[c][1]),
+                    f"{url_api} and {result_index[c][1]} are different",
                 )
                 self.assertEqual(
                     uploader_api,
                     result_index[c][2],
-                    u"{0} and {1} are different".format(
-                        uploader_api, result_index[c][2]
-                    ),
+                    f"{uploader_api} and {result_index[c][2]} are different",
                 )
                 c += 1
 
@@ -181,7 +170,7 @@ class TestDumpgenerator(unittest.TestCase):
             [
                 "https://wiki.archiveteam.org/index.php",
                 "https://wiki.archiveteam.org/api.php",
-                u"April Fools' Day",
+                "April Fools' Day",
             ],
             # ['http://skilledtests.com/wiki/index.php', 'http://skilledtests.com/wiki/api.php', u'Conway\'s Game of Life'],
             # Test old allpages API behaviour
@@ -208,7 +197,7 @@ class TestDumpgenerator(unittest.TestCase):
             }
 
             titles_api = getPageTitles(config=config_api, session=session)
-            result_api = open(titles_api, "r").read().splitlines()
+            result_api = open(titles_api).read().splitlines()
             os.remove(titles_api)
             self.assertTrue(pagetocheck in result_api)
 
@@ -227,7 +216,7 @@ class TestDumpgenerator(unittest.TestCase):
             }
 
             titles_index = getPageTitles(config=config_index, session=session)
-            result_index = open(titles_index, "r").read().splitlines()
+            result_index = open(titles_index).read().splitlines()
             os.remove(titles_index)
             self.assertTrue(pagetocheck in result_index)
             self.assertEqual(len(result_api), len(result_index))
@@ -236,7 +225,7 @@ class TestDumpgenerator(unittest.TestCase):
             c = 0
             for pagename_api in result_api:
                 chk = pagename_api in result_index
-                self.assertEqual(chk, True, u"%s not in result_index" % (pagename_api))
+                self.assertEqual(chk, True, "%s not in result_index" % (pagename_api))
                 c += 1
 
     def test_getWikiEngine(self):
@@ -304,7 +293,7 @@ class TestDumpgenerator(unittest.TestCase):
             except ConnectionError:
                 print("%s failed to load, skipping..." % (wiki))
                 continue
-            print("Got: %s, expected: %s" % (guess_engine, engine))
+            print(f"Got: {guess_engine}, expected: {engine}")
             self.assertEqual(guess_engine, engine)
 
     def test_mwGetAPIAndIndex(self):

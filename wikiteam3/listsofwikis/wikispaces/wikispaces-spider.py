@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 
 # Copyright (C) 2016 wikiTeam
 # This program is free software: you can redistribute it and/or modify
@@ -24,7 +23,7 @@ import urllib
 
 def loadUsers():
     users = {}
-    f = open("users.txt", "r")
+    f = open("users.txt")
     for x in f.read().strip().splitlines():
         username = x.split(",")[0]
         numwikis = x.split(",")[1]
@@ -35,7 +34,7 @@ def loadUsers():
 
 def loadWikis():
     wikis = {}
-    f = open("wikis.txt", "r")
+    f = open("wikis.txt")
     for x in f.read().strip().splitlines():
         wikiname = x.split(",")[0]
         numusers = x.split(",")[1]
@@ -46,18 +45,18 @@ def loadWikis():
 
 def saveUsers(users):
     f = open("users.txt", "w")
-    output = [u"%s,%s" % (x, y) for x, y in users.items()]
+    output = [f"{x},{y}" for x, y in users.items()]
     output.sort()
-    output = u"\n".join(output)
+    output = "\n".join(output)
     f.write(str(output))
     f.close()
 
 
 def saveWikis(wikis):
     f = open("wikis.txt", "w")
-    output = [u"%s,%s" % (x, y) for x, y in wikis.items()]
+    output = [f"{x},{y}" for x, y in wikis.items()]
     output.sort()
-    output = u"\n".join(output)
+    output = "\n".join(output)
     f.write(str(output))
     f.close()
 
@@ -74,7 +73,7 @@ def getUsers(wiki):
         headers = next(reader, None)
         usersfound = {}
         for row in reader:
-            usersfound[row[0]] = u"?"
+            usersfound[row[0]] = "?"
         return usersfound
     except:
         print("Error reading", wikiurl)
@@ -90,7 +89,7 @@ def getWikis(user):
             html = html.split("Wikis: ")[1].split("</div>")[0]
             wikisfound = {}
             for x in re.findall(r'<a href="https://([^>]+).wikispaces.com/">', html):
-                wikisfound[x] = u"?"
+                wikisfound[x] = "?"
             return wikisfound
         return {}
     except:
@@ -121,7 +120,7 @@ def main():
         c = 0
         for x2, y2 in users2.items():
             if x2 not in users.keys():
-                users[x2] = u"?"
+                users[x2] = "?"
                 c += 1
         print("Found %s new users" % (c))
         if c > 0:
@@ -147,7 +146,7 @@ def main():
         c = 0
         for x2, y2 in wikis2.items():
             if x2 not in wikis.keys():
-                wikis[x2] = u"?"
+                wikis[x2] = "?"
                 c += 1
         print("Found %s new wikis" % (c))
         if c > 0:

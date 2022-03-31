@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 
 # Copyright (C) 2018 WikiTeam developers
 # This program is free software: you can redistribute it and/or modify
@@ -17,7 +16,16 @@
 
 # Documentation for users: https://github.com/WikiTeam/wikiteam/wiki
 # Documentation for developers: http://wikiteam.readthedocs.com
-
+"""
+# You need a file with access and secret keys, in two different lines
+iakeysfilename = '%s/.iakeys' % (os.path.expanduser('~'))
+if os.path.exists(iakeysfilename):
+    accesskey = open(iakeysfilename, 'r').readlines()[0].strip()
+    secretkey = open(iakeysfilename, 'r').readlines()[1].strip()
+else:
+    print('Error, no %s file with S3 keys for Internet Archive account' % (iakeysfilename))
+    sys.exit()
+"""
 import csv
 import datetime
 import os
@@ -34,22 +42,11 @@ import urllib.request
 # zip command (apt-get install zip)
 # ia command (pip install internetarchive, and configured properly)
 
-"""
-# You need a file with access and secret keys, in two different lines
-iakeysfilename = '%s/.iakeys' % (os.path.expanduser('~'))
-if os.path.exists(iakeysfilename):
-    accesskey = open(iakeysfilename, 'r').readlines()[0].strip()
-    secretkey = open(iakeysfilename, 'r').readlines()[1].strip()
-else:
-    print('Error, no %s file with S3 keys for Internet Archive account' % (iakeysfilename))
-    sys.exit()
-"""
-
 
 def saveURL(wikidomain="", url="", filename="", path="", overwrite=False, iteration=1):
-    filename2 = "%s/%s" % (wikidomain, filename)
+    filename2 = f"{wikidomain}/{filename}"
     if path:
-        filename2 = "%s/%s/%s" % (wikidomain, path, filename)
+        filename2 = f"{wikidomain}/{path}/{filename}"
     if os.path.exists(filename2):
         if not overwrite:
             print(
@@ -85,10 +82,10 @@ def saveURL(wikidomain="", url="", filename="", path="", overwrite=False, iterat
         sleep2 = 60 * iteration
         raw = ""
         try:
-            with open(filename2, "r", encoding="utf-8") as f:
+            with open(filename2, encoding="utf-8") as f:
                 raw = f.read()
         except:
-            with open(filename2, "r", encoding="latin-1") as f:
+            with open(filename2, encoding="latin-1") as f:
                 raw = f.read()
         if re.findall(r"(?im)<title>TES and THE Status</title>", raw):
             print(
@@ -122,11 +119,11 @@ def undoHTMLEntities(text=""):
 
 def convertHTML2Wikitext(wikidomain="", filename="", path=""):
     wikitext = ""
-    wikitextfile = "%s/%s/%s" % (wikidomain, path, filename)
+    wikitextfile = f"{wikidomain}/{path}/{filename}"
     if not os.path.exists(wikitextfile):
         print("Error retrieving wikitext, page is a redirect probably")
         return
-    with open(wikitextfile, "r") as f:
+    with open(wikitextfile) as f:
         wikitext = f.read()
     with open(wikitextfile, "w") as f:
         m = re.findall(
@@ -146,7 +143,7 @@ def downloadPage(wikidomain="", wikiurl="", pagename="", overwrite=False):
     pagename_ = urllib.parse.quote(pagename)
 
     # page current revision (html & wikitext)
-    pageurl = "%s/%s" % (wikiurl, pagename_)
+    pageurl = f"{wikiurl}/{pagename_}"
     filename = "%s.html" % (pagenameplus)
     print("Downloading page: %s" % (filename))
     saveURL(
@@ -156,7 +153,7 @@ def downloadPage(wikidomain="", wikiurl="", pagename="", overwrite=False):
         path="pages",
         overwrite=overwrite,
     )
-    pageurl2 = "%s/page/code/%s" % (wikiurl, pagename_)
+    pageurl2 = f"{wikiurl}/page/code/{pagename_}"
     filename2 = "%s.wikitext" % (pagenameplus)
     print("Downloading page: %s" % (filename2))
     saveURL(
@@ -169,7 +166,7 @@ def downloadPage(wikidomain="", wikiurl="", pagename="", overwrite=False):
     convertHTML2Wikitext(wikidomain=wikidomain, filename=filename2, path="pages")
 
     # csv with page history
-    csvurl = "%s/page/history/%s?utable=WikiTablePageHistoryList&ut_csv=1" % (
+    csvurl = "{}/page/history/{}?utable=WikiTablePageHistoryList&ut_csv=1".format(
         wikiurl,
         pagename_,
     )
@@ -189,7 +186,7 @@ def downloadFile(wikidomain="", wikiurl="", filename="", overwrite=False):
     filename_ = urllib.parse.quote(filename)
 
     # file full resolution
-    fileurl = "%s/file/view/%s" % (wikiurl, filename_)
+    fileurl = f"{wikiurl}/file/view/{filename_}"
     filename = filenameplus
     print("Downloading file: %s" % (filename))
     saveURL(
@@ -201,7 +198,7 @@ def downloadFile(wikidomain="", wikiurl="", filename="", overwrite=False):
     )
 
     # csv with file history
-    csvurl = "%s/file/detail/%s?utable=WikiTablePageList&ut_csv=1" % (
+    csvurl = "{}/file/detail/{}?utable=WikiTablePageList&ut_csv=1".format(
         wikiurl,
         filename_,
     )
@@ -223,9 +220,9 @@ def downloadPagesAndFiles(wikidomain="", wikiurl="", overwrite=False):
     saveURL(wikidomain=wikidomain, url=csvurl, filename="pages-and-files.csv", path="")
     # download every page and file
     totallines = 0
-    with open("%s/pages-and-files.csv" % (wikidomain), "r") as f:
+    with open("%s/pages-and-files.csv" % (wikidomain)) as f:
         totallines = len(f.read().splitlines()) - 1
-    with open("%s/pages-and-files.csv" % (wikidomain), "r") as csvfile:
+    with open("%s/pages-and-files.csv" % (wikidomain)) as csvfile:
         filesc = 0
         pagesc = 0
         print("This wiki has %d pages and files" % (totallines))
@@ -283,10 +280,10 @@ def downloadLogo(wikidomain="", wikiurl="", overwrite=False):
     if os.path.exists(index):
         raw = ""
         try:
-            with open(index, "r", encoding="utf-8") as f:
+            with open(index, encoding="utf-8") as f:
                 raw = f.read()
         except:
-            with open(index, "r", encoding="latin-1") as f:
+            with open(index, encoding="latin-1") as f:
                 raw = f.read()
         m = re.findall(r'class="WikiLogo WikiElement"><img src="([^<> "]+?)"', raw)
         if m:
@@ -343,7 +340,7 @@ def duckduckgo():
         "https://www.wikispaces.net",
     ]
     for i in range(1, 100000):
-        url = "https://duckduckgo.com/html/?q=%s%%20%s%%20site:wikispaces.com" % (
+        url = "https://duckduckgo.com/html/?q={}%20{}%20site:wikispaces.com".format(
             random.randint(100, 5000),
             random.randint(1000, 9999),
         )
@@ -397,7 +394,7 @@ def main():
         # for wiki in wikilist:
         #    print(wiki)
     else:
-        with open(param, "r") as f:
+        with open(param) as f:
             wikilist = f.read().strip().splitlines()
             wikilist2 = []
             for wiki in wikilist:
@@ -517,10 +514,10 @@ def main():
                 continue
             indexhtml = ""
             try:
-                with open(indexfilename, "r", encoding="utf-8") as f:
+                with open(indexfilename, encoding="utf-8") as f:
                     indexhtml = f.read()
             except:
-                with open(indexfilename, "r", encoding="latin-1") as f:
+                with open(indexfilename, encoding="latin-1") as f:
                     indexhtml = f.read()
 
             wikititle = ""
@@ -571,8 +568,8 @@ def main():
             itemcollection = isadmin and "wikiteam" or "opensource"
             itemlang = "Unknown"
             itemdate = datetime.datetime.now().strftime("%Y-%m-%d")
-            itemlogo = logofilename and "%s/%s" % (wikidir, logofilename) or ""
-            callplain = "ia upload %s %s %s --metadata='mediatype:web' --metadata='collection:%s' --metadata='title:%s' --metadata='description:%s' --metadata='language:%s' --metadata='last-updated-date:%s' --metadata='originalurl:%s' %s %s" % (
+            itemlogo = logofilename and f"{wikidir}/{logofilename}" or ""
+            callplain = "ia upload {} {} {} --metadata='mediatype:web' --metadata='collection:{}' --metadata='title:{}' --metadata='description:{}' --metadata='language:{}' --metadata='last-updated-date:{}' --metadata='originalurl:{}' {} {}".format(
                 itemid,
                 wikizip,
                 itemlogo and itemlogo or "",
@@ -598,7 +595,7 @@ def main():
                 'description': itemdesc,
                 'language': itemlang,
                 'last-updated-date': itemdate,
-                'subject': '; '.join(itemtags), 
+                'subject': '; '.join(itemtags),
                 'licenseurl': itemlicenseurl,
                 'originalurl': itemoriginalurl,
             }

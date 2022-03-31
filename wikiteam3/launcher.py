@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 
 # Copyright (C) 2011-2016 WikiTeam
 # This program is free software: you can redistribute it and/or modify
@@ -33,7 +32,7 @@ def main():
         sys.exit()
 
     print("Reading list of APIs from", sys.argv[1])
-    wikis = open(sys.argv[1], "r").read().splitlines()
+    wikis = open(sys.argv[1]).read().splitlines()
     print("%d APIs found" % (len(wikis)))
 
     for wiki in wikis:
@@ -96,11 +95,11 @@ def main():
                 [
                     "python3",
                     "py",
-                    "--api={}".format(wiki),
+                    f"--api={wiki}",
                     "--xml",
                     "--images",
                     "--resume",
-                    "--path={}".format(wikidir),
+                    f"--path={wikidir}",
                 ],
                 shell=False,
             )
@@ -109,7 +108,7 @@ def main():
                 [
                     "python3",
                     "py",
-                    "--api={}".format(wiki),
+                    f"--api={wiki}",
                     "--xml",
                     "--images",
                 ],
@@ -171,7 +170,7 @@ def main():
                 subprocess.call("rm" + " ../%s-history.xml.7z.tmp" % prefix, shell=True)
             # Now we add the images, if there are some, to create another archive, without recompressing everything, at the min compression rate, higher doesn't compress images much more.
             subprocess.call(
-                "cp" + " ../%s-history.xml.7z ../%s-wikidump.7z.tmp" % (prefix, prefix),
+                "cp" + f" ../{prefix}-history.xml.7z ../{prefix}-wikidump.7z.tmp",
                 shell=True,
             )
             subprocess.call(
@@ -181,7 +180,7 @@ def main():
                 shell=True,
             )
             subprocess.call(
-                "mv" + " ../%s-wikidump.7z.tmp ../%s-wikidump.7z" % (prefix, prefix),
+                "mv" + f" ../{prefix}-wikidump.7z.tmp ../{prefix}-wikidump.7z",
                 shell=True,
             )
             os.chdir("..")

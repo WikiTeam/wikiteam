@@ -61,15 +61,6 @@ def removeIP(raw=""):
     return raw
 
 
-
-
-
-
-
-
-
-
-
 def cleanXML(xml=""):
     """Trim redundant info from the XML however it comes"""
     # do not touch XML codification, leave AS IS

@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 
 # Copyright (C) 2011-2012 WikiTeam
 # This program is free software: you can redistribute it and/or modify
@@ -91,7 +90,7 @@ def check(apis):
 
 
 apis = []
-for api in open("wikistocheck.txt", "r").read().strip().splitlines():
+for api in open("wikistocheck.txt").read().strip().splitlines():
     if not api in apis:
         apis.append(api)
     if len(apis) >= limit:

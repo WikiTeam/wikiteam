@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # Copyright (C) 2016 WikiTeam
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -69,7 +67,7 @@ def main():
                 itemurl = "https://archive.org/details/%s" % (itemidentifier)
                 print("Item found:", itemurl)
 
-                metaurl = "https://archive.org/download/%s/%s_files.xml" % (
+                metaurl = "https://archive.org/download/{}/{}_files.xml".format(
                     itemidentifier,
                     itemidentifier,
                 )
@@ -99,10 +97,10 @@ def main():
                 )
                 itemsize = itemfiles[0][1]
 
-                iaparams = """|Internet Archive identifier=%s
-|Internet Archive URL=%s
-|Internet Archive added date=%s 00:00:00 
-|Internet Archive file size=%s""" % (
+                iaparams = """|Internet Archive identifier={}
+|Internet Archive URL={}
+|Internet Archive added date={} 00:00:00
+|Internet Archive file size={}""".format(
                     itemidentifier,
                     itemurl,
                     itemdate,

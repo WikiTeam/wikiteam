@@ -3,10 +3,11 @@ import datetime
 import http
 import os
 import re
-import requests
 import sys
 
-from .api import mwGetAPIAndIndex, checkRetryAPI
+import requests
+
+from .api import checkRetryAPI, mwGetAPIAndIndex
 from .domain import domain2prefix
 from .index_check import checkIndex
 from .user_agent import getUserAgent
@@ -182,7 +183,8 @@ def getParameters(params=[]):
             api=api,
             retries=int(args.retries),
             apiclient=args.xmlrevisions,
-            session=session)
+            session=session,
+        )
 
     if api and check:
         # Replace the index URL we got from the API check
@@ -295,7 +297,7 @@ def getParameters(params=[]):
 
     # calculating path, if not defined by user with --path=
     if not config["path"]:
-        config["path"] = "./%s-%s-wikidump" % (
+        config["path"] = "./{}-{}-wikidump".format(
             domain2prefix(config=config, session=session),
             config["date"],
         )

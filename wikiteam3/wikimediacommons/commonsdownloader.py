@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf8 -*-
 
 # Copyright (C) 2011-2016 WikiTeam developers
 # This program is free software: you can redistribute it and/or modify
@@ -96,7 +95,7 @@ def main():
         filenamezip = startdate.strftime("%Y-%m-%d.zip")
         c = 0
         f = csv.reader(
-            open(filenamefeed, "r"),
+            open(filenamefeed),
             delimiter="|",
             quotechar='"',
             quoting=csv.QUOTE_MINIMAL,
@@ -182,7 +181,7 @@ def main():
                     )
                     try:
                         if not os.path.getsize(
-                            "%s/%s" % (savepath, img_saved_as_)
+                            f"{savepath}/{img_saved_as_}"
                         ):  # empty file?...
                             # probably false 20101005024534! begining like this http://commons.wikimedia.org/wiki/File:20041028210012!Pilar.jpg
                             # ok, restore original_name to ! version and recalculate md5 and other variables that use original_name as source
@@ -258,7 +257,7 @@ def main():
                 )
                 c += 1
         # zip downloaded files; add mT to the options if you want to save space by removing the downloaded files day by day; commonschecker needs only zip and csv
-        os.system("zip -9r %s %s/" % (filenamezip, savepath))
+        os.system(f"zip -9r {filenamezip} {savepath}/")
         startdate += delta
     bye()
 

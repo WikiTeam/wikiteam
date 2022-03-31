@@ -19,7 +19,7 @@ def generateXMLDump(config={}, titles=[], start=None, session=None):
 
     header, config = getXMLHeader(config=config, session=session)
     footer = "</mediawiki>\n"  # new line at the end
-    xmlfilename = "%s-%s-%s.xml" % (
+    xmlfilename = "{}-{}-{}.xml".format(
         domain2prefix(config=config),
         config["date"],
         config["curonly"] and "current" or "history",
@@ -29,13 +29,13 @@ def generateXMLDump(config={}, titles=[], start=None, session=None):
 
     if config["xmlrevisions"]:
         if start:
-            print(
-                "WARNING: will try to start the download from title: {}".format(start)
+            print(f"WARNING: will try to start the download from title: {start}")
+            xmlfile = open(
+                "{}/{}".format(config["path"], xmlfilename), "a", encoding="utf-8"
             )
-            xmlfile = open("%s/%s" % (config["path"], xmlfilename), "a", encoding="utf-8")
         else:
             print("Retrieving the XML for every page from the beginning")
-            xmlfile = open("%s/%s" % (config["path"], xmlfilename), "wb")
+            xmlfile = open("{}/{}".format(config["path"], xmlfilename), "wb")
             xmlfile.write(header)
         try:
             r_timestamp = "<timestamp>([^<]+)</timestamp>"
@@ -58,15 +58,19 @@ def generateXMLDump(config={}, titles=[], start=None, session=None):
             print(
                 "Removing the last chunk of past XML dump: it is probably incomplete."
             )
-            truncateXMLDump("%s/%s" % (config["path"], xmlfilename))
+            truncateXMLDump("{}/{}".format(config["path"], xmlfilename))
         else:
             # requested complete xml dump
             lock = False
-            xmlfile = open("%s/%s" % (config["path"], xmlfilename), "w", encoding="utf-8")
+            xmlfile = open(
+                "{}/{}".format(config["path"], xmlfilename), "w", encoding="utf-8"
+            )
             xmlfile.write(header)
             xmlfile.close()
 
-        xmlfile = open("%s/%s" % (config["path"], xmlfilename), "a", encoding="utf-8")
+        xmlfile = open(
+            "{}/{}".format(config["path"], xmlfilename), "a", encoding="utf-8"
+        )
         c = 1
         for title in readTitles(config, start):
             if not title:
@@ -85,7 +89,7 @@ def generateXMLDump(config={}, titles=[], start=None, session=None):
             except PageMissingError:
                 logerror(
                     config=config,
-                    text=u'The page "%s" was missing in the wiki (probably deleted)'
+                    text='The page "%s" was missing in the wiki (probably deleted)'
                     % title,
                 )
             # here, XML is a correct <page> </page> chunk or

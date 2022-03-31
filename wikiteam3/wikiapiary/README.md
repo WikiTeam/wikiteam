@@ -1,5 +1,6 @@
-Scripts for WikiApiary https://wikiapiary.com
+# Scripts for WikiApiary <https://wikiapiary.com>
 
 Bots updating IA links to dumps:
-* https://wikiapiary.com/wiki/Special:Contributions/WikiTeam
-* https://wikiapiary.com/wiki/Special:Contributions/Emijrpbot
+
+* <https://wikiapiary.com/wiki/Special:Contributions/WikiTeam>
+* <https://wikiapiary.com/wiki/Special:Contributions/Emijrpbot>

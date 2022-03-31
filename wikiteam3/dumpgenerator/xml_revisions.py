@@ -1,9 +1,9 @@
-import mwclient
-import requests
 import sys
 import time
-
 from urllib.parse import urlparse
+
+import mwclient
+import requests
 
 from .exceptions import PageMissingError
 from .log_error import logerror
@@ -64,7 +64,7 @@ def getXMLRevisions(config={}, session=None, allpages=False, start=None):
                         # No point putting a limit to retries, we'd need to abort everything.
                         # TODO: reuse the retry logic of the checkAPI phase? Or force mwclient
                         # to use the retry adapter we use for our own requests session?
-                        print("ERROR: {}".format(str(err)))
+                        print(f"ERROR: {str(err)}")
                         print("Sleeping for 20 seconds")
                         time.sleep(20)
                         continue
@@ -165,7 +165,7 @@ def getXMLRevisions(config={}, session=None, allpages=False, start=None):
                                 )
                         except requests.exceptions.ReadTimeout as err:
                             # As above
-                            print("ERROR: {}".format(str(err)))
+                            print(f"ERROR: {str(err)}")
                             print("Sleeping for 20 seconds")
                             time.sleep(20)
                             # But avoid rewriting the same revisions
@@ -186,7 +186,7 @@ def getXMLRevisions(config={}, session=None, allpages=False, start=None):
             c = 0
             for title in readTitles(config, start=start):
                 # TODO: respect verbose flag, reuse output from getXMLPage
-                print(u"    {}".format(title))
+                print(f"    {title}")
                 # TODO: as we're doing one page and revision at a time, we might
                 # as well use xml format and exportnowrap=1 to use the string of,
                 # XML as is, but need to check how well the library handles it.
@@ -213,7 +213,7 @@ def getXMLRevisions(config={}, session=None, allpages=False, start=None):
                 xml = exportrequest["query"]["export"]["*"]
                 c += 1
                 if c % 10 == 0:
-                    print("Downloaded {} pages".format(c))
+                    print(f"Downloaded {c} pages")
                 # Because we got the fancy XML from the JSON format, clean it:
                 yield makeXmlPageFromRaw(xml)
         else:
@@ -232,7 +232,7 @@ def getXMLRevisions(config={}, session=None, allpages=False, start=None):
                 if type(titlelist) is not list:
                     titlelist = [titlelist]
                 for title in titlelist:
-                    print(u"    {}".format(title))
+                    print(f"    {title}")
                 # Try and ask everything. At least on MediaWiki 1.16, uknown props are discarded:
                 # "warnings":{"revisions":{"*":"Unrecognized values for parameter 'rvprop': userid, sha1, contentmodel"}}}
                 pparams = {
@@ -257,7 +257,7 @@ def getXMLRevisions(config={}, session=None, allpages=False, start=None):
                 except mwclient.errors.InvalidResponse:
                     logerror(
                         config=config,
-                        text=u"Error: page inaccessible? Could not export page: %s"
+                        text="Error: page inaccessible? Could not export page: %s"
                         % ("; ".join(titlelist)),
                     )
                     continue
@@ -272,7 +272,7 @@ def getXMLRevisions(config={}, session=None, allpages=False, start=None):
                     except KeyError:
                         logerror(
                             config=config,
-                            text=u"Error: page inaccessible? Could not export page: %s"
+                            text="Error: page inaccessible? Could not export page: %s"
                             % ("; ".join(titlelist)),
                         )
                         break
@@ -284,7 +284,7 @@ def getXMLRevisions(config={}, session=None, allpages=False, start=None):
                         except PageMissingError:
                             logerror(
                                 config=config,
-                                text=u"Error: empty revision from API. Could not export page: %s"
+                                text="Error: empty revision from API. Could not export page: %s"
                                 % ("; ".join(titlelist)),
                             )
                             continue
@@ -320,7 +320,7 @@ def getXMLRevisions(config={}, session=None, allpages=False, start=None):
                 # Reset for the next batch.
                 titlelist = []
                 if c % 10 == 0:
-                    print("Downloaded {} pages".format(c))
+                    print(f"Downloaded {c} pages")
 
     except mwclient.errors.MwClientError as e:
         print(e)

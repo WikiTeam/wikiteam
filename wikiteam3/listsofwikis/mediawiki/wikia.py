@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 
 # wikia.py List of not archived Wikia wikis
 # Downloads Wikia's dumps and lists wikis which have none.

@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 
 # Copyright (C) 2018 WikiTeam developers
 # This program is free software: you can redistribute it and/or modify
@@ -28,13 +27,13 @@ def main():
     urllib.request.install_opener(opener)
 
     words = []
-    with open("words.txt", "r") as f:
+    with open("words.txt") as f:
         words = f.read().strip().splitlines()
     random.shuffle(words)
     print("Loaded %d words from file" % (len(words)))
     # words = words + ['%d' % (i) for i in range(1900, 1980, 10)]
     wikis = []
-    with open("wikispaces-duckduckgo.txt", "r") as f:
+    with open("wikispaces-duckduckgo.txt") as f:
         wikis = f.read().strip().splitlines()
         wikis.sort()
     print("Loaded %d wikis from file" % (len(wikis)))
@@ -53,17 +52,17 @@ def main():
             elif r == 1:
                 url = "https://duckduckgo.com/html/?q=%s%%20wikispaces.com" % (word_)
             elif r == 2:
-                url = "https://duckduckgo.com/html/?q=%s%%20%s%%20wikispaces.com" % (
+                url = "https://duckduckgo.com/html/?q={}%20{}%20wikispaces.com".format(
                     word_,
                     random.randint(100, 3000),
                 )
             elif r == 3:
-                url = "https://duckduckgo.com/html/?q=%s%%20%s%%20wikispaces.com" % (
+                url = "https://duckduckgo.com/html/?q={}%20{}%20wikispaces.com".format(
                     random.randint(100, 3000),
                     word_,
                 )
             else:
-                url = "https://duckduckgo.com/html/?q=%s%%20%s%%20wikispaces.com" % (
+                url = "https://duckduckgo.com/html/?q={}%20{}%20wikispaces.com".format(
                     word_,
                     random.randint(100, 3000),
                 )

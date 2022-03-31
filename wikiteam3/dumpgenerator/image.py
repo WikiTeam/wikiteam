@@ -15,7 +15,6 @@ from .util import cleanHTML, undoHTMLEntities
 
 
 class Image:
-
     def getXMLFileDesc(config={}, title="", session=None):
         """Get XML for image description page"""
         config["curonly"] = 1  # tricky to get only the most recent desc
@@ -27,7 +26,6 @@ class Image:
                 )
             ]
         )
-
 
     def generateImageDump(config={}, other={}, images=[], start="", session=None):
         """Save files and descriptions using a file list"""
@@ -58,20 +56,20 @@ class Image:
                 # split last . (extension) and then merge
                 filename2 = truncateFilename(other=other, filename=filename2)
                 print("Filename is too long, truncating. Now it is:", filename2)
-            filename3 = u"%s/%s" % (imagepath, filename2)
+            filename3 = f"{imagepath}/{filename2}"
             try:
                 imagefile = open(filename3, "wb")
-                
+
                 r = session.head(url=url, allow_redirects=True)
                 original_url_redirected = len(r.history) > 0
-                
+
                 if original_url_redirected:
                     # print 'Site is redirecting us to: ', r.url
                     original_url = url
                     url = r.url
-                
+
                 r = session.get(url=url, allow_redirects=False)
-                
+
                 # Try to fix a broken HTTP to HTTPS redirect
                 if r.status_code == 404 and original_url_redirected:
                     if (
@@ -81,17 +79,18 @@ class Image:
                         url = "https://" + original_url.split("://")[1]
                         # print 'Maybe a broken http to https redirect, trying ', url
                         r = session.get(url=url, allow_redirects=False)
-                
+
                 if r.status_code == 404:
                     logerror(
-                        config=config, text=u"File %s at URL %s is missing" % (filename2, url)
+                        config=config, text=f"File {filename2} at URL {url} is missing"
                     )
-                
+
                 imagefile.write(r.content)
                 imagefile.close()
             except OSError:
                 logerror(
-                    config=config, text=u"File %s could not be created by OS" % (filename3)
+                    config=config,
+                    text="File %s could not be created by OS" % (filename3),
                 )
 
             r = session.head(url=url, allow_redirects=True)
@@ -116,12 +115,12 @@ class Image:
 
             if r.status_code == 404:
                 logerror(
-                    config=config, text=u"File %s at URL %s is missing" % (filename2, url)
+                    config=config, text=f"File {filename2} at URL {url} is missing"
                 )
 
             # saving description if any
             try:
-                title = u"Image:%s" % (filename)
+                title = "Image:%s" % (filename)
                 if (
                     config["xmlrevisions"]
                     and config["api"]
@@ -129,7 +128,7 @@ class Image:
                 ):
                     r = session.get(
                         config["api"]
-                        + u"?action=query&export&exportnowrap&titles=%s" % title
+                        + "?action=query&export&exportnowrap&titles=%s" % title
                     )
                     xmlfiledesc = r.text
                 else:
@@ -140,26 +139,27 @@ class Image:
                 xmlfiledesc = ""
                 logerror(
                     config=config,
-                    text=u'The page "%s" was missing in the wiki (probably deleted)'
+                    text='The page "%s" was missing in the wiki (probably deleted)'
                     % (str(title)),
                 )
 
             try:
-                f = open("%s/%s.desc" % (imagepath, filename2), "w", encoding="utf-8")
+                f = open(f"{imagepath}/{filename2}.desc", "w", encoding="utf-8")
                 # <text xml:space="preserve" bytes="36">Banner featuring SG1, SGA, SGU teams</text>
                 if not re.search(r"</page>", xmlfiledesc):
                     # failure when retrieving desc? then save it as empty .desc
                     xmlfiledesc = ""
-                
+
                 # Fixup the XML
                 if xmlfiledesc != "" and not re.search(r"</mediawiki>", xmlfiledesc):
                     xmlfiledesc += "</mediawiki>"
-                
+
                 f.write(str(xmlfiledesc))
                 f.close()
             except OSError:
                 logerror(
-                    config=config, text=u"File %s/%s.desc could not be created by OS" % (imagepath, filename2)
+                    config=config,
+                    text=f"File {imagepath}/{filename2}.desc could not be created by OS",
                 )
 
             delay(config=config, session=session)
@@ -168,7 +168,6 @@ class Image:
                 print("    Downloaded %d images" % (c))
 
         print("Downloaded %d images" % (c))
-
 
     def getImageNames(config={}, session=None):
         """Get list of image names"""
@@ -185,7 +184,6 @@ class Image:
 
         print("%d image names loaded" % (len(images)))
         return images
-
 
     def getImageNamesScraper(config={}, session=None):
         """Retrieve file list: filename, url, uploader"""
@@ -294,7 +292,6 @@ class Image:
         images.sort()
         return images
 
-
     def getImageNamesAPI(config={}, session=None):
         """Retrieve file list: filename, url, uploader"""
         oldAPI = False
@@ -353,7 +350,7 @@ class Image:
                         filename = urllib.parse.unquote(
                             re.sub("_", " ", url.split("/")[-1])
                         )
-                    if u"%u" in filename:
+                    if "%u" in filename:
                         raise NotImplementedError(
                             "Filename "
                             + filename
@@ -398,7 +395,9 @@ class Image:
                         and "allpages" in jsonimages["query-continue"]
                     ):
                         if "gapfrom" in jsonimages["query-continue"]["allpages"]:
-                            gapfrom = jsonimages["query-continue"]["allpages"]["gapfrom"]
+                            gapfrom = jsonimages["query-continue"]["allpages"][
+                                "gapfrom"
+                            ]
                     # print (gapfrom)
                     # print (jsonimages['query'])
 
@@ -422,27 +421,27 @@ class Image:
 
         return images
 
-
     def saveImageNames(config={}, images=[], session=None):
         """Save image list in a file, including filename, url and uploader"""
 
-        imagesfilename = "%s-%s-images.txt" % (domain2prefix(config=config), config["date"])
-        imagesfile = open("%s/%s" % (config["path"], imagesfilename), "w", encoding="utf-8")
+        imagesfilename = "{}-{}-images.txt".format(
+            domain2prefix(config=config), config["date"]
+        )
+        imagesfile = open(
+            "{}/{}".format(config["path"], imagesfilename), "w", encoding="utf-8"
+        )
         imagesfile.write(
-            (
-                "\n".join(
-                    [
-                        filename + "\t" + url + "\t" + uploader
-                        for filename, url, uploader in images
-                    ]
-                )
+            "\n".join(
+                [
+                    filename + "\t" + url + "\t" + uploader
+                    for filename, url, uploader in images
+                ]
             )
         )
         imagesfile.write("\n--END--")
         imagesfile.close()
 
         print("Image filenames and URLs saved at...", imagesfilename)
-
 
     def curateImageURL(config={}, url=""):
         """Returns an absolute URL for an image, adding the domain if missing"""
@@ -465,7 +464,7 @@ class Image:
             sys.exit()
 
         if url.startswith("//"):  # Orain wikifarm returns URLs starting with //
-            url = u"%s:%s" % (domainalone.split("://")[0], url)
+            url = "{}:{}".format(domainalone.split("://")[0], url)
         # is it a relative URL?
         elif url[0] == "/" or (
             not url.startswith("http://") and not url.startswith("https://")
@@ -473,7 +472,7 @@ class Image:
             if url[0] == "/":  # slash is added later
                 url = url[1:]
             # concat http(s) + domain + relative url
-            url = u"%s/%s" % (domainalone, url)
+            url = f"{domainalone}/{url}"
         url = undoHTMLEntities(text=url)
         # url = urllib.parse.unquote(url) #do not use unquote with url, it break some
         # urls with odd chars

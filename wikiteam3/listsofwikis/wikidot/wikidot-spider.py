@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 
 # Copyright (C) 2018 WikiTeam developers
 # This program is free software: you can redistribute it and/or modify
@@ -28,7 +27,7 @@ def main():
     urllib.request.install_opener(opener)
 
     wikis = []
-    with open("wikidot-spider.txt", "r") as f:
+    with open("wikidot-spider.txt") as f:
         wikis = f.read().strip().splitlines()
 
     for i in range(1, 1000000):

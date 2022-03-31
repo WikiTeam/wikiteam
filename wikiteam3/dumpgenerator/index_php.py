@@ -3,6 +3,7 @@ import os
 from .delay import delay
 from .util import removeIP
 
+
 def saveIndexPHP(config={}, session=None):
     """Save index.php as .html, to preserve license details available at the botom of the page"""
 

@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 
 # Copyright (C) 2019 WikiTeam developers
 # This program is free software: you can redistribute it and/or modify
@@ -25,7 +24,7 @@ import requests
 
 def main():
     wikis = []
-    with open("wikidot-spider2.txt", "r") as f:
+    with open("wikidot-spider2.txt") as f:
         wikis = f.read().strip().splitlines()
 
     for i in range(1, 1000000):

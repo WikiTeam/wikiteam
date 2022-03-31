@@ -1,8 +1,8 @@
 import re
-import requests
 import sys
 import time
 
+import requests
 from lxml import etree
 from lxml.builder import E
 
@@ -56,7 +56,7 @@ def getXMLPageCore(headers={}, params={}, config={}, session=None):
                 params["curonly"] = 1
                 logerror(
                     config=config,
-                    text=u'Error while retrieving the full history of "%s". Trying to save only the last revision for this page'
+                    text='Error while retrieving the full history of "%s". Trying to save only the last revision for this page'
                     % (params["pages"]),
                 )
                 return getXMLPageCore(
@@ -66,7 +66,7 @@ def getXMLPageCore(headers={}, params={}, config={}, session=None):
                 print("    Saving in the errors log, and skipping...")
                 logerror(
                     config=config,
-                    text=u'Error while retrieving the last revision of "%s". Skipping.'
+                    text='Error while retrieving the last revision of "%s". Skipping.'
                     % (params["pages"]),
                 )
                 raise ExportAbortedError(config["index"])
@@ -257,6 +257,6 @@ def makeXmlFromPage(page):
 
 def fixBOM(request):
     """Strip Unicode BOM"""
-    if request.text.startswith(u"\ufeff"):
+    if request.text.startswith("\ufeff"):
         request.encoding = "utf-8-sig"
     return request.text
