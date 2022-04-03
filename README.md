@@ -1,110 +1,180 @@
-# WikiTeam
+# `wikiteam3`
 
-## We archive wikis, from Wikipedia to tiniest wikis
+***We archive wikis, from Wikipedia to the tiniest wikis***
 
-**WikiTeam software is a set of tools for archiving wikis.** They work on MediaWiki wikis, but we want to expand to other wiki engines. As of 2020, WikiTeam has preserved more than [250,000 wikis](https://github.com/WikiTeam/wikiteam/wiki/Available-Backups), several wikifarms, regular Wikipedia dumps and [34 TB of Wikimedia Commons images](https://archive.org/details/wikimediacommons).
+`wikiteam3` is an ongoing project to port the legacy [`wikiteam`](https://github.com/WikiTeam/wikiteam) toolset to Python 3 and PyPI to make it more accessible for today's archivers.
 
-There are [thousands](http://wikiindex.org) of [wikis](https://wikiapiary.com) in the Internet. Every day some of them are no longer publicly available and, due to lack of backups, lost forever. Millions of people download tons of media files (movies, music, books, etc) from the Internet, serving as a kind of distributed backup. Wikis, most of them under free licenses, disappear from time to time because nobody grabbed a copy of them. That is a shame that we would like to solve.
+Most of the focus has been on the core `dumpgenerator` tool, but Python 3 versions of the other `wikiteam` tools may be added over time.
 
-**WikiTeam** is the [Archive Team](http://www.archiveteam.org) ([GitHub](https://github.com/ArchiveTeam)) subcommittee on wikis. It was founded and originally developed by [Emilio J. Rodríguez-Posada](https://github.com/emijrp), a Wikipedia veteran editor and amateur archivist. Many people have helped by sending suggestions, [reporting bugs](https://github.com/WikiTeam/wikiteam/issues), writing [documentation](https://github.com/WikiTeam/wikiteam/wiki), providing help in the [mailing list](http://groups.google.com/group/wikiteam-discuss) and making [wiki backups](https://github.com/WikiTeam/wikiteam/wiki/Available-Backups). Thanks to all, especially to: [Federico Leva](https://github.com/nemobis), [Alex Buie](https://github.com/ab2525), [Scott Boyd](http://www.sdboyd56.com), [Hydriz](https://github.com/Hydriz), Platonides, Ian McEwen, [Mike Dupont](https://github.com/h4ck3rm1k3), [balr0g](https://github.com/balr0g) and [PiRSquared17](https://github.com/PiRSquared17).
+## `wikiteam3` Toolset
 
-![Documentation](https://upload.wikimedia.org/wikipedia/commons/f/f3/Nuvola_apps_Wild.png)
-[Documentation](https://github.com/WikiTeam/wikiteam/wiki/Tutorial)
+`wikiteam3` is a set of tools for archiving wikis. The tools work on MediaWiki wikis, but the team hopes to expand to other wiki engines. As of 2020, WikiTeam has preserved more than [250,000 wikis](https://github.com/WikiTeam/wikiteam/wiki/Available-Backups), several wikifarms, regular Wikipedia dumps and [34 TB of Wikimedia Commons images](https://archive.org/details/wikimediacommons).
 
-![Source code](http://upload.wikimedia.org/wikipedia/commons/2/2a/Nuvola_apps_kservices.png)
-[Source code](https://raw.githubusercontent.com/WikiTeam/wikiteam/master/dumpgenerator.py)
+The main general-purpose module of `wikiteam3` is `dumpgenerator`, which can download XML dumps of MediaWiki sites that can then be parsed or redeployed elsewhere.
 
-![Download available backups](https://upload.wikimedia.org/wikipedia/commons/3/37/Nuvola_devices_3floppy_mount.png)
-[Download available backups](https://github.com/WikiTeam/wikiteam/wiki/Available-Backups)
+## Using `dumpgenerator`
 
-![Community](https://upload.wikimedia.org/wikipedia/commons/0/0f/Nuvola_apps_kuser.png)
-[Community](https://groups.google.com/group/wikiteam-discuss)
+The Python 3 port of the `dumpgenerator` module of `wikiteam3` is largely functional and can be installed from a downloaded or cloned copy of this repository.
 
-![Follow us on Twitter](https://upload.wikimedia.org/wikipedia/commons/e/eb/Twitter_logo_initial.png)
-[Follow us on Twitter](https://twitter.com/_WikiTeam)
+> `wikiteam3` requires [Python 3.8](https://www.python.org/downloads/release/python-380/) or later (less than 4.0), but you may be able to get it run with earlier versions of Python 3.
 
-## Quick guide
+There are two versions of these instructions:
 
-This is a very quick guide for the most used features of WikiTeam tools. For further information, read the [tutorial](https://github.com/WikiTeam/wikiteam/wiki/Tutorial) and the rest of the [documentation](https://github.com/WikiTeam/wikiteam/wiki). You can also ask in the [mailing list](http://groups.google.com/group/wikiteam-discuss).
+* If you just want to use a version that mostly works
+* If you want to follow my progress and help me test my latest commit
 
-These instructions assume you will run WikiTeam from a cloned or downloaded copy of this repository. WikiTeam3 may eventually be available from PyPI, in which case the instructions will vary.
+> If you run into a problem with the version that mostly works, you can [open an Issue](https://github.com/elsiehupp/wikiteam3/issues/new/choose). Be sure to include the following:
+>
+> 1. The operating system you're using
+> 2. What command you ran that didn't work
+> 3. What output was printed to your terminal
 
-### Requirements
+### If you just want to use a version that mostly works
 
-Requires [Python 3.8](https://www.python.org/downloads/release/python-380/) or later (less than 4.0).
+#### 1. Download and install
 
-Confirm you satisfy the requirements:
+In whatever folder you use for cloned repositories:
 
-`pip install poetry`
+```bash
+$ git clone https://github.com/elsiehupp/wikiteam3.git
+$ cd wikiteam3
+$ git checkout --track origin/python3
+$ pip install --force-reinstall dist/*.whl
+```
 
-or, if you don't have enough permissions for the above,
+#### 2. Run `dumpgenerator` for whatever purpose you need
 
-`pip install --user poetry`
+```bash
+$ dumpgenerator [args]
+```
 
-Once `poetry` is installed, in the `wikiteam3` directory, run:
+#### 3. To uninstall the package and delete the cloned repository when you're done
 
-`poetry install`
+```shell
+$ pip uninstall wikiteam3
+$ rm -r [cloned_wikiteam3_folder]
+```
 
-### Download any wiki
+If you'd like to manually install `wikiteam3` from a cloned or downloaded copy of this repository, run the following commands from the downloaded base directory:
 
-You should now being able to use the `dumpgenerator` command anywhere. On Windows, it may not have been added to your path - you can check the location of the relevant Scripts folder when running `poetry install -v`.
+```bash
+$ curl -sSL https://install.python-poetry.org | python3 -
+$ poetry install
+$ poetry build
+$ pip install --force-reinstall dist/*.whl
+```
 
-To download any wiki, use one of the following options:
+In either case, to uninstall `wikiteam3` run this command (from any local directory):
 
-`dumpgenerator http://wiki.domain.org --xml --images` (complete XML histories and images)
+```bash
+pip uninstall wikiteam3
+```
 
-If the script can't find itself the API and/or index.php paths, then you can provide them:
+### If you want to follow my progress and help me test my latest commit
 
-`dumpgenerator --api=http://wiki.domain.org/w/api.php --xml --images`
+> **Note:** this branch may not actually work at any given time!
 
-`dumpgenerator --api=http://wiki.domain.org/w/api.php --index=http://wiki.domain.org/w/index.php --xml --images`
+#### 1. Install [Python Poetry](https://python-poetry.org/)
 
-If you only want the XML histories, just use `--xml`. For only the images, just `--images`. For only the current version of every page, `--xml --curonly`.
+```bash
+$ curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python -
+```
 
-You can resume an aborted download:
+> **Note:** if you get an SSL error, you may need to follow the instructions [here](https://github.com/python-poetry/poetry/issues/5117).
 
-`dumpgenerator --api=http://wiki.domain.org/w/api.php --xml --images --resume --path=/path/to/incomplete-dump`
+#### 2. Clone the repository and switch to the `prepare-for-publication` branch
 
-See more options:
+```bash
+$ git clone git@github.com:elsiehupp/wikiteam3.git
+```
 
-`dumpgenerator --help`
+or
 
-### Download Wikimedia dumps
+```bash
+$ git clone https://github.com/elsiehupp/wikiteam3.git
+```
 
-To download [Wikimedia XML dumps](http://dumps.wikimedia.org/backup-index.html) (Wikipedia, Wikibooks, Wikinews, etc) you can run:
+then:
 
-`poetry run python wikipediadownloader.py` (download all projects)
+```bash
+$ cd wikiteam3
+$ git checkout --track origin/prepare-for-publication
+```
 
-See more options:
+#### 3. Build and install
 
-`poetry run python wikipediadownloader.py --help`
+> **Note:** Re-run the following steps each time to reinstall each time the `wikiteam3` branch is updated.
 
-### Download Wikimedia Commons images
+```shell
+$ git pull
+$ poetry update && poetry install && poetry build
+$ pip install --force-reinstall dist/*.whl
+```
 
-There is a script for this, but we have [uploaded the tarballs](https://archive.org/details/wikimediacommons) to Internet Archive, so it's more useful to reseed their torrents than to re-generate old ones with the script.
+#### 4. Then, from anywhere, you should be able to run
 
-## Developers
+```shell
+$ dumpgenerator [args]
+```
 
-[![Build Status](https://travis-ci.org/WikiTeam/wikiteam.svg)](https://travis-ci.org/WikiTeam/wikiteam)
+> To run the test suite, run:
+>
+> ```bash
+> $ test-dumpgenerator
+> ```
 
-> **Note:** Tests are not currently working. These instructions will be updated ASAP.
+#### 5. To uninstall the package and delete the cloned repository when you're done
 
-You can run tests easily by using the [tox](https://pypi.python.org/pypi/tox) command.  It is probably already present in your operating system, you would need version 1.6.  If it is not, you can download it from pypi with: `pip install tox`.
+```shell
+$ pip uninstall wikiteam3
+$ rm -r [cloned_wikiteam3_folder]
+```
 
-Example usage:
+### Using `dumpgenerator`
 
-    $ tox
-    py27 runtests: commands[0] | nosetests --nocapture --nologcapture
-    Checking http://wiki.annotation.jp/api.php
-    Trying to parse かずさアノテーション - ソーシャル・ゲノム・アノテーション.jpg from API
-    Retrieving image filenames
-    .    Found 266 images
-    .
-    -------------------------------------------
-    Ran 1 test in 2.253s
+After installing `wikiteam3` using `pip` you should be able to use the `dumpgenerator` command from any local directory.
 
-    OK
-    _________________ summary _________________
-      py27: commands succeeded
-      congratulations :)
-    $
+For basic usage, you can run `dumpgenerator` in the directory where you'd like the download to be.
+
+For a brief summary of the `dumpgenerator` command-line options:
+
+```bash
+$ dumpgenerator --help
+```
+
+Several examples follow:
+
+#### To download a wiki with omplete XML histories and images:
+
+```bash
+$ dumpgenerator http://wiki.domain.org --xml --images
+```
+
+#### If the script can't find itself the `api.php` and/or `index.php` paths, then you can provide them:
+
+```bash
+dumpgenerator --api http://wiki.domain.org/w/api.php --xml --images
+```
+
+
+```bash
+dumpgenerator --api http://wiki.domain.org/w/api.php --index http://wiki.domain.org/w/index.php --xml --images
+```
+
+If you only want the XML histories, just use `--xml`. For only the images, just `--images`. For only the current version of every page, `--xml --current`.
+
+#### You can resume an aborted download:
+
+```bash
+$ dumpgenerator --api http://wiki.domain.org/w/api.php --xml --images --resume --path=/path/to/incomplete-dump
+```
+
+`dumpgenerator` will also ask you if you want to resume if it detects an aborted download as it is running.
+
+## WikiTeam Team
+
+**WikiTeam** is the [Archive Team](http://www.archiveteam.org) [[GitHub](https://github.com/ArchiveTeam)] subcommittee on wikis.
+
+It was founded and originally developed by [Emilio J. Rodríguez-Posada](https://github.com/emijrp), a Wikipedia veteran editor and amateur archivist. Thanks to people who have helped, especially to: [Federico Leva](https://github.com/nemobis), [Alex Buie](https://github.com/ab2525), [Scott Boyd](http://www.sdboyd56.com), [Hydriz](https://github.com/Hydriz), Platonides, Ian McEwen, [Mike Dupont](https://github.com/h4ck3rm1k3), [balr0g](https://github.com/balr0g) and [PiRSquared17](https://github.com/PiRSquared17).
+
+The Python 3 initiative is currently being led by [Elsie Hupp](https://github.com/elsiehupp), with contributions from [Victor Gambier](https://github.com/vgambier) and [Thomas Karcher](https://github.com/t-karcher).
