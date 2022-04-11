@@ -1942,7 +1942,7 @@ def getParameters(params=[]):
     groupDownload.add_argument(
         '--apiquery',
         action='store_true',
-        help="EXPERIMENTAL: Using api.php?query instead of Special:Export to export pages, only use with --curonly")
+        help="EXPERIMENTAL: Using api.php?query instead of Special:Export to export pages, works with: --curonly,--xmlrevisions,--images")
     groupDownload.add_argument('--xmlrevisions', action='store_true',
                                help='download all revisions from an API generator. MediaWiki 1.27+ only.')
     groupDownload.add_argument(
@@ -1992,13 +1992,9 @@ def getParameters(params=[]):
             print getWikiEngine(url=args.wiki)
             sys.exit()
 
-    if (args.apiquery and not args.curonly) or (args.xmlrevisions and args.apiquery):
-        if (args.xmlrevisions):
-            print('ERROR: --apiquery conflicts with --xmlrevisions and requires --curonly')
-            sys.exit()
-        elif (args.xml):
-            print('ERROR: --apiquery conflicts requires --curonly')
-            sys.exit()
+    if (args.apiquery and not args.curonly) and (args.apiquery and not args.xmlrevisions) and (args.apiquery and not args.images):
+        print('ERROR: --apiquery requires either --curonly or --images or --xmlrevisions')
+        sys.exit()
 
     # Create session
     cj = cookielib.MozillaCookieJar()
