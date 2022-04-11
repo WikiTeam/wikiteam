@@ -74,7 +74,7 @@ except ImportError:
 UTF8Writer = getwriter('utf8')
 sys.stdout = UTF8Writer(sys.stdout)
 
-__VERSION__ = '0.5.0-alpha'  # major, minor, micro: semver.org
+__VERSION__ = '0.4.1-alpha'  # major, minor, micro: semver.org
 
 class PageMissingError(Exception):
     def __init__(self, title, xml):
@@ -175,7 +175,7 @@ def getNamespacesScraper(config={}, session=None):
     namespacenames = {0: ''}  # main is 0, no prefix
     if namespaces:
         r = session.post(
-            url=config['index'], params={'title': 'Special:Allpages'}, timeout=120)
+            url=config['index'], params={'title': 'Special:Allpages'}, timeout=60)
         raw = r.text
         delay(config=config, session=session)
 
@@ -217,7 +217,7 @@ def getNamespacesAPI(config={}, session=None):
                 'meta': 'siteinfo',
                 'siprop': 'namespaces',
                 'format': 'json'},
-            timeout=120
+            timeout=60
         )
         result = getJSON(r)
         delay(config=config, session=session)
@@ -292,7 +292,7 @@ def getPageTitlesScraper(config={}, session=None):
         print '    Retrieving titles in the namespace', namespace
         url = '%s?title=Special:Allpages&namespace=%s' % (
             config['index'], namespace)
-        r = session.get(url=url, timeout=120)
+        r = session.get(url=url, timeout=60)
         raw = r.text
         raw = cleanHTML(raw)
 
@@ -466,7 +466,7 @@ def getXMLHeader(config={}, session=None):
 
     else:
         try:
-            xml = "".join([x for x in getXMLPage_(config=config, title=randomtitle, verbose=False, session=session)])
+            xml = "".join([x for x in selectXMLQueryMode(config=config, title=randomtitle, verbose=False, session=session)])
         except PageMissingError as pme:
             # The <page> does not exist. Not a problem, if we get the <siteinfo>.
             xml = pme.xml
@@ -484,11 +484,11 @@ def getXMLHeader(config={}, session=None):
                         'meta': 'siteinfo',
                         'siprop': 'namespaces',
                         'format': 'json'},
-                    timeout=120
+                    timeout=60
                     )
                     config['export'] = json.loads(r.text)['query']['namespaces']['-1']['*'] \
                         + ':Export'
-                    xml = "".join([x for x in getXMLPage_(config=config, title=randomtitle, verbose=False, session=session)])
+                    xml = "".join([x for x in selectXMLQueryMode(config=config, title=randomtitle, verbose=False, session=session)])
             except PageMissingError as pme:
                 xml = pme.xml
             except ExportAbortedError:
@@ -511,7 +511,7 @@ def getXMLHeader(config={}, session=None):
 def getXMLFileDesc(config={}, title='', session=None):
     """ Get XML for image description page """
     config['curonly'] = 1  # tricky to get only the most recent desc
-    return("".join([x for x in getXMLPage_( config=config, title=title, verbose=False, session=session)]))
+    return("".join([x for x in selectXMLQueryMode( config=config, title=title, verbose=False, session=session)]))
 
 
 def getUserAgent():
@@ -593,7 +593,7 @@ def getXMLPageCoreWithApi(headers={}, params={}, config={}, session=None):
         if c > 0 and c < maxretries:
             wait = increment * c < maxseconds and increment * \
                 c or maxseconds  # incremental until maxseconds
-            print '    In attempt %d, XML for "%s" is wrong. Waiting %d seconds and reloading...'%(c, params['titles' if config['apiexport'] else 'pages'], wait)
+            print '    In attempt %d, XML for "%s" is wrong. Waiting %d seconds and reloading...'%(c, params['titles' if config['apiquery'] else 'pages'], wait)
             time.sleep(wait)
             # reducing server load requesting smallest chunks (if curonly then
             # rvlimit = 1 from mother function)
@@ -601,7 +601,7 @@ def getXMLPageCoreWithApi(headers={}, params={}, config={}, session=None):
                 params['rvlimit'] = params['rvlimit'] / 2  # half
         if c >= maxretries:
             print '    We have retried %d times' % (c)
-            print '    MediaWiki error for "%s", network error or whatever...' % (params['titles' if config['apiexport'] else 'pages'])
+            print '    MediaWiki error for "%s", network error or whatever...' % (params['titles' if config['apiquery'] else 'pages'])
             # If it's not already what we tried: our last chance, preserve only the last revision...
             # config['curonly'] means that the whole dump is configured to save only the last,
             # params['curonly'] should mean that we've already tried this
@@ -612,7 +612,7 @@ def getXMLPageCoreWithApi(headers={}, params={}, config={}, session=None):
             logerror(
                 config=config,
                 text=u'Error while retrieving the last revision of "%s". Skipping.' %
-                (params['titles' if config['apiexport'] else 'pages']).decode('utf-8'))
+                (params['titles' if config['apiquery'] else 'pages']).decode('utf-8'))
             #raise ExportAbortedError(config['index'])
             return ''  # empty xml
 
@@ -660,7 +660,7 @@ def getXMLPageWithApi(config={}, title='', verbose=True, session=None):
                     lastcontinue = params['rvcontinue']
                 except:
                     lastcontinue = None
-            
+
             xml = getXMLPageCoreWithApi(params=params, config=config, session=session)
             if xml == "":
                 #just return so that we can continue, and getXMLPageCoreWithApi will log the error
@@ -807,7 +807,7 @@ def getXMLPageCore(headers={}, params={}, config={}, session=None):
             xml = ''
         except requests.exceptions.ReadTimeout as e:
             print '    Read timeout: %s'%(str(e[0]))
-            xml = ''       
+            xml = ''
         c += 1
 
     return xml
@@ -914,11 +914,12 @@ def getXMLPage(config={}, title='', verbose=True, session=None):
            print '    %s, 1 edit' % (title.strip())
         else:
            print '    %s, %d edits' % (title.strip(), numberofedits)
-def getXMLPage_(config={}, title='', verbose=True, session=None):
-    #print config
-    if config['apiexport']:
+def selectXMLQueryMode(config={}, title='', verbose=True, session=None):
+    if config['apiquery']:
+        #Using api.php?Query instead of relying on Special:Export
         return getXMLPageWithApi(config=config, title=title, verbose=verbose, session=session)
     else:
+        #Using the traditional method(default)
         return getXMLPage(config=config, title=title, verbose=verbose, session=session)
     return ''
 
@@ -1001,7 +1002,7 @@ def generateXMLDump(config={}, titles=[], start=None, session=None):
             if c % 10 == 0:
                 print 'Downloaded %d pages' % (c)
             try:
-                for xml in getXMLPage_(config=config, title=title, session=session):
+                for xml in selectXMLQueryMode(config=config, title=title, session=session):
                     xml = cleanXML(xml=xml)
                     xmlfile.write(xml.encode('utf-8'))
             except PageMissingError:
@@ -1122,7 +1123,7 @@ def getXMLRevisions(config={}, session=None, allpages=False, start=None):
                         # repeated header is confusing and would not even be valid
                         xml = exportrequest['query']['export']['*']
                         yield makeXmlPageFromRaw(xml)
-                        
+
                     if 'continue' in arvrequest:
                         # Get the new ones
                         arvparams['arvcontinue'] = arvrequest['continue']['arvcontinue']
@@ -1144,7 +1145,7 @@ def getXMLRevisions(config={}, session=None, allpages=False, start=None):
                     else:
                         # End of continuation. We are done with this namespace.
                         break
-                    
+
     except (KeyError, mwclient.errors.InvalidResponse) as e:
         print(e)
         # TODO: check whether the KeyError was really for a missing arv API
@@ -1376,7 +1377,7 @@ def reverse_readline(filename, buf_size=8192, truncate=False):
             if segment is not None:
                 # if the previous chunk starts right from the beginning of line
                 # do not concat the segment to the last line of new chunk
-                # instead, yield the segment first 
+                # instead, yield the segment first
                 if buffer[-1] is not '\n':
                     lines[-1] += segment
                 else:
@@ -1938,6 +1939,10 @@ def getParameters(params=[]):
         help="generates a full history XML dump (--xml --curonly for current revisions only)")
     groupDownload.add_argument('--curonly', action='store_true',
         help='store only the current version of pages')
+    groupDownload.add_argument(
+        '--apiquery',
+        action='store_true',
+        help="EXPERIMENTAL: Using api.php?query instead of Special:Export to export pages, only use with --curonly")
     groupDownload.add_argument('--xmlrevisions', action='store_true',
                                help='download all revisions from an API generator. MediaWiki 1.27+ only.')
     groupDownload.add_argument(
@@ -1950,10 +1955,6 @@ def getParameters(params=[]):
         '--exnamespaces',
         metavar="1,2,3",
         help='comma-separated value of namespaces to exclude')
-    groupDownload.add_argument(
-        '--apiexport',
-        action='store_true',
-        help="Using API instead of Special:Export to export pages")
 
     # Meta info params
     groupMeta = parser.add_argument_group(
@@ -1989,6 +1990,14 @@ def getParameters(params=[]):
     if args.wiki:
         if args.get_wiki_engine:
             print getWikiEngine(url=args.wiki)
+            sys.exit()
+
+    if (args.apiquery and not args.curonly) or (args.xmlrevisions and args.apiquery):
+        if (args.xmlrevisions):
+            print('ERROR: --apiquery conflicts with --xmlrevisions and requires --curonly')
+            sys.exit()
+        elif (args.xml):
+            print('ERROR: --apiquery conflicts requires --curonly')
             sys.exit()
 
     # Create session
@@ -2154,7 +2163,7 @@ def getParameters(params=[]):
         'cookies': args.cookies or '',
         'delay': args.delay,
         'retries': int(args.retries),
-        'apiexport': args.apiexport
+        'apiquery': args.apiquery,
     }
 
     other = {
@@ -2615,7 +2624,7 @@ def getWikiEngine(url=''):
     session.headers.update({'User-Agent': getUserAgent()})
     r = session.post(url=url, timeout=30)
     if r.status_code == 405 or r.text == '':
-        r = session.get(url=url, timeout=120)
+        r = session.get(url=url, timeout=60)
     result = r.text
 
     wikiengine = 'Unknown'
@@ -2698,7 +2707,7 @@ def mwGetAPIAndIndex(url=''):
     index = ''
     session = requests.Session()
     session.headers.update({'User-Agent': getUserAgent()})
-    r = session.post(url=url, timeout=120)
+    r = session.post(url=url, timeout=60)
     result = r.text
 
     # API
