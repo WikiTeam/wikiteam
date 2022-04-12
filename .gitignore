@@ -6,4 +6,4 @@ keys.txt
 batchdownload/keys.txt
 batchdownload/dumpgenerator.py
 batchdownload/uploader.py
-
+.DS_Store
