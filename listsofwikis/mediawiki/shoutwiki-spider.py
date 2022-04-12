@@ -23,6 +23,7 @@ def main():
     ids, wikis = [], []
     gcont = 'tmp'
     url = 'http://www.shoutwiki.com/w/api.php'
+    headers = {'User-Agent': 'Mozilla/5.0 (X11; Linux i686; rv:24.0) Gecko/20100101 Firefox/24.0'}
 
     # grab wiki pages
     params = {
@@ -37,7 +38,7 @@ def main():
     while gcont:
         if gcont != 'tmp':
             params['gcmcontinue'] = gcont
-        json = requests.get(url, params=params).json()
+        json = requests.get(url, params=params, headers=headers).json()
         gcont = json['continue']['gcmcontinue'] if 'continue' in json else ''
         query = json['query']['pages']
         for wiki in query:
@@ -54,7 +55,7 @@ def main():
     }
     for n in tqdm(range(0, len(ids), 50)):
         params['pageids'] = '|'.join(ids[n:n+50])
-        json = requests.get(url, params=params).json()
+        json = requests.get(url, params=params, headers=headers).json()
 
         for wiki in json['query']['pages']:
             for val in wiki['revisions'][0]['slots']['main']['content'].split('\n|'):
