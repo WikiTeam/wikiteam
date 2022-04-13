@@ -1,8 +1,8 @@
 Wikifarm: http://neowiki.neoseeker.com/wiki/Main_Page
-Last update: 2017-06-30
+Last update: 2022-04-12
 
 Details:
 
 There is a dynamic list http://neowiki.neoseeker.com/wiki/Special:WikiList
 
-Run script: python neoseeker-spider.py > newlist
+Run script: python3 neoseeker-spider.py
