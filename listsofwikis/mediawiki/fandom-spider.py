@@ -40,6 +40,7 @@ def main():
             req = requests.get('https://community.fandom.com%s' % lvl3)
         wikis.extend([wiki.replace('http://', 'https://') for wiki in re.findall(r'<a class=\"title\" href=\"([^>]+?)\">', req.text)])
 
+    wikis = list(set(wikis))
     wikis.sort()
     with open('fandom.com', 'w') as f:
         for wiki in wikis:
