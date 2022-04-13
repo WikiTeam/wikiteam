@@ -64,6 +64,7 @@ def main():
                     break
 
         time.sleep(0.3)
+    wikis = list(set(wikis))
     wikis.sort()
 
     with open('shoutwiki.com', 'w') as f:
