@@ -27,7 +27,7 @@ def getParameters(params=[]):
         "--cookies", metavar="cookies.txt", help="path to a cookies.txt file"
     )
     parser.add_argument(
-        "--delay", metavar=5, default=0, type=float, help="adds a delay (in seconds)"
+        "--delay", metavar=5, default=0.5, type=float, help="adds a delay (in seconds)"
     )
     parser.add_argument(
         "--retries", metavar=5, default=5, help="Maximum number of retries for "
