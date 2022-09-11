@@ -171,8 +171,8 @@ $ dumpgenerator --api http://wiki.domain.org/w/api.php --xml --images --resume -
 
 `dumpgenerator` will also ask you if you want to resume if it detects an aborted download as it is running.
 
-### For Windows 10 (and later) users ###
-Use [Git Bash](https://gitforwindows.org/) with Windows Terminal
+### For Windows 10 (and later) ###
+Use [Git Bash](https://gitforwindows.org/) with Windows Terminal.
 
 ## WikiTeam Team
 
