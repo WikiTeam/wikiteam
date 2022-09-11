@@ -7,10 +7,15 @@ def welcome():
     message = ""
     """Opening message"""
     message += "#" * 73
-    message += """
-# Welcome to DumpGenerator %s by WikiTeam (GPL v3)                   #
-# More info at: https://github.com/WikiTeam/wikiteam                    #""" % (
+    message += "\n"
+    welcome_string = "# Welcome to DumpGenerator %s by WikiTeam (GPL v3)" % (
         getVersion()
+    )
+    welcome_string += " " * (73 - len(welcome_string) - 1) + "#"
+    message += welcome_string
+    message += "\n"
+    message += (
+        "# More info at: https://github.com/elsiehupp/wikiteam3                  #"
     )
     message += "\n"
     message += "#" * 73
