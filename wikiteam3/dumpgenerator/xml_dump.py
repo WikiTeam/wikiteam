@@ -35,8 +35,10 @@ def generateXMLDump(config={}, titles=[], start=None, session=None):
             )
         else:
             print("Retrieving the XML for every page from the beginning")
-            xmlfile = open("{}/{}".format(config["path"], xmlfilename), "wb")
-            xmlfile.write(header)
+            xmlfile = open(
+                "{}/{}".format(config["path"], xmlfilename), "w", encoding="utf-8"
+            )
+            xmlfile.write(str(header))
         try:
             r_timestamp = "<timestamp>([^<]+)</timestamp>"
             for xml in getXMLRevisions(config=config, session=session, start=start):
@@ -50,6 +52,9 @@ def generateXMLDump(config={}, titles=[], start=None, session=None):
             print(e)
             print("This API library version is not working")
             sys.exit()
+        except UnicodeEncodeError as e:
+            print(e)
+
     else:
         print(
             'Retrieving the XML for every page from "%s"' % (start and start or "start")
@@ -65,7 +70,7 @@ def generateXMLDump(config={}, titles=[], start=None, session=None):
             xmlfile = open(
                 "{}/{}".format(config["path"], xmlfilename), "w", encoding="utf-8"
             )
-            xmlfile.write(header)
+            xmlfile.write(str(header))
             xmlfile.close()
 
         xmlfile = open(
@@ -98,6 +103,6 @@ def generateXMLDump(config={}, titles=[], start=None, session=None):
             # (logged in errors log)
             c += 1
 
-    xmlfile.write(footer)
+    xmlfile.write(str(footer))
     xmlfile.close()
     print("XML dump saved at...", xmlfilename)
