@@ -52,15 +52,15 @@ The main general-purpose module of `wikiteam3` is `dumpgenerator`, which can dow
 
   </details>
 
-* On Windows 10 or Windows 11 you can use [Git Bash](https://gitforwindows.org/) with [Windows Terminal](https://aka.ms/terminal).
+* A relatively simple method with Bash on Windows 10 or Windows 11. Does not use WSL, CMD nor PowerShell. 
 
   <details>
   <summary>Windows Dependencies</summary>
 
-  Something something *Lorem ipsum*...
+  On Windows you will need to install [Windows Terminal](https://aka.ms/terminal) and [Git](https://gitforwindows.org/), (Git for Windows provides a Bash emulation). To avoid Windows storing Python scripts in a GUID folder under `%appdata%`, add wherever you've chosen for your Python scripts e.g. `C:\Program Files\Python3\Scripts\` to the PATH environment variable. In Windows Terminal do Ctrl+Click on Git Bash to open as administrator, then to run `git` (with no arguments) enter:
 
   ```bash
-  hi rob please put the relevant shell string here (following the format of the other bullet points here) thx!
+  git
   ```
 
   </details>
