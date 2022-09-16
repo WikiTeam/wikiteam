@@ -52,7 +52,7 @@ The main general-purpose module of `wikiteam3` is `dumpgenerator`, which can dow
 
   </details>
 
-* A relatively simple method with Bash on Windows 10 or Windows 11. Does not use WSL, CMD nor PowerShell. 
+* A relatively simple method with Bash on Windows 10 or Windows 11. Does not use WSL, CMD nor PowerShell.
 
   <details>
   <summary>Windows Dependencies</summary>
