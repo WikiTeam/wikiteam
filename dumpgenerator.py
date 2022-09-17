@@ -492,7 +492,7 @@ def getXMLHeader(config={}, session=None):
             header, config = getXMLHeader(config=config, session=session)
         else:
             print 'XML export on this wiki is broken, quitting.'
-            logerror(u'XML export on this wiki is broken, quitting.')
+            logerror(config=config, text=u'XML export on this wiki is broken, quitting.')
             sys.exit()
     return header, config
 
