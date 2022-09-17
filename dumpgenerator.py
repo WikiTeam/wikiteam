@@ -730,7 +730,7 @@ def generateXMLDump(config={}, titles=[], start=None, session=None):
 
     if config['xmlrevisions']:
         if start:
-            print("WARNING: will try to start the download from title: {}".format(start))
+            print("WARNING: will try to start the download from title: %s" % start)
             xmlfile = open('%s/%s' % (config['path'], xmlfilename), 'a')
         else:
             print 'Retrieving the XML for every page from the beginning'
@@ -1155,22 +1155,20 @@ def reverse_readline(filename, buf_size=8192, truncate=False):
                     lines[-1] += segment
                 else:
                     if truncate and '</page>' in segment:
-                        pages = buffer.split('</page>')
-                        fh.seek(-offset+buf_size-len(pages[-1]), os.SEEK_END)
-                        fh.truncate
+                        fh.seek(-offset+buffer.rindex('</page>')+len('</page>\n'), os.SEEK_END)
+                        fh.truncate()
                         raise StopIteration
                     else:
-                        yield segment
-            segment = lines[0]
+                        yield segment.decode('utf-8')
             for index in range(len(lines) - 1, 0, -1):
+                segment = lines[index]
                 if truncate and '</page>' in segment:
-                    pages = buffer.split('</page>')
-                    fh.seek(-offset-len(pages[-1]), os.SEEK_END)
-                    fh.truncate
+                    fh.seek(-offset+buffer.rindex('</page>\n')+len('</page>\n'), os.SEEK_END)
+                    fh.truncate()
                     raise StopIteration
                 else:
-                    yield lines[index]
-        yield segment
+                    yield segment.decode('utf-8')
+        yield segment.decode('utf-8')
 
 def saveImageNames(config={}, images=[], session=None):
     """ Save image list in a file, including filename, url and uploader """
