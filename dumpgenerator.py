@@ -1155,21 +1155,19 @@ def reverse_readline(filename, buf_size=8192, truncate=False):
                     lines[-1] += segment
                 else:
                     if truncate and '</page>' in segment:
-                        pages = buffer.split('</page>')
-                        fh.seek(-offset+buf_size-len(pages[-1]), os.SEEK_END)
-                        fh.truncate
+                        fh.seek(-offset+buffer.rindex('</page>')+len('</page>\n'), os.SEEK_END)
+                        fh.truncate()
                         raise StopIteration
                     else:
                         yield segment.decode('utf-8')
-            segment = lines[0]
             for index in range(len(lines) - 1, 0, -1):
+                segment = lines[index]
                 if truncate and '</page>' in segment:
-                    pages = buffer.split('</page>')
-                    fh.seek(-offset-len(pages[-1]), os.SEEK_END)
-                    fh.truncate
+                    fh.seek(-offset+buffer.rindex('</page>\n')+len('</page>\n'), os.SEEK_END)
+                    fh.truncate()
                     raise StopIteration
                 else:
-                    yield lines[index].decode('utf-8')
+                    yield segment.decode('utf-8')
         yield segment.decode('utf-8')
 
 def saveImageNames(config={}, images=[], session=None):
