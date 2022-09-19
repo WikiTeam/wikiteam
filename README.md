@@ -33,6 +33,8 @@ The main general-purpose module of `wikiteam3` is `dumpgenerator`, which can dow
   sudo apt update && sudo apt upgrade && sudo install git
   ```
 
+  (On Fedora, Arch, etc., use `dnf`, `pacman`, etc., instead.)
+
   </details>
 
 * On macOS you can use the built-in application [Terminal](https://support.apple.com/guide/terminal), which is found in `Applications/Utilities`.
@@ -40,7 +42,7 @@ The main general-purpose module of `wikiteam3` is `dumpgenerator`, which can dow
   <details>
   <summary>macOS Dependencies</summary>
 
-  While macOS will have Python 3 preinstalled, if you are cloning `wikiteam3` rather than downloading it directly and you are using an  older versions of macOS, you may need to install `git`.
+  While macOS will have Python 3 preinstalled, if you are cloning `wikiteam3` rather than downloading it directly and you are using an older versions of macOS, you may need to install `git`.
 
   If `git` is not preinstalled, however, macOS will prompt you to install it the first time you run the command. Therefore, to check whether you have `git` installed or to install `git`, simply run `git` (with no arguments) in Terminal:
 
@@ -52,16 +54,18 @@ The main general-purpose module of `wikiteam3` is `dumpgenerator`, which can dow
 
   </details>
 
-* A relatively simple method with Bash on Windows 10 or Windows 11. Does not use WSL, CMD nor PowerShell.
+* On Windows 10 or Windows 11 you can use [Windows Terminal](https://aka.ms/terminal).
 
   <details>
   <summary>Windows Dependencies</summary>
 
-  On Windows you will need to install [Windows Terminal](https://aka.ms/terminal) and [Git](https://gitforwindows.org/), (Git for Windows provides a Bash emulation). To avoid Windows storing Python scripts in a GUID folder under `%appdata%`, add wherever you've chosen for your Python scripts e.g. `C:\Program Files\Python3\Scripts\` to the PATH environment variable. In Windows Terminal do Ctrl+Click on Git Bash to open as administrator, then to run `git` (with no arguments) enter:
+  If you are already using the [Windows Subsystem for Linux](https://learn.microsoft.com/en-us/windows/wsl/about), you can follow the Linux instructions above. If you don't want to install a full WSL distribution, [Git for Windows](https://gitforwindows.org/) provides Bash emulation, so you can use it as a more lightweight option instead.
 
-  ```bash
-  git
-  ```
+  > When installing [Python 3.8](https://www.python.org/downloads/release/python-380/) (from python.org), be sure to check "Add Python to PATH" so that installed Python scripts are accessible from any location. If for some reason installed Python scripts, e.g. `pip`, are not available from any location, you can add Python to the `PATH` environment variable using the instructions [here](https://datatofish.com/add-python-to-windows-path/).
+  >
+  > And while doing so should not be necessary if you follow the instructions further down and install `wikiteam3` using `pip`, if you'd prefer that Windows store installed Python scripts somewhere other than the default Python folder under `%appdata%`, you can also add your preferred alternative path such as `C:\Program Files\Python3\Scripts\` or a subfolder of `My Documents`. (You will need to restart any terminal sessions in order for this to take effect.)
+
+  Whenever you'd like to run a Bash session, you can open a Bash terminal prompt from any folder in Windows Explorer by right-clicking and choosing the option from the context menu. (For some purposes you may wish to run Bash as an administrator.) This way you can open a Bash prompt and clone the `wikiteam3` repository in one location, and subsequently or later open another Bash prompt and run `wikiteam3` to dump a wiki wherever else you'd like without having to browse to the directory manually using Bash.
 
   </details>
 
