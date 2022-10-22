@@ -840,7 +840,13 @@ def getXMLRevisions(config={}, session=None, allpages=False, start=None):
                         continue
 
                     for page in arvrequest['query']['allrevisions']:
-                        yield makeXmlFromPage(page)
+                        try:
+                            yield makeXmlFromPage(page)
+                        except PageMissingError as e:
+                            logerror(
+                                config=config,
+                                text=u'Error: empty revision from API. Skipping %s' % e
+                            )
                     if 'continue' in arvrequest:
                         arvparams['arvcontinue'] = arvrequest['continue']['arvcontinue']
                     else:
