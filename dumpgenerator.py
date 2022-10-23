@@ -258,7 +258,7 @@ def getPageTitlesAPI(config={}, session=None):
         c = 0
         print '    Retrieving titles in the namespace %d' % (namespace)
         apiurl = urlparse(config['api'])
-        site = mwclient.Site(apiurl.netloc, apiurl.path.replace("api.php", ""), scheme=apiurl.scheme)
+        site = mwclient.Site(apiurl.netloc, apiurl.path.replace("api.php", ""), scheme=apiurl.scheme, pool=session)
         for page in site.allpages(namespace=namespace):
             title = page.name
             titles.append(title)
@@ -798,7 +798,7 @@ def getXMLRevisions(config={}, session=None, allpages=False, start=None):
     apiurl = urlparse(config['api'])
     # FIXME: force the protocol we asked for! Or don't verify SSL if we asked HTTP?
     # https://github.com/WikiTeam/wikiteam/issues/358
-    site = mwclient.Site(apiurl.netloc, apiurl.path.replace("api.php", ""), scheme=apiurl.scheme)
+    site = mwclient.Site(apiurl.netloc, apiurl.path.replace("api.php", ""), scheme=apiurl.scheme, pool=session)
 
     if not 'all' in config['namespaces']:
         namespaces = config['namespaces']
@@ -1959,7 +1959,7 @@ def checkRetryAPI(api=None, retries=5, apiclient=False, session=None):
     if check and apiclient:
         apiurl = urlparse(api)
         try:
-            site = mwclient.Site(apiurl.netloc, apiurl.path.replace("api.php", ""), scheme=apiurl.scheme)
+            site = mwclient.Site(apiurl.netloc, apiurl.path.replace("api.php", ""), scheme=apiurl.scheme, pool=session)
         except KeyError:
             # Probably KeyError: 'query'
             if apiurl.scheme == "https":
@@ -1971,7 +1971,7 @@ def checkRetryAPI(api=None, retries=5, apiclient=False, session=None):
             print("WARNING: The provided API URL did not work with mwclient. Switched protocol to: {}".format(newscheme))
 
             try:
-                site = mwclient.Site(apiurl.netloc, apiurl.path.replace("api.php", ""), scheme=newscheme)
+                site = mwclient.Site(apiurl.netloc, apiurl.path.replace("api.php", ""), scheme=newscheme, pool=session)
             except KeyError:
                 check = False
 
