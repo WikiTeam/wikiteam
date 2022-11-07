@@ -1515,8 +1515,8 @@ def generateImageDump(config={}, other={}, images=[], start='', session=None):
         imagefile.write(r.content)
         imagefile.close()
         # saving description if any
+        title = u'Image:%s' % (filename)
         try:
-            title = u'Image:%s' % (filename)
             if config['xmlrevisions'] and config['api'] and config['api'].endswith("api.php"):
                 r = session.get(config['api'] + u"?action=query&export&exportnowrap&titles=%s" % title)
                 xmlfiledesc = r.text
@@ -1529,7 +1529,7 @@ def generateImageDump(config={}, other={}, images=[], start='', session=None):
             xmlfiledesc = ''
             logerror(
                 config=config,
-                text=u'The page "%s" was missing in the wiki (probably deleted)' % (title.decode('utf-8'))
+                text=u'The page "%s" was missing in the wiki (probably deleted)' % title
             )
 
         f = open('%s/%s.desc' % (imagepath, filename2), 'w')
