@@ -509,7 +509,8 @@ def getUserAgent():
         # firefox
         #'Mozilla/5.0 (X11; Linux x86_64; rv:72.0) Gecko/20100101 Firefox/72.0',
         #'Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101 Firefox/68.0',
-        'Mozilla/5.0 (Windows NT 10.0; rv:78.0) Gecko/20100101 Firefox/78.0'
+        #'Mozilla/5.0 (Windows NT 10.0; rv:78.0) Gecko/20100101 Firefox/78.0'
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:107.0) Gecko/20100101 Firefox/107.0'
     ]
     return useragents[0]
 
@@ -1761,7 +1762,7 @@ def getParameters(params=[]):
     # Execute meta info params
     if args.wiki:
         if args.get_wiki_engine:
-            print getWikiEngine(url=args.wiki)
+            print getWikiEngine(session, url=args.wiki)
             sys.exit()
 
     # Create session
@@ -1801,8 +1802,8 @@ def getParameters(params=[]):
     index = args.index and args.index or ''
     if api == '' or index == '':
         if args.wiki:
-            if getWikiEngine(args.wiki) == 'MediaWiki':
-                api2, index2 = mwGetAPIAndIndex(args.wiki)
+            if getWikiEngine(session, args.wiki) == 'MediaWiki':
+                api2, index2 = mwGetAPIAndIndex(session, args.wiki)
                 if not api:
                     api = api2
                 if not index:
@@ -2378,11 +2379,9 @@ def avoidWikimediaProjects(config={}, other={}):
             sys.exit()
 
 
-def getWikiEngine(url=''):
+def getWikiEngine(session, url):
     """ Returns the wiki engine of a URL, if known """
 
-    session = requests.Session()
-    session.headers.update({'User-Agent': getUserAgent()})
     r = session.post(url=url, timeout=30)
     if r.status_code == 405 or r.text == '':
         r = session.get(url=url, timeout=120)
@@ -2461,13 +2460,11 @@ def getWikiEngine(url=''):
     return wikiengine
 
 
-def mwGetAPIAndIndex(url=''):
+def mwGetAPIAndIndex(session, url):
     """ Returns the MediaWiki API and Index.php """
 
     api = ''
     index = ''
-    session = requests.Session()
-    session.headers.update({'User-Agent': getUserAgent()})
     r = session.post(url=url, timeout=120)
     result = r.text
 
