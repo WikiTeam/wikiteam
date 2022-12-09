@@ -303,6 +303,23 @@ In the above example, `--path` is only necessary if the download path is not the
 
 `dumpgenerator` will also ask you if you want to resume if it finds an incomplete dump in the path where it is downloading.
 
+## Checking dump integrity
+
+If you want to check the XML dump integrity, type this into your command line to count title, page and revision XML tags:
+
+```bash
+grep "<title>" *.xml -c;grep "<page>" *.xml -c;grep "</page>" *.xml -c;grep "<revision>" *.xml -c;grep "</revision>" *.xml -c
+```
+  
+You should see something similar to this (not the actual numbers) - the first three numbers should be the same and the last two should be the same as each other:
+* 580
+* 580
+* 580
+* 5677
+* 5677
+
+If your first three numbers or your last two numbers are different, then, your XML dump is corrupt (it contains one or more unfinished ```</page>``` or ```</revision>```). This is not common in small wikis, but large or very large wikis may fail at this due to truncated XML pages while exporting and merging. The solution is to remove the XML dump and re-download, a bit boring, and it can fail again...
+
 ## WikiTeam Team
 
 **WikiTeam** is the [Archive Team](http://www.archiveteam.org) [[GitHub](https://github.com/ArchiveTeam)] subcommittee on wikis.
