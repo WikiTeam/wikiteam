@@ -3,7 +3,7 @@ import re
 import sys
 import urllib
 
-from .delay import delay
+from .delay import Delay
 from .domain import domain2prefix
 from .exceptions import PageMissingError
 from .get_json import getJSON
@@ -46,7 +46,7 @@ class Image:
                 lock = False
             if lock:
                 continue
-            delay(config=config, session=session)
+            Delay(config=config, session=session)
 
             # saving file
             # truncate filename if length > 100 (100 + 32 (md5) = 132 < 143 (crash
@@ -162,12 +162,12 @@ class Image:
                     text=f"File {imagepath}/{filename2}.desc could not be created by OS",
                 )
 
-            delay(config=config, session=session)
+            Delay(config=config, session=session)
             c += 1
             if c % 10 == 0:
-                print("    Downloaded %d images" % (c))
+                print(f"\n->  Downloaded {c} images\n")
 
-        print("Downloaded %d images" % (c))
+        print(f"\n->  Downloaded {c} images\n")
 
     def getImageNames(config={}, session=None):
         """Get list of image names"""
@@ -203,8 +203,8 @@ class Image:
                 params={"title": "Special:Imagelist", "limit": limit, "offset": offset},
                 timeout=30,
             )
-            raw = r.text
-            delay(config=config, session=session)
+            raw = str(r.text)
+            Delay(config=config, session=session)
             # delicate wiki
             if re.search(
                 r"(?i)(allowed memory size of \d+ bytes exhausted|Call to a member function getURL)",
@@ -225,7 +225,7 @@ class Image:
                     print("No more retries, exit...")
                     break
 
-            raw = cleanHTML(raw)
+            raw = str(cleanHTML(raw))
             # archiveteam 1.15.1 <td class="TablePager_col_img_name"><a href="/index.php?title=File:Yahoovideo.jpg" title="File:Yahoovideo.jpg">Yahoovideo.jpg</a> (<a href="/images/2/2b/Yahoovideo.jpg">file</a>)</td>
             # wikanda 1.15.5 <td class="TablePager_col_img_user_text"><a
             # href="/w/index.php?title=Usuario:Fernandocg&amp;action=edit&amp;redlink=1"
@@ -311,7 +311,7 @@ class Image:
             r = session.get(url=config["api"], params=params, timeout=30)
             handleStatusCode(r)
             jsonimages = getJSON(r)
-            delay(config=config, session=session)
+            Delay(config=config, session=session)
 
             if "query" in jsonimages:
                 aifrom = ""
@@ -386,7 +386,7 @@ class Image:
                 r = session.get(url=config["api"], params=params, timeout=30)
                 handleStatusCode(r)
                 jsonimages = getJSON(r)
-                delay(config=config, session=session)
+                Delay(config=config, session=session)
 
                 if "query" in jsonimages:
                     gapfrom = ""

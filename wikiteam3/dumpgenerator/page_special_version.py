@@ -1,6 +1,6 @@
 import os
 
-from .delay import delay
+from .delay import Delay
 from .util import removeIP
 
 
@@ -14,9 +14,9 @@ def saveSpecialVersion(config={}, session=None):
         r = session.post(
             url=config["index"], params={"title": "Special:Version"}, timeout=10
         )
-        raw = r.text
-        delay(config=config, session=session)
-        raw = removeIP(raw=raw)
+        raw = str(r.text)
+        Delay(config=config, session=session)
+        raw = str(removeIP(raw=raw))
         with open(
             "%s/Special:Version.html" % (config["path"]), "w", encoding="utf-8"
         ) as outfile:

@@ -29,7 +29,7 @@ def cleanHTML(raw=""):
         print(raw[:250])
         print("This wiki doesn't use marks to split content")
         sys.exit()
-    return raw
+    return str(raw)
 
 
 def undoHTMLEntities(text=""):
@@ -68,8 +68,9 @@ def cleanXML(xml=""):
     # for Windows compatibility.
     # If the encoding has to stay as is, we'll have
     # to change all the file encodings, as well.
-    if re.search(rb"</siteinfo>\n", xml):
-        xml = xml.split("</siteinfo>\n")[1].encode("utf-8")
-    if re.search(rb"</mediawiki>", xml):
-        xml = xml.split("</mediawiki>")[0].encode("utf-8")
+    xml = str(xml)
+    if re.search(r"</siteinfo>\n", str(xml)):
+        xml = xml.split("</siteinfo>\n")[1]
+    if re.search(r"</mediawiki>", str(xml)):
+        xml = xml.split("</mediawiki>")[0]
     return xml

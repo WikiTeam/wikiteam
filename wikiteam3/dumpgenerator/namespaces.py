@@ -1,6 +1,6 @@
 import re
 
-from .delay import delay
+from .delay import Delay
 from .get_json import getJSON
 
 
@@ -13,8 +13,8 @@ def getNamespacesScraper(config={}, session=None):
         r = session.post(
             url=config["index"], params={"title": "Special:Allpages"}, timeout=30
         )
-        raw = r.text
-        delay(config=config, session=session)
+        raw = str(r.text)
+        Delay(config=config, session=session)
 
         # [^>]*? to include selected="selected"
         m = re.compile(
@@ -59,7 +59,7 @@ def getNamespacesAPI(config={}, session=None):
             timeout=30,
         )
         result = getJSON(r)
-        delay(config=config, session=session)
+        Delay(config=config, session=session)
         try:
             nsquery = result["query"]["namespaces"]
         except KeyError:

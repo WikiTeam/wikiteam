@@ -26,7 +26,7 @@ def getXMLHeader(config={}, session=None):
                 + "?action=query&export=1&exportnowrap=1&list=allpages&aplimit=1",
                 timeout=10,
             )
-            xml = r.text
+            xml = str(r.text)
             # Otherwise try without exportnowrap, e.g. Wikia returns a blank page on 1.19
             if not re.match(r"\s*<mediawiki", xml):
                 r = requests.get(
@@ -35,7 +35,7 @@ def getXMLHeader(config={}, session=None):
                     timeout=10,
                 )
                 try:
-                    xml = r.json()["query"]["export"]["*"]
+                    xml = str(r.json()["query"]["export"]["*"])
                 except KeyError:
                     pass
             if not re.match(r"\s*<mediawiki", xml):
@@ -46,7 +46,7 @@ def getXMLHeader(config={}, session=None):
                     + randomtitle,
                     timeout=10,
                 )
-                xml = r.text
+                xml = str(r.text)
             # Again try without exportnowrap
             if not re.match(r"\s*<mediawiki", xml):
                 r = requests.get(
@@ -56,7 +56,7 @@ def getXMLHeader(config={}, session=None):
                     timeout=10,
                 )
                 try:
-                    xml = r.json()["query"]["export"]["*"]
+                    xml = str(r.json()["query"]["export"]["*"])
                 except KeyError:
                     pass
         except requests.exceptions.RetryError:
@@ -74,7 +74,7 @@ def getXMLHeader(config={}, session=None):
             )
         except PageMissingError as pme:
             # The <page> does not exist. Not a problem, if we get the <siteinfo>.
-            xml = pme.xml
+            xml = str(pme.xml)
         # Issue 26: Account for missing "Special" namespace.
         # Hope the canonical special name has not been removed.
         # http://albens73.fr/wiki/api.php?action=query&meta=siteinfo&siprop=namespacealiases
@@ -107,10 +107,11 @@ def getXMLHeader(config={}, session=None):
                         ]
                     )
             except PageMissingError as pme:
-                xml = pme.xml
+                xml = str(pme.xml)
             except ExportAbortedError:
                 pass
 
+    xml = str(xml)
     header = xml.split("</mediawiki>")[0]
     if not re.match(r"\s*<mediawiki", xml):
         if config["xmlrevisions"]:
@@ -121,7 +122,8 @@ def getXMLHeader(config={}, session=None):
             config["xmlrevisions"] = False
             header, config = getXMLHeader(config=config, session=session)
         else:
+            print(xml)
             print("XML export on this wiki is broken, quitting.")
             logerror("XML export on this wiki is broken, quitting.")
             sys.exit()
-    return header, config
+    return str(header), config

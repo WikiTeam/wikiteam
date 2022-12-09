@@ -7,7 +7,7 @@ def checkIndex(index=None, cookies=None, session=None):
     if r.status_code >= 400:
         print(f"ERROR: The wiki returned status code HTTP {r.status_code}")
         return False
-    raw = r.text
+    raw = str(r.text)
     print("Checking index.php...", index)
     # Workaround for issue 71
     if (

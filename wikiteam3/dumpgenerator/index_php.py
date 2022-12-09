@@ -1,6 +1,6 @@
 import os
 
-from .delay import delay
+from .delay import Delay
 from .util import removeIP
 
 
@@ -12,8 +12,8 @@ def saveIndexPHP(config={}, session=None):
     else:
         print("Downloading index.php (Main Page) as index.html")
         r = session.post(url=config["index"], params={}, timeout=10)
-        raw = r.text
-        delay(config=config, session=session)
-        raw = removeIP(raw=raw)
+        raw = str(r.text)
+        Delay(config=config, session=session)
+        raw = str(removeIP(raw=raw))
         with open("%s/index.html" % (config["path"]), "w", encoding="utf-8") as outfile:
             outfile.write(str(raw))
