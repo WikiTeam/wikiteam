@@ -286,7 +286,7 @@ dumpgenerator \
     --images
 ```
 
-If you only want the XML histories, just use `--xml`. For only the images, just `--images`. For only the current version of every page, `--xml --current`.
+If you only want the XML histories, just use `--xml`. For only the images, just `--images`. For only the current version of every page, `--xml --curonly`.
 
 #### Resuming an incomplete dump
 
