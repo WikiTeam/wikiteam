@@ -14,5 +14,16 @@ def truncateXMLDump(filename: str) -> None:
             xml_line = frb.readline()
     incomplete_segment_size = len(incomplete_segment.encode("utf-8"))
     file_size = os.path.getsize(filename)
-    with open(filename, "r+", encoding="utf-8") as fh:
-        fh.truncate(file_size - incomplete_segment_size)
+    if file_size > incomplete_segment_size:
+        with open(filename, "r+", encoding="utf-8") as fh:
+            fh.truncate(file_size - incomplete_segment_size)
+    else:
+        print(
+            'len(incomplete_segment.encode("utf-8")) returned '
+            + str(incomplete_segment_size)
+            + ", while os.path.getsize(filename) returned "
+            + str(file_size)
+            + ", so fh.truncate() would be fh.truncate("
+            + str(file_size - incomplete_segment_size)
+            + "), which would be illegal. Something is seriously wrong here!"
+        )

@@ -141,7 +141,7 @@ def getXMLRevisions(config={}, session=None, allpages=False, start=None):
                         # but we only need the inner <page>: we can live with
                         # duplication and non-ordering of page titles, but the
                         # repeated header is confusing and would not even be valid
-                        xml = exportrequest["query"]["export"]["*"]
+                        xml = str(exportrequest["query"]["export"]["*"])
                         yield makeXmlPageFromRaw(xml)
 
                     if "continue" in arvrequest:
@@ -210,10 +210,10 @@ def getXMLRevisions(config={}, session=None, allpages=False, start=None):
                             http_method=config["http_method"], **exportparams
                         )
 
-                xml = exportrequest["query"]["export"]["*"]
+                xml = str(exportrequest["query"]["export"]["*"])
                 c += 1
                 if c % 10 == 0:
-                    print(f"Downloaded {c} pages")
+                    print(f"\n->  Downloaded {c} pages\n")
                 # Because we got the fancy XML from the JSON format, clean it:
                 yield makeXmlPageFromRaw(xml)
         else:
@@ -279,8 +279,8 @@ def getXMLRevisions(config={}, session=None, allpages=False, start=None):
                     # Go through the data we got to build the XML.
                     for pageid in pages:
                         try:
-                            xml = makeXmlFromPage(pages[pageid])
-                            yield xml
+                            xml = str(makeXmlFromPage(pages[pageid]))
+                            yield str(xml)
                         except PageMissingError:
                             logerror(
                                 config=config,
@@ -320,7 +320,7 @@ def getXMLRevisions(config={}, session=None, allpages=False, start=None):
                 # Reset for the next batch.
                 titlelist = []
                 if c % 10 == 0:
-                    print(f"Downloaded {c} pages")
+                    print(f"\n->  Downloaded {c} pages\n")
 
     except mwclient.errors.MwClientError as e:
         print(e)

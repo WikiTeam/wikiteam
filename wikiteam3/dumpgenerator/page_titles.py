@@ -1,9 +1,10 @@
 import re
+import sys
 from urllib.parse import urlparse
 
 import mwclient
 
-from .delay import delay
+from .delay import Delay
 from .domain import domain2prefix
 from .namespaces import getNamespacesAPI, getNamespacesScraper
 from .util import cleanHTML, undoHTMLEntities
@@ -19,7 +20,7 @@ def getPageTitlesAPI(config={}, session=None):
             continue
 
         c = 0
-        print("    Retrieving titles in the namespace %d" % (namespace))
+        sys.stdout.write("    Retrieving titles in the namespace %d" % (namespace))
         apiurl = urlparse(config["api"])
         site = mwclient.Site(
             apiurl.netloc, apiurl.path.replace("api.php", ""), scheme=apiurl.scheme
@@ -34,8 +35,11 @@ def getPageTitlesAPI(config={}, session=None):
             print("Probably a loop, switching to next namespace")
             titles = list(set(titles))
 
-        print("    %d titles retrieved in the namespace %d" % (c, namespace))
-        delay(config=config, session=session)
+        sys.stdout.write(
+            "\r    %d titles retrieved in the namespace %d\n" % (c, namespace)
+        )
+        sys.stdout.flush()
+        Delay(config=config, session=session)
 
 
 def getPageTitlesScraper(config={}, session=None):
@@ -48,8 +52,8 @@ def getPageTitlesScraper(config={}, session=None):
             config["index"], namespace
         )
         r = session.get(url=url, timeout=30)
-        raw = r.text
-        raw = cleanHTML(raw)
+        raw = str(r.text)
+        raw = str(cleanHTML(raw))
 
         r_title = 'title="(?P<title>[^>]+)">'
         r_suballpages = ""
@@ -114,10 +118,10 @@ def getPageTitlesScraper(config={}, session=None):
                 if name not in checked_suballpages:
                     # to avoid reload dupe subpages links
                     checked_suballpages.append(name)
-                    delay(config=config, session=session)
+                    Delay(config=config, session=session)
                     r = session.get(url=url, timeout=10)
                     # print ('Fetching URL: ', url)
-                    raw = r.text
+                    raw = str(r.text)
                     raw = cleanHTML(raw)
                     rawacum += raw  # merge it after removed junk
                     print(
@@ -131,7 +135,7 @@ def getPageTitlesScraper(config={}, session=None):
                         "pages",
                     )
 
-                delay(config=config, session=session)
+                Delay(config=config, session=session)
             oldfr = currfr
             c += 1
 

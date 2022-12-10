@@ -1,4 +1,4 @@
-from .delay import delay
+from .delay import Delay
 
 
 def saveLogs(config={}, session=None):
@@ -19,4 +19,4 @@ def saveLogs(config={}, session=None):
     <option value="">Todos los registros</option>
     </select>
 """
-    delay(config=config, session=session)
+    Delay(config=config, session=session)

@@ -1,7 +1,7 @@
 import re
 import sys
 
-from .delay import delay
+from .delay import Delay
 from .domain import domain2prefix
 from .exceptions import PageMissingError
 from .log_error import logerror
@@ -34,7 +34,7 @@ def generateXMLDump(config={}, titles=[], start=None, session=None):
                 "{}/{}".format(config["path"], xmlfilename), "a", encoding="utf-8"
             )
         else:
-            print("Retrieving the XML for every page from the beginning")
+            print("\nRetrieving the XML for every page from the beginning\n")
             xmlfile = open(
                 "{}/{}".format(config["path"], xmlfilename), "w", encoding="utf-8"
             )
@@ -46,7 +46,7 @@ def generateXMLDump(config={}, titles=[], start=None, session=None):
                 # Due to how generators work, it's expected this may be less
                 # TODO: get the page title and reuse the usual format "X title, y edits"
                 print("        %d more revisions exported" % numrevs)
-                xml = cleanXML(xml=xml)
+                xml = str(cleanXML(xml=xml))
                 xmlfile.write(str(xml))
         except AttributeError as e:
             print(e)
@@ -57,7 +57,8 @@ def generateXMLDump(config={}, titles=[], start=None, session=None):
 
     else:
         print(
-            'Retrieving the XML for every page from "%s"' % (start and start or "start")
+            '\nRetrieving the XML for every page from "%s"\n'
+            % (start and start or "start")
         )
         if start:
             print(
@@ -84,9 +85,9 @@ def generateXMLDump(config={}, titles=[], start=None, session=None):
                 lock = False
             if lock:
                 continue
-            delay(config=config, session=session)
+            Delay(config=config, session=session)
             if c % 10 == 0:
-                print("Downloaded %d pages" % (c))
+                print(f"\n->  Downloaded {c} pages\n")
             try:
                 for xml in getXMLPage(config=config, title=title, session=session):
                     xml = cleanXML(xml=xml)

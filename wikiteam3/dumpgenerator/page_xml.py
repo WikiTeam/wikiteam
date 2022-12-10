@@ -23,7 +23,7 @@ def getXMLPageCore(headers={}, params={}, config={}, session=None):
     maxretries = config["retries"]  # x retries and skip
     increment = 20  # increment every retry
 
-    while not re.search(r"</mediawiki>", xml):
+    while not re.search(r"</mediawiki>", str(xml)):
         if c > 0 and c < maxretries:
             wait = (
                 increment * c < maxseconds and increment * c or maxseconds
@@ -86,7 +86,7 @@ def getXMLPageCore(headers={}, params={}, config={}, session=None):
             xml = ""
         c += 1
 
-    return xml
+    return str(xml)
 
 
 def getXMLPage(config={}, title="", verbose=True, session=None):
@@ -114,7 +114,7 @@ def getXMLPage(config={}, title="", verbose=True, session=None):
     if "templates" in config and config["templates"]:
         params["templates"] = 1
 
-    xml = getXMLPageCore(params=params, config=config, session=session)
+    xml = str(getXMLPageCore(params=params, config=config, session=session))
     if xml == "":
         raise ExportAbortedError(config["index"])
     if "</page>" not in xml:
@@ -132,8 +132,8 @@ def getXMLPage(config={}, title="", verbose=True, session=None):
     # else, warning about Special:Export truncating large page histories
     r_timestamp = "<timestamp>([^<]+)</timestamp>"
 
-    numberofedits = 0
-    numberofedits += len(re.findall(r_timestamp, xml))
+    edit_count = 0
+    edit_count += len(re.findall(r_timestamp, xml))
 
     # search for timestamps in xml to avoid analysing empty pages like
     # Special:Allpages and the random one
@@ -183,16 +183,16 @@ def getXMLPage(config={}, title="", verbose=True, session=None):
                         params["limit"] = params["limit"] / 2
                         continue
                     xml = xml2
-                    numberofedits += len(re.findall(r_timestamp, xml))
+                    edit_count += len(re.findall(r_timestamp, xml))
             else:
                 params["offset"] = ""  # no more edits in this page history
     yield "</page>\n"
 
     if verbose:
-        if numberofedits == 1:
+        if edit_count == 1:
             uprint("    %s, 1 edit" % (title.strip()))
         else:
-            uprint("    %s, %d edits" % (title.strip(), numberofedits))
+            uprint("    %s, %d edits" % (title.strip(), edit_count))
 
 
 def makeXmlPageFromRaw(xml):
@@ -252,11 +252,11 @@ def makeXmlFromPage(page):
     except KeyError as e:
         print(e)
         raise PageMissingError(page["title"], e)
-    return etree.tostring(p, pretty_print=True, encoding="unicode")
+    return str(etree.tostring(p, pretty_print=True, encoding="utf-8"))
 
 
 def fixBOM(request):
     """Strip Unicode BOM"""
     if request.text.startswith("\ufeff"):
         request.encoding = "utf-8-sig"
-    return request.text
+    return str(request.text)

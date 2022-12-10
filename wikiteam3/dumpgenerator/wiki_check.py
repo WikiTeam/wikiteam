@@ -13,7 +13,7 @@ def getWikiEngine(url=""):
     r = session.post(url=url, timeout=30)
     if r.status_code == 405 or r.text == "":
         r = session.get(url=url, timeout=120)
-    result = r.text
+    result = str(r.text)
 
     wikiengine = "Unknown"
     if re.search(

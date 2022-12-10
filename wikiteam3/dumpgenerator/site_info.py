@@ -1,7 +1,7 @@
 import json
 import os
 
-from .delay import delay
+from .delay import Delay
 from .get_json import getJSON
 
 
@@ -51,7 +51,7 @@ def saveSiteInfo(config={}, session=None):
                     timeout=10,
                 )
             result = getJSON(r)
-            delay(config=config, session=session)
+            Delay(config=config, session=session)
             with open(
                 "%s/siteinfo.json" % (config["path"]), "w", encoding="utf-8"
             ) as outfile:

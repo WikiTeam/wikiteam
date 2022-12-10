@@ -306,4 +306,13 @@ def getParameters(params=[]):
         print("Which expands to:")
         print("  " + config["path"])
 
+    if config["delay"] == 0.5:
+        print("--delay is the default value of 0.5")
+        print(
+            "There will be a 0.5 second delay between HTTP calls in order to keep the server from timing you out."
+        )
+        print(
+            "If you know that this is unnecessary, you can manually specify '--delay 0.0'."
+        )
+
     return config, other
