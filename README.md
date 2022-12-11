@@ -59,7 +59,7 @@ The main general-purpose module of `wikiteam3` is `dumpgenerator`, which can dow
   <details>
   <summary>Windows Dependencies</summary>
   
-  Python is available as an app from the Microsoft Store and can be run with Command Prompt. 
+  A simple installation of Python suitable for running scripts and packages is available from the Microsoft Store and will be available from any Command Prompt or PowerShell session. 
   
   If you are already using the [Windows Subsystem for Linux](https://learn.microsoft.com/en-us/windows/wsl/about), you can follow the Linux instructions above. If you don't want to install a full WSL distribution, [Git for Windows](https://gitforwindows.org/) provides Bash emulation, so you can use it as a more lightweight option instead.
 
