@@ -59,9 +59,9 @@ The main general-purpose module of `wikiteam3` is `dumpgenerator`, which can dow
   <details>
   <summary>Windows Dependencies</summary>
   
-  A simple installation of Python suitable for running scripts and packages is available from the Microsoft Store and will be available from any Command Prompt or PowerShell session. 
+  A simple installation of Python suitable for running scripts and packages is available from the Microsoft Store. Python will then be available from any Command Prompt or PowerShell session. Adding `C:\Program Files\Git\usr\bin` to the `PATH` environment variable will add some some useful Linux commands to Command Prompt.
   
-  If you are already using the [Windows Subsystem for Linux](https://learn.microsoft.com/en-us/windows/wsl/about), you can follow the Linux instructions above. If you don't want to install a full WSL distribution, [Git for Windows](https://gitforwindows.org/) provides Bash emulation, so you can use it as a more lightweight option instead.
+  If you are already using the [Windows Subsystem for Linux](https://learn.microsoft.com/en-us/windows/wsl/about), you can follow the Linux instructions above. If you don't want to install a full WSL distribution, [Git for Windows](https://gitforwindows.org/) provides Bash emulation, so you can use it as a more lightweight option instead. This will provide some basic Linux commands, such as ls, cat and grep.
 
   > When installing [Python 3.8](https://www.python.org/downloads/release/python-380/) (from python.org), be sure to check "Add Python to PATH" so that installed Python scripts are accessible from any location. If for some reason installed Python scripts, e.g. `pip`, are not available from any location, you can add Python to the `PATH` environment variable using the instructions [here](https://datatofish.com/add-python-to-windows-path/).
   >
