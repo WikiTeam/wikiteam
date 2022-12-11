@@ -58,7 +58,9 @@ The main general-purpose module of `wikiteam3` is `dumpgenerator`, which can dow
 
   <details>
   <summary>Windows Dependencies</summary>
-
+  
+  Python is available as an app from the Microsoft Store and can be run with Command Prompt. 
+  
   If you are already using the [Windows Subsystem for Linux](https://learn.microsoft.com/en-us/windows/wsl/about), you can follow the Linux instructions above. If you don't want to install a full WSL distribution, [Git for Windows](https://gitforwindows.org/) provides Bash emulation, so you can use it as a more lightweight option instead.
 
   > When installing [Python 3.8](https://www.python.org/downloads/release/python-380/) (from python.org), be sure to check "Add Python to PATH" so that installed Python scripts are accessible from any location. If for some reason installed Python scripts, e.g. `pip`, are not available from any location, you can add Python to the `PATH` environment variable using the instructions [here](https://datatofish.com/add-python-to-windows-path/).
