@@ -244,6 +244,16 @@ pip uninstall wikiteam3
 rm -r [cloned_wikiteam3_folder]
 ```
 
+### Switching between branches
+
+```bash
+git checkout python3
+```
+or
+```bash
+git checkout prepare-for-publication
+```
+
 ### Using `dumpgenerator` (once installed)
 
 After installing `wikiteam3` using `pip` you should be able to use the `dumpgenerator` command from any local directory.
