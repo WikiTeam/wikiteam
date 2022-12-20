@@ -63,7 +63,6 @@ dumpgenerator = "wikiteam3.dumpgenerator:main"
 [tool.poetry.dependencies]
 python = "^3.8"
 requests = "^2.26.0"
-argparse = "^1.4.0"
 internetarchive = "^2.1.0"
 lxml = "^4.9.1"
 mwclient = "^0.10.1"
