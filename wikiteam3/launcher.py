@@ -32,6 +32,7 @@ def main():
 
     parser.add_argument("wikispath")
     parser.add_argument("--7z-path", dest="path7z", metavar="path-to-7z")
+    parser.add_argument("--generator-arg", "-g", dest="generator_args", action='append')
 
     args = parser.parse_args()
 
@@ -45,6 +46,8 @@ def main():
         path7z = str(Path(".", args.path7z).absolute()) 
     else:
         path7z = '7z' # Find executable in PATH
+
+    generator_args = args.generator_args if args.generator_args is not None else []
 
     print("Reading list of APIs from", wikispath)
 
@@ -119,7 +122,7 @@ def main():
                     "--images",
                     "--resume",
                     f"--path={wikidir}",
-                ],
+                ] + generator_args,
                 shell=False,
             )
         else:  # download from scratch
@@ -131,7 +134,7 @@ def main():
                     f"--api={wiki}",
                     "--xml",
                     "--images",
-                ],
+                ] + generator_args,
                 shell=False,
             )
             started = True
