@@ -31,12 +31,20 @@ def main():
     parser = argparse.ArgumentParser(prog="launcher")
 
     parser.add_argument("wikispath")
+    parser.add_argument("--7z-path", dest="path7z", metavar="path-to-7z")
 
     args = parser.parse_args()
 
-    PATH_7Z = "7z"
-
     wikispath = args.wikispath
+
+    path7z = None
+
+    if args.path7z is not None:
+        # Resolve bare arguments as a relative path.
+        # Use an absolute path since we will change working dir later.
+        path7z = str(Path(".", args.path7z).absolute()) 
+    else:
+        path7z = '7z' # Find executable in PATH
 
     print("Reading list of APIs from", wikispath)
 
@@ -70,7 +78,7 @@ def main():
             )
             # Get the archive's file list.
             if (sys.version_info[0] == 3) and (sys.version_info[1] > 0):
-                archivecontent = subprocess.check_output([PATH_7Z, "l", zipfilename, "-scsUTF-8"], text=True, encoding = "UTF-8", errors="strict")
+                archivecontent = subprocess.check_output([path7z, "l", zipfilename, "-scsUTF-8"], text=True, encoding = "UTF-8", errors="strict")
                 if re.search(r"%s.+-history\.xml" % (prefix), archivecontent) is None:
                     # We should perhaps not create an archive in this case, but we continue anyway.
                     print("ERROR: The archive contains no history!")
@@ -172,7 +180,7 @@ def main():
             # Make a non-solid archive with all the text and metadata at default compression. You can also add config.txt if you don't care about your computer and user names being published or you don't use full paths so that they're not stored in it.
             compressed = subprocess.call(
                 [
-                    PATH_7Z,
+                    path7z,
                     "a",
                     "-ms=off",
                     "--",
@@ -197,7 +205,7 @@ def main():
 
             subprocess.call(
                 [
-                    PATH_7Z,
+                    path7z,
                     "a",
                     "-ms=off",
                     "-mx=1",
