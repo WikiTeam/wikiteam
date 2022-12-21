@@ -23,8 +23,7 @@ import subprocess
 import sys
 import time
 
-import dumpgenerator
-
+from .dumpgenerator.domain import domain2prefix
 
 def main():
     if len(sys.argv) < 2:
