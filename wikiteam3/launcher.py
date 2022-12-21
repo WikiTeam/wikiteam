@@ -193,8 +193,8 @@ def main():
                     "-mx=1",
                     "--",
                     str(pathFullTmp),
-                    f"{prefix}-images.txt"
-                    "images/"
+                    f"{prefix}-images.txt",
+                    "images/",
                 ],
                 shell=False,
             )
