@@ -16,6 +16,7 @@
 
 # Instructions: https://github.com/WikiTeam/wikiteam/wiki/Tutorial#Download_a_list_of_wikis
 
+import argparse
 import os
 import re
 import shutil
@@ -27,14 +28,23 @@ from pathlib import Path
 from .dumpgenerator.domain import domain2prefix
 
 def main():
+    parser = argparse.ArgumentParser(prog="launcher")
+
+    parser.add_argument("wikispath")
+
+    args = parser.parse_args()
+
     PATH_7Z = "7z"
 
-    if len(sys.argv) < 2:
-        print("python script.py file-with-apis.txt")
-        sys.exit()
+    wikispath = args.wikispath
 
-    print("Reading list of APIs from", sys.argv[1])
-    wikis = open(sys.argv[1]).read().splitlines()
+    print("Reading list of APIs from", wikispath)
+
+    wikis = None
+
+    with open(wikispath) as f:
+        wikis = f.read().splitlines()
+
     print("%d APIs found" % (len(wikis)))
 
     for wiki in wikis:
