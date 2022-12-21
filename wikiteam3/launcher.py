@@ -92,8 +92,9 @@ def main():
             print("Resuming download, using directory", wikidir)
             subprocess.call(
                 [
-                    "python3",
-                    "py",
+                    sys.executable,
+                    "-c",
+                    "import wikiteam3.dumpgenerator; wikiteam3.dumpgenerator.main()",
                     f"--api={wiki}",
                     "--xml",
                     "--images",
@@ -105,8 +106,9 @@ def main():
         else:  # download from scratch
             subprocess.call(
                 [
-                    "python3",
-                    "py",
+                    sys.executable,
+                    "-c",
+                    "import wikiteam3.dumpgenerator; wikiteam3.dumpgenerator.main()",
                     f"--api={wiki}",
                     "--xml",
                     "--images",
