@@ -22,6 +22,7 @@ import re
 import subprocess
 import sys
 import time
+import shutil
 
 from .dumpgenerator.domain import domain2prefix
 
@@ -154,6 +155,12 @@ def main():
                 'grep "<title>" *.xml -c;grep "<page>" *.xml -c;grep "</page>" *.xml -c;grep "<revision>" *.xml -c;grep "</revision>" *.xml -c',
                 shell=True,
             )
+
+            pathHistoryTmp = Path("..", prefix + "-history.xml.7z.tmp")
+            pathHistoryFinal = Path("..", prefix + "-history.xml.7z")
+            pathFullTmp = Path("..", prefix + "-wikidump.xml.7z.tmp")
+            pathFullFinal = Path("..", prefix + "-wikidump.xml.7z")
+
             # Make a non-solid archive with all the text and metadata at default compression. You can also add config.txt if you don't care about your computer and user names being published or you don't use full paths so that they're not stored in it.
             compressed = subprocess.call(
                 [
@@ -161,7 +168,7 @@ def main():
                     "a",
                     "-ms=off",
                     "--",
-                    f"../{prefix}-history.xml.7z.tmp",
+                    str(pathHistoryTmp),
                     f"{prefix}-history.xml",
                     f"{prefix}-titles.txt",
                     "index.html",
@@ -172,30 +179,30 @@ def main():
                 shell=False,
             )
             if compressed < 2:
-                subprocess.call(
-                    "mv"
-                    + " ../%s-history.xml.7z.tmp ../%s-history.xml.7z"
-                    % (prefix, prefix),
-                    shell=True,
-                )
+                pathHistoryTmp.rename(pathHistoryFinal)
             else:
                 print("ERROR: Compression failed, will have to retry next time")
-                subprocess.call("rm" + " ../%s-history.xml.7z.tmp" % prefix, shell=True)
+                pathHistoryTmp.unlink()
+
             # Now we add the images, if there are some, to create another archive, without recompressing everything, at the min compression rate, higher doesn't compress images much more.
+            shutil.copy(pathHistoryFinal, pathFullTmp)
+
             subprocess.call(
-                "cp" + f" ../{prefix}-history.xml.7z ../{prefix}-wikidump.7z.tmp",
-                shell=True,
+                [
+                    PATH_7Z,
+                    "a",
+                    "-ms=off",
+                    "-mx=1",
+                    "--",
+                    str(pathFullTmp),
+                    f"{prefix}-images.txt"
+                    "images/"
+                ],
+                shell=False,
             )
-            subprocess.call(
-                PATH_7Z
-                + " a -ms=off -mx=1 ../%s-wikidump.7z.tmp %s-images.txt images/"
-                % (prefix, prefix),
-                shell=True,
-            )
-            subprocess.call(
-                "mv" + f" ../{prefix}-wikidump.7z.tmp ../{prefix}-wikidump.7z",
-                shell=True,
-            )
+
+            pathFullTmp.rename(pathFullFinal)
+
             os.chdir("..")
             print("Changed directory to", os.getcwd())
             time.sleep(1)
