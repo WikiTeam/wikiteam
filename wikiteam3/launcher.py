@@ -156,10 +156,20 @@ def main():
             )
             # Make a non-solid archive with all the text and metadata at default compression. You can also add config.txt if you don't care about your computer and user names being published or you don't use full paths so that they're not stored in it.
             compressed = subprocess.call(
-                PATH_7Z
-                + " a -ms=off ../%s-history.xml.7z.tmp %s-history.xml %s-titles.txt index.html Special:Version.html errors.log siteinfo.json"
-                % (prefix, prefix, prefix),
-                shell=True,
+                [
+                    PATH_7Z,
+                    "a",
+                    "-ms=off",
+                    "--",
+                    f"../{prefix}-history.xml.7z.tmp",
+                    f"{prefix}-history.xml",
+                    f"{prefix}-titles.txt",
+                    "index.html",
+                    "Special:Version.html",
+                    "errors.log",
+                    "siteinfo.json",
+                ],
+                shell=False,
             )
             if compressed < 2:
                 subprocess.call(
