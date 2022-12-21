@@ -15,7 +15,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # Instructions: https://github.com/WikiTeam/wikiteam/wiki/Tutorial#Download_a_list_of_wikis
-# Requires python 2.7 or more (for subprocess.check_output)
 
 import os
 import re
@@ -59,9 +58,7 @@ def main():
                 zipfilename,
             )
             # Get the archive's file list.
-            if ((sys.version_info[0] == 3) and (sys.version_info[1] > 0)) or (
-                (sys.version_info[0] == 2) and (sys.version_info[1] > 6)
-            ):
+            if (sys.version_info[0] == 3) and (sys.version_info[1] > 0):
                 archivecontent = subprocess.check_output([PATH_7Z, "l", zipfilename])
                 if re.search(r"%s.+-history\.xml" % (prefix), archivecontent) is None:
                     # We should perhaps not create an archive in this case, but we continue anyway.
@@ -72,7 +69,7 @@ def main():
                     )
             else:
                 print(
-                    "WARNING: Content of the archive not checked, we need python 2.7+ or 3.1+."
+                    "WARNING: Content of the archive not checked, we need 3.1+."
                 )
                 # TODO: Find a way like grep -q below without doing a 7z l multiple times?
             continue
