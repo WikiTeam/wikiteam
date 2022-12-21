@@ -38,14 +38,9 @@ def main():
 
     wikispath = args.wikispath
 
-    path7z = None
-
-    if args.path7z is not None:
-        # Resolve bare arguments as a relative path.
-        # Use an absolute path since we will change working dir later.
-        path7z = str(Path(".", args.path7z).absolute()) 
-    else:
-        path7z = '7z' # Find executable in PATH
+    # None -> literal '7z', which will find the executable in PATH when running subprocesses
+    # otherwise -> resolve as path relative to current dir, then make absolute because we will change working dir later
+    path7z = str(Path(".", args.path7z).absolute()) if args.path7z is not None else '7z'
 
     generator_args = args.generator_args if args.generator_args is not None else []
 
