@@ -303,6 +303,27 @@ In the above example, `--path` is only necessary if the download path is not the
 
 `dumpgenerator` will also ask you if you want to resume if it finds an incomplete dump in the path where it is downloading.
 
+### Using `launcher`
+
+`launcher` is a way to download a large list of wikis with a single invocation.
+
+Usage:
+```bash
+launcher path-to-apis.txt [--7z-path path-to-7z] [--generator-arg=--arg] ...
+```
+
+`launcher` will download a complete dump (XML and images) for a list of wikis, then compress the dump into two `7z` files: `history` (containing only metadata and the XML history of the wiki) and `wikidump` (containing metadata, XML, and images). This is the format that is suitable for upload to a WikiTeam item on the Internet Archive.
+
+`launcher` will resume incomplete dumps as appropriate and will not attempt to download wikis that have already been downloaded (as determined by the files existing in the working directory).
+
+Each wiki will be stored into files contiaining a stripped version of the url and the date the dump was started.
+
+`path-to-apis.txt` is a path to a file that contains a list of URLs to `api.php`s of wikis, one on each line. 
+
+By default, a `7z` executable is found on `PATH`. The `--7z-path` argument can be used to use a specific executable instead.
+
+The `--generator-arg` argument can be used to pass through arguments to the `generator` instances that are spawned. For example, one can use `--generator-arg=--xmlrevisions` to use the modern MediaWiki API for retrieving revisions or `--generator-arg=--delay=2` to use a delay of 2 seconds between requests.
+
 ## Checking dump integrity
 
 If you want to check the XML dump integrity, type this into your command line to count title, page and revision XML tags:
