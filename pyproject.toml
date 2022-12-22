@@ -42,7 +42,7 @@ classifiers = [
 packages = [
     { include = "wikiteam3/dumpgenerator/*"},
     # { include = "wikiteam3/gui.py"},
-    # { include = "wikiteam3/launcher.py"},
+    { include = "wikiteam3/launcher.py"},
     # { include = "wikiteam3/not-archived.py"},
     # { include = "wikiteam3/uploader.py"},
     # { include = "wikiteam3/wikiadownloader.py"},
@@ -53,7 +53,7 @@ packages = [
 [tool.poetry.scripts]
 dumpgenerator = "wikiteam3.dumpgenerator:main"
 # gui = "wikiteam3.gui:main"
-# launcher = "wikiteam3.launcher:main"
+launcher = "wikiteam3.launcher:main"
 # not-archived = "wikiteam3.not-archived:main"
 # uploader = "wikiteam3.uploader:main"
 # wikiadownloader = "wikiteam3.wikiadownloader:main"
