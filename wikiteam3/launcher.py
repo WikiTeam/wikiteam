@@ -172,8 +172,8 @@ def main():
 
             pathHistoryTmp = Path("..", prefix + "-history.xml.7z.tmp")
             pathHistoryFinal = Path("..", prefix + "-history.xml.7z")
-            pathFullTmp = Path("..", prefix + "-wikidump.xml.7z.tmp")
-            pathFullFinal = Path("..", prefix + "-wikidump.xml.7z")
+            pathFullTmp = Path("..", prefix + "-wikidump.7z.tmp")
+            pathFullFinal = Path("..", prefix + "-wikidump.7z")
 
             # Make a non-solid archive with all the text and metadata at default compression. You can also add config.txt if you don't care about your computer and user names being published or you don't use full paths so that they're not stored in it.
             compressed = subprocess.call(
