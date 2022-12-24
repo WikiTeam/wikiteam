@@ -165,11 +165,7 @@ def upload(wikis, config={}, uploadeddumps=[]):
                 # Convert protocol-relative URLs
                 baseurl = re.sub("^//", "https://", baseurl)
                 if lang:
-                    lang = (
-                        convertlang.has_key(lang.lower())
-                        and convertlang[lang.lower()]
-                        or lang.lower()
-                    )
+                    lang = (convertlang[lang.lower()] if (lang.lower() in convertlang) else lang.lower())
 
                 # now copyright info from API
                 params = {
