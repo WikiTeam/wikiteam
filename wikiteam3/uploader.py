@@ -23,7 +23,7 @@ import time
 import urllib.parse
 from io import BytesIO
 
-import dumpgenerator
+from . import dumpgenerator
 import requests
 from internetarchive import get_item
 
