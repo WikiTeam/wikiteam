@@ -42,6 +42,7 @@ def generateXMLDump(config={}, titles=[], start=None, session=None):
         try:
             r_timestamp = "<timestamp>([^<]+)</timestamp>"
             for xml in getXMLRevisions(config=config, session=session, start=start):
+                xml = str(xml)
                 numrevs = len(re.findall(r_timestamp, xml))
                 # Due to how generators work, it's expected this may be less
                 # TODO: get the page title and reuse the usual format "X title, y edits"
