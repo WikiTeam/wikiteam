@@ -42,13 +42,14 @@ def generateXMLDump(config={}, titles=[], start=None, session=None):
         try:
             r_timestamp = "<timestamp>([^<]+)</timestamp>"
             for xml in getXMLRevisions(config=config, session=session, start=start):
-                xml = str(xml)
+                xml = xml.decode("utf-8")
                 numrevs = len(re.findall(r_timestamp, xml))
                 # Due to how generators work, it's expected this may be less
                 # TODO: get the page title and reuse the usual format "X title, y edits"
                 print("        %d more revisions exported" % numrevs)
-                xml = str(cleanXML(xml=xml))
+                xml = cleanXML(xml=xml)
                 xmlfile.write(str(xml))
+                Delay(config=config, session=session)
         except AttributeError as e:
             print(e)
             print("This API library version is not working")
