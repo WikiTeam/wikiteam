@@ -7,3 +7,4 @@ batchdownload/uploader.py
 __pycache__
 
 dist
+reinstall.bash
