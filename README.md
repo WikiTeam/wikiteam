@@ -329,10 +329,11 @@ The `--generator-arg` argument can be used to pass through arguments to the `gen
 If you want to check the XML dump integrity, type this into your command line to count title, page and revision XML tags:
 
 ```bash
-grep "<title>" *.xml -c;grep "<page>" *.xml -c;grep "</page>" *.xml -c;grep "<revision>" *.xml -c;grep "</revision>" *.xml -c
+grep -E '<title(.*?)>' *.xml -c;grep -E '<page(.*?)>' *.xml -c;grep "</page>" *.xml -c;grep -E '<revision(.*?)>' *.xml -c;grep "</revision>" *.xml -c
 ```
   
 You should see something similar to this (not the actual numbers) - the first three numbers should be the same and the last two should be the same as each other:
+
 * 580
 * 580
 * 580

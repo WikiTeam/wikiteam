@@ -328,7 +328,7 @@ class Image:
                         aifrom = jsonimages["continue"]["aicontinue"]
                     elif "aifrom" in jsonimages["continue"]:
                         aifrom = jsonimages["continue"]["aifrom"]
-                # print (aifrom)
+                print(aifrom[0:40]+" "*(50-len(aifrom[0:40])),end="\r")
 
                 for image in jsonimages["query"]["allimages"]:
                     url = image["url"]
