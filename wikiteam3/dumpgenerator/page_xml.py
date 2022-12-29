@@ -252,7 +252,7 @@ def makeXmlFromPage(page):
     except KeyError as e:
         print(e)
         raise PageMissingError(page["title"], e)
-    return etree.tostring(p, pretty_print=True, encoding="utf-8")
+    return etree.tostring(p, pretty_print=True, encoding="unicode")
 
 
 def fixBOM(request):
