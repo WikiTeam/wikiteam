@@ -141,7 +141,7 @@ def getXMLRevisions(config={}, session=None, allpages=False, start=None):
                         # but we only need the inner <page>: we can live with
                         # duplication and non-ordering of page titles, but the
                         # repeated header is confusing and would not even be valid
-                        xml = str(exportrequest["query"]["export"]["*"])
+                        xml = exportrequest["query"]["export"]["*"] # type(xml) == str
                         yield makeXmlPageFromRaw(xml)
 
                     if "continue" in arvrequest:

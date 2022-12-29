@@ -202,7 +202,7 @@ def makeXmlPageFromRaw(xml):
     # The tag will inherit the namespace, like:
     # <page xmlns="http://www.mediawiki.org/xml/export-0.10/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     # FIXME: pretty_print doesn't seem to work, only adds a newline
-    return etree.tostring(find(root)[0], pretty_print=True)
+    return etree.tostring(find(root)[0], pretty_print=True, encoding="unicode")
 
 
 def makeXmlFromPage(page):
@@ -252,7 +252,7 @@ def makeXmlFromPage(page):
     except KeyError as e:
         print(e)
         raise PageMissingError(page["title"], e)
-    return str(etree.tostring(p, pretty_print=True, encoding="utf-8"))
+    return etree.tostring(p, pretty_print=True, encoding="utf-8")
 
 
 def fixBOM(request):

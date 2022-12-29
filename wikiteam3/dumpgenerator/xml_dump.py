@@ -46,8 +46,9 @@ def generateXMLDump(config={}, titles=[], start=None, session=None):
                 # Due to how generators work, it's expected this may be less
                 # TODO: get the page title and reuse the usual format "X title, y edits"
                 print("        %d more revisions exported" % numrevs)
-                xml = str(cleanXML(xml=xml))
+                xml = cleanXML(xml=xml)
                 xmlfile.write(str(xml))
+                Delay(config=config, session=session)
         except AttributeError as e:
             print(e)
             print("This API library version is not working")
