@@ -29,10 +29,6 @@ from .dumpgenerator.domain import domain2prefix
 import requests
 from internetarchive import get_item
 
-# You need a file named keys.txt with access and secret keys, in two different lines
-accesskey = open("keys.txt").readlines()[0].strip()
-secretkey = open("keys.txt").readlines()[1].strip()
-
 # Nothing to change below
 convertlang = {
     "ar": "Arabic",
@@ -54,8 +50,21 @@ def log(wiki, dump, msg, config={}):
     f.write(f"\n{wiki};{dump};{msg}")
     f.close()
 
+def read_ia_keys(config):
+    with open(config.keysfile) as f:
+        key_lines = f.readlines()
+
+        accesskey = key_lines[0].strip()
+        secretkey = key_lines[1].strip()
+
+        return {
+            "access": accesskey,
+            "secret": secretkey
+        }
 
 def upload(wikis, config={}, uploadeddumps=[]):
+    ia_keys = read_ia_keys(config)
+
     headers = {"User-Agent": getUserAgent()}
     dumpdir = config.wikidump_dir
 
@@ -291,8 +300,8 @@ def upload(wikis, config={}, uploadeddumps=[]):
                 item.upload(
                     dumpdir + "/" + dump,
                     metadata=md,
-                    access_key=accesskey,
-                    secret_key=secretkey,
+                    access_key=ia_keys["access"],
+                    secret_key=ia_keys["secret"],
                     verbose=True,
                     queue_derive=False,
                 )
@@ -348,6 +357,7 @@ Use --help to print this help."""
     parser.add_argument("-c", "--collection", default="opensource")
     parser.add_argument("-wd", "--wikidump_dir", default=".")
     parser.add_argument("-u", "--update", action="store_true")
+    parser.add_argument("-k", "--keysfile", default="keys.txt")
     parser.add_argument("listfile")
     config = parser.parse_args()
     if config.admin:
