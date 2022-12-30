@@ -65,12 +65,10 @@ def upload(wikis, config={}, uploadeddumps=[]):
         print("# Uploading", wiki)
         print("#" * 73)
         wiki = wiki.lower()
-        configtemp = config
         try:
             prefix = domain2prefix(config={"api": wiki})
         except KeyError:
             print("ERROR: could not produce the prefix for %s" % wiki)
-        config = configtemp
 
         wikiname = prefix.split("-")[0]
         dumps = []
