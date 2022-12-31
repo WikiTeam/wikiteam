@@ -16,6 +16,7 @@
 
 import argparse
 import getopt
+import hashlib
 import os
 import re
 import subprocess
@@ -62,6 +63,24 @@ def read_ia_keys(config):
             "secret": secretkey
         }
 
+# We have to use md5 because the internet archive API doesn't provide
+# sha1 for all files.
+def file_md5(path):
+    buffer = bytearray(65536)
+    view = memoryview(buffer)
+    digest = hashlib.md5()
+
+    with open(path, mode="rb") as f:
+        while True:
+            n = f.readinto(buffer)
+
+            if not n:
+                break
+
+            digest.update(view[:n])
+
+    return digest.hexdigest()
+
 def upload(wikis, config={}, uploadeddumps=[]):
     ia_keys = read_ia_keys(config)
 
@@ -104,12 +123,7 @@ def upload(wikis, config={}, uploadeddumps=[]):
                 if config.prune_wikidump and dump.endswith("wikidump.7z"):
                     # Simplistic quick&dirty check for the presence of this file in the item
                     print("Checking content in previously uploaded files")
-                    stdout, stderr = subprocess.Popen(
-                        ["md5sum", dumpdir + "/" + dump],
-                        stdout=subprocess.PIPE,
-                        stderr=subprocess.PIPE,
-                    ).communicate()
-                    dumphash = re.sub(" +.+\n?", "", stdout)
+                    dumphash = file_md5(dumpdir + "/" + dump)
 
                     if dumphash in map(lambda x: x["md5"], item.files):
                         log(wiki, dump, "verified", config)
