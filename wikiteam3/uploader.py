@@ -23,9 +23,12 @@ import time
 import urllib.parse
 from io import BytesIO
 
-import dumpgenerator
 import requests
 from internetarchive import get_item
+
+from .dumpgenerator.domain import domain2prefix
+from .dumpgenerator.user_agent import getUserAgent
+
 
 # You need a file named keys.txt with access and secret keys, in two different lines
 accesskey = open("keys.txt").readlines()[0].strip()
