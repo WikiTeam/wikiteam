@@ -1,8 +1,8 @@
-Wikifarm: https://meta.miraheze.org/wiki/Miraheze
-Last update: 2017-06-30
+Wikifarm: http://neowiki.neoseeker.com/wiki/Main_Page
+Last update: 2022-04-12
 
 Details:
 
-There is a dynamic list at https://meta.miraheze.org/wiki/Special:SiteMatrix
+There is a dynamic list http://neowiki.neoseeker.com/wiki/Special:WikiList
 
-Run script: python miraheze-spider.py > newlist
+Run script: python3 neoseeker-spider.py
