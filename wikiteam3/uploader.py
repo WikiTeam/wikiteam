@@ -86,6 +86,8 @@ def upload(wikis, config={}, uploadeddumps=[]):
         for dump in dumps:
             wikidate = dump.split("-")[1]
             item = get_item("wiki-" + wikiname)
+            if item.exists and config.append_date and not config.admin:
+                item = get_item('wiki-' + wikiname + '-' + wikidate)
             if dump in uploadeddumps:
                 if config.prune_directories:
                     rmline = f"rm -rf {wikiname}-{wikidate}-wikidump/"
@@ -352,6 +354,7 @@ Use --help to print this help."""
     parser.add_argument("-c", "--collection", default="opensource")
     parser.add_argument("-wd", "--wikidump_dir", default=".")
     parser.add_argument("-u", "--update", action="store_true")
+    parser.add_argument('-d', '--append_date', action='store_true')
     parser.add_argument("listfile")
     config = parser.parse_args()
     if config.admin:
