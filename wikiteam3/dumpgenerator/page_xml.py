@@ -205,7 +205,7 @@ def makeXmlPageFromRaw(xml):
     return etree.tostring(find(root)[0], pretty_print=True, encoding="unicode")
 
 
-def makeXmlFromPage(page):
+def makeXmlFromPage(page: dict) -> str:
     """Output an XML document as a string from a page as in the API JSON"""
     try:
         p = E.page(
