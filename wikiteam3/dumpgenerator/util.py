@@ -2,7 +2,7 @@ import re
 import sys
 
 
-def cleanHTML(raw=""):
+def cleanHTML(raw: str = "") -> str:
     """Extract only the real wiki content and remove rubbish
     This function is ONLY used to retrieve page titles
     and file names when no API is available
@@ -29,7 +29,7 @@ def cleanHTML(raw=""):
         print(raw[:250])
         print("This wiki doesn't use marks to split content")
         sys.exit()
-    return str(raw)
+    return raw
 
 
 def undoHTMLEntities(text=""):
@@ -46,7 +46,7 @@ def undoHTMLEntities(text=""):
     return text
 
 
-def removeIP(raw=""):
+def removeIP(raw: str = "") -> str:
     """Remove IP from HTML comments <!-- -->"""
 
     raw = re.sub(r"\d+\.\d+\.\d+\.\d+", "0.0.0.0", raw)
