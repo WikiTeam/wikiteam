@@ -29,7 +29,7 @@ def getXMLRevisions(config={}, session=None, allpages=False, start=None):
     try:
         # # Uncomment these lines to raise an KeyError for testing
         # raise KeyError(999999)
-        # # DO NOT UNCOMMMENT IN REALESE
+        # # DO NOT UNCOMMMENT IN RELEASE
 
         for namespace in namespaces:
             print("Trying to export all revisions from namespace %s" % namespace)
