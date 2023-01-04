@@ -48,9 +48,8 @@ convertlang = {
 }
 
 
-def log(wiki, dump, msg, config={}):
-    with open("uploader-%s.log" % (config.listfile), "a") as f:
-        f.write(f"\n{wiki};{dump.name};{msg}")
+def log(logfile, wiki, dump, msg):
+    logfile.write(f"\n{wiki};{dump.name};{msg}")
 
 def read_ia_keys(config):
     with open(config.keysfile) as f:
@@ -82,7 +81,7 @@ def file_md5(path):
 
     return digest.hexdigest()
 
-def upload(wikis, config={}, uploadeddumps=[]):
+def upload(wikis, logfile, config={}, uploadeddumps=[]):
     ia_keys = read_ia_keys(config)
 
     headers = {"User-Agent": getUserAgent()}
@@ -125,14 +124,14 @@ def upload(wikis, config={}, uploadeddumps=[]):
                     dumphash = file_md5(dump)
 
                     if dumphash in map(lambda x: x["md5"], item.files):
-                        log(wiki, dump, "verified", config)
+                        log(logfile, wiki, dump, "verified")
                         dump.unlink()
                         print("DELETED " + str(dump))
                         print("%s was uploaded before, skipping..." % (dump.name))
                         continue
                     else:
                         print("ERROR: The online item misses " + dump.name)
-                        log(wiki, dump, "missing", config)
+                        log(logfile, wiki, dump, "missing")
                         # We'll exit this if and go upload the dump
                 else:
                     print("%s was uploaded before, skipping..." % (dump.name))
@@ -327,7 +326,7 @@ def upload(wikis, config={}, uploadeddumps=[]):
                 print(wiki, dump, "Error when uploading?")
                 print(e)
             try:
-                log(wiki, dump, "ok", config)
+                log(logfile, wiki, dump, "ok")
                 if logourl:
                     logo = BytesIO(requests.get(logourl, timeout=10).content)
                     if ".png" in logourl:
@@ -370,6 +369,7 @@ Use --help to print this help."""
     parser.add_argument("-wd", "--wikidump_dir", default=".")
     parser.add_argument("-u", "--update", action="store_true")
     parser.add_argument("-k", "--keysfile", default="keys.txt")
+    parser.add_argument("-l", "--logfile", default=None)
     parser.add_argument("listfile")
     config = parser.parse_args()
     if config.admin:
@@ -384,10 +384,15 @@ Use --help to print this help."""
         ]
     except:
         pass
+
+    if config.logfile is None:
+        config.logfile = "uploader-" + Path(listfile).name + ".log"
+
     print("%d dumps uploaded previously" % (len(uploadeddumps)))
     wikis = open(listfile).read().strip().splitlines()
 
-    upload(wikis, config, uploadeddumps)
+    with open(config.logfile, "a") as logfile:
+        upload(wikis, logfile, config, uploadeddumps)
 
 
 if __name__ == "__main__":
