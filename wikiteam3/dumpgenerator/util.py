@@ -32,7 +32,7 @@ def cleanHTML(raw: str = "") -> str:
     return raw
 
 
-def undoHTMLEntities(text=""):
+def undoHTMLEntities(text: str = "") -> str:
     """Undo some HTML codes"""
 
     # i guess only < > & " ' need conversion
