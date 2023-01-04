@@ -21,7 +21,7 @@ def getXMLHeader(config={}, session=None):
         try:
             print("Getting the XML header from the API")
             # Export and exportnowrap exist from MediaWiki 1.15, allpages from 1.18
-            r = requests.get(
+            r = session.get(
                 config["api"]
                 + "?action=query&export=1&exportnowrap=1&list=allpages&aplimit=1",
                 timeout=10,
@@ -29,7 +29,7 @@ def getXMLHeader(config={}, session=None):
             xml = str(r.text)
             # Otherwise try without exportnowrap, e.g. Wikia returns a blank page on 1.19
             if not re.match(r"\s*<mediawiki", xml):
-                r = requests.get(
+                r = session.get(
                     config["api"]
                     + "?action=query&export=1&list=allpages&aplimit=1&format=json",
                     timeout=10,
@@ -40,7 +40,7 @@ def getXMLHeader(config={}, session=None):
                     pass
             if not re.match(r"\s*<mediawiki", xml):
                 # Do without a generator, use our usual trick of a random page title
-                r = requests.get(
+                r = session.get(
                     config["api"]
                     + "?action=query&export=1&exportnowrap=1&titles="
                     + randomtitle,
@@ -49,7 +49,7 @@ def getXMLHeader(config={}, session=None):
                 xml = str(r.text)
             # Again try without exportnowrap
             if not re.match(r"\s*<mediawiki", xml):
-                r = requests.get(
+                r = session.get(
                     config["api"]
                     + "?action=query&export=1&format=json&titles="
                     + randomtitle,
