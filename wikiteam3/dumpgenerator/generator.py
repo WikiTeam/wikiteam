@@ -1,8 +1,10 @@
 try:
+    import contextlib
     import http.cookiejar
     import os
     import re
     import sys
+    import traceback
 
     from file_read_backwards import FileReadBackwards
 
@@ -34,6 +36,28 @@ from .wiki_avoid import avoidWikimediaProjects
 from .xml_dump import generateXMLDump
 from .xml_integrity import checkXMLIntegrity
 
+# From https://stackoverflow.com/a/57008707
+class Tee(object):
+    def __init__(self, filename):
+        self.file = open(filename, 'w')
+        self.stdout = sys.stdout
+
+    def __enter__(self):
+        sys.stdout = self
+
+    def __exit__(self, exc_type, exc_value, tb):
+        sys.stdout = self.stdout
+        if exc_type is not None:
+            self.file.write(traceback.format_exc())
+        self.file.close()
+
+    def write(self, data):
+        self.file.write(data)
+        self.stdout.write(data)
+
+    def flush(self):
+        self.file.flush()
+        self.stdout.flush()
 
 class DumpGenerator:
     def __init__(params=[]):
@@ -42,54 +66,55 @@ class DumpGenerator:
         config, other = getParameters(params=params)
         avoidWikimediaProjects(config=config, other=other)
 
-        print(welcome())
-        print("Analysing %s" % (config["api"] and config["api"] or config["index"]))
+        with (Tee(other["log_path"]) if other["log_path"] is not None else contextlib.nullcontext()):
+            print(welcome())
+            print("Analysing %s" % (config["api"] and config["api"] or config["index"]))
 
-        # creating path or resuming if desired
-        c = 2
-        # to avoid concat blabla-2, blabla-2-3, and so on...
-        originalpath = config["path"]
-        # do not enter if resume is requested from begining
-        while not other["resume"] and os.path.isdir(config["path"]):
-            print('\nWarning!: "%s" path exists' % (config["path"]))
-            reply = ""
-            if config["failfast"]:
-                retry = "yes"
-            while reply.lower() not in ["yes", "y", "no", "n"]:
-                reply = input(
-                    'There is a dump in "%s", probably incomplete.\nIf you choose resume, to avoid conflicts, the parameters you have chosen in the current session will be ignored\nand the parameters available in "%s/%s" will be loaded.\nDo you want to resume ([yes, y], [no, n])? '
-                    % (config["path"], config["path"], configfilename)
-                )
-            if reply.lower() in ["yes", "y"]:
-                if not os.path.isfile("{}/{}".format(config["path"], configfilename)):
-                    print("No config file found. I can't resume. Aborting.")
-                    sys.exit()
-                print("You have selected: YES")
-                other["resume"] = True
-                break
-            elif reply.lower() in ["no", "n"]:
-                print("You have selected: NO")
-                other["resume"] = False
-            config["path"] = "%s-%d" % (originalpath, c)
-            print('Trying to use path "%s"...' % (config["path"]))
-            c += 1
+            # creating path or resuming if desired
+            c = 2
+            # to avoid concat blabla-2, blabla-2-3, and so on...
+            originalpath = config["path"]
+            # do not enter if resume is requested from begining
+            while not other["resume"] and os.path.isdir(config["path"]):
+                print('\nWarning!: "%s" path exists' % (config["path"]))
+                reply = ""
+                if config["failfast"]:
+                    retry = "yes"
+                while reply.lower() not in ["yes", "y", "no", "n"]:
+                    reply = input(
+                        'There is a dump in "%s", probably incomplete.\nIf you choose resume, to avoid conflicts, the parameters you have chosen in the current session will be ignored\nand the parameters available in "%s/%s" will be loaded.\nDo you want to resume ([yes, y], [no, n])? '
+                        % (config["path"], config["path"], configfilename)
+                    )
+                if reply.lower() in ["yes", "y"]:
+                    if not os.path.isfile("{}/{}".format(config["path"], configfilename)):
+                        print("No config file found. I can't resume. Aborting.")
+                        sys.exit()
+                    print("You have selected: YES")
+                    other["resume"] = True
+                    break
+                elif reply.lower() in ["no", "n"]:
+                    print("You have selected: NO")
+                    other["resume"] = False
+                config["path"] = "%s-%d" % (originalpath, c)
+                print('Trying to use path "%s"...' % (config["path"]))
+                c += 1
 
-        if other["resume"]:
-            print("Loading config file...")
-            config = loadConfig(config=config, configfilename=configfilename)
-        else:
-            os.mkdir(config["path"])
-            saveConfig(config=config, configfilename=configfilename)
+            if other["resume"]:
+                print("Loading config file...")
+                config = loadConfig(config=config, configfilename=configfilename)
+            else:
+                os.mkdir(config["path"])
+                saveConfig(config=config, configfilename=configfilename)
 
-        if other["resume"]:
-            DumpGenerator.resumePreviousDump(config=config, other=other)
-        else:
-            DumpGenerator.createNewDump(config=config, other=other)
+            if other["resume"]:
+                DumpGenerator.resumePreviousDump(config=config, other=other)
+            else:
+                DumpGenerator.createNewDump(config=config, other=other)
 
-        saveIndexPHP(config=config, session=other["session"])
-        saveSpecialVersion(config=config, session=other["session"])
-        saveSiteInfo(config=config, session=other["session"])
-        bye()
+            saveIndexPHP(config=config, session=other["session"])
+            saveSpecialVersion(config=config, session=other["session"])
+            saveSiteInfo(config=config, session=other["session"])
+            bye()
 
     def createNewDump(config={}, other={}):
         images = []
