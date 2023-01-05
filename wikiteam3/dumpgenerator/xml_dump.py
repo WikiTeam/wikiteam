@@ -27,13 +27,16 @@ def generateXMLDump(config={}, titles=[], start=None, session=None):
     xmlfile = ""
     lock = True
 
+    # start != None, means we are resuming a XML dump
+    if start:
+        print(
+            "Removing the last chunk of past XML dump: it is probably incomplete."
+        )
+        # truncate XML dump if it already exists
+        truncateXMLDump("{}/{}".format(config["path"], xmlfilename))
+
     if config["xmlrevisions"]:
         if start:
-            print(
-                "Removing the last chunk of past XML dump: it is probably incomplete."
-            )
-            truncateXMLDump("{}/{}".format(config["path"], xmlfilename))
-
             print(f"WARNING: will try to start the download from title: {start}")
             xmlfile = open(
                 "{}/{}".format(config["path"], xmlfilename), "a", encoding="utf-8"
@@ -54,7 +57,7 @@ def generateXMLDump(config={}, titles=[], start=None, session=None):
 
                 xmltitle = re.search(r"<title>([^<]+)</title>", xml)
                 title = undoHTMLEntities(text=xmltitle.group(1))
-                print(f'{title}, {numrevs} edits (--xmlrevisions))')
+                print(f'{title}, {numrevs} edits (--xmlrevisions)')
                 Delay(config=config, session=session)
         except AttributeError as e:
             print(e)
@@ -63,17 +66,13 @@ def generateXMLDump(config={}, titles=[], start=None, session=None):
         except UnicodeEncodeError as e:
             print(e)
 
-    else:
+    else:  # --xml
         print(
             '\nRetrieving the XML for every page from "%s"\n'
             % (start and start or "start")
         )
-        if start:
-            print(
-                "Removing the last chunk of past XML dump: it is probably incomplete."
-            )
-            truncateXMLDump("{}/{}".format(config["path"], xmlfilename))
-        else:
+
+        if not start:
             # requested complete xml dump
             lock = False
             xmlfile = open(
