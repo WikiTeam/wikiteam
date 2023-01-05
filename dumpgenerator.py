@@ -170,7 +170,7 @@ def getNamespacesScraper(config={}, session=None):
 
         # [^>]*? to include selected="selected"
         m = re.compile(
-            r'<option [^>]*?value="(?P<namespaceid>\d+)"[^>]*?>(?P<namespacename>[^<]+)</option>').finditer(raw)
+            r'<option [^>]*?value=[\'"](?P<namespaceid>\d+)[\'"][^>]*?>(?P<namespacename>[^<]+)</option>').finditer(raw)
         if 'all' in namespaces:
             namespaces = []
             for i in m:
