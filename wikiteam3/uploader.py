@@ -368,8 +368,8 @@ Use --help to print this help."""
     parser.add_argument("-c", "--collection", default="opensource")
     parser.add_argument("-wd", "--wikidump_dir", default=".")
     parser.add_argument("-u", "--update", action="store_true")
-    parser.add_argument("-k", "--keysfile", default="keys.txt")
-    parser.add_argument("-l", "--logfile", default=None)
+    parser.add_argument("-kf", "--keysfile", default="keys.txt")
+    parser.add_argument("-lf", "--logfile", default=None)
     parser.add_argument("listfile")
     config = parser.parse_args()
     if config.admin:
