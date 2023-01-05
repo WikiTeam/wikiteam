@@ -27,6 +27,7 @@ from pathlib import Path
 
 from .dumpgenerator.domain import domain2prefix
 
+
 def main():
     parser = argparse.ArgumentParser(prog="launcher")
 
@@ -76,7 +77,7 @@ def main():
             )
             # Get the archive's file list.
             if (sys.version_info[0] == 3) and (sys.version_info[1] > 0):
-                archivecontent = subprocess.check_output([path7z, "l", zipfilename, "-scsUTF-8"], text=True, encoding = "UTF-8", errors="strict")
+                archivecontent = subprocess.check_output([path7z, "l", zipfilename, "-scsUTF-8"], text=True, encoding="UTF-8", errors="strict")
                 if re.search(r"%s.+-history\.xml" % (prefix), archivecontent) is None:
                     # We should perhaps not create an archive in this case, but we continue anyway.
                     print("ERROR: The archive contains no history!")
