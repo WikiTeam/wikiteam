@@ -12,7 +12,7 @@ from .log_error import logerror
 from .uprint import uprint
 
 
-def getXMLPageCore(headers={}, params={}, config={}, session=None):
+def getXMLPageCore(headers={}, params={}, config={}, session=None) -> str:
     """"""
     # returns a XML containing params['limit'] revisions (or current only), ending in </mediawiki>
     # if retrieving params['limit'] revisions fails, returns a current only version
@@ -86,7 +86,7 @@ def getXMLPageCore(headers={}, params={}, config={}, session=None):
             xml = ""
         c += 1
 
-    return str(xml)
+    return xml
 
 
 def getXMLPage(config={}, title="", verbose=True, session=None):
@@ -114,7 +114,7 @@ def getXMLPage(config={}, title="", verbose=True, session=None):
     if "templates" in config and config["templates"]:
         params["templates"] = 1
 
-    xml = str(getXMLPageCore(params=params, config=config, session=session))
+    xml = getXMLPageCore(params=params, config=config, session=session)
     if xml == "":
         raise ExportAbortedError(config["index"])
     if "</page>" not in xml:
@@ -205,7 +205,7 @@ def makeXmlPageFromRaw(xml):
     return etree.tostring(find(root)[0], pretty_print=True, encoding="unicode")
 
 
-def makeXmlFromPage(page):
+def makeXmlFromPage(page: dict) -> str:
     """Output an XML document as a string from a page as in the API JSON"""
     try:
         p = E.page(
@@ -259,4 +259,4 @@ def fixBOM(request):
     """Strip Unicode BOM"""
     if request.text.startswith("\ufeff"):
         request.encoding = "utf-8-sig"
-    return str(request.text)
+    return request.text

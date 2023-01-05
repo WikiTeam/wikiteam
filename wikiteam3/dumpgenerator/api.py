@@ -52,13 +52,14 @@ def checkAPI(api=None, session=None):
     return False
 
 
-def mwGetAPIAndIndex(url=""):
+def mwGetAPIAndIndex(url="", session=None):
     """Returns the MediaWiki API and Index.php"""
 
     api = ""
     index = ""
-    session = requests.Session()
-    session.headers.update({"User-Agent": getUserAgent()})
+    if not session:
+        session = requests.Session()  # Create a new session
+        session.headers.update({"User-Agent": getUserAgent()})
     r = session.post(url=url, timeout=120)
     result = r.text
 

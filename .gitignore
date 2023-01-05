@@ -6,3 +6,4 @@ batchdownload/dumpgenerator.py
 batchdownload/uploader.py
 __pycache__
 tests/tmp
+.DS_Store

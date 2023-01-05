@@ -228,7 +228,7 @@ class Image:
                     print("No more retries, exit...")
                     break
 
-            raw = str(cleanHTML(raw))
+            raw = cleanHTML(raw)
             # archiveteam 1.15.1 <td class="TablePager_col_img_name"><a href="/index.php?title=File:Yahoovideo.jpg" title="File:Yahoovideo.jpg">Yahoovideo.jpg</a> (<a href="/images/2/2b/Yahoovideo.jpg">file</a>)</td>
             # wikanda 1.15.5 <td class="TablePager_col_img_user_text"><a
             # href="/w/index.php?title=Usuario:Fernandocg&amp;action=edit&amp;redlink=1"
