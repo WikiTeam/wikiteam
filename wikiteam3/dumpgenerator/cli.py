@@ -115,11 +115,7 @@ def getParameters(params=[]):
         parser.print_help()
         sys.exit(1)
 
-    # Execute meta info params
-    if args.wiki:
-        if args.get_wiki_engine:
-            print(getWikiEngine(url=args.wiki))
-            sys.exit()
+    ########################################
 
     # Create session
     cj = http.cookiejar.MozillaCookieJar()
@@ -146,6 +142,12 @@ def getParameters(params=[]):
     if args.user and args.password:
         session.auth = (args.user, args.password)
 
+    # Execute meta info params
+    if args.wiki:
+        if args.get_wiki_engine:
+            print(getWikiEngine(url=args.wiki, session=session))
+            sys.exit()
+
     # check URLs
     for url in [args.api, args.index, args.wiki]:
         if url and (not url.startswith("http://") and not url.startswith("https://")):
@@ -159,8 +161,8 @@ def getParameters(params=[]):
     index = args.index and args.index or ""
     if api == "" or index == "":
         if args.wiki:
-            if getWikiEngine(args.wiki) == "MediaWiki":
-                api2, index2 = mwGetAPIAndIndex(args.wiki)
+            if getWikiEngine(args.wiki, session=session) == "MediaWiki":
+                api2, index2 = mwGetAPIAndIndex(args.wiki, session=session)
                 if not api:
                     api = api2
                 if not index:

@@ -5,15 +5,16 @@ import requests
 from .user_agent import getUserAgent
 
 
-def getWikiEngine(url=""):
+def getWikiEngine(url="", session=None) -> str:
     """Returns the wiki engine of a URL, if known"""
 
-    session = requests.Session()
-    session.headers.update({"User-Agent": getUserAgent()})
+    if not session:
+        session = requests.Session()  # Create a new session
+        session.headers.update({"User-Agent": getUserAgent()})
     r = session.post(url=url, timeout=30)
     if r.status_code == 405 or r.text == "":
         r = session.get(url=url, timeout=120)
-    result = str(r.text)
+    result = r.text
 
     wikiengine = "Unknown"
     if re.search(
