@@ -15,24 +15,43 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # Instructions: https://github.com/WikiTeam/wikiteam/wiki/Tutorial#Download_a_list_of_wikis
-# Requires python 2.7 or more (for subprocess.check_output)
 
+import argparse
 import os
 import re
+import shutil
 import subprocess
 import sys
 import time
+from pathlib import Path
 
-import dumpgenerator
+from .dumpgenerator.domain import domain2prefix
 
 
 def main():
-    if len(sys.argv) < 2:
-        print("python script.py file-with-apis.txt")
-        sys.exit()
+    parser = argparse.ArgumentParser(prog="launcher")
 
-    print("Reading list of APIs from", sys.argv[1])
-    wikis = open(sys.argv[1]).read().splitlines()
+    parser.add_argument("wikispath")
+    parser.add_argument("--7z-path", dest="path7z", metavar="path-to-7z")
+    parser.add_argument("--generator-arg", "-g", dest="generator_args", action='append')
+
+    args = parser.parse_args()
+
+    wikispath = args.wikispath
+
+    # None -> literal '7z', which will find the executable in PATH when running subprocesses
+    # otherwise -> resolve as path relative to current dir, then make absolute because we will change working dir later
+    path7z = str(Path(".", args.path7z).absolute()) if args.path7z is not None else '7z'
+
+    generator_args = args.generator_args if args.generator_args is not None else []
+
+    print("Reading list of APIs from", wikispath)
+
+    wikis = None
+
+    with open(wikispath) as f:
+        wikis = f.read().splitlines()
+
     print("%d APIs found" % (len(wikis)))
 
     for wiki in wikis:
@@ -57,10 +76,8 @@ def main():
                 zipfilename,
             )
             # Get the archive's file list.
-            if ((sys.version_info[0] == 3) and (sys.version_info[1] > 0)) or (
-                (sys.version_info[0] == 2) and (sys.version_info[1] > 6)
-            ):
-                archivecontent = subprocess.check_output(["7z", "l", zipfilename])
+            if (sys.version_info[0] == 3) and (sys.version_info[1] > 0):
+                archivecontent = subprocess.check_output([path7z, "l", zipfilename, "-scsUTF-8"], text=True, encoding="UTF-8", errors="strict")
                 if re.search(r"%s.+-history\.xml" % (prefix), archivecontent) is None:
                     # We should perhaps not create an archive in this case, but we continue anyway.
                     print("ERROR: The archive contains no history!")
@@ -70,7 +87,7 @@ def main():
                     )
             else:
                 print(
-                    "WARNING: Content of the archive not checked, we need python 2.7+ or 3.1+."
+                    "WARNING: Content of the archive not checked, we need 3.1+."
                 )
                 # TODO: Find a way like grep -q below without doing a 7z l multiple times?
             continue
@@ -93,25 +110,27 @@ def main():
             print("Resuming download, using directory", wikidir)
             subprocess.call(
                 [
-                    "python3",
-                    "py",
+                    sys.executable,
+                    "-c",
+                    "import wikiteam3.dumpgenerator; wikiteam3.dumpgenerator.main()",
                     f"--api={wiki}",
                     "--xml",
                     "--images",
                     "--resume",
                     f"--path={wikidir}",
-                ],
+                ] + generator_args,
                 shell=False,
             )
         else:  # download from scratch
             subprocess.call(
                 [
-                    "python3",
-                    "py",
+                    sys.executable,
+                    "-c",
+                    "import wikiteam3.dumpgenerator; wikiteam3.dumpgenerator.main()",
                     f"--api={wiki}",
                     "--xml",
                     "--images",
-                ],
+                ] + generator_args,
                 shell=False,
             )
             started = True
@@ -151,38 +170,54 @@ def main():
                 'grep "<title>" *.xml -c;grep "<page>" *.xml -c;grep "</page>" *.xml -c;grep "<revision>" *.xml -c;grep "</revision>" *.xml -c',
                 shell=True,
             )
+
+            pathHistoryTmp = Path("..", prefix + "-history.xml.7z.tmp")
+            pathHistoryFinal = Path("..", prefix + "-history.xml.7z")
+            pathFullTmp = Path("..", prefix + "-wikidump.7z.tmp")
+            pathFullFinal = Path("..", prefix + "-wikidump.7z")
+
             # Make a non-solid archive with all the text and metadata at default compression. You can also add config.txt if you don't care about your computer and user names being published or you don't use full paths so that they're not stored in it.
             compressed = subprocess.call(
-                "7z"
-                + " a -ms=off ../%s-history.xml.7z.tmp %s-history.xml %s-titles.txt index.html Special:Version.html errors.log siteinfo.json"
-                % (prefix, prefix, prefix),
-                shell=True,
+                [
+                    path7z,
+                    "a",
+                    "-ms=off",
+                    "--",
+                    str(pathHistoryTmp),
+                    f"{prefix}-history.xml",
+                    f"{prefix}-titles.txt",
+                    "index.html",
+                    "Special:Version.html",
+                    "errors.log",
+                    "siteinfo.json",
+                ],
+                shell=False,
             )
             if compressed < 2:
-                subprocess.call(
-                    "mv"
-                    + " ../%s-history.xml.7z.tmp ../%s-history.xml.7z"
-                    % (prefix, prefix),
-                    shell=True,
-                )
+                pathHistoryTmp.rename(pathHistoryFinal)
             else:
                 print("ERROR: Compression failed, will have to retry next time")
-                subprocess.call("rm" + " ../%s-history.xml.7z.tmp" % prefix, shell=True)
+                pathHistoryTmp.unlink()
+
             # Now we add the images, if there are some, to create another archive, without recompressing everything, at the min compression rate, higher doesn't compress images much more.
+            shutil.copy(pathHistoryFinal, pathFullTmp)
+
             subprocess.call(
-                "cp" + f" ../{prefix}-history.xml.7z ../{prefix}-wikidump.7z.tmp",
-                shell=True,
+                [
+                    path7z,
+                    "a",
+                    "-ms=off",
+                    "-mx=1",
+                    "--",
+                    str(pathFullTmp),
+                    f"{prefix}-images.txt",
+                    "images/",
+                ],
+                shell=False,
             )
-            subprocess.call(
-                "7z"
-                + " a -ms=off -mx=1 ../%s-wikidump.7z.tmp %s-images.txt images/"
-                % (prefix, prefix),
-                shell=True,
-            )
-            subprocess.call(
-                "mv" + f" ../{prefix}-wikidump.7z.tmp ../{prefix}-wikidump.7z",
-                shell=True,
-            )
+
+            pathFullTmp.rename(pathFullFinal)
+
             os.chdir("..")
             print("Changed directory to", os.getcwd())
             time.sleep(1)

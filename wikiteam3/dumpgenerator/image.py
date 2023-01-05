@@ -175,11 +175,14 @@ class Image:
         print(")Retrieving image filenames")
         images = []
         if "api" in config and config["api"]:
+            print("Using API to retrieve image names...")
             images = Image.getImageNamesAPI(config=config, session=session)
         elif "index" in config and config["index"]:
+            print("Using index.php (Special:Imagelist) to retrieve image names...")
             images = Image.getImageNamesScraper(config=config, session=session)
 
         # images = list(set(images)) # it is a list of lists
+        print("Sorting image filenames")
         images.sort()
 
         print("%d image names loaded" % (len(images)))
@@ -225,7 +228,7 @@ class Image:
                     print("No more retries, exit...")
                     break
 
-            raw = str(cleanHTML(raw))
+            raw = cleanHTML(raw)
             # archiveteam 1.15.1 <td class="TablePager_col_img_name"><a href="/index.php?title=File:Yahoovideo.jpg" title="File:Yahoovideo.jpg">Yahoovideo.jpg</a> (<a href="/images/2/2b/Yahoovideo.jpg">file</a>)</td>
             # wikanda 1.15.5 <td class="TablePager_col_img_user_text"><a
             # href="/w/index.php?title=Usuario:Fernandocg&amp;action=edit&amp;redlink=1"
@@ -295,9 +298,20 @@ class Image:
     def getImageNamesAPI(config={}, session=None):
         """Retrieve file list: filename, url, uploader"""
         oldAPI = False
+        # # Commented by @yzqzss:
+        # https://www.mediawiki.org/wiki/API:Allpages
+        # API:Allpages requires MediaWiki >= 1.18
+        # https://www.mediawiki.org/wiki/API:Allimages
+        # API:Allimages requires MediaWiki >= 1.13
+        # Why allpages is defined as oldAPI, I don't know.
+        # Allimages is faster than allpages?
+        # TODO: We need a test to check which is faster.
+
         aifrom = "!"
         images = []
+        countImages = 0
         while aifrom:
+            print('Using API:Allimages to get the list of images')
             sys.stderr.write(".")  # progress
             params = {
                 "action": "query",
@@ -314,6 +328,13 @@ class Image:
             Delay(config=config, session=session)
 
             if "query" in jsonimages:
+                countImages += len(jsonimages["query"]["allimages"])
+                
+                # oldAPI = True
+                # break
+                # # uncomment to force use API:Allpages generator 
+                # # may also can as a fallback if API:Allimages response is wrong
+
                 aifrom = ""
                 if (
                     "query-continue" in jsonimages
@@ -328,7 +349,7 @@ class Image:
                         aifrom = jsonimages["continue"]["aicontinue"]
                     elif "aifrom" in jsonimages["continue"]:
                         aifrom = jsonimages["continue"]["aifrom"]
-                # print (aifrom)
+                print(countImages, aifrom[0:30]+" "*(60-len(aifrom[0:30])),end="\r")
 
                 for image in jsonimages["query"]["allimages"]:
                     url = image["url"]
@@ -363,6 +384,7 @@ class Image:
                 break
 
         if oldAPI:
+            print("    API:Allimages not available. Using API:Allpages generator instead.")
             gapfrom = "!"
             images = []
             while gapfrom:
@@ -376,7 +398,8 @@ class Image:
                     "action": "query",
                     "generator": "allpages",
                     "gapnamespace": 6,
-                    "gaplimit": 50,
+                    "gaplimit": 50, # The value must be between 1 and 500.
+                                    # TODO: Is it OK to set it higher, for speed?
                     "gapfrom": gapfrom,
                     "prop": "imageinfo",
                     "iiprop": "user|url",
@@ -389,8 +412,20 @@ class Image:
                 Delay(config=config, session=session)
 
                 if "query" in jsonimages:
+                    countImages += len(jsonimages["query"]["pages"])
+                    print(countImages, gapfrom[0:30]+" "*(60-len(gapfrom[0:30])),end="\r")
+
                     gapfrom = ""
+
+                    # all moden(at 20221231) wikis return 'continue' instead of 'query-continue'
                     if (
+                        "continue" in jsonimages
+                        and "gapcontinue" in jsonimages["continue"]
+                    ):
+                        gapfrom = jsonimages["continue"]["gapcontinue"]
+                    
+                    # legacy code, not sure if it's still needed by some old wikis
+                    elif (
                         "query-continue" in jsonimages
                         and "allpages" in jsonimages["query-continue"]
                     ):
@@ -398,6 +433,8 @@ class Image:
                             gapfrom = jsonimages["query-continue"]["allpages"][
                                 "gapfrom"
                             ]
+
+
                     # print (gapfrom)
                     # print (jsonimages['query'])
 

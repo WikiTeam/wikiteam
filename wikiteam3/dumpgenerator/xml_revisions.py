@@ -27,6 +27,10 @@ def getXMLRevisions(config={}, session=None, allpages=False, start=None):
         namespaces, namespacenames = getNamespacesAPI(config=config, session=session)
 
     try:
+        # # Uncomment these lines to raise an KeyError for testing
+        # raise KeyError(999999)
+        # # DO NOT UNCOMMMENT IN RELEASE
+
         for namespace in namespaces:
             print("Trying to export all revisions from namespace %s" % namespace)
             # arvgeneratexml exists but was deprecated in 1.26 (while arv is from 1.27?!)
@@ -141,7 +145,7 @@ def getXMLRevisions(config={}, session=None, allpages=False, start=None):
                         # but we only need the inner <page>: we can live with
                         # duplication and non-ordering of page titles, but the
                         # repeated header is confusing and would not even be valid
-                        xml = str(exportrequest["query"]["export"]["*"])
+                        xml = exportrequest["query"]["export"]["*"]  # type(xml) == str
                         yield makeXmlPageFromRaw(xml)
 
                     if "continue" in arvrequest:
@@ -279,8 +283,8 @@ def getXMLRevisions(config={}, session=None, allpages=False, start=None):
                     # Go through the data we got to build the XML.
                     for pageid in pages:
                         try:
-                            xml = str(makeXmlFromPage(pages[pageid]))
-                            yield str(xml)
+                            xml = makeXmlFromPage(pages[pageid])
+                            yield xml
                         except PageMissingError:
                             logerror(
                                 config=config,
