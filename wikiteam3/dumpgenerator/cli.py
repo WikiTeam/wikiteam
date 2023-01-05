@@ -115,11 +115,7 @@ def getParameters(params=[]):
         parser.print_help()
         sys.exit(1)
 
-    # Execute meta info params
-    if args.wiki:
-        if args.get_wiki_engine:
-            print(getWikiEngine(url=args.wiki))
-            sys.exit()
+    ########################################
 
     # Create session
     cj = http.cookiejar.MozillaCookieJar()
@@ -145,6 +141,12 @@ def getParameters(params=[]):
     session.headers.update({"User-Agent": getUserAgent()})
     if args.user and args.password:
         session.auth = (args.user, args.password)
+
+    # Execute meta info params
+    if args.wiki:
+        if args.get_wiki_engine:
+            print(getWikiEngine(url=args.wiki, session=session))
+            sys.exit()
 
     # check URLs
     for url in [args.api, args.index, args.wiki]:
