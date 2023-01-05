@@ -16,23 +16,21 @@
 
 import argparse
 import getopt
+import hashlib
 import os
 import re
+import shutil
 import subprocess
 import time
 import urllib.parse
 from io import BytesIO
+from pathlib import Path
 
+from . import dumpgenerator
+from .dumpgenerator.user_agent import getUserAgent
+from .dumpgenerator.domain import domain2prefix
 import requests
 from internetarchive import get_item
-
-from .dumpgenerator.domain import domain2prefix
-from .dumpgenerator.user_agent import getUserAgent
-
-
-# You need a file named keys.txt with access and secret keys, in two different lines
-accesskey = open("keys.txt").readlines()[0].strip()
-secretkey = open("keys.txt").readlines()[1].strip()
 
 # Nothing to change below
 convertlang = {
@@ -50,35 +48,59 @@ convertlang = {
 }
 
 
-def log(wiki, dump, msg, config={}):
-    f = open("uploader-%s.log" % (config.listfile), "a")
-    f.write(f"\n{wiki};{dump};{msg}")
-    f.close()
+def log(logfile, wiki, dump, msg):
+    logfile.write(f"\n{wiki};{dump.name};{msg}")
 
+def read_ia_keys(config):
+    with open(config.keysfile) as f:
+        key_lines = f.readlines()
 
-def upload(wikis, config={}, uploadeddumps=[]):
+        accesskey = key_lines[0].strip()
+        secretkey = key_lines[1].strip()
+
+        return {
+            "access": accesskey,
+            "secret": secretkey
+        }
+
+# We have to use md5 because the internet archive API doesn't provide
+# sha1 for all files.
+def file_md5(path):
+    buffer = bytearray(65536)
+    view = memoryview(buffer)
+    digest = hashlib.md5()
+
+    with open(path, mode="rb") as f:
+        while True:
+            n = f.readinto(buffer)
+
+            if not n:
+                break
+
+            digest.update(view[:n])
+
+    return digest.hexdigest()
+
+def upload(wikis, logfile, config={}, uploadeddumps=[]):
+    ia_keys = read_ia_keys(config)
+
     headers = {"User-Agent": getUserAgent()}
-    dumpdir = config.wikidump_dir
+    dumpdir = Path(config.wikidump_dir)
 
-    filelist = os.listdir(dumpdir)
     for wiki in wikis:
         print("#" * 73)
         print("# Uploading", wiki)
         print("#" * 73)
         wiki = wiki.lower()
-        configtemp = config
         try:
             prefix = domain2prefix(config={"api": wiki})
         except KeyError:
             print("ERROR: could not produce the prefix for %s" % wiki)
-        config = configtemp
 
         wikiname = prefix.split("-")[0]
         dumps = []
-        for f in filelist:
-            if f.startswith("%s-" % (wikiname)) and (
-                f.endswith("-wikidump.7z") or f.endswith("-history.xml.7z")
-            ):
+        for f in dumpdir.iterdir():
+            if f.name.startswith("%s-" % (wikiname)) and (f.name.endswith("-wikidump.7z") or f.name.endswith("-history.xml.7z")):
                 print("%s found" % f)
                 dumps.append(f)
                 # Re-introduce the break here if you only need to upload one file
@@ -87,44 +109,35 @@ def upload(wikis, config={}, uploadeddumps=[]):
 
         c = 0
         for dump in dumps:
-            wikidate = dump.split("-")[1]
-            identifier = 'wiki-' + wikiname
-            item = get_item(identifier)
-            if item.exists and config.append_date and not config.admin:
-                identifier += '-' + wikidate
-                item = get_item(identifier)
-            if dump in uploadeddumps:
+            wikidate = dump.name.split("-")[1]
+            item = get_item("wiki-" + wikiname)
+            if dump.name in uploadeddumps:
                 if config.prune_directories:
-                    rmline = f"rm -rf {wikiname}-{wikidate}-wikidump/"
-                    # With -f the deletion might have happened before and we won't know
-                    if not os.system(rmline):
-                        print(f"DELETED {wikiname}-{wikidate}-wikidump/")
-                if config.prune_wikidump and dump.endswith("wikidump.7z"):
+                    rmpath = dumpdir / f"{wikiname}-{wikidate}-wikidump"
+                    if rmpath.exists():
+                        shutil.rmtree(rmpath)
+                        print(f"DELETED {rmpath.name}/")
+
+                if config.prune_wikidump and dump.name.endswith("wikidump.7z"):
                     # Simplistic quick&dirty check for the presence of this file in the item
                     print("Checking content in previously uploaded files")
-                    stdout, stderr = subprocess.Popen(
-                        ["md5sum", dumpdir + "/" + dump],
-                        stdout=subprocess.PIPE,
-                        stderr=subprocess.PIPE,
-                    ).communicate()
-                    dumphash = re.sub(" +.+\n?", "", stdout)
+                    dumphash = file_md5(dump)
 
                     if dumphash in map(lambda x: x["md5"], item.files):
-                        log(wiki, dump, "verified", config)
-                        rmline = "rm -rf %s" % dumpdir + "/" + dump
-                        if not os.system(rmline):
-                            print("DELETED " + dumpdir + "/" + dump)
-                        print("%s was uploaded before, skipping..." % (dump))
+                        log(logfile, wiki, dump, "verified")
+                        dump.unlink()
+                        print("DELETED " + str(dump))
+                        print("%s was uploaded before, skipping..." % (dump.name))
                         continue
                     else:
-                        print("ERROR: The online item misses " + dump)
-                        log(wiki, dump, "missing", config)
+                        print("ERROR: The online item misses " + dump.name)
+                        log(logfile, wiki, dump, "missing")
                         # We'll exit this if and go upload the dump
                 else:
-                    print("%s was uploaded before, skipping..." % (dump))
+                    print("%s was uploaded before, skipping..." % (dump.name))
                     continue
             else:
-                print("%s was not uploaded before" % dump)
+                print("%s was not uploaded before" % dump.name)
 
             time.sleep(0.1)
             wikidate_text = wikidate[0:4] + "-" + wikidate[4:6] + "-" + wikidate[6:8]
@@ -170,11 +183,7 @@ def upload(wikis, config={}, uploadeddumps=[]):
                 # Convert protocol-relative URLs
                 baseurl = re.sub("^//", "https://", baseurl)
                 if lang:
-                    lang = (
-                        convertlang.has_key(lang.lower())
-                        and convertlang[lang.lower()]
-                        or lang.lower()
-                    )
+                    lang = (convertlang[lang.lower()] if (lang.lower() in convertlang) else lang.lower())
 
                 # now copyright info from API
                 params = {
@@ -300,24 +309,24 @@ def upload(wikis, config={}, uploadeddumps=[]):
             # Upload files and update metadata
             try:
                 item.upload(
-                    dumpdir + "/" + dump,
+                    str(dump),
                     metadata=md,
-                    access_key=accesskey,
-                    secret_key=secretkey,
+                    access_key=ia_keys["access"],
+                    secret_key=ia_keys["secret"],
                     verbose=True,
                     queue_derive=False,
                 )
                 item.modify_metadata(md)  # update
                 print(
-                    "You can find it in https://archive.org/details/%s"
-                    % (identifier)
+                    "You can find it in https://archive.org/details/wiki-%s"
+                    % (wikiname)
                 )
-                uploadeddumps.append(dump)
+                uploadeddumps.append(dump.name)
             except Exception as e:
                 print(wiki, dump, "Error when uploading?")
                 print(e)
             try:
-                log(wiki, dump, "ok", config)
+                log(logfile, wiki, dump, "ok")
                 if logourl:
                     logo = BytesIO(requests.get(logourl, timeout=10).content)
                     if ".png" in logourl:
@@ -359,7 +368,8 @@ Use --help to print this help."""
     parser.add_argument("-c", "--collection", default="opensource")
     parser.add_argument("-wd", "--wikidump_dir", default=".")
     parser.add_argument("-u", "--update", action="store_true")
-    parser.add_argument('-d', '--append_date', action='store_true')
+    parser.add_argument("-kf", "--keysfile", default="keys.txt")
+    parser.add_argument("-lf", "--logfile", default=None)
     parser.add_argument("listfile")
     config = parser.parse_args()
     if config.admin:
@@ -374,10 +384,15 @@ Use --help to print this help."""
         ]
     except:
         pass
+
+    if config.logfile is None:
+        config.logfile = "uploader-" + Path(listfile).name + ".log"
+
     print("%d dumps uploaded previously" % (len(uploadeddumps)))
     wikis = open(listfile).read().strip().splitlines()
 
-    upload(wikis, config, uploadeddumps)
+    with open(config.logfile, "a") as logfile:
+        upload(wikis, logfile, config, uploadeddumps)
 
 
 if __name__ == "__main__":
