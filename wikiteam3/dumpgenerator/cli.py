@@ -159,8 +159,8 @@ def getParameters(params=[]):
     index = args.index and args.index or ""
     if api == "" or index == "":
         if args.wiki:
-            if getWikiEngine(args.wiki) == "MediaWiki":
-                api2, index2 = mwGetAPIAndIndex(args.wiki)
+            if getWikiEngine(args.wiki, session=session) == "MediaWiki":
+                api2, index2 = mwGetAPIAndIndex(args.wiki, session=session)
                 if not api:
                     api = api2
                 if not index:
