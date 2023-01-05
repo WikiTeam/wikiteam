@@ -13,12 +13,12 @@ def getNamespacesScraper(config={}, session=None):
         r = session.post(
             url=config["index"], params={"title": "Special:Allpages"}, timeout=30
         )
-        raw = str(r.text)
+        raw = r.text
         Delay(config=config, session=session)
 
         # [^>]*? to include selected="selected"
         m = re.compile(
-            r'<option [^>]*?value="(?P<namespaceid>\d+)"[^>]*?>(?P<namespacename>[^<]+)</option>'
+            r'<option [^>]*?value=[\'"](?P<namespaceid>\d+)[\'"][^>]*?>(?P<namespacename>[^<]+)</option>'
         ).finditer(raw)
         if "all" in namespaces:
             namespaces = []
