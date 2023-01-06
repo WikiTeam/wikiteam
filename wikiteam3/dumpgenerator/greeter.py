@@ -55,7 +55,7 @@ def bye():
     print("---> Congratulations! Your dump is complete <---")
     print("")
     print("If you found any bug, report a new issue here:")
-    print("  https://github.com/WikiTeam/wikiteam/issues")
+    print("  https://github.com/elsiehupp/wikiteam3/issues")
     print("")
     print("If this is a public wiki, please, consider publishing this dump.")
     print("Do it yourself as explained in:")

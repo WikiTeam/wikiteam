@@ -44,6 +44,10 @@ def getParameters(params=[]):
         "--pass", dest="password", help="Password if authentication is required."
     )
 
+    parser.add_argument(
+        "--log-file", dest="log_path", default=None, help="Path to copy stdout to",
+    )
+
     # URL params
     groupWikiOrAPIOrIndex = parser.add_argument_group()
     groupWikiOrAPIOrIndex.add_argument(
@@ -295,6 +299,7 @@ def getParameters(params=[]):
         "filenamelimit": 100,  # do not change
         "force": args.force,
         "session": session,
+        "log_path": args.log_path,
     }
 
     # calculating path, if not defined by user with --path=

@@ -61,16 +61,16 @@ def removeIP(raw: str = "") -> str:
     return raw
 
 
-def cleanXML(xml=""):
+def cleanXML(xml: str = "") -> str:
     """Trim redundant info from the XML however it comes"""
     # do not touch XML codification, leave AS IS
     # EDIT 2022: we are making this explicitly Unicode
     # for Windows compatibility.
     # If the encoding has to stay as is, we'll have
     # to change all the file encodings, as well.
-    xml = str(xml)
-    if re.search(r"</siteinfo>\n", str(xml)):
+
+    if re.search(r"</siteinfo>\n", xml):
         xml = xml.split("</siteinfo>\n")[1]
-    if re.search(r"</mediawiki>", str(xml)):
+    if re.search(r"</mediawiki>", xml):
         xml = xml.split("</mediawiki>")[0]
     return xml
