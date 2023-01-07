@@ -240,7 +240,7 @@ def makeXmlFromPage(page: dict) -> str:
                 )
             else:
                 revision.append(E.contributor(deleted="deleted"))
-            if "comment" in rev:
+            if "comment" in rev and rev["comment"]:
                 revision.append(E.comment(str(rev["comment"])))
             if "contentmodel" in rev:
                 revision.append(E.model(rev["contentmodel"]))
