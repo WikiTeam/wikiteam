@@ -223,10 +223,12 @@ def makeXmlFromPage(page: dict) -> str:
                 size = rev["size"]
             else:
                 size = 0
+            text_element = E.text(str(rev["*"]), bytes=str(size))
+            text_element.set("{http://www.w3.org/XML/1998/namespace}space", "preserve")
             revision = E.revision(
                 E.id(str(rev["revid"])),
                 E.timestamp(rev["timestamp"]),
-                E.text(str(rev["*"]), space="preserve", bytes=str(size)),
+                text_element,
             )
             # The username may be deleted/suppressed
             if "user" in rev:
