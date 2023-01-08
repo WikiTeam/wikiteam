@@ -66,7 +66,7 @@ class DumpGenerator:
         config, other = getParameters(params=params)
         avoidWikimediaProjects(config=config, other=other)
 
-        with (Tee(other["log_path"]) if other["log_path"] is not None else contextlib.nullcontext()):
+        with (Tee(other["stdout_log_path"]) if other["stdout_log_path"] is not None else contextlib.nullcontext()):
             print(welcome())
             print("Analysing %s" % (config["api"] and config["api"] or config["index"]))
 
