@@ -23,7 +23,7 @@ def getPageTitlesAPI(config={}, session=None):
         sys.stdout.write("    Retrieving titles in the namespace %d" % (namespace))
         apiurl = urlparse(config["api"])
         site = mwclient.Site(
-            apiurl.netloc, apiurl.path.replace("api.php", ""), scheme=apiurl.scheme
+            apiurl.netloc, apiurl.path.replace("api.php", ""), scheme=apiurl.scheme, pool=session
         )
         for page in site.allpages(namespace=namespace):
             title = page.name
