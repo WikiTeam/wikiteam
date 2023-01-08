@@ -57,41 +57,6 @@ class Image:
                 filename2 = truncateFilename(other=other, filename=filename2)
                 print("Filename is too long, truncating. Now it is:", filename2)
             filename3 = f"{imagepath}/{filename2}"
-            try:
-                imagefile = open(filename3, "wb")
-
-                r = session.head(url=url, allow_redirects=True)
-                original_url_redirected = len(r.history) > 0
-
-                if original_url_redirected:
-                    # print 'Site is redirecting us to: ', r.url
-                    original_url = url
-                    url = r.url
-
-                r = session.get(url=url, allow_redirects=False)
-
-                # Try to fix a broken HTTP to HTTPS redirect
-                if r.status_code == 404 and original_url_redirected:
-                    if (
-                        original_url.split("://")[0] == "http"
-                        and url.split("://")[0] == "https"
-                    ):
-                        url = "https://" + original_url.split("://")[1]
-                        # print 'Maybe a broken http to https redirect, trying ', url
-                        r = session.get(url=url, allow_redirects=False)
-
-                if r.status_code == 404:
-                    logerror(
-                        config=config, text=f"File {filename2} at URL {url} is missing"
-                    )
-
-                imagefile.write(r.content)
-                imagefile.close()
-            except OSError:
-                logerror(
-                    config=config,
-                    text="File %s could not be created by OS" % (filename3),
-                )
 
             r = session.head(url=url, allow_redirects=True)
             original_url_redirected = len(r.history) > 0
@@ -113,11 +78,22 @@ class Image:
                     # print 'Maybe a broken http to https redirect, trying ', url
                     r = session.get(url=url, allow_redirects=False)
 
-            if r.status_code == 404:
+            if r.status_code == 200:
+                try:
+                    with open(filename3, "wb") as imagefile:
+                        imagefile.write(r.content)
+                except OSError:
+                    logerror(
+                        config=config, to_stdout=True,
+                        text=f"File '{filename3}' could not be created by OS",
+                    )
+            else:
                 logerror(
-                    config=config, text=f"File {filename2} at URL {url} is missing"
+                    config=config, to_stdout=True,
+                    text=f"Failled to donwload '{filename2}' with URL '{url}' due to HTTP '{r.status_code}', skipping"
                 )
 
+            Delay(config=config, session=session)
             # saving description if any
             try:
                 title = "Image:%s" % (filename)
@@ -138,13 +114,12 @@ class Image:
             except PageMissingError:
                 xmlfiledesc = ""
                 logerror(
-                    config=config,
-                    text='The page "%s" was missing in the wiki (probably deleted)'
+                    config=config, to_stdout=True,
+                    text='The image description page "%s" was missing in the wiki (probably deleted)'
                     % (str(title)),
                 )
 
             try:
-                f = open(f"{imagepath}/{filename2}.desc", "w", encoding="utf-8")
                 # <text xml:space="preserve" bytes="36">Banner featuring SG1, SGA, SGU teams</text>
                 if not re.search(r"</page>", xmlfiledesc):
                     # failure when retrieving desc? then save it as empty .desc
@@ -154,15 +129,21 @@ class Image:
                 if xmlfiledesc != "" and not re.search(r"</mediawiki>", xmlfiledesc):
                     xmlfiledesc += "</mediawiki>"
 
-                f.write(str(xmlfiledesc))
-                f.close()
+                with open(f"{imagepath}/{filename2}.desc", "w", encoding="utf-8") as f:
+                    f.write(xmlfiledesc)
+
+                if xmlfiledesc == "":
+                    logerror(
+                        config=config, to_stdout=True,
+                        text=f"Created empty .desc file: '{imagepath}/{filename2}.desc'",
+                    )
+
             except OSError:
                 logerror(
                     config=config,
                     text=f"File {imagepath}/{filename2}.desc could not be created by OS",
                 )
 
-            Delay(config=config, session=session)
             c += 1
             if c % 10 == 0:
                 print(f"\n->  Downloaded {c} images\n")
