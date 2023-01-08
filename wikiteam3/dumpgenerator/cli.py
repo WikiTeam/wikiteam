@@ -45,7 +45,7 @@ def getParameters(params=[]):
     )
 
     parser.add_argument(
-        "--log-file", dest="log_path", default=None, help="Path to copy stdout to",
+        "--stdout-log-file", dest="stdout_log_path", default=None, help="Path to copy stdout to",
     )
 
     # URL params
@@ -299,7 +299,7 @@ def getParameters(params=[]):
         "filenamelimit": 100,  # do not change
         "force": args.force,
         "session": session,
-        "log_path": args.log_path,
+        "stdout_log_path": args.stdout_log_path,
     }
 
     # calculating path, if not defined by user with --path=
