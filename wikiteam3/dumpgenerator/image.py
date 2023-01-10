@@ -158,7 +158,7 @@ class Image:
                 f.close()
             except OSError:
                 logerror(
-                    config=config,
+                    config=config, to_stdout=True,
                     text=f"File {imagepath}/{filename2}.desc could not be created by OS",
                 )
 

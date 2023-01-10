@@ -101,7 +101,7 @@ def generateXMLDump(config={}, titles=[], start=None, session=None):
                     xmlfile.write(xml)
             except PageMissingError:
                 logerror(
-                    config=config,
+                    config=config, to_stdout=True,
                     text='The page "%s" was missing in the wiki (probably deleted)'
                     % title,
                 )
