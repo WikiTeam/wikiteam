@@ -102,20 +102,13 @@ def mwGetAPIAndIndex(url="", session=None):
     return api, index
 
 
-def checkRetryAPI(api=None, retries=5, apiclient=False, session=None):
+def checkRetryAPI(api=None, apiclient=False, session=None):
     """Call checkAPI and mwclient if necessary"""
-    retry = 0
-    retrydelay = 20
     check = None
-    while retry < retries:
-        try:
-            check = checkAPI(api, session=session)
-            break
-        except requests.exceptions.ConnectionError as e:
-            print("Connection error: %s" % (str(e)))
-            retry += 1
-            print("Start retry attempt %d in %d seconds." % (retry + 1, retrydelay))
-            time.sleep(retrydelay)
+    try:
+        check = checkAPI(api, session=session)
+    except requests.exceptions.ConnectionError as e:
+        print("Connection error: %s" % (str(e)))
 
     if check and apiclient:
         apiurl = urlparse(api)

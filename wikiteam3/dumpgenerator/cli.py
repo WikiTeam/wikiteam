@@ -187,7 +187,6 @@ def getParameters(params=[]):
     if api:
         check, checkedapi = checkRetryAPI(
             api=api,
-            retries=int(args.retries),
             apiclient=args.xmlrevisions,
             session=session,
         )
