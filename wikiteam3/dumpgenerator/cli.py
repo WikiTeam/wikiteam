@@ -134,7 +134,7 @@ def getParameters(params=[]):
 
         # Courtesy datashaman https://stackoverflow.com/a/35504626
         __retries__ = Retry(
-            total=5, backoff_factor=2, status_forcelist=[500, 502, 503, 504, 429]
+            total=int(args.retries), backoff_factor=2, status_forcelist=[500, 502, 503, 504, 429]
         )
         session.mount("https://", HTTPAdapter(max_retries=__retries__))
         session.mount("http://", HTTPAdapter(max_retries=__retries__))
