@@ -39,7 +39,7 @@ from .xml_integrity import checkXMLIntegrity
 # From https://stackoverflow.com/a/57008707
 class Tee(object):
     def __init__(self, filename):
-        self.file = open(filename, 'w')
+        self.file = open(filename, 'w', encoding="utf-8")
         self.stdout = sys.stdout
 
     def __enter__(self):
