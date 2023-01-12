@@ -102,6 +102,9 @@ def main():
                 started = True
                 break  # stop searching, dot not explore subdirectories
 
+        subenv = dict(os.environ)
+        subenv["PYTHONPATH"] = os.pathsep.join(sys.path)
+
         # time.sleep(60)
         # Uncomment what above and add --delay=60 in the py calls below for broken wiki farms
         # such as editthis.info, wiki-site.com, wikkii (adjust the value as needed;
@@ -111,8 +114,8 @@ def main():
             subprocess.call(
                 [
                     sys.executable,
-                    "-c",
-                    "import wikiteam3.dumpgenerator; wikiteam3.dumpgenerator.main()",
+                    "-m",
+                    "wikiteam3.dumpgenerator",
                     f"--api={wiki}",
                     "--xml",
                     "--images",
@@ -120,18 +123,20 @@ def main():
                     f"--path={wikidir}",
                 ] + generator_args,
                 shell=False,
+                env=subenv,
             )
         else:  # download from scratch
             subprocess.call(
                 [
                     sys.executable,
-                    "-c",
-                    "import wikiteam3.dumpgenerator; wikiteam3.dumpgenerator.main()",
+                    "-m",
+                    "wikiteam3.dumpgenerator",
                     f"--api={wiki}",
                     "--xml",
                     "--images",
                 ] + generator_args,
                 shell=False,
+                env=subenv,
             )
             started = True
             # save wikidir now
