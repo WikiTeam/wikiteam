@@ -123,6 +123,6 @@ def getXMLHeader(config: dict = {}, session=None) -> tuple[str, dict]:
         else:
             print(xml)
             print("XML export on this wiki is broken, quitting.")
-            logerror("XML export on this wiki is broken, quitting.")
+            logerror(to_stdout=True, text="XML export on this wiki is broken, quitting.")
             sys.exit()
     return header, config

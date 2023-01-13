@@ -260,7 +260,7 @@ def getXMLRevisions(config={}, session=None, allpages=False, start=None):
                         )
                 except mwclient.errors.InvalidResponse:
                     logerror(
-                        config=config,
+                        config=config, to_stdout=True,
                         text="Error: page inaccessible? Could not export page: %s"
                         % ("; ".join(titlelist)),
                     )
@@ -275,7 +275,7 @@ def getXMLRevisions(config={}, session=None, allpages=False, start=None):
                         pages = prequest["query"]["pages"]
                     except KeyError:
                         logerror(
-                            config=config,
+                            config=config, to_stdout=True,
                             text="Error: page inaccessible? Could not export page: %s"
                             % ("; ".join(titlelist)),
                         )
@@ -287,7 +287,7 @@ def getXMLRevisions(config={}, session=None, allpages=False, start=None):
                             yield xml
                         except PageMissingError:
                             logerror(
-                                config=config,
+                                config=config, to_stdout=True,
                                 text="Error: empty revision from API. Could not export page: %s"
                                 % ("; ".join(titlelist)),
                             )
