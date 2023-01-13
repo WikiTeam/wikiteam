@@ -13,7 +13,7 @@ from wikiteam3.utils import uprint
 from wikiteam3.dumpgenerator.config import Config, DefaultConfig
 
 
-def getXMLPageCore(headers={}, params={}, config: Config=None, session=None) -> str:
+def getXMLPageCore(headers: Dict=None, params: Dict=None, config: Config=None, session=None) -> str:
     """"""
     # returns a XML containing params['limit'] revisions (or current only), ending in </mediawiki>
     # if retrieving params['limit'] revisions fails, returns a current only version
@@ -196,7 +196,7 @@ def getXMLPage(config: Config=None, title="", verbose=True, session=None):
             uprint("    %s, %d edits" % (title.strip(), edit_count))
 
 
-def makeXmlPageFromRaw(xml):
+def makeXmlPageFromRaw(xml) -> str:
     """Discard the metadata around a <page> element in <mediawiki> string"""
     root = etree.XML(xml)
     find = etree.XPath("//*[local-name() = 'page']")

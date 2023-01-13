@@ -348,7 +348,7 @@ def upload(wikis, logfile, config: Config=None, uploadeddumps=[]):
             c += 1
 
 
-def main(params=[]):
+def main(params=None):
     parser = argparse.ArgumentParser(
         """uploader.py
 

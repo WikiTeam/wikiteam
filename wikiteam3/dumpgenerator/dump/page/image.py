@@ -1,7 +1,8 @@
 import os
 import re
 import sys
-import urllib
+import urllib.parse
+from typing import *
 
 from wikiteam3.dumpgenerator.cli import Delay
 from wikiteam3.utils import domain2prefix
@@ -27,7 +28,7 @@ class Image:
             ]
         )
 
-    def generateImageDump(config: Config=None, other={}, images=[], start="", session=None):
+    def generateImageDump(config: Config=None, other: Dict=None, images: Iterable[str]=None, start="", session=None):
         """Save files and descriptions using a file list"""
 
         # fix use subdirectories md5
@@ -58,6 +59,7 @@ class Image:
                 print("Filename is too long, truncating. Now it is:", filename2)
             filename3 = f"{imagepath}/{filename2}"
 
+            original_url = url
             r = session.head(url=url, allow_redirects=True)
             original_url_redirected = len(r.history) > 0
 
@@ -95,8 +97,8 @@ class Image:
 
             Delay(config=config, session=session)
             # saving description if any
+            title = "Image:%s" % (filename)
             try:
-                title = "Image:%s" % (filename)
                 if (
                     config.xmlrevisions
                     and config.api
@@ -440,7 +442,7 @@ class Image:
 
         return images
 
-    def saveImageNames(config: Config=None, images=[], session=None):
+    def saveImageNames(config: Config=None, images: Iterable[str]=None, session=None):
         """Save image list in a file, including filename, url and uploader"""
 
         imagesfilename = "{}-{}-images.txt".format(

@@ -20,6 +20,8 @@ except ImportError:
     )
     sys.exit(1)
 
+from typing import *
+
 from wikiteam3.dumpgenerator.config import loadConfig, saveConfig
 from wikiteam3.dumpgenerator.config import Config, DefaultConfig
 from wikiteam3.dumpgenerator.cli import getParameters, bye, welcome
@@ -62,7 +64,7 @@ class Tee(object):
 
 class DumpGenerator:
     @staticmethod
-    def __init__(params=[]):
+    def __init__(params=None):
         """Main function"""
         configfilename = "config.json"
         config, other = getParameters(params=params)
@@ -81,7 +83,7 @@ class DumpGenerator:
                 print('\nWarning!: "%s" path exists' % (config.path))
                 reply = ""
                 if config.failfast:
-                    retry = "yes"
+                    reply = "yes"
                 while reply.lower() not in ["yes", "y", "no", "n"]:
                     reply = input(
                         'There is a dump in "%s", probably incomplete.\nIf you choose resume, to avoid conflicts, the parameters you have chosen in the current session will be ignored\nand the parameters available in "%s/%s" will be loaded.\nDo you want to resume ([yes, y], [no, n])? '
@@ -119,7 +121,7 @@ class DumpGenerator:
             bye()
 
     @staticmethod
-    def createNewDump(config: Config=None, other={}):
+    def createNewDump(config: Config=None, other: Dict=None):
         images = []
         print("Trying generating a new dump into a new directory...")
         if config.xml:
@@ -137,7 +139,7 @@ class DumpGenerator:
             saveLogs(config=config, session=other["session"])
 
     @staticmethod
-    def resumePreviousDump(config: Config=None, other={}):
+    def resumePreviousDump(config: Config=None, other: Dict=None):
         images = []
         print("Resuming previous dump process...")
         if config.xml:

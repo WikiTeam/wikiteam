@@ -63,7 +63,7 @@ class Config:
     templates: bool = False
 
 DefaultConfig = Config()
-def newConfig(configDict):
+def newConfig(configDict) -> Config:
     return _dataclass_from_dict(Config, configDict)
 
 def loadConfig(config: Config=None, configfilename=""):

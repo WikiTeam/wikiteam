@@ -15,8 +15,9 @@ from wikiteam3.dumpgenerator.version import getVersion
 from wikiteam3.dumpgenerator.api import getWikiEngine
 from wikiteam3.dumpgenerator.config import Config, DefaultConfig, newConfig
 
+from typing import *
 
-def getParameters(params=[]):
+def getParameters(params=None) -> Tuple[Config, Dict]:
     if not params:
         params = sys.argv
 

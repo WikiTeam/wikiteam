@@ -48,7 +48,7 @@ def getPageTitlesScraper(config: Config=None, session=None):
     namespaces, namespacenames = getNamespacesScraper(config=config, session=session)
     for namespace in namespaces:
         print("    Retrieving titles in the namespace", namespace)
-        url = "{}?title=Special:Allpages&namespace={}".format(
+        url = "{}?title=Special:Allpages&namespace: Dict=None".format(
             config.index, namespace
         )
         r = session.get(url=url, timeout=30)
@@ -89,7 +89,7 @@ def getPageTitlesScraper(config: Config=None, session=None):
                 if r_suballpages == r_suballpages1:
                     to = i.group("to")
                     name = f"{fr}-{to}"
-                    url = "{}?title=Special:Allpages&namespace={}&from={}&to={}".format(
+                    url = "{}?title=Special:Allpages&namespace: Dict=None&from: Dict=None&to: Dict=None".format(
                         config.index,
                         namespace,
                         fr,
@@ -101,7 +101,7 @@ def getPageTitlesScraper(config: Config=None, session=None):
                     # clean &amp;namespace=\d, sometimes happens
                     fr = fr.split("&amp;namespace=")[0]
                     name = fr
-                    url = "{}?title=Special:Allpages/{}&namespace={}".format(
+                    url = "{}?title=Special:Allpages/{}&namespace: Dict=None".format(
                         config.index,
                         name,
                         namespace,
@@ -109,7 +109,7 @@ def getPageTitlesScraper(config: Config=None, session=None):
                 elif r_suballpages == r_suballpages3:
                     fr = fr.split("&amp;namespace=")[0]
                     name = fr
-                    url = "{}?title=Special:Allpages&from={}&namespace={}".format(
+                    url = "{}?title=Special:Allpages&from: Dict=None&namespace: Dict=None".format(
                         config.index,
                         name,
                         namespace,

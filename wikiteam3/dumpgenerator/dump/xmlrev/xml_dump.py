@@ -1,5 +1,6 @@
 import re
 import sys
+from typing import *
 
 from wikiteam3.dumpgenerator.cli import Delay
 from wikiteam3.utils import domain2prefix
@@ -13,7 +14,7 @@ from .xml_header import getXMLHeader
 from .xml_revisions import getXMLRevisions
 from .xml_truncate import truncateXMLDump
 
-def generateXMLDump(config: Config=None, titles=[], start=None, session=None):
+def generateXMLDump(config: Config=None, titles: Iterable[str]=None, start=None, session=None):
     """Generates a XML dump for a list of titles or from revision IDs"""
     # TODO: titles is now unused.
 
