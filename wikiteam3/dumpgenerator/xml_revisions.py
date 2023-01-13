@@ -18,7 +18,7 @@ def getXMLRevisions(config={}, session=None, allpages=False, start=None):
     # FIXME: force the protocol we asked for! Or don't verify SSL if we asked HTTP?
     # https://github.com/WikiTeam/wikiteam/issues/358
     site = mwclient.Site(
-        apiurl.netloc, apiurl.path.replace("api.php", ""), scheme=apiurl.scheme
+        apiurl.netloc, apiurl.path.replace("api.php", ""), scheme=apiurl.scheme, pool=session
     )
 
     if "all" not in config["namespaces"]:

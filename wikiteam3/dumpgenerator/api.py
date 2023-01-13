@@ -121,7 +121,7 @@ def checkRetryAPI(api=None, retries=5, apiclient=False, session=None):
         apiurl = urlparse(api)
         try:
             site = mwclient.Site(
-                apiurl.netloc, apiurl.path.replace("api.php", ""), scheme=apiurl.scheme
+                apiurl.netloc, apiurl.path.replace("api.php", ""), scheme=apiurl.scheme, pool=session
             )
         except KeyError:
             # Probably KeyError: 'query'
@@ -139,7 +139,7 @@ def checkRetryAPI(api=None, retries=5, apiclient=False, session=None):
 
             try:
                 site = mwclient.Site(
-                    apiurl.netloc, apiurl.path.replace("api.php", ""), scheme=newscheme
+                    apiurl.netloc, apiurl.path.replace("api.php", ""), scheme=newscheme, pool=session
                 )
             except KeyError:
                 check = False
