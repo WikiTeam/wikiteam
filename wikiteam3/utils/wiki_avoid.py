@@ -3,7 +3,7 @@ import sys
 
 from wikiteam3.dumpgenerator.config import Config, DefaultConfig
 
-def avoidWikimediaProjects(config: Config=None, other={}):
+def avoidWikimediaProjects(config: Config=None, other: Dict=None):
     """Skip Wikimedia projects and redirect to the dumps website"""
 
     # notice about wikipedia dumps
