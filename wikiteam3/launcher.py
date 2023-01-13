@@ -25,7 +25,7 @@ import sys
 import time
 from pathlib import Path
 
-from .dumpgenerator.domain import domain2prefix
+from wikiteam3.utils import domain2prefix
 
 
 def main():

@@ -7,12 +7,12 @@ import sys
 
 import requests
 
-from .api import checkRetryAPI, mwGetAPIAndIndex
-from .domain import domain2prefix
-from .index_check import checkIndex
-from .user_agent import getUserAgent
-from .version import getVersion
-from .wiki_check import getWikiEngine
+from wikiteam3.dumpgenerator.api import checkRetryAPI, mwGetAPIAndIndex
+from wikiteam3.utils import domain2prefix
+from wikiteam3.dumpgenerator.api.index_check import checkIndex
+from wikiteam3.utils import getUserAgent
+from wikiteam3.dumpgenerator.version import getVersion
+from wikiteam3.dumpgenerator.api import getWikiEngine
 
 
 def getParameters(params=[]):

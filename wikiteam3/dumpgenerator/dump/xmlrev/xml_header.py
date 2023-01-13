@@ -1,15 +1,16 @@
 import json
 import re
 import sys
+from typing import *
 
 import requests
 
-from .exceptions import ExportAbortedError, PageMissingError
-from .log_error import logerror
-from .page_xml import getXMLPage
+from wikiteam3.dumpgenerator.exceptions import ExportAbortedError, PageMissingError
+from wikiteam3.dumpgenerator.log import logerror
+from wikiteam3.dumpgenerator.dump.page.page_xml import getXMLPage
 
 
-def getXMLHeader(config: dict = {}, session=None) -> tuple[str, dict]:
+def getXMLHeader(config: dict = {}, session=None) -> Tuple[str, dict]:
     """Retrieve a random page to extract XML headers (namespace info, etc)"""
     # get the header of a random page, to attach it in the complete XML backup
     # similar to: <mediawiki xmlns="http://www.mediawiki.org/xml/export-0.3/"

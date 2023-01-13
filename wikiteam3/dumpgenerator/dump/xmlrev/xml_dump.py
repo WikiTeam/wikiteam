@@ -1,13 +1,13 @@
 import re
 import sys
 
-from .delay import Delay
-from .domain import domain2prefix
-from .exceptions import PageMissingError
-from .log_error import logerror
-from .page_titles import readTitles
-from .page_xml import getXMLPage
-from .util import cleanXML, undoHTMLEntities
+from wikiteam3.dumpgenerator.cli import Delay
+from wikiteam3.utils import domain2prefix
+from wikiteam3.dumpgenerator.exceptions import PageMissingError
+from wikiteam3.dumpgenerator.log import logerror
+from wikiteam3.dumpgenerator.dump.page.page_titles import readTitles
+from wikiteam3.dumpgenerator.dump.page.page_xml import getXMLPage
+from wikiteam3.utils import cleanXML, undoHTMLEntities
 from .xml_header import getXMLHeader
 from .xml_revisions import getXMLRevisions
 from .xml_truncate import truncateXMLDump

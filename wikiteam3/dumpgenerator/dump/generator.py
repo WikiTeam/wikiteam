@@ -20,21 +20,21 @@ except ImportError:
     )
     sys.exit(1)
 
-from .cli import getParameters
-from .config import loadConfig, saveConfig
-from .domain import domain2prefix
-from .greeter import bye, welcome
-from .image import Image
-from .index_php import saveIndexPHP
-from .logs import saveLogs
-from .page_special_version import saveSpecialVersion
-from .page_titles import getPageTitles, readTitles
-from .site_info import saveSiteInfo
-from .truncate import truncateFilename
-from .util import undoHTMLEntities
-from .wiki_avoid import avoidWikimediaProjects
-from .xml_dump import generateXMLDump
-from .xml_integrity import checkXMLIntegrity
+from wikiteam3.dumpgenerator.config import loadConfig, saveConfig
+from wikiteam3.dumpgenerator.cli import getParameters, bye, welcome
+from wikiteam3.utils import domain2prefix
+from wikiteam3.utils import truncateFilename
+from wikiteam3.utils import undoHTMLEntities
+from wikiteam3.utils import avoidWikimediaProjects
+
+from .page.image import Image
+from .misc.index_php import saveIndexPHP
+from .misc.logs import saveLogs
+from .misc.page_special_version import saveSpecialVersion
+from .page.page_titles import getPageTitles, readTitles
+from .misc.site_info import saveSiteInfo
+from .xmlrev.xml_dump import generateXMLDump
+from .xmlrev.xml_integrity import checkXMLIntegrity
 
 # From https://stackoverflow.com/a/57008707
 class Tee(object):
@@ -60,6 +60,7 @@ class Tee(object):
         self.stdout.flush()
 
 class DumpGenerator:
+    @staticmethod
     def __init__(params=[]):
         """Main function"""
         configfilename = "config.json"
@@ -116,6 +117,7 @@ class DumpGenerator:
             saveSiteInfo(config=config, session=other["session"])
             bye()
 
+    @staticmethod
     def createNewDump(config={}, other={}):
         images = []
         print("Trying generating a new dump into a new directory...")
@@ -133,6 +135,7 @@ class DumpGenerator:
         if config["logs"]:
             saveLogs(config=config, session=other["session"])
 
+    @staticmethod
     def resumePreviousDump(config={}, other={}):
         images = []
         print("Resuming previous dump process...")

@@ -3,15 +3,15 @@ import re
 import sys
 import urllib
 
-from .delay import Delay
-from .domain import domain2prefix
-from .exceptions import PageMissingError
-from .get_json import getJSON
-from .handle_status_code import handleStatusCode
-from .log_error import logerror
+from wikiteam3.dumpgenerator.cli import Delay
+from wikiteam3.utils import domain2prefix
+from wikiteam3.dumpgenerator.exceptions import PageMissingError
+from wikiteam3.dumpgenerator.api import getJSON
+from wikiteam3.dumpgenerator.api import handleStatusCode
+from wikiteam3.dumpgenerator.log import logerror
 from .page_xml import getXMLPage
-from .truncate import truncateFilename
-from .util import cleanHTML, undoHTMLEntities
+from wikiteam3.utils import truncateFilename
+from wikiteam3.utils import cleanHTML, undoHTMLEntities
 
 
 class Image:

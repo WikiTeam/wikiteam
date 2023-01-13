@@ -6,7 +6,7 @@ import mwclient
 import requests
 
 from .get_json import getJSON
-from .user_agent import getUserAgent
+from wikiteam3.utils import getUserAgent
 
 
 def checkAPI(api=None, session=None):

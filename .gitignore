@@ -8,3 +8,7 @@ __pycache__
 tests/tmp
 .DS_Store
 desktop.ini
+
+.venv
+.vscode
+.idea

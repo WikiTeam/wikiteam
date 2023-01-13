@@ -1,7 +1,7 @@
 import os
 
-from .delay import Delay
-from .util import removeIP
+from wikiteam3.dumpgenerator.cli import Delay
+from wikiteam3.utils import removeIP
 
 
 def saveIndexPHP(config={}, session=None):

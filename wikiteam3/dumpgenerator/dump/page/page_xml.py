@@ -6,10 +6,10 @@ import requests
 from lxml import etree
 from lxml.builder import E
 
-from .exceptions import ExportAbortedError, PageMissingError
-from .handle_status_code import handleStatusCode
-from .log_error import logerror
-from .uprint import uprint
+from wikiteam3.dumpgenerator.exceptions import ExportAbortedError, PageMissingError
+from wikiteam3.dumpgenerator.api import handleStatusCode
+from wikiteam3.dumpgenerator.log import logerror
+from wikiteam3.utils import uprint
 
 
 def getXMLPageCore(headers={}, params={}, config={}, session=None) -> str:

@@ -2,7 +2,7 @@ import re
 
 import requests
 
-from .user_agent import getUserAgent
+from wikiteam3.utils import getUserAgent
 
 
 def getWikiEngine(url="", session=None) -> str:
