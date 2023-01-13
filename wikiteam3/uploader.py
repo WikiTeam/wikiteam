@@ -27,6 +27,8 @@ from io import BytesIO
 from pathlib import Path
 
 from wikiteam3.utils import getUserAgent, domain2prefix
+from wikiteam3.dumpgenerator.config import Config, DefaultConfig
+
 import requests
 from internetarchive import get_item
 
@@ -79,7 +81,7 @@ def file_md5(path):
 
     return digest.hexdigest()
 
-def upload(wikis, logfile, config={}, uploadeddumps=[]):
+def upload(wikis, logfile, config: Config=None, uploadeddumps=[]):
     ia_keys = read_ia_keys(config)
 
     headers = {"User-Agent": getUserAgent()}

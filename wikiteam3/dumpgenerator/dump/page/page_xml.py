@@ -10,9 +10,10 @@ from wikiteam3.dumpgenerator.exceptions import ExportAbortedError, PageMissingEr
 from wikiteam3.dumpgenerator.api import handleStatusCode
 from wikiteam3.dumpgenerator.log import logerror
 from wikiteam3.utils import uprint
+from wikiteam3.dumpgenerator.config import Config, DefaultConfig
 
 
-def getXMLPageCore(headers={}, params={}, config={}, session=None) -> str:
+def getXMLPageCore(headers={}, params={}, config: Config=None, session=None) -> str:
     """"""
     # returns a XML containing params['limit'] revisions (or current only), ending in </mediawiki>
     # if retrieving params['limit'] revisions fails, returns a current only version
@@ -20,7 +21,7 @@ def getXMLPageCore(headers={}, params={}, config={}, session=None) -> str:
     xml = ""
     c = 0
     maxseconds = 100  # max seconds to wait in a single sleeping
-    maxretries = config["retries"]  # x retries and skip
+    maxretries = config.retries  # x retries and skip
     increment = 20  # increment every retry
 
     while not re.search(r"</mediawiki>", str(xml)):
@@ -43,15 +44,15 @@ def getXMLPageCore(headers={}, params={}, config={}, session=None) -> str:
                 '    MediaWiki error for "%s", network error or whatever...'
                 % (params["pages"])
             )
-            if config["failfast"]:
+            if config.failfast:
                 print("Exit, it will be for another time")
                 sys.exit()
             # If it's not already what we tried: our last chance, preserve only the last revision...
-            # config['curonly'] means that the whole dump is configured to save only the last,
+            # config.curonly means that the whole dump is configured to save only the last,
             # params['curonly'] should mean that we've already tried this
             # fallback, because it's set by the following if and passed to
             # getXMLPageCore
-            if not config["curonly"] and "curonly" not in params:
+            if not config.curonly and "curonly" not in params:
                 print("    Trying to save only the last revision for this page...")
                 params["curonly"] = 1
                 logerror(
@@ -69,12 +70,12 @@ def getXMLPageCore(headers={}, params={}, config={}, session=None) -> str:
                     text='Error while retrieving the last revision of "%s". Skipping.'
                     % (params["pages"]),
                 )
-                raise ExportAbortedError(config["index"])
+                raise ExportAbortedError(config.index)
                 return ""  # empty xml
         # FIXME HANDLE HTTP Errors HERE
         try:
             r = session.post(
-                url=config["index"], params=params, headers=headers, timeout=10
+                url=config.index, params=params, headers=headers, timeout=10
             )
             handleStatusCode(r)
             xml = fixBOM(r)
@@ -89,7 +90,7 @@ def getXMLPageCore(headers={}, params={}, config={}, session=None) -> str:
     return xml
 
 
-def getXMLPage(config={}, title="", verbose=True, session=None):
+def getXMLPage(config: Config=None, title="", verbose=True, session=None):
     """Get the full history (or current only) of a page"""
 
     # if server errors occurs while retrieving the full page history, it may return [oldest OK versions] + last version, excluding middle revisions, so it would be partialy truncated
@@ -101,22 +102,22 @@ def getXMLPage(config={}, title="", verbose=True, session=None):
     title_ = re.sub(" ", "_", title_)
     # do not convert & into %26, title_ = re.sub('&', '%26', title_)
     try:
-        params = {"title": config["export"], "pages": title_, "action": "submit"}
+        params = {"title": config.export, "pages": title_, "action": "submit"}
     except KeyError:
         params = {"title": "Special:Export", "pages": title_, "action": "submit"}
-    if config["curonly"]:
+    if config.curonly:
         params["curonly"] = 1
         params["limit"] = 1
     else:
         params["offset"] = "1"  # 1 always < 2000s
         params["limit"] = limit
     # in other case, do not set params['templates']
-    if "templates" in config and config["templates"]:
+    if config.templates:
         params["templates"] = 1
 
     xml = getXMLPageCore(params=params, config=config, session=session)
     if xml == "":
-        raise ExportAbortedError(config["index"])
+        raise ExportAbortedError(config.index)
     if "</page>" not in xml:
         raise PageMissingError(params["title"], xml)
     else:
@@ -137,7 +138,7 @@ def getXMLPage(config={}, title="", verbose=True, session=None):
 
     # search for timestamps in xml to avoid analysing empty pages like
     # Special:Allpages and the random one
-    if not config["curonly"] and re.search(r_timestamp, xml):
+    if not config.curonly and re.search(r_timestamp, xml):
         while not truncated and params["offset"]:  # next chunk
             # get the last timestamp from the acum XML
             params["offset"] = re.findall(r_timestamp, xml)[-1]

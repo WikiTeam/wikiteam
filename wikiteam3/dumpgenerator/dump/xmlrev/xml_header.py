@@ -8,22 +8,22 @@ import requests
 from wikiteam3.dumpgenerator.exceptions import ExportAbortedError, PageMissingError
 from wikiteam3.dumpgenerator.log import logerror
 from wikiteam3.dumpgenerator.dump.page.page_xml import getXMLPage
+from wikiteam3.dumpgenerator.config import Config, DefaultConfig
 
-
-def getXMLHeader(config: dict = {}, session=None) -> Tuple[str, dict]:
+def getXMLHeader(config: Config=None, session=None) -> Tuple[str, dict]:
     """Retrieve a random page to extract XML headers (namespace info, etc)"""
     # get the header of a random page, to attach it in the complete XML backup
     # similar to: <mediawiki xmlns="http://www.mediawiki.org/xml/export-0.3/"
     # xmlns:x....
     randomtitle = "Main_Page"  # previously AMF5LKE43MNFGHKSDMRTJ
-    print(config["api"])
+    print(config.api)
     xml = ""
-    if config["xmlrevisions"] and config["api"] and config["api"].endswith("api.php"):
+    if config.xmlrevisions and config.api and config.api.endswith("api.php"):
         try:
             print("Getting the XML header from the API")
             # Export and exportnowrap exist from MediaWiki 1.15, allpages from 1.18
             r = session.get(
-                config["api"]
+                config.api
                 + "?action=query&export=1&exportnowrap=1&list=allpages&aplimit=1",
                 timeout=10,
             )
@@ -31,7 +31,7 @@ def getXMLHeader(config: dict = {}, session=None) -> Tuple[str, dict]:
             # Otherwise try without exportnowrap, e.g. Wikia returns a blank page on 1.19
             if not re.match(r"\s*<mediawiki", xml):
                 r = session.get(
-                    config["api"]
+                    config.api
                     + "?action=query&export=1&list=allpages&aplimit=1&format=json",
                     timeout=10,
                 )
@@ -42,7 +42,7 @@ def getXMLHeader(config: dict = {}, session=None) -> Tuple[str, dict]:
             if not re.match(r"\s*<mediawiki", xml):
                 # Do without a generator, use our usual trick of a random page title
                 r = session.get(
-                    config["api"]
+                    config.api
                     + "?action=query&export=1&exportnowrap=1&titles="
                     + randomtitle,
                     timeout=10,
@@ -51,7 +51,7 @@ def getXMLHeader(config: dict = {}, session=None) -> Tuple[str, dict]:
             # Again try without exportnowrap
             if not re.match(r"\s*<mediawiki", xml):
                 r = session.get(
-                    config["api"]
+                    config.api
                     + "?action=query&export=1&format=json&titles="
                     + randomtitle,
                     timeout=10,
@@ -81,10 +81,10 @@ def getXMLHeader(config: dict = {}, session=None) -> Tuple[str, dict]:
         # http://albens73.fr/wiki/api.php?action=query&meta=siteinfo&siprop=namespacealiases
         except ExportAbortedError:
             try:
-                if config["api"]:
+                if config.api:
                     print("Trying the local name for the Special namespace instead")
                     r = session.get(
-                        url=config["api"],
+                        url=config.api,
                         params={
                             "action": "query",
                             "meta": "siteinfo",
@@ -93,7 +93,7 @@ def getXMLHeader(config: dict = {}, session=None) -> Tuple[str, dict]:
                         },
                         timeout=120,
                     )
-                    config["export"] = (
+                    config.export = (
                         json.loads(r.text)["query"]["namespaces"]["-1"]["*"] + ":Export"
                     )
                     xml = "".join(
@@ -114,12 +114,12 @@ def getXMLHeader(config: dict = {}, session=None) -> Tuple[str, dict]:
 
     header = xml.split("</mediawiki>")[0]
     if not re.match(r"\s*<mediawiki", xml):
-        if config["xmlrevisions"]:
+        if config.xmlrevisions:
             # Try again the old way
             print(
                 "Export test via the API failed. Wiki too old? Trying without xmlrevisions."
             )
-            config["xmlrevisions"] = False
+            config.xmlrevisions = False
             header, config = getXMLHeader(config=config, session=session)
         else:
             print(xml)
