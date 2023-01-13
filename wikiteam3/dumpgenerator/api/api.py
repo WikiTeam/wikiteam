@@ -1,3 +1,4 @@
+from typing import *
 import re
 import time
 from urllib.parse import urlparse, urlunparse, urljoin
@@ -9,7 +10,7 @@ from .get_json import getJSON
 from wikiteam3.utils import getUserAgent
 
 
-def checkAPI(api=None, session=None):
+def checkAPI(api="", session: requests.Session=None):
     """Checking API availability"""
     global cj
     # handle redirects
@@ -29,9 +30,9 @@ def checkAPI(api=None, session=None):
             print(
                 "MediaWiki API URL not found or giving error: HTTP %d" % r.status_code
             )
-            return False
+            return None
     if "MediaWiki API is not enabled for this site." in r.text:
-        return False
+        return None
     try:
         result = getJSON(r)
         index = None
@@ -48,11 +49,11 @@ def checkAPI(api=None, session=None):
     except ValueError:
         print(repr(r.text))
         print("MediaWiki API returned data we could not parse")
-        return False
-    return False
+        return None
+    return None
 
 
-def mwGetAPIAndIndex(url="", session=None):
+def mwGetAPIAndIndex(url="", session: requests.Session=None):
     """Returns the MediaWiki API and Index.php"""
 
     api = ""
@@ -111,7 +112,7 @@ def mwGetAPIAndIndex(url="", session=None):
     return api, index
 
 
-def checkRetryAPI(api=None, apiclient=False, session=None):
+def checkRetryAPI(api="", apiclient=False, session: requests.Session=None):
     """Call checkAPI and mwclient if necessary"""
     check = None
     try:

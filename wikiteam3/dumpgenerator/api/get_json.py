@@ -1,4 +1,7 @@
-def getJSON(request):
+import requests
+
+
+def getJSON(request: requests.Response):
     """Strip Unicode BOM"""
     if request.text.startswith("\ufeff"):
         request.encoding = "utf-8-sig"
