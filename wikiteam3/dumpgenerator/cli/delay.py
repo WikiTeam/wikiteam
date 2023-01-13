@@ -3,7 +3,7 @@ import threading
 import time
 import sys
 
-from wikiteam3.dumpgenerator.config import Config, DefaultConfig
+from wikiteam3.dumpgenerator.config import Config
 
 class Delay:
 

@@ -23,7 +23,7 @@ except ImportError:
 from typing import *
 
 from wikiteam3.dumpgenerator.config import loadConfig, saveConfig
-from wikiteam3.dumpgenerator.config import Config, DefaultConfig
+from wikiteam3.dumpgenerator.config import Config
 from wikiteam3.dumpgenerator.cli import getParameters, bye, welcome
 from wikiteam3.utils import domain2prefix
 from wikiteam3.utils import truncateFilename
@@ -32,8 +32,8 @@ from wikiteam3.utils import avoidWikimediaProjects
 
 from .page.image import Image
 from .misc.index_php import saveIndexPHP
-from .misc.logs import saveLogs
-from .misc.page_special_version import saveSpecialVersion
+from .misc.special_logs import saveLogs
+from .misc.special_version import saveSpecialVersion
 from .page.page_titles import getPageTitles, readTitles
 from .misc.site_info import saveSiteInfo
 from .xmlrev.xml_dump import generateXMLDump

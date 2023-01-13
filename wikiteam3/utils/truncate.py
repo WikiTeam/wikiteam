@@ -1,3 +1,4 @@
+from typing import *
 from hashlib import md5
 
 

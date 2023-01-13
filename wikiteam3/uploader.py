@@ -26,9 +26,8 @@ import urllib.parse
 from io import BytesIO
 from pathlib import Path
 
+from wikiteam3.dumpgenerator.config import Config
 from wikiteam3.utils import getUserAgent, domain2prefix
-from wikiteam3.dumpgenerator.config import Config, DefaultConfig
-
 import requests
 from internetarchive import get_item
 
@@ -81,7 +80,7 @@ def file_md5(path):
 
     return digest.hexdigest()
 
-def upload(wikis, logfile, config: Config=None, uploadeddumps=[]):
+def upload(wikis, logfile, config={}, uploadeddumps=[]):
     ia_keys = read_ia_keys(config)
 
     headers = {"User-Agent": getUserAgent()}
@@ -93,7 +92,7 @@ def upload(wikis, logfile, config: Config=None, uploadeddumps=[]):
         print("#" * 73)
         wiki = wiki.lower()
         try:
-            prefix = domain2prefix(config={"api": wiki})
+            prefix = domain2prefix(Config(api=wiki))
         except KeyError:
             print("ERROR: could not produce the prefix for %s" % wiki)
 
@@ -348,7 +347,7 @@ def upload(wikis, logfile, config: Config=None, uploadeddumps=[]):
             c += 1
 
 
-def main(params=None):
+def main(params=[]):
     parser = argparse.ArgumentParser(
         """uploader.py
 

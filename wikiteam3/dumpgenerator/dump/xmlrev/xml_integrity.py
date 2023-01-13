@@ -1,6 +1,7 @@
-from wikiteam3.dumpgenerator.config import Config, DefaultConfig
+from typing import *
+from wikiteam3.dumpgenerator.config import Config
 
-def checkXMLIntegrity(config: Config=None, titles=[], session=None):
+def checkXMLIntegrity(config: Config=None, titles: Iterable[str]=None, session=None):
     """Check XML dump integrity, to detect broken XML chunks"""
     return
 

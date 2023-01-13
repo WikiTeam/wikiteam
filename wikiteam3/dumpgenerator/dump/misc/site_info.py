@@ -3,7 +3,7 @@ import os
 
 from wikiteam3.dumpgenerator.cli import Delay
 from wikiteam3.dumpgenerator.api import getJSON
-from wikiteam3.dumpgenerator.config import Config, DefaultConfig
+from wikiteam3.dumpgenerator.config import Config
 
 
 def saveSiteInfo(config: Config=None, session=None):

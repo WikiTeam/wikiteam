@@ -13,7 +13,7 @@ from wikiteam3.dumpgenerator.log import logerror
 from .page_xml import getXMLPage
 from wikiteam3.utils import truncateFilename
 from wikiteam3.utils import cleanHTML, undoHTMLEntities
-from wikiteam3.dumpgenerator.config import Config, DefaultConfig
+from wikiteam3.dumpgenerator.config import Config
 
 class Image:
     def getXMLFileDesc(config: Config=None, title="", session=None):

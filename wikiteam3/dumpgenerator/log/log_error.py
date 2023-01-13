@@ -1,6 +1,6 @@
 import datetime
 
-from wikiteam3.dumpgenerator.config import Config, DefaultConfig
+from wikiteam3.dumpgenerator.config import Config
 
 def logerror(config: Config=None,to_stdout=False , text="") -> None:
     """Log error in errors.log"""

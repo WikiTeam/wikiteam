@@ -10,7 +10,7 @@ from wikiteam3.dumpgenerator.log import logerror
 from .namespaces import getNamespacesAPI
 from wikiteam3.dumpgenerator.dump.page.page_titles import readTitles
 from wikiteam3.dumpgenerator.dump.page.page_xml import makeXmlFromPage, makeXmlPageFromRaw
-from wikiteam3.dumpgenerator.config import Config, DefaultConfig
+from wikiteam3.dumpgenerator.config import Config
 
 def getXMLRevisions(config: Config=None, session=None, allpages=False, start=None):
     # FIXME: actually figure out the various strategies for each MediaWiki version
@@ -63,6 +63,8 @@ def getXMLRevisions(config: Config=None, session=None, allpages=False, start=Non
                             print("POST request to the API failed, retrying with GET")
                             config.http_method = "GET"
                             continue
+                        else:
+                            raise
                     except requests.exceptions.ReadTimeout as err:
                         # Hopefully temporary, just wait a bit and continue with the same request.
                         # No point putting a limit to retries, we'd need to abort everything.
@@ -99,6 +101,8 @@ def getXMLRevisions(config: Config=None, session=None, allpages=False, start=Non
                         print("POST request to the API failed, retrying with GET")
                         config.http_method = "GET"
                         continue
+                    else:
+                        raise
                 exportparams = {
                     "action": "query",
                     "export": "1",
@@ -140,6 +144,8 @@ def getXMLRevisions(config: Config=None, session=None, allpages=False, start=Non
                                 exportrequest = site.api(
                                     http_method=config.http_method, **exportparams
                                 )
+                            else:
+                                raise
 
                         # This gives us a self-standing <mediawiki> element
                         # but we only need the inner <page>: we can live with
@@ -213,6 +219,8 @@ def getXMLRevisions(config: Config=None, session=None, allpages=False, start=Non
                         exportrequest = site.api(
                             http_method=config.http_method, **exportparams
                         )
+                    else:
+                        raise
 
                 xml = str(exportrequest["query"]["export"]["*"])
                 c += 1
@@ -255,9 +263,11 @@ def getXMLRevisions(config: Config=None, session=None, allpages=False, start=Non
                     ):
                         print("POST request to the API failed, retrying with GET")
                         config.http_method = "GET"
-                        exportrequest = site.api(
-                            http_method=config.http_method, **exportparams
+                        prequest = site.api(
+                            http_method=config.http_method, **pparams
                         )
+                    else:
+                        raise
                 except mwclient.errors.InvalidResponse:
                     logerror(
                         config=config, to_stdout=True,

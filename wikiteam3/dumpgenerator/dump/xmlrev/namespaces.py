@@ -2,7 +2,7 @@ import re
 
 from wikiteam3.dumpgenerator.cli import Delay
 from wikiteam3.dumpgenerator.api import getJSON
-from wikiteam3.dumpgenerator.config import Config, DefaultConfig
+from wikiteam3.dumpgenerator.config import Config
 
 def getNamespacesScraper(config: Config=None, session=None):
     """Hackishly gets the list of namespaces names and ids from the dropdown in the HTML of Special:AllPages"""

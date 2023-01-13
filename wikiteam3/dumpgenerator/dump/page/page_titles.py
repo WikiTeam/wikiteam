@@ -7,7 +7,7 @@ import mwclient
 from wikiteam3.dumpgenerator.cli import Delay
 from wikiteam3.dumpgenerator.dump.xmlrev.namespaces import getNamespacesAPI, getNamespacesScraper
 from wikiteam3.utils import domain2prefix, cleanHTML, undoHTMLEntities
-from wikiteam3.dumpgenerator.config import Config, DefaultConfig
+from wikiteam3.dumpgenerator.config import Config
 
 
 def getPageTitlesAPI(config: Config=None, session=None):
@@ -78,6 +78,7 @@ def getPageTitlesScraper(config: Config=None, session=None):
         while r_suballpages and re.search(r_suballpages, raw) and c < deep:
             # load sub-Allpages
             m = re.compile(r_suballpages).finditer(raw)
+            currfr = None
             for i in m:
                 fr = i.group("from")
                 currfr = fr
@@ -114,6 +115,8 @@ def getPageTitlesScraper(config: Config=None, session=None):
                         name,
                         namespace,
                     )
+                else:
+                    assert False, "Unreachable"
 
                 if name not in checked_suballpages:
                     # to avoid reload dupe subpages links
@@ -136,6 +139,8 @@ def getPageTitlesScraper(config: Config=None, session=None):
                     )
 
                 Delay(config=config, session=session)
+            
+            assert currfr is not None, "re.search found the pattern, but re.finditer fails, why?"
             oldfr = currfr
             c += 1
 

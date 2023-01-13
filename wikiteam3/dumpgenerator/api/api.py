@@ -14,6 +14,7 @@ def checkAPI(api="", session: requests.Session=None):
     """Checking API availability"""
     global cj
     # handle redirects
+    r: Optional[requests.Response] = None
     for i in range(4):
         print("Checking API...", api)
         r = session.get(
@@ -21,11 +22,12 @@ def checkAPI(api="", session: requests.Session=None):
             params={"action": "query", "meta": "siteinfo", "format": "json"},
             timeout=30,
         )
+        if i >= 4:
+            break
         if r.status_code == 200:
             break
         elif r.status_code < 400:
-            p = r.url
-            api = urlunparse([p.scheme, p.netloc, p.path, "", "", ""])
+            api = r.url
         elif r.status_code > 400:
             print(
                 "MediaWiki API URL not found or giving error: HTTP %d" % r.status_code

@@ -2,7 +2,7 @@ import os
 
 from wikiteam3.dumpgenerator.cli import Delay
 from wikiteam3.utils import removeIP
-from wikiteam3.dumpgenerator.config import Config, DefaultConfig
+from wikiteam3.dumpgenerator.config import Config
 
 
 def saveSpecialVersion(config: Config=None, session=None):

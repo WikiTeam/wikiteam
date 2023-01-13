@@ -1,6 +1,6 @@
 import re
 
-from wikiteam3.dumpgenerator.config import Config, DefaultConfig
+from wikiteam3.dumpgenerator.config import Config
 
 def domain2prefix(config: Config=None, session=None):
     """Convert domain name to a valid prefix filename."""

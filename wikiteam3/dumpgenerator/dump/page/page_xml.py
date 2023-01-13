@@ -1,3 +1,4 @@
+from typing import *
 import re
 import sys
 import time
@@ -10,7 +11,7 @@ from wikiteam3.dumpgenerator.exceptions import ExportAbortedError, PageMissingEr
 from wikiteam3.dumpgenerator.api import handleStatusCode
 from wikiteam3.dumpgenerator.log import logerror
 from wikiteam3.utils import uprint
-from wikiteam3.dumpgenerator.config import Config, DefaultConfig
+from wikiteam3.dumpgenerator.config import Config
 
 
 def getXMLPageCore(headers: Dict=None, params: Dict=None, config: Config=None, session=None) -> str:

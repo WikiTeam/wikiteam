@@ -8,7 +8,7 @@ from wikiteam3.dumpgenerator.exceptions import PageMissingError
 from wikiteam3.dumpgenerator.log import logerror
 from wikiteam3.dumpgenerator.dump.page.page_titles import readTitles
 from wikiteam3.dumpgenerator.dump.page.page_xml import getXMLPage
-from wikiteam3.dumpgenerator.config import Config, DefaultConfig
+from wikiteam3.dumpgenerator.config import Config
 from wikiteam3.utils import cleanXML, undoHTMLEntities
 from .xml_header import getXMLHeader
 from .xml_revisions import getXMLRevisions
