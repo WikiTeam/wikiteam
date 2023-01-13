@@ -1,6 +1,6 @@
 import re
 import time
-from urllib.parse import urlparse, urlunparse
+from urllib.parse import urlparse, urlunparse, urljoin
 
 import mwclient
 import requests
@@ -89,7 +89,13 @@ def mwGetAPIAndIndex(url="", session=None):
             index = m[0]
     if index:
         if index.startswith("/"):
-            index = "/".join(api.split("/")[:-1]) + "/" + index.split("/")[-1]
+            if api:
+                index = urljoin(api, index.split("/")[-1])
+            else:
+                index = urljoin(url, index.split("/")[-1])
+            #     api = index.split("/index.php")[0] + "/api.php"
+            if index.endswith("/Main_Page"):
+                index = urljoin(index, "index.php")
     else:
         if api:
             if len(re.findall(r"/index\.php5\?", result)) > len(
@@ -98,6 +104,9 @@ def mwGetAPIAndIndex(url="", session=None):
                 index = "/".join(api.split("/")[:-1]) + "/index.php5"
             else:
                 index = "/".join(api.split("/")[:-1]) + "/index.php"
+
+    if not api and index:
+        api = urljoin(index, "api.php")
 
     return api, index
 
