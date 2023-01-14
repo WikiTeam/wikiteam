@@ -104,7 +104,8 @@ class Image:
                 ):
                     r = session.get(
                         config["api"]
-                        + "?action=query&export&exportnowrap&titles=%s" % title
+                        + "?action=query&export&exportnowrap&titles="
+                        + urllib.prase.quote(title)
                     )
                     xmlfiledesc = r.text
                 else:
