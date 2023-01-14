@@ -1,6 +1,6 @@
 import datetime
 
-from .version import getVersion
+from wikiteam3.dumpgenerator.version import getVersion
 
 
 def welcome():

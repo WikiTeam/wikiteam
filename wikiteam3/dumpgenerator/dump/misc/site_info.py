@@ -1,8 +1,8 @@
 import json
 import os
 
-from .delay import Delay
-from .get_json import getJSON
+from wikiteam3.dumpgenerator.cli import Delay
+from wikiteam3.dumpgenerator.api import getJSON
 
 
 def saveSiteInfo(config={}, session=None):

@@ -1,7 +1,7 @@
 import re
 
-from .delay import Delay
-from .get_json import getJSON
+from wikiteam3.dumpgenerator.cli import Delay
+from wikiteam3.dumpgenerator.api import getJSON
 
 
 def getNamespacesScraper(config={}, session=None):

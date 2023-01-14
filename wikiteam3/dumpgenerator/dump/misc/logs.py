@@ -1,4 +1,4 @@
-from .delay import Delay
+from wikiteam3.dumpgenerator.cli import Delay
 
 
 def saveLogs(config={}, session=None):

@@ -5,11 +5,11 @@ from urllib.parse import urlparse
 import mwclient
 import requests
 
-from .exceptions import PageMissingError
-from .log_error import logerror
+from wikiteam3.dumpgenerator.exceptions import PageMissingError
+from wikiteam3.dumpgenerator.log import logerror
 from .namespaces import getNamespacesAPI
-from .page_titles import readTitles
-from .page_xml import makeXmlFromPage, makeXmlPageFromRaw
+from wikiteam3.dumpgenerator.dump.page.page_titles import readTitles
+from wikiteam3.dumpgenerator.dump.page.page_xml import makeXmlFromPage, makeXmlPageFromRaw
 
 
 def getXMLRevisions(config={}, session=None, allpages=False, start=None):

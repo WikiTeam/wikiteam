@@ -4,10 +4,9 @@ from urllib.parse import urlparse
 
 import mwclient
 
-from .delay import Delay
-from .domain import domain2prefix
-from .namespaces import getNamespacesAPI, getNamespacesScraper
-from .util import cleanHTML, undoHTMLEntities
+from wikiteam3.dumpgenerator.cli import Delay
+from wikiteam3.dumpgenerator.dump.xmlrev.namespaces import getNamespacesAPI, getNamespacesScraper
+from wikiteam3.utils import domain2prefix, cleanHTML, undoHTMLEntities
 
 
 def getPageTitlesAPI(config={}, session=None):

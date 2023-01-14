@@ -26,9 +26,7 @@ import urllib.parse
 from io import BytesIO
 from pathlib import Path
 
-from . import dumpgenerator
-from .dumpgenerator.user_agent import getUserAgent
-from .dumpgenerator.domain import domain2prefix
+from wikiteam3.utils import getUserAgent, domain2prefix
 import requests
 from internetarchive import get_item
 
