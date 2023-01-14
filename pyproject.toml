@@ -40,14 +40,7 @@ classifiers = [
     "Topic :: Utilities"
 ]
 packages = [
-    { include = "wikiteam3/dumpgenerator/*"},
-    # { include = "wikiteam3/gui.py"},
-    { include = "wikiteam3/launcher.py"},
-    # { include = "wikiteam3/not-archived.py"},
-    { include = "wikiteam3/uploader.py"},
-    # { include = "wikiteam3/wikiadownloader.py"},
-    # { include = "wikiteam3/wikipediadownloader.py"},
-    # { include = "wikiteam3/wikispaces.py"}
+    { include = "wikiteam3/**/*"},
 ]
 
 [tool.poetry.scripts]
