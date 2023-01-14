@@ -2,16 +2,16 @@ import re
 
 from wikiteam3.dumpgenerator.cli import Delay
 from wikiteam3.dumpgenerator.api import getJSON
+from wikiteam3.dumpgenerator.config import Config
 
-
-def getNamespacesScraper(config={}, session=None):
+def getNamespacesScraper(config: Config=None, session=None):
     """Hackishly gets the list of namespaces names and ids from the dropdown in the HTML of Special:AllPages"""
     """Function called if no API is available"""
-    namespaces = config["namespaces"]
+    namespaces = config.namespaces
     namespacenames = {0: ""}  # main is 0, no prefix
     if namespaces:
         r = session.post(
-            url=config["index"], params={"title": "Special:Allpages"}, timeout=30
+            url=config.index, params={"title": "Special:Allpages"}, timeout=30
         )
         raw = r.text
         Delay(config=config, session=session)
@@ -43,13 +43,13 @@ def getNamespacesScraper(config={}, session=None):
     return namespaces, namespacenames
 
 
-def getNamespacesAPI(config={}, session=None):
+def getNamespacesAPI(config: Config=None, session=None):
     """Uses the API to get the list of namespaces names and ids"""
-    namespaces = config["namespaces"]
+    namespaces = config.namespaces
     namespacenames = {0: ""}  # main is 0, no prefix
     if namespaces:
         r = session.get(
-            url=config["api"],
+            url=config.api,
             params={
                 "action": "query",
                 "meta": "siteinfo",

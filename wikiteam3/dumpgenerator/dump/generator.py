@@ -20,7 +20,10 @@ except ImportError:
     )
     sys.exit(1)
 
+from typing import *
+
 from wikiteam3.dumpgenerator.config import loadConfig, saveConfig
+from wikiteam3.dumpgenerator.config import Config
 from wikiteam3.dumpgenerator.cli import getParameters, bye, welcome
 from wikiteam3.utils import domain2prefix
 from wikiteam3.utils import truncateFilename
@@ -29,8 +32,8 @@ from wikiteam3.utils import avoidWikimediaProjects
 
 from .page.image import Image
 from .misc.index_php import saveIndexPHP
-from .misc.logs import saveLogs
-from .misc.page_special_version import saveSpecialVersion
+from .misc.special_logs import saveLogs
+from .misc.special_version import saveSpecialVersion
 from .page.page_titles import getPageTitles, readTitles
 from .misc.site_info import saveSiteInfo
 from .xmlrev.xml_dump import generateXMLDump
@@ -61,7 +64,7 @@ class Tee(object):
 
 class DumpGenerator:
     @staticmethod
-    def __init__(params=[]):
+    def __init__(params=None):
         """Main function"""
         configfilename = "config.json"
         config, other = getParameters(params=params)
@@ -69,25 +72,25 @@ class DumpGenerator:
 
         with (Tee(other["stdout_log_path"]) if other["stdout_log_path"] is not None else contextlib.nullcontext()):
             print(welcome())
-            print("Analysing %s" % (config["api"] and config["api"] or config["index"]))
+            print("Analysing %s" % (config.api and config.api or config.index))
 
             # creating path or resuming if desired
             c = 2
             # to avoid concat blabla-2, blabla-2-3, and so on...
-            originalpath = config["path"]
+            originalpath = config.path
             # do not enter if resume is requested from begining
-            while not other["resume"] and os.path.isdir(config["path"]):
-                print('\nWarning!: "%s" path exists' % (config["path"]))
+            while not other["resume"] and os.path.isdir(config.path):
+                print('\nWarning!: "%s" path exists' % (config.path))
                 reply = ""
-                if config["failfast"]:
-                    retry = "yes"
+                if config.failfast:
+                    reply = "yes"
                 while reply.lower() not in ["yes", "y", "no", "n"]:
                     reply = input(
                         'There is a dump in "%s", probably incomplete.\nIf you choose resume, to avoid conflicts, the parameters you have chosen in the current session will be ignored\nand the parameters available in "%s/%s" will be loaded.\nDo you want to resume ([yes, y], [no, n])? '
-                        % (config["path"], config["path"], configfilename)
+                        % (config.path, config.path, configfilename)
                     )
                 if reply.lower() in ["yes", "y"]:
-                    if not os.path.isfile("{}/{}".format(config["path"], configfilename)):
+                    if not os.path.isfile("{}/{}".format(config.path, configfilename)):
                         print("No config file found. I can't resume. Aborting.")
                         sys.exit()
                     print("You have selected: YES")
@@ -96,15 +99,15 @@ class DumpGenerator:
                 elif reply.lower() in ["no", "n"]:
                     print("You have selected: NO")
                     other["resume"] = False
-                config["path"] = "%s-%d" % (originalpath, c)
-                print('Trying to use path "%s"...' % (config["path"]))
+                config.path = "%s-%d" % (originalpath, c)
+                print('Trying to use path "%s"...' % (config.path))
                 c += 1
 
             if other["resume"]:
                 print("Loading config file...")
                 config = loadConfig(config=config, configfilename=configfilename)
             else:
-                os.mkdir(config["path"])
+                os.mkdir(config.path)
                 saveConfig(config=config, configfilename=configfilename)
 
             if other["resume"]:
@@ -118,36 +121,36 @@ class DumpGenerator:
             bye()
 
     @staticmethod
-    def createNewDump(config={}, other={}):
+    def createNewDump(config: Config=None, other: Dict=None):
         images = []
         print("Trying generating a new dump into a new directory...")
-        if config["xml"]:
+        if config.xml:
             getPageTitles(config=config, session=other["session"])
             titles = readTitles(config)
             generateXMLDump(config=config, titles=titles, session=other["session"])
             checkXMLIntegrity(config=config, titles=titles, session=other["session"])
-        if config["images"]:
+        if config.images:
             images += Image.getImageNames(config=config, session=other["session"])
             Image.saveImageNames(config=config, images=images, session=other["session"])
             Image.generateImageDump(
                 config=config, other=other, images=images, session=other["session"]
             )
-        if config["logs"]:
+        if config.logs:
             saveLogs(config=config, session=other["session"])
 
     @staticmethod
-    def resumePreviousDump(config={}, other={}):
+    def resumePreviousDump(config: Config=None, other: Dict=None):
         images = []
         print("Resuming previous dump process...")
-        if config["xml"]:
+        if config.xml:
             titles = readTitles(config)
             try:
                 with FileReadBackwards(
                     "%s/%s-%s-titles.txt"
                     % (
-                        config["path"],
+                        config.path,
                         domain2prefix(config=config, session=other["session"]),
-                        config["date"],
+                        config.date,
                     ),
                     encoding="utf-8",
                 ) as frb:
@@ -172,10 +175,10 @@ class DumpGenerator:
                 with FileReadBackwards(
                     "%s/%s-%s-%s.xml"
                     % (
-                        config["path"],
+                        config.path,
                         domain2prefix(config=config, session=other["session"]),
-                        config["date"],
-                        config["curonly"] and "current" or "history",
+                        config.date,
+                        config.curonly and "current" or "history",
                     ),
                     encoding="utf-8",
                 ) as frb:
@@ -210,13 +213,13 @@ class DumpGenerator:
                 titles = readTitles(config)
                 generateXMLDump(config=config, titles=titles, session=other["session"])
 
-        if config["images"]:
+        if config.images:
             # load images
             lastimage = ""
             try:
                 f = open(
                     "%s/%s-%s-images.txt"
-                    % (config["path"], domain2prefix(config=config), config["date"]),
+                    % (config.path, domain2prefix(config=config), config.date),
                     encoding="utf-8",
                 )
                 lines = f.readlines()
@@ -240,7 +243,7 @@ class DumpGenerator:
             # checking images directory
             listdir = []
             try:
-                listdir = os.listdir("%s/images" % (config["path"]))
+                listdir = os.listdir("%s/images" % (config.path))
             except OSError:
                 pass  # probably directory does not exist
             listdir.sort()
@@ -274,6 +277,6 @@ class DumpGenerator:
                     session=other["session"],
                 )
 
-        if config["logs"]:
+        if config.logs:
             # fix
             pass

@@ -1,5 +1,6 @@
 import re
 import sys
+from typing import *
 
 from wikiteam3.dumpgenerator.cli import Delay
 from wikiteam3.utils import domain2prefix
@@ -7,13 +8,13 @@ from wikiteam3.dumpgenerator.exceptions import PageMissingError
 from wikiteam3.dumpgenerator.log import logerror
 from wikiteam3.dumpgenerator.dump.page.page_titles import readTitles
 from wikiteam3.dumpgenerator.dump.page.page_xml import getXMLPage
+from wikiteam3.dumpgenerator.config import Config
 from wikiteam3.utils import cleanXML, undoHTMLEntities
 from .xml_header import getXMLHeader
 from .xml_revisions import getXMLRevisions
 from .xml_truncate import truncateXMLDump
 
-
-def generateXMLDump(config={}, titles=[], start=None, session=None):
+def generateXMLDump(config: Config=None, titles: Iterable[str]=None, start=None, session=None):
     """Generates a XML dump for a list of titles or from revision IDs"""
     # TODO: titles is now unused.
 
@@ -21,8 +22,8 @@ def generateXMLDump(config={}, titles=[], start=None, session=None):
     footer = "</mediawiki>\n"  # new line at the end
     xmlfilename = "{}-{}-{}.xml".format(
         domain2prefix(config=config),
-        config["date"],
-        config["curonly"] and "current" or "history",
+        config.date,
+        config.curonly and "current" or "history",
     )
     xmlfile = ""
     lock = True
@@ -33,18 +34,18 @@ def generateXMLDump(config={}, titles=[], start=None, session=None):
             "Removing the last chunk of past XML dump: it is probably incomplete."
         )
         # truncate XML dump if it already exists
-        truncateXMLDump("{}/{}".format(config["path"], xmlfilename))
+        truncateXMLDump("{}/{}".format(config.path, xmlfilename))
 
-    if config["xmlrevisions"]:
+    if config.xmlrevisions:
         if start:
             print(f"WARNING: will try to start the download from title: {start}")
             xmlfile = open(
-                "{}/{}".format(config["path"], xmlfilename), "a", encoding="utf-8"
+                "{}/{}".format(config.path, xmlfilename), "a", encoding="utf-8"
             )
         else:
             print("\nRetrieving the XML for every page from the beginning\n")
             xmlfile = open(
-                "{}/{}".format(config["path"], xmlfilename), "w", encoding="utf-8"
+                "{}/{}".format(config.path, xmlfilename), "w", encoding="utf-8"
             )
             xmlfile.write(header)
         try:
@@ -76,13 +77,13 @@ def generateXMLDump(config={}, titles=[], start=None, session=None):
             # requested complete xml dump
             lock = False
             xmlfile = open(
-                "{}/{}".format(config["path"], xmlfilename), "w", encoding="utf-8"
+                "{}/{}".format(config.path, xmlfilename), "w", encoding="utf-8"
             )
             xmlfile.write(header)
             xmlfile.close()
 
         xmlfile = open(
-            "{}/{}".format(config["path"], xmlfilename), "a", encoding="utf-8"
+            "{}/{}".format(config.path, xmlfilename), "a", encoding="utf-8"
         )
         c = 1
         for title in readTitles(config, start):

@@ -26,6 +26,7 @@ import urllib.parse
 from io import BytesIO
 from pathlib import Path
 
+from wikiteam3.dumpgenerator.config import Config
 from wikiteam3.utils import getUserAgent, domain2prefix
 import requests
 from internetarchive import get_item
@@ -91,7 +92,7 @@ def upload(wikis, logfile, config={}, uploadeddumps=[]):
         print("#" * 73)
         wiki = wiki.lower()
         try:
-            prefix = domain2prefix(config={"api": wiki})
+            prefix = domain2prefix(Config(api=wiki))
         except KeyError:
             print("ERROR: could not produce the prefix for %s" % wiki)
 

@@ -7,20 +7,21 @@ import mwclient
 from wikiteam3.dumpgenerator.cli import Delay
 from wikiteam3.dumpgenerator.dump.xmlrev.namespaces import getNamespacesAPI, getNamespacesScraper
 from wikiteam3.utils import domain2prefix, cleanHTML, undoHTMLEntities
+from wikiteam3.dumpgenerator.config import Config
 
 
-def getPageTitlesAPI(config={}, session=None):
+def getPageTitlesAPI(config: Config=None, session=None):
     """Uses the API to get the list of page titles"""
     titles = []
     namespaces, namespacenames = getNamespacesAPI(config=config, session=session)
     for namespace in namespaces:
-        if namespace in config["exnamespaces"]:
+        if namespace in config.exnamespaces:
             print("    Skipping namespace = %d" % (namespace))
             continue
 
         c = 0
         sys.stdout.write("    Retrieving titles in the namespace %d" % (namespace))
-        apiurl = urlparse(config["api"])
+        apiurl = urlparse(config.api)
         site = mwclient.Site(
             apiurl.netloc, apiurl.path.replace("api.php", ""), scheme=apiurl.scheme, pool=session
         )
@@ -41,14 +42,14 @@ def getPageTitlesAPI(config={}, session=None):
         Delay(config=config, session=session)
 
 
-def getPageTitlesScraper(config={}, session=None):
+def getPageTitlesScraper(config: Config=None, session=None):
     """Scrape the list of page titles from Special:Allpages"""
     titles = []
     namespaces, namespacenames = getNamespacesScraper(config=config, session=session)
     for namespace in namespaces:
         print("    Retrieving titles in the namespace", namespace)
-        url = "{}?title=Special:Allpages&namespace={}".format(
-            config["index"], namespace
+        url = "{}?title=Special:Allpages&namespace: Dict=None".format(
+            config.index, namespace
         )
         r = session.get(url=url, timeout=30)
         raw = str(r.text)
@@ -77,6 +78,7 @@ def getPageTitlesScraper(config={}, session=None):
         while r_suballpages and re.search(r_suballpages, raw) and c < deep:
             # load sub-Allpages
             m = re.compile(r_suballpages).finditer(raw)
+            currfr = None
             for i in m:
                 fr = i.group("from")
                 currfr = fr
@@ -88,8 +90,8 @@ def getPageTitlesScraper(config={}, session=None):
                 if r_suballpages == r_suballpages1:
                     to = i.group("to")
                     name = f"{fr}-{to}"
-                    url = "{}?title=Special:Allpages&namespace={}&from={}&to={}".format(
-                        config["index"],
+                    url = "{}?title=Special:Allpages&namespace: Dict=None&from: Dict=None&to: Dict=None".format(
+                        config.index,
                         namespace,
                         fr,
                         to,
@@ -100,19 +102,21 @@ def getPageTitlesScraper(config={}, session=None):
                     # clean &amp;namespace=\d, sometimes happens
                     fr = fr.split("&amp;namespace=")[0]
                     name = fr
-                    url = "{}?title=Special:Allpages/{}&namespace={}".format(
-                        config["index"],
+                    url = "{}?title=Special:Allpages/{}&namespace: Dict=None".format(
+                        config.index,
                         name,
                         namespace,
                     )
                 elif r_suballpages == r_suballpages3:
                     fr = fr.split("&amp;namespace=")[0]
                     name = fr
-                    url = "{}?title=Special:Allpages&from={}&namespace={}".format(
-                        config["index"],
+                    url = "{}?title=Special:Allpages&from: Dict=None&namespace: Dict=None".format(
+                        config.index,
                         name,
                         namespace,
                     )
+                else:
+                    assert False, "Unreachable"
 
                 if name not in checked_suballpages:
                     # to avoid reload dupe subpages links
@@ -135,6 +139,8 @@ def getPageTitlesScraper(config={}, session=None):
                     )
 
                 Delay(config=config, session=session)
+            
+            assert currfr is not None, "re.search found the pattern, but re.finditer fails, why?"
             oldfr = currfr
             c += 1
 
@@ -150,7 +156,7 @@ def getPageTitlesScraper(config={}, session=None):
     return titles
 
 
-def getPageTitles(config={}, session=None):
+def getPageTitles(config: Config=None, session=None):
     """Get list of page titles"""
     # http://en.wikipedia.org/wiki/Special:AllPages
     # http://wiki.archiveteam.org/index.php?title=Special:AllPages
@@ -158,35 +164,35 @@ def getPageTitles(config={}, session=None):
     print(
         "Loading page titles from namespaces = %s"
         % (
-            config["namespaces"]
-            and ",".join([str(i) for i in config["namespaces"]])
+            config.namespaces
+            and ",".join([str(i) for i in config.namespaces])
             or "None"
         )
     )
     print(
         "Excluding titles from namespaces = %s"
         % (
-            config["exnamespaces"]
-            and ",".join([str(i) for i in config["exnamespaces"]])
+            config.exnamespaces
+            and ",".join([str(i) for i in config.exnamespaces])
             or "None"
         )
     )
 
     titles = []
-    if "api" in config and config["api"]:
+    if config.api:
         try:
             titles = getPageTitlesAPI(config=config, session=session)
         except:
             print("Error: could not get page titles from the API")
             titles = getPageTitlesScraper(config=config, session=session)
-    elif "index" in config and config["index"]:
+    elif config.index:
         titles = getPageTitlesScraper(config=config, session=session)
 
     titlesfilename = "{}-{}-titles.txt".format(
-        domain2prefix(config=config), config["date"]
+        domain2prefix(config=config), config.date
     )
     titlesfile = open(
-        "{}/{}".format(config["path"], titlesfilename), "wt", encoding="utf-8"
+        "{}/{}".format(config.path, titlesfilename), "wt", encoding="utf-8"
     )
     c = 0
     for title in titles:
@@ -203,13 +209,13 @@ def getPageTitles(config={}, session=None):
     return titlesfilename
 
 
-def readTitles(config={}, start=None, batch=False):
+def readTitles(config: Config=None, start=None, batch=False):
     """Read title list from a file, from the title "start" """
 
     titlesfilename = "{}-{}-titles.txt".format(
-        domain2prefix(config=config), config["date"]
+        domain2prefix(config=config), config.date
     )
-    titlesfile = open("{}/{}".format(config["path"], titlesfilename), encoding="utf-8")
+    titlesfile = open("{}/{}".format(config.path, titlesfilename), encoding="utf-8")
 
     titlelist = []
     seeking = False

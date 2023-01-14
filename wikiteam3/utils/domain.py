@@ -1,15 +1,16 @@
 import re
 
+from wikiteam3.dumpgenerator.config import Config
 
-def domain2prefix(config={}, session=None):
+def domain2prefix(config: Config=None, session=None):
     """Convert domain name to a valid prefix filename."""
 
     # At this point, both api and index are supposed to be defined
     domain = ""
-    if config["api"]:
-        domain = config["api"]
-    elif config["index"]:
-        domain = config["index"]
+    if config.api:
+        domain = config.api
+    elif config.index:
+        domain = config.index
 
     domain = domain.lower()
     domain = re.sub(r"(https?://|www\.|/index\.php.*|/api\.php.*)", "", domain)

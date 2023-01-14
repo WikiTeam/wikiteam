@@ -1,7 +1,8 @@
 import os
 import re
 import sys
-import urllib
+import urllib.parse
+from typing import *
 
 from wikiteam3.dumpgenerator.cli import Delay
 from wikiteam3.utils import domain2prefix
@@ -12,12 +13,12 @@ from wikiteam3.dumpgenerator.log import logerror
 from .page_xml import getXMLPage
 from wikiteam3.utils import truncateFilename
 from wikiteam3.utils import cleanHTML, undoHTMLEntities
-
+from wikiteam3.dumpgenerator.config import Config
 
 class Image:
-    def getXMLFileDesc(config={}, title="", session=None):
+    def getXMLFileDesc(config: Config=None, title="", session=None):
         """Get XML for image description page"""
-        config["curonly"] = 1  # tricky to get only the most recent desc
+        config.curonly = 1  # tricky to get only the most recent desc
         return "".join(
             [
                 x
@@ -27,12 +28,12 @@ class Image:
             ]
         )
 
-    def generateImageDump(config={}, other={}, images=[], start="", session=None):
+    def generateImageDump(config: Config=None, other: Dict=None, images: Iterable[str]=None, start="", session=None):
         """Save files and descriptions using a file list"""
 
         # fix use subdirectories md5
         print('Retrieving images from "%s"' % (start and start or "start"))
-        imagepath = "%s/images" % (config["path"])
+        imagepath = "%s/images" % (config.path)
         if not os.path.isdir(imagepath):
             print('Creating "%s" directory' % (imagepath))
             os.makedirs(imagepath)
@@ -58,6 +59,7 @@ class Image:
                 print("Filename is too long, truncating. Now it is:", filename2)
             filename3 = f"{imagepath}/{filename2}"
 
+            original_url = url
             r = session.head(url=url, allow_redirects=True)
             original_url_redirected = len(r.history) > 0
 
@@ -95,15 +97,15 @@ class Image:
 
             Delay(config=config, session=session)
             # saving description if any
+            title = "Image:%s" % (filename)
             try:
-                title = "Image:%s" % (filename)
                 if (
-                    config["xmlrevisions"]
-                    and config["api"]
-                    and config["api"].endswith("api.php")
+                    config.xmlrevisions
+                    and config.api
+                    and config.api.endswith("api.php")
                 ):
                     r = session.get(
-                        config["api"]
+                        config.api
                         + "?action=query&export&exportnowrap&titles="
                         + urllib.parse.quote(title)
                     )
@@ -151,15 +153,15 @@ class Image:
 
         print(f"\n->  Downloaded {c} images\n")
 
-    def getImageNames(config={}, session=None):
+    def getImageNames(config: Config=None, session=None):
         """Get list of image names"""
 
         print(")Retrieving image filenames")
         images = []
-        if "api" in config and config["api"]:
+        if config.api:
             print("Using API to retrieve image names...")
             images = Image.getImageNamesAPI(config=config, session=session)
-        elif "index" in config and config["index"]:
+        elif config.index:
             print("Using index.php (Special:Imagelist) to retrieve image names...")
             images = Image.getImageNamesScraper(config=config, session=session)
 
@@ -170,7 +172,7 @@ class Image:
         print("%d image names loaded" % (len(images)))
         return images
 
-    def getImageNamesScraper(config={}, session=None):
+    def getImageNamesScraper(config: Config=None, session=None):
         """Retrieve file list: filename, url, uploader"""
 
         # (?<! http://docs.python.org/library/re.html
@@ -178,13 +180,13 @@ class Image:
         images = []
         offset = "29990101000000"  # january 1, 2999
         limit = 5000
-        retries = config["retries"]
+        retries = config.retries
         while offset:
             # 5000 overload some servers, but it is needed for sites like this with
             # no next links
             # http://www.memoryarchive.org/en/index.php?title=Special:Imagelist&sort=byname&limit=50&wpIlMatch=
             r = session.post(
-                url=config["index"],
+                url=config.index,
                 params={"title": "Special:Imagelist", "limit": limit, "offset": offset},
                 timeout=30,
             )
@@ -277,7 +279,7 @@ class Image:
         images.sort()
         return images
 
-    def getImageNamesAPI(config={}, session=None):
+    def getImageNamesAPI(config: Config=None, session=None):
         """Retrieve file list: filename, url, uploader"""
         oldAPI = False
         # # Commented by @yzqzss:
@@ -304,7 +306,7 @@ class Image:
                 "ailimit": 50,
             }
             # FIXME Handle HTTP Errors HERE
-            r = session.get(url=config["api"], params=params, timeout=30)
+            r = session.get(url=config.api, params=params, timeout=30)
             handleStatusCode(r)
             jsonimages = getJSON(r)
             Delay(config=config, session=session)
@@ -343,8 +345,8 @@ class Image:
                     # unquote() no longer supports bytes-like strings
                     # so unicode may require the following workaround:
                     # https://izziswift.com/how-to-unquote-a-urlencoded-unicode-string-in-python/
-                    if "api" in config and (
-                        ".wikia." in config["api"] or ".fandom.com" in config["api"]
+                    if  (
+                        ".wikia." in config.api or ".fandom.com" in config.api
                     ):
                         filename = urllib.parse.unquote(
                             re.sub("_", " ", url.split("/")[-3])
@@ -388,7 +390,7 @@ class Image:
                     "format": "json",
                 }
                 # FIXME Handle HTTP Errors HERE
-                r = session.get(url=config["api"], params=params, timeout=30)
+                r = session.get(url=config.api, params=params, timeout=30)
                 handleStatusCode(r)
                 jsonimages = getJSON(r)
                 Delay(config=config, session=session)
@@ -440,14 +442,14 @@ class Image:
 
         return images
 
-    def saveImageNames(config={}, images=[], session=None):
+    def saveImageNames(config: Config=None, images: Iterable[str]=None, session=None):
         """Save image list in a file, including filename, url and uploader"""
 
         imagesfilename = "{}-{}-images.txt".format(
-            domain2prefix(config=config), config["date"]
+            domain2prefix(config=config), config.date
         )
         imagesfile = open(
-            "{}/{}".format(config["path"], imagesfilename), "w", encoding="utf-8"
+            "{}/{}".format(config.path, imagesfilename), "w", encoding="utf-8"
         )
         imagesfile.write(
             "\n".join(
@@ -462,21 +464,21 @@ class Image:
 
         print("Image filenames and URLs saved at...", imagesfilename)
 
-    def curateImageURL(config={}, url=""):
+    def curateImageURL(config: Config=None, url=""):
         """Returns an absolute URL for an image, adding the domain if missing"""
 
-        if "index" in config and config["index"]:
+        if config.index:
             # remove from :// (http or https) until the first / after domain
             domainalone = (
-                config["index"].split("://")[0]
+                config.index.split("://")[0]
                 + "://"
-                + config["index"].split("://")[1].split("/")[0]
+                + config.index.split("://")[1].split("/")[0]
             )
-        elif "api" in config and config["api"]:
+        elif  config.api:
             domainalone = (
-                config["api"].split("://")[0]
+                config.api.split("://")[0]
                 + "://"
-                + config["api"].split("://")[1].split("/")[0]
+                + config.api.split("://")[1].split("/")[0]
             )
         else:
             print("ERROR: no index nor API")

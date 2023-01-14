@@ -3,6 +3,7 @@ import threading
 import time
 import sys
 
+from wikiteam3.dumpgenerator.config import Config
 
 class Delay:
 
@@ -19,18 +20,18 @@ class Delay:
         except KeyboardInterrupt:
             sys.exit()
 
-    def __init__(self, config={}, session=None):
+    def __init__(self, config: Config=None, session=None):
         """Add a delay if configured for that"""
-        if config["delay"] > 0:
+        if config.delay > 0:
             self.done = False
 
             ellipses_animation = threading.Thread(target=self.animate)
             ellipses_animation.start()
 
-            # sys.stdout.write("\rSleeping %.2f seconds..." % (config["delay"]))
+            # sys.stdout.write("\rSleeping %.2f seconds..." % (config.delay))
             # sys.stdout.flush()
 
-            time.sleep(config["delay"])
+            time.sleep(config.delay)
             self.done = True
 
             sys.stdout.write("\r                           \r")

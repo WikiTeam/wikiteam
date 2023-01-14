@@ -1,4 +1,7 @@
-def checkXMLIntegrity(config={}, titles=[], session=None):
+from typing import *
+from wikiteam3.dumpgenerator.config import Config
+
+def checkXMLIntegrity(config: Config=None, titles: Iterable[str]=None, session=None):
     """Check XML dump integrity, to detect broken XML chunks"""
     return
 
@@ -12,10 +15,10 @@ def checkXMLIntegrity(config={}, titles=[], session=None):
         file(
             "%s/%s-%s-%s.xml"
             % (
-                config["path"],
+                config.path,
                 domain2prefix(config=config, session=session),
-                config["date"],
-                config["curonly"] and "current" or "history",
+                config.date,
+                config.curonly and "current" or "history",
             ),
             "r",
         )
@@ -43,7 +46,7 @@ def checkXMLIntegrity(config={}, titles=[], session=None):
     else:
         print("XML dump seems to be corrupted.")
         reply = ""
-        if config["failfast"]:
+        if config.failfast:
             reply = "yes"
         while reply.lower() not in ["yes", "y", "no", "n"]:
             reply = raw_input("Regenerate a new dump ([yes, y], [no, n])? ")

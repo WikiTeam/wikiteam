@@ -1,6 +1,7 @@
 import argparse
 import datetime
 import http
+import http.cookiejar
 import os
 import re
 import sys
@@ -13,9 +14,11 @@ from wikiteam3.dumpgenerator.api.index_check import checkIndex
 from wikiteam3.utils import getUserAgent
 from wikiteam3.dumpgenerator.version import getVersion
 from wikiteam3.dumpgenerator.api import getWikiEngine
+from wikiteam3.dumpgenerator.config import Config, newConfig
 
+from typing import *
 
-def getParameters(params=[]):
+def getParameters(params=None) -> Tuple[Config, Dict]:
     if not params:
         params = sys.argv
 
@@ -27,10 +30,10 @@ def getParameters(params=[]):
         "--cookies", metavar="cookies.txt", help="path to a cookies.txt file"
     )
     parser.add_argument(
-        "--delay", metavar=5, default=0.5, type=float, help="adds a delay (in seconds)"
+        "--delay", metavar="5", default=0.5, type=float, help="adds a delay (in seconds)"
     )
     parser.add_argument(
-        "--retries", metavar=5, default=5, help="Maximum number of retries for "
+        "--retries", metavar="5", default=5, help="Maximum number of retries for "
     )
     parser.add_argument("--path", help="path to store wiki dump at")
     parser.add_argument(
@@ -184,6 +187,7 @@ def getParameters(params=[]):
     # print (index)
     index2 = None
 
+    check, checkedapi = False, None
     if api:
         check, checkedapi = checkRetryAPI(
             api=api,
@@ -274,7 +278,7 @@ def getParameters(params=[]):
         parser.print_help()
         sys.exit(1)
 
-    config = {
+    config = newConfig({
         "curonly": args.curonly,
         "date": datetime.datetime.now().strftime("%Y%m%d"),
         "api": api,
@@ -291,7 +295,7 @@ def getParameters(params=[]):
         "cookies": args.cookies or "",
         "delay": args.delay,
         "retries": int(args.retries),
-    }
+    })
 
     other = {
         "resume": args.resume,
@@ -302,17 +306,17 @@ def getParameters(params=[]):
     }
 
     # calculating path, if not defined by user with --path=
-    if not config["path"]:
-        config["path"] = "./{}-{}-wikidump".format(
+    if not config.path:
+        config.path = "./{}-{}-wikidump".format(
             domain2prefix(config=config, session=session),
-            config["date"],
+            config.date,
         )
         print("No --path argument provided. Defaulting to:")
         print("  [working_directory]/[domain_prefix]-[date]-wikidump")
         print("Which expands to:")
-        print("  " + config["path"])
+        print("  " + config.path)
 
-    if config["delay"] == 0.5:
+    if config.delay == 0.5:
         print("--delay is the default value of 0.5")
         print(
             "There will be a 0.5 second delay between HTTP calls in order to keep the server from timing you out."
