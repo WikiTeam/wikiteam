@@ -81,9 +81,9 @@ def main():
                 if re.search(r"%s.+-history\.xml" % (prefix), archivecontent) is None:
                     # We should perhaps not create an archive in this case, but we continue anyway.
                     print("ERROR: The archive contains no history!")
-                if re.search(r"Special:Version\.html", archivecontent) is None:
+                if re.search(r"SpecialVersion\.html", archivecontent) is None:
                     print(
-                        "WARNING: The archive doesn't contain Special:Version.html, this may indicate that download didn't finish."
+                        "WARNING: The archive doesn't contain SpecialVersion.html, this may indicate that download didn't finish."
                     )
             else:
                 print(
@@ -192,7 +192,7 @@ def main():
                     f"{prefix}-history.xml",
                     f"{prefix}-titles.txt",
                     "index.html",
-                    "Special:Version.html",
+                    "SpecialVersion.html",
                     "errors.log",
                     "siteinfo.json",
                 ],

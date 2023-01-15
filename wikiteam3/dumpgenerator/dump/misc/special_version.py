@@ -8,8 +8,8 @@ from wikiteam3.dumpgenerator.config import Config
 def saveSpecialVersion(config: Config=None, session=None):
     """Save Special:Version as .html, to preserve extensions details"""
 
-    if os.path.exists("%s/Special:Version.html" % (config.path)):
-        print("Special:Version.html exists, do not overwrite")
+    if os.path.exists("%s/SpecialVersion.html" % (config.path)):
+        print("SpecialVersion.html exists, do not overwrite")
     else:
         print("Downloading Special:Version with extensions and other related info")
         r = session.post(
@@ -19,6 +19,7 @@ def saveSpecialVersion(config: Config=None, session=None):
         Delay(config=config, session=session)
         raw = str(removeIP(raw=raw))
         with open(
-            "%s/Special:Version.html" % (config.path), "w", encoding="utf-8"
+            "%s/SpecialVersion.html" % (config.path), "w", encoding="utf-8"
         ) as outfile:
             outfile.write(str(raw))
+​
