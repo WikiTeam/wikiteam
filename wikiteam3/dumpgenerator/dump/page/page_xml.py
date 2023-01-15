@@ -102,9 +102,9 @@ def getXMLPage(config: Config=None, title="", verbose=True, session=None):
     title_ = title
     title_ = re.sub(" ", "_", title_)
     # do not convert & into %26, title_ = re.sub('&', '%26', title_)
-    try:
+    if config.export:
         params = {"title": config.export, "pages": title_, "action": "submit"}
-    except KeyError:
+    else:
         params = {"title": "Special:Export", "pages": title_, "action": "submit"}
     if config.curonly:
         params["curonly"] = 1
