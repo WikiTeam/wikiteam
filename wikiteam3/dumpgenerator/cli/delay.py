@@ -11,14 +11,10 @@ class Delay:
     ellipses: str = "."
 
     def animate(self):
-        try:
-            while not self.done:
-                sys.stdout.write("\r    " + self.ellipses)
-                sys.stdout.flush()
-                self.ellipses += "."
-                time.sleep(0.1)
-        except KeyboardInterrupt:
-            sys.exit()
+        while not self.done:
+            print("\r" + self.ellipses, end="")
+            self.ellipses += "."
+            time.sleep(0.1)
 
     def __init__(self, config: Config=None, session=None):
         """Add a delay if configured for that"""
@@ -26,13 +22,10 @@ class Delay:
             self.done = False
 
             ellipses_animation = threading.Thread(target=self.animate)
+            ellipses_animation.daemon = True
             ellipses_animation.start()
-
-            # sys.stdout.write("\rSleeping %.2f seconds..." % (config.delay))
-            # sys.stdout.flush()
 
             time.sleep(config.delay)
             self.done = True
 
-            sys.stdout.write("\r                           \r")
-            sys.stdout.flush()
+            print("\r    \r", end="")
