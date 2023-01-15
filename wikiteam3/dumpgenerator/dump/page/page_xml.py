@@ -25,7 +25,7 @@ def getXMLPageCore(headers: Dict=None, params: Dict=None, config: Config=None, s
     maxretries = config.retries  # x retries and skip
     increment = 20  # increment every retry
 
-    while not re.search(r"</mediawiki>", str(xml)):
+    while not re.search(r"</mediawiki>", xml):
         if c > 0 and c < maxretries:
             wait = (
                 increment * c < maxseconds and increment * c or maxseconds

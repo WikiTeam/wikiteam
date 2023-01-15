@@ -214,7 +214,7 @@ class DumpGenerator:
                 generateXMLDump(config=config, titles=titles, session=other["session"])
 
         if config.images:
-            # load images
+            # load images list
             lastimage = ""
             try:
                 f = open(
@@ -222,7 +222,7 @@ class DumpGenerator:
                     % (config.path, domain2prefix(config=config), config.date),
                     encoding="utf-8",
                 )
-                lines = f.readlines()
+                lines = f.read().splitlines()
                 for l in lines:
                     if re.search(r"\t", l):
                         images.append(l.split("\t"))
@@ -232,6 +232,12 @@ class DumpGenerator:
                 f.close()
             except FileNotFoundError:
                 pass  # probably file does not exists
+            if len(images)>0 and len(images[0]) < 5:
+                print(
+                    "Warning: Detected old images list (images.txt) format.\n"+
+                    "You can delete 'images.txt' manually and restart the script."
+                )
+                sys.exit(1)
             if lastimage == "--END--":
                 print("Image list was completed in the previous session")
             else:
@@ -247,22 +253,31 @@ class DumpGenerator:
             except OSError:
                 pass  # probably directory does not exist
             listdir.sort()
-            complete = True
-            lastfilename = ""
-            lastfilename2 = ""
-            c = 0
-            for filename, url, uploader in images:
-                lastfilename2 = lastfilename
+            c_desc = 0
+            c_images = 0
+            for filename, url, uploader, size, sha1 in images:
                 # return always the complete filename, not the truncated
                 lastfilename = filename
                 filename2 = filename
                 if len(filename2) > other["filenamelimit"]:
                     filename2 = truncateFilename(other=other, filename=filename2)
-                if filename2 not in listdir:
-                    complete = False
-                    break
-                c += 1
-            print("%d images were found in the directory from a previous session" % (c))
+                if filename2 in listdir:
+                    c_images += 1
+                if filename2+".desc" in listdir:
+                    c_desc += 1
+            print(f"{len(images)} records in images.txt, {c_images} images and {c_desc} .desc were saved in the previous session")
+            if c_desc < len(images):
+                complete = False
+            elif c_images < len(images):
+                complete = False
+                print("WARNING: Some images were not saved. You may want to delete their \n"
+                    +".desc files and re-run the script to redownload the missing images.\n"
+                    +"(If images URL are unavailable, you can ignore this warning.)\n"
+                    +"(In most cases, if the number of .desc files equals the number of \n"
+                    + "images.txt records, you can ignore this warning, images dump was completed.)")
+                sys.exit()
+            else: # c_desc == c_images == len(images)
+                complete = True
             if complete:
                 # image dump is complete
                 print("Image dump was completed in the previous session")
@@ -273,7 +288,6 @@ class DumpGenerator:
                     config=config,
                     other=other,
                     images=images,
-                    start=lastfilename2,
                     session=other["session"],
                 )
 

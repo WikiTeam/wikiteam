@@ -1,3 +1,4 @@
+import hashlib
 import re
 import sys
 
@@ -74,3 +75,15 @@ def cleanXML(xml: str = "") -> str:
     if re.search(r"</mediawiki>", xml):
         xml = xml.split("</mediawiki>")[0]
     return xml
+
+def sha1File(filename: str = "") -> str:
+    """Return the SHA1 hash of a file"""
+
+    sha1 = hashlib.sha1()
+    with open(filename, "rb") as f:
+        while True:
+            data = f.read(65536)
+            if not data:
+                break
+            sha1.update(data)
+    return sha1.hexdigest()

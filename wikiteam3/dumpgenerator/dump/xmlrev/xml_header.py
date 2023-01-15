@@ -27,7 +27,7 @@ def getXMLHeader(config: Config=None, session=None) -> Tuple[str, Config]:
                 + "?action=query&export=1&exportnowrap=1&list=allpages&aplimit=1",
                 timeout=10,
             )
-            xml = str(r.text)
+            xml: str = r.text
             # Otherwise try without exportnowrap, e.g. Wikia returns a blank page on 1.19
             if not re.match(r"\s*<mediawiki", xml):
                 r = session.get(

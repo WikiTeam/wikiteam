@@ -52,8 +52,8 @@ def getPageTitlesScraper(config: Config=None, session=None):
             config.index, namespace
         )
         r = session.get(url=url, timeout=30)
-        raw = str(r.text)
-        raw = str(cleanHTML(raw))
+        raw = r.text
+        raw = cleanHTML(raw)
 
         r_title = 'title="(?P<title>[^>]+)">'
         r_suballpages = ""
@@ -224,7 +224,7 @@ def readTitles(config: Config=None, start=None, batch=False):
 
     with titlesfile as f:
         for line in f:
-            title = str(line).strip()
+            title = line.strip()
             if title == "--END--":
                 break
             elif seeking and title != start:

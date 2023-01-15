@@ -6,12 +6,12 @@ from typing import *
 
 from wikiteam3.dumpgenerator.cli import Delay
 from wikiteam3.utils import domain2prefix
-from wikiteam3.dumpgenerator.exceptions import PageMissingError
+from wikiteam3.dumpgenerator.exceptions import PageMissingError, FileSha1Error, FileSizeError
 from wikiteam3.dumpgenerator.api import getJSON
 from wikiteam3.dumpgenerator.api import handleStatusCode
 from wikiteam3.dumpgenerator.log import logerror
 from .page_xml import getXMLPage
-from wikiteam3.utils import truncateFilename
+from wikiteam3.utils import truncateFilename, sha1File
 from wikiteam3.utils import cleanHTML, undoHTMLEntities
 from wikiteam3.dumpgenerator.config import Config
 
@@ -28,26 +28,21 @@ class Image:
             ]
         )
 
-    def generateImageDump(config: Config=None, other: Dict=None, images: Iterable[str]=None, start="", session=None):
-        """Save files and descriptions using a file list"""
+    def generateImageDump(config: Config=None, other: Dict=None, images: Iterable[str]=None, session=None):
+        """Save files and descriptions using a file list\n
+        Deprecated: `start` is not used anymore."""
 
         # fix use subdirectories md5
-        print('Retrieving images from "%s"' % (start and start or "start"))
+        print("Retrieving images...")
         imagepath = "%s/images" % (config.path)
         if not os.path.isdir(imagepath):
             print('Creating "%s" directory' % (imagepath))
             os.makedirs(imagepath)
 
-        c = 0
-        lock = True
-        if not start:
-            lock = False
-        for filename, url, uploader in images:
-            if filename == start:  # start downloading from start (included)
-                lock = False
-            if lock:
-                continue
-            Delay(config=config, session=session)
+        c_savedImageFiles = 0
+        c_savedImageDescs = 0
+
+        for filename, url, uploader, size, sha1 in images:
 
             # saving file
             # truncate filename if length > 100 (100 + 32 (md5) = 132 < 143 (crash
@@ -58,7 +53,17 @@ class Image:
                 filename2 = truncateFilename(other=other, filename=filename2)
                 print("Filename is too long, truncating. Now it is:", filename2)
             filename3 = f"{imagepath}/{filename2}"
+            
+            # check if file already exists and has the same size and sha1
+            if (os.path.isfile(filename3) and os.path.isfile(filename3+".desc")
+            and os.path.getsize(filename3) == int(size)):
+                if sha1File(filename3) == sha1:
+                    c_savedImageFiles += 1
+                    print_msg=f"    {c_savedImageFiles}|sha1 matched: {filename2}"
+                    print(print_msg[0:70], end="\r")
+                    continue
 
+            Delay(config=config, session=session)
             original_url = url
             r = session.head(url=url, allow_redirects=True)
             original_url_redirected = len(r.history) > 0
@@ -82,12 +87,21 @@ class Image:
 
             if r.status_code == 200:
                 try:
-                    with open(filename3, "wb") as imagefile:
-                        imagefile.write(r.content)
+                    if len(r.content) == int(size):
+                        with open(filename3, "wb") as imagefile:
+                            imagefile.write(r.content)
+                        c_savedImageFiles += 1
+                    else:
+                        raise FileSizeError(file=filename3, size=size)
                 except OSError:
                     logerror(
                         config=config, to_stdout=True,
                         text=f"File '{filename3}' could not be created by OS",
+                    )
+                except FileSizeError as e:
+                    logerror(
+                        config=config, to_stdout=True,
+                        text=f"File '{e.file}' size is not match '{e.size}', skipping",
                     )
             else:
                 logerror(
@@ -134,6 +148,7 @@ class Image:
 
                 with open(f"{imagepath}/{filename2}.desc", "w", encoding="utf-8") as f:
                     f.write(xmlfiledesc)
+                c_savedImageDescs += 1
 
                 if xmlfiledesc == "":
                     logerror(
@@ -147,11 +162,10 @@ class Image:
                     text=f"File {imagepath}/{filename2}.desc could not be created by OS",
                 )
 
-            c += 1
-            if c % 10 == 0:
-                print(f"\n->  Downloaded {c} images\n")
+            print_msg = f"    {(len(images)-c_savedImageFiles)}: {filename2[0:30]}"
+            print(print_msg, " "*(70 - len(print_msg)), end="\r")
 
-        print(f"\n->  Downloaded {c} images\n")
+        print(f"Downloaded {c_savedImageFiles} images and {c_savedImageDescs} .desc files.")
 
     def getImageNames(config: Config=None, session=None):
         """Get list of image names"""
@@ -300,7 +314,7 @@ class Image:
             params = {
                 "action": "query",
                 "list": "allimages",
-                "aiprop": "url|user",
+                "aiprop": "url|user|size|sha1",
                 "aifrom": aifrom,
                 "format": "json",
                 "ailimit": 50,
@@ -362,7 +376,9 @@ class Image:
                             + " contains unicode. Please file an issue with WikiTeam."
                         )
                     uploader = re.sub("_", " ", image["user"])
-                    images.append([filename, url, uploader])
+                    size = image["size"]
+                    sha1 = image["sha1"]
+                    images.append([filename, url, uploader, size, sha1])
             else:
                 oldAPI = True
                 break
@@ -386,7 +402,7 @@ class Image:
                                     # TODO: Is it OK to set it higher, for speed?
                     "gapfrom": gapfrom,
                     "prop": "imageinfo",
-                    "iiprop": "user|url",
+                    "iiprop": "url|user|size|sha1",
                     "format": "json",
                 }
                 # FIXME Handle HTTP Errors HERE
@@ -430,7 +446,9 @@ class Image:
 
                         filename = re.sub("_", " ", tmp_filename)
                         uploader = re.sub("_", " ", props["imageinfo"][0]["user"])
-                        images.append([filename, url, uploader])
+                        size = props["imageinfo"][0]["size"]
+                        sha1 = props["imageinfo"][0]["sha1"]
+                        images.append([filename, url, uploader, size, sha1])
                 else:
                     # if the API doesn't return query data, then we're done
                     break
@@ -443,7 +461,7 @@ class Image:
         return images
 
     def saveImageNames(config: Config=None, images: Iterable[str]=None, session=None):
-        """Save image list in a file, including filename, url and uploader"""
+        """Save image list in a file, including filename, url, uploader, size and sha1"""
 
         imagesfilename = "{}-{}-images.txt".format(
             domain2prefix(config=config), config.date
@@ -454,8 +472,8 @@ class Image:
         imagesfile.write(
             "\n".join(
                 [
-                    filename + "\t" + url + "\t" + uploader
-                    for filename, url, uploader in images
+                    filename + "\t" + url + "\t" + uploader + "\t" + str(size) + "\t" + sha1
+                    for filename, url, uploader, size, sha1 in images
                 ]
             )
         )
