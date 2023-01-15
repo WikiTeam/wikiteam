@@ -1,2 +1,8 @@
 *.com linguist-vendored
 *.org linguist-vendored
+
+*.py text=auto
+*.sh text=auto
+*.json text=auto
+*.txt text=auto
+*.md text=auto
