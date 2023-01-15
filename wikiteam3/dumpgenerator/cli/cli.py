@@ -1,3 +1,4 @@
+
 import argparse
 import datetime
 import http
@@ -18,10 +19,7 @@ from wikiteam3.dumpgenerator.config import Config, newConfig
 
 from typing import *
 
-def getParameters(params=None) -> Tuple[Config, Dict]:
-    if not params:
-        params = sys.argv
-
+def getArgumentParser():
     parser = argparse.ArgumentParser(description="")
 
     # General params
@@ -106,8 +104,14 @@ def getParameters(params=None) -> Tuple[Config, Dict]:
         action="store_true",
         help="Avoid resuming, discard failing wikis quickly. Useful only for mass downloads.",
     )
+    return parser
 
-    args = parser.parse_args()
+def getParameters(params=None) -> Tuple[Config, Dict]:
+    # if not params:
+    #     params = sys.argv
+
+    parser = getArgumentParser()
+    args = parser.parse_args(params)
     # print (args)
 
     # Don't mix download params and meta info params

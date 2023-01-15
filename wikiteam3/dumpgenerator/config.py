@@ -35,6 +35,9 @@ config = {
 '''
 @dataclasses.dataclass
 class Config:
+    def asdict(self):
+        return dataclasses.asdict(self)
+
     # General params
     delay: float = 0.0
     retries: int = 0
