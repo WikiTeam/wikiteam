@@ -164,17 +164,17 @@ def getPageTitles(config: Config=None, session=None):
     print(
         "Loading page titles from namespaces = %s"
         % (
-            config.namespaces
-            and ",".join([str(i) for i in config.namespaces])
-            or "None"
+            ",".join([str(i) for i in config.namespaces])
+            if config.namespaces
+            else "None"
         )
     )
     print(
         "Excluding titles from namespaces = %s"
         % (
-            config.exnamespaces
-            and ",".join([str(i) for i in config.exnamespaces])
-            or "None"
+            ",".join([str(i) for i in config.exnamespaces])
+            if config.exnamespaces
+            else "None"
         )
     )
 

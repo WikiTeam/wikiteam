@@ -23,7 +23,7 @@ def generateXMLDump(config: Config=None, titles: Iterable[str]=None, start=None,
     xmlfilename = "{}-{}-{}.xml".format(
         domain2prefix(config=config),
         config.date,
-        config.curonly and "current" or "history",
+        "current" if config.curonly else "history",
     )
     xmlfile = ""
     lock = True
@@ -70,7 +70,7 @@ def generateXMLDump(config: Config=None, titles: Iterable[str]=None, start=None,
     else:  # --xml
         print(
             '\nRetrieving the XML for every page from "%s"\n'
-            % (start and start or "start")
+            % (start if start else "start")
         )
 
         if not start:

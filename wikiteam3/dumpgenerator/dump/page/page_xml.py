@@ -28,7 +28,7 @@ def getXMLPageCore(headers: Dict=None, params: Dict=None, config: Config=None, s
     while not re.search(r"</mediawiki>", xml):
         if c > 0 and c < maxretries:
             wait = (
-                increment * c < maxseconds and increment * c or maxseconds
+                increment if increment * c < maxseconds else maxseconds
             )  # incremental until maxseconds
             print(
                 '    In attempt %d, XML for "%s" is wrong. Waiting %d seconds and reloading...'

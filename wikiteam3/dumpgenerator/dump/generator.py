@@ -72,7 +72,7 @@ class DumpGenerator:
 
         with (Tee(other["stdout_log_path"]) if other["stdout_log_path"] is not None else contextlib.nullcontext()):
             print(welcome())
-            print("Analysing %s" % (config.api and config.api or config.index))
+            print("Analysing %s" % (config.api if config.api else config.index))
 
             # creating path or resuming if desired
             c = 2
@@ -178,7 +178,7 @@ class DumpGenerator:
                         config.path,
                         domain2prefix(config=config, session=other["session"]),
                         config.date,
-                        config.curonly and "current" or "history",
+                        "current" if config.curonly else "history",
                     ),
                     encoding="utf-8",
                 ) as frb:

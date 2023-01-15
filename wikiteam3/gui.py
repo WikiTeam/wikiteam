@@ -417,7 +417,7 @@ class App:
                 msg = "{:.1f} MB of {:.1f} MB downloaded ({:.1f}%)".format(
                     downloaded,
                     total_mb,
-                    percent <= 100 and percent or 100,
+                    percent if percent <= 100 else 100,
                 )
                 self.msg(msg, level="ok")
             # sys.stdout.write("%.1f MB of %.1f MB downloaded (%.2f%%)" %(downloaded, total_mb, percent))
@@ -439,9 +439,9 @@ class App:
             d = 0
             for item in items:
                 filepath = (
-                    self.downloadpath
-                    and self.downloadpath + "/" + self.dumps[int(item)][0]
-                    or self.dumps[int(item)][0]
+                    self.downloadpath + "/" + self.dumps[int(item)][0]
+                    if self.downloadpath
+                    else self.dumps[int(item)][0]
                 )
                 if os.path.exists(filepath):
                     self.msg("That dump was downloaded before", level="ok")
@@ -474,7 +474,7 @@ class App:
                     % (
                         c,
                         len(items),
-                        d and " (and %d were previously downloaded)" % (d) or "",
+                        " (and %d were previously downloaded)" % (d) if d else "",
                     ),
                     level="ok",
                 )
@@ -515,9 +515,9 @@ class App:
                     size,
                     date,
                     mirror,
-                    downloaded and "Downloaded" or "Not downloaded",
+                    "Downloaded" if downloaded else "Not downloaded",
                 ),
-                tags=(downloaded and "downloaded" or "nodownloaded",),
+                tags=("downloaded" if downloaded else "nodownloaded",),
             )
             c += 1
 
@@ -579,7 +579,7 @@ class App:
         # improve, size check or md5sum?
         if filename:
             filepath = (
-                self.downloadpath and self.downloadpath + "/" + filename or filename
+                self.downloadpath + "/" + filename if self.downloadpath else filename
             )
             if os.path.exists(filepath):
                 return True

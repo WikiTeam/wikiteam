@@ -168,8 +168,8 @@ def getParameters(params=None) -> Tuple[Config, Dict]:
             sys.exit(1)
 
     # Get API and index and verify
-    api = args.api and args.api or ""
-    index = args.index and args.index or ""
+    api = args.api if args.api else ""
+    index = args.index if args.index else ""
     if api == "" or index == "":
         if args.wiki:
             if getWikiEngine(args.wiki, session=session) == "MediaWiki":
