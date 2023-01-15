@@ -22,4 +22,4 @@ def saveSpecialVersion(config: Config=None, session=None):
             "%s/SpecialVersion.html" % (config.path), "w", encoding="utf-8"
         ) as outfile:
             outfile.write(str(raw))
-​
+
