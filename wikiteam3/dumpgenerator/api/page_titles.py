@@ -234,7 +234,7 @@ def checkTitleOk(config: Config=None, ):
 def readTitles(config: Config=None, session=None, start=None, batch=False):
     """Read title list from a file, from the title "start" """
     if not checkTitleOk(config):
-        getPageTitles(config=config)
+        getPageTitles(config=config, session=session)
 
     titlesfilename = "{}-{}-titles.txt".format(
         domain2prefix(config=config), config.date

@@ -347,7 +347,7 @@ def getXMLRevisions(config: Config=None, session=None, useAllrevision=True, last
 
     if useAllrevision:
         # Find last title
-        if lastPage:
+        if lastPage is not None:
             try:
                 lastNs = int(lastPage.find('ns').text)
                 if False:
@@ -378,7 +378,7 @@ def getXMLRevisions(config: Config=None, session=None, useAllrevision=True, last
             sys.exit()
     else:
         # Find last title
-        if lastPage:
+        if lastPage is not None:
             try:
                 start = lastPage.find('title')
             except Exception:
