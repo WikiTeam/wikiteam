@@ -315,7 +315,7 @@ def getParameters(params=None) -> Tuple[Config, Dict]:
 
     other = {
         "resume": args.resume,
-        "filenamelimit": 100,  # do not change
+        "filenamelimit": 240,  # Filename not be longer than 240 **bytes**. (MediaWiki r98430 2011-09-29)
         "force": args.force,
         "session": session,
         "stdout_log_path": args.stdout_log_path,

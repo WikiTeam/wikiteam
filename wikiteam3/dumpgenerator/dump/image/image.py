@@ -11,7 +11,7 @@ from wikiteam3.dumpgenerator.api import getJSON
 from wikiteam3.dumpgenerator.api import handleStatusCode
 from wikiteam3.dumpgenerator.log import logerror
 from wikiteam3.dumpgenerator.dump.page.xmlexport.page_xml import getXMLPage
-from wikiteam3.utils import truncateFilename, sha1File
+from wikiteam3.utils import sha1File
 from wikiteam3.utils import cleanHTML, undoHTMLEntities
 from wikiteam3.dumpgenerator.config import Config
 
@@ -45,13 +45,13 @@ class Image:
         for filename, url, uploader, size, sha1 in images:
 
             # saving file
-            # truncate filename if length > 100 (100 + 32 (md5) = 132 < 143 (crash
-            # limit). Later .desc is added to filename, so better 100 as max)
             filename2 = urllib.parse.unquote(filename)
-            if len(filename2) > other["filenamelimit"]:
-                # split last . (extension) and then merge
-                filename2 = truncateFilename(other=other, filename=filename2)
-                print("Filename is too long, truncating. Now it is:", filename2)
+            if len(filename2.encode('utf-8')) > other["filenamelimit"]:
+                logerror(
+                    config=config, to_stdout=True,
+                    text=f"Filename is too long(>240 bytes), skipping: '{filename2}'",
+                )
+                continue
             filename3 = f"{imagepath}/{filename2}"
             
             # check if file already exists and has the same size and sha1

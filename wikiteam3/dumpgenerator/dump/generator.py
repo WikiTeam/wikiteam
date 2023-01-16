@@ -25,8 +25,8 @@ from typing import *
 from wikiteam3.dumpgenerator.config import loadConfig, saveConfig
 from wikiteam3.dumpgenerator.config import Config
 from wikiteam3.dumpgenerator.cli import getParameters, bye, welcome
+from wikiteam3.dumpgenerator.log import logerror
 from wikiteam3.utils import domain2prefix
-from wikiteam3.utils import truncateFilename
 from wikiteam3.utils import undoHTMLEntities
 from wikiteam3.utils import avoidWikimediaProjects
 
@@ -232,14 +232,16 @@ class DumpGenerator:
             c_desc = 0
             c_images = 0
             for filename, url, uploader, size, sha1 in images:
-                # return always the complete filename, not the truncated
                 lastfilename = filename
-                filename2 = filename
-                if len(filename2) > other["filenamelimit"]:
-                    filename2 = truncateFilename(other=other, filename=filename2)
-                if filename2 in listdir:
+                if other["filenamelimit"] < len(filename.encode('utf-8')):
+                    logerror(
+                        config=config, to_stdout=True,
+                        text=f"Filename too long(>240 bytes), skipping: {filename}",
+                    )
+                    continue
+                if filename in listdir:
                     c_images += 1
-                if filename2+".desc" in listdir:
+                if filename+".desc" in listdir:
                     c_desc += 1
             print(f"{len(images)} records in images.txt, {c_images} images and {c_desc} .desc were saved in the previous session")
             if c_desc < len(images):
