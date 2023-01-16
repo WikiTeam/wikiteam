@@ -53,10 +53,12 @@ class Config:
     xml: bool = False
     curonly: bool = False
     xmlrevisions: bool = False
+    xmlrevisions_page: bool = False
     images: bool = False
     namespaces: List[int] = None
     exnamespaces: List[int] = None
 
+    api_chunksize: int = 0  # arvlimit, ailimit, etc
     export: str = '' # Special:Export page name
     http_method: str = ''
 

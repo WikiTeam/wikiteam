@@ -79,6 +79,11 @@ def getArgumentParser():
         help="download all revisions from an API generator. MediaWiki 1.27+ only.",
     )
     groupDownload.add_argument(
+        "--xmlrevisions_page",
+        action="store_true",
+        help="download all revisions from an API generator, but query page by page MediaWiki 1.27+ only.",
+    )
+    groupDownload.add_argument(
         "--images", action="store_true", help="generates an image dump"
     )
     groupDownload.add_argument(
@@ -90,6 +95,9 @@ def getArgumentParser():
         "--exnamespaces",
         metavar="1,2,3",
         help="comma-separated value of namespaces to exclude",
+    )
+    parser.add_argument(
+        "--api_chunksize", metavar="50", default=50, help="Chunk size for MediaWiki API (arvlimit, ailimit, etc.)"
     )
 
     # Meta info params
@@ -141,7 +149,9 @@ def getParameters(params=None) -> Tuple[Config, Dict]:
 
         # Courtesy datashaman https://stackoverflow.com/a/35504626
         __retries__ = Retry(
-            total=int(args.retries), backoff_factor=2, status_forcelist=[500, 502, 503, 504, 429]
+            total=int(args.retries), backoff_factor=2,
+            status_forcelist=[500, 502, 503, 504, 429],
+            allowed_methods=['DELETE', 'PUT', 'GET', 'OPTIONS', 'TRACE', 'HEAD', 'POST']
         )
         session.mount("https://", HTTPAdapter(max_retries=__retries__))
         session.mount("http://", HTTPAdapter(max_retries=__retries__))
@@ -288,11 +298,13 @@ def getParameters(params=None) -> Tuple[Config, Dict]:
         "api": api,
         "failfast": args.failfast,
         "http_method": "POST",
+        "api_chunksize": args.api_chunksize,
         "index": index,
         "images": args.images,
         "logs": False,
         "xml": args.xml,
-        "xmlrevisions": args.xmlrevisions,
+        "xmlrevisions": args.xmlrevisions or args.xmlrevisions_page,
+        "xmlrevisions_page": args.xmlrevisions_page,
         "namespaces": namespaces,
         "exnamespaces": exnamespaces,
         "path": args.path and os.path.normpath(args.path) or "",

@@ -6,11 +6,11 @@ from typing import *
 
 from wikiteam3.dumpgenerator.cli import Delay
 from wikiteam3.utils import domain2prefix
-from wikiteam3.dumpgenerator.exceptions import PageMissingError, FileSha1Error, FileSizeError
+from wikiteam3.dumpgenerator.exceptions import PageMissingError, FileSizeError
 from wikiteam3.dumpgenerator.api import getJSON
 from wikiteam3.dumpgenerator.api import handleStatusCode
 from wikiteam3.dumpgenerator.log import logerror
-from .page_xml import getXMLPage
+from wikiteam3.dumpgenerator.dump.page.xmlexport.page_xml import getXMLPage
 from wikiteam3.utils import truncateFilename, sha1File
 from wikiteam3.utils import cleanHTML, undoHTMLEntities
 from wikiteam3.dumpgenerator.config import Config
@@ -317,7 +317,7 @@ class Image:
                 "aiprop": "url|user|size|sha1",
                 "aifrom": aifrom,
                 "format": "json",
-                "ailimit": 50,
+                "ailimit": config.api_chunksize,
             }
             # FIXME Handle HTTP Errors HERE
             r = session.get(url=config.api, params=params, timeout=30)
@@ -398,7 +398,7 @@ class Image:
                     "action": "query",
                     "generator": "allpages",
                     "gapnamespace": 6,
-                    "gaplimit": 50, # The value must be between 1 and 500.
+                    "gaplimit": config.api_chunksize, # The value must be between 1 and 500.
                                     # TODO: Is it OK to set it higher, for speed?
                     "gapfrom": gapfrom,
                     "prop": "imageinfo",

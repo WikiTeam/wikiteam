@@ -1,5 +1,8 @@
+from io import StringIO
+from typing import *
 import os
 
+import lxml.etree
 from file_read_backwards import FileReadBackwards
 
 
@@ -21,17 +24,17 @@ def addNewline(filename: str) -> None:
         f.write("\n")
 
 
-def truncateXMLDump(filename: str) -> None:
+def truncateXMLDump(filename: str) -> str:
     """Removes incomplete <page> elements from the end of XML dump files"""
 
     with FileReadBackwards(filename, encoding="utf-8") as frb:
         incomplete_segment: str = ""
         xml_line: str = frb.readline()
         while xml_line and "</title>" not in xml_line:
-            incomplete_segment += xml_line
+            incomplete_segment = xml_line + incomplete_segment
             xml_line = frb.readline()
         while xml_line and "</page>" not in xml_line:
-            incomplete_segment += xml_line
+            incomplete_segment = xml_line + incomplete_segment
             xml_line = frb.readline()
     incomplete_segment_size = len(incomplete_segment.encode("utf-8"))
     file_size = os.path.getsize(filename)
@@ -56,3 +59,12 @@ def truncateXMLDump(filename: str) -> None:
         print(
             f"WARNING: {filename} has {endsWithNewlines(filename)} newlines"
         )
+    return incomplete_segment
+
+def parseLastPageChunk(chunk) -> Optional[lxml.etree._ElementTree]:
+    try:
+        parser = lxml.etree.XMLParser(recover=True)
+        tree = lxml.etree.parse(StringIO(chunk), parser)
+        return tree.getroot()
+    except lxml.etree.LxmlError:
+        return None

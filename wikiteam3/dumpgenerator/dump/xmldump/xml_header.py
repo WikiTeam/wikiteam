@@ -7,7 +7,7 @@ import requests
 
 from wikiteam3.dumpgenerator.exceptions import ExportAbortedError, PageMissingError
 from wikiteam3.dumpgenerator.log import logerror
-from wikiteam3.dumpgenerator.dump.page.page_xml import getXMLPage
+from wikiteam3.dumpgenerator.dump.page.xmlexport.page_xml import getXMLPage
 from wikiteam3.dumpgenerator.config import Config
 
 def getXMLHeader(config: Config=None, session=None) -> Tuple[str, Config]:

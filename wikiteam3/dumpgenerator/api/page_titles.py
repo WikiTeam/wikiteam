@@ -3,9 +3,10 @@ import sys
 from urllib.parse import urlparse
 
 import mwclient
+from file_read_backwards import FileReadBackwards
 
 from wikiteam3.dumpgenerator.cli import Delay
-from wikiteam3.dumpgenerator.dump.xmlrev.namespaces import getNamespacesAPI, getNamespacesScraper
+from wikiteam3.dumpgenerator.api.namespaces import getNamespacesAPI, getNamespacesScraper
 from wikiteam3.utils import domain2prefix, cleanHTML, undoHTMLEntities
 from wikiteam3.dumpgenerator.config import Config
 
@@ -208,9 +209,32 @@ def getPageTitles(config: Config=None, session=None):
     print("%d page titles loaded" % (c))
     return titlesfilename
 
+def checkTitleOk(config: Config=None, ):
+    try:
+        with FileReadBackwards(
+                "%s/%s-%s-titles.txt"
+                % (
+                        config.path,
+                        domain2prefix(config=config),
+                        config.date,
+                ),
+                encoding="utf-8",
+        ) as frb:
+            lasttitle = frb.readline().strip()
+            if lasttitle == "":
+                lasttitle = frb.readline().strip()
+    except:
+        lasttitle = ""  # probably file does not exists
 
-def readTitles(config: Config=None, start=None, batch=False):
+    if lasttitle != "--END--":
+        return False
+    return True
+
+
+def readTitles(config: Config=None, session=None, start=None, batch=False):
     """Read title list from a file, from the title "start" """
+    if not checkTitleOk(config):
+        getPageTitles(config=config)
 
     titlesfilename = "{}-{}-titles.txt".format(
         domain2prefix(config=config), config.date
