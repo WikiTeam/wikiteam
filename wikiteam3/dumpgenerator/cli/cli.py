@@ -4,12 +4,15 @@ import datetime
 import http
 import http.cookiejar
 import os
+import queue
 import re
 import sys
 
 import requests
+import urllib3
 
 from wikiteam3.dumpgenerator.api import checkRetryAPI, mwGetAPIAndIndex
+from .delay import Delay
 from wikiteam3.utils import domain2prefix
 from wikiteam3.dumpgenerator.api.index_check import checkIndex
 from wikiteam3.utils import getUserAgent
@@ -18,6 +21,9 @@ from wikiteam3.dumpgenerator.api import getWikiEngine
 from wikiteam3.dumpgenerator.config import Config, newConfig
 
 from typing import *
+
+from ...utils.user_agent import setupUserAgent
+
 
 def getArgumentParser():
     parser = argparse.ArgumentParser(description="")
@@ -148,8 +154,44 @@ def getParameters(params=None) -> Tuple[Config, Dict]:
         from urllib3.util.retry import Retry
 
         # Courtesy datashaman https://stackoverflow.com/a/35504626
-        __retries__ = Retry(
-            total=int(args.retries), backoff_factor=2,
+        class CustomRetry(Retry):
+            def increment(self, method=None, url=None, *args, **kwargs):
+                if '_pool' in kwargs:
+                    conn = kwargs['_pool'] # type: urllib3.connectionpool.HTTPSConnectionPool
+                    if 'response' in kwargs:
+                        try:
+                            # drain conn in advance so that it won't be put back into conn.pool
+                            kwargs['response'].drain_conn()
+                        except:
+                            pass
+                    # Useless, retry happens inside urllib3
+                    # for adapters in session.adapters.values():
+                    #     adapters: HTTPAdapter
+                    #     adapters.poolmanager.clear()
+
+                    # Close existing connection so that a new connection will be used
+                    if hasattr(conn, 'pool'):
+                        pool = conn.pool  # type: queue.Queue
+                        try:
+                            # Don't directly use this, This closes connection pool by making conn.pool = None
+                            conn.close()
+                        except:
+                            pass
+                        conn.pool = pool
+                return super(CustomRetry, self).increment(method=method, url=url, *args, **kwargs)
+
+            def sleep(self, response=None):
+                backoff = self.get_backoff_time()
+                if backoff <= 0:
+                    return
+                if response is not None:
+                    msg = 'req retry (%s)' % response.status
+                else:
+                    msg = None
+                Delay(config=None, session=session, msg=msg, delay=backoff)
+
+        __retries__ = CustomRetry(
+            total=int(args.retries), backoff_factor=1.5,
             status_forcelist=[500, 502, 503, 504, 429],
             allowed_methods=['DELETE', 'PUT', 'GET', 'OPTIONS', 'TRACE', 'HEAD', 'POST']
         )
@@ -160,6 +202,7 @@ def getParameters(params=None) -> Tuple[Config, Dict]:
         pass
     session.cookies = cj
     session.headers.update({"User-Agent": getUserAgent()})
+    setupUserAgent(session)
     if args.user and args.password:
         session.auth = (args.user, args.password)
 
@@ -298,7 +341,7 @@ def getParameters(params=None) -> Tuple[Config, Dict]:
         "api": api,
         "failfast": args.failfast,
         "http_method": "POST",
-        "api_chunksize": args.api_chunksize,
+        "api_chunksize": int(args.api_chunksize),
         "index": index,
         "images": args.images,
         "logs": False,
