@@ -56,13 +56,19 @@ class Image:
             filename3 = f"{imagepath}/{filename2}"
             
             # check if file already exists and has the same size and sha1
-            if (os.path.isfile(filename3)
-            and os.path.getsize(filename3) == int(size)
-            and sha1File(filename3) == sha1):
+            if ((os.path.isfile(filename3)
+                and os.path.getsize(filename3) == int(size)
+                and sha1File(filename3) == sha1)
+            or (sha1 == 'False' and os.path.isfile(filename3))): 
+            # sha1 is 'False' if file not in original wiki (probably deleted,
+            # you will get a 404 error if you try to download it)
                 c_savedImageFiles += 1
                 toContinue += 1
                 print_msg=f"    {c_savedImageFiles}|sha1 matched: {filename2}"
                 print(print_msg[0:70], end="\r")
+                if sha1 == 'False':
+                    logerror(config=config, to_stdout=True,
+                    text=f"sha1 is 'False' for {filename2}, file may not in wiki site (probably deleted). we will try to download it...")
             else:
                 Delay(config=config, session=session)
                 original_url = url
@@ -478,7 +484,7 @@ class Image:
         imagesfile.write(
             "\n".join(
                 [
-                    filename + "\t" + url + "\t" + uploader + "\t" + str(size) + "\t" + sha1
+                    filename + "\t" + url + "\t" + uploader + "\t" + str(size) + "\t" + str(sha1) # sha1 may be False if file is missing, so convert bool to str
                     for filename, url, uploader, size, sha1 in images
                 ]
             )
