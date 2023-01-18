@@ -43,6 +43,7 @@ class Image:
         c_savedImageDescs = 0
 
         for filename, url, uploader, size, sha1 in images:
+            toContinue = 0
 
             # saving file
             filename2 = urllib.parse.unquote(filename)
@@ -55,113 +56,118 @@ class Image:
             filename3 = f"{imagepath}/{filename2}"
             
             # check if file already exists and has the same size and sha1
-            if (os.path.isfile(filename3) and os.path.isfile(filename3+".desc")
-            and os.path.getsize(filename3) == int(size)):
-                if sha1File(filename3) == sha1:
-                    c_savedImageFiles += 1
-                    print_msg=f"    {c_savedImageFiles}|sha1 matched: {filename2}"
-                    print(print_msg[0:70], end="\r")
-                    continue
-
-            Delay(config=config, session=session)
-            original_url = url
-            r = session.head(url=url, allow_redirects=True)
-            original_url_redirected = len(r.history) > 0
-
-            if original_url_redirected:
-                # print 'Site is redirecting us to: ', r.url
+            if (os.path.isfile(filename3)
+            and os.path.getsize(filename3) == int(size)
+            and sha1File(filename3) == sha1):
+                c_savedImageFiles += 1
+                toContinue += 1
+                print_msg=f"    {c_savedImageFiles}|sha1 matched: {filename2}"
+                print(print_msg[0:70], end="\r")
+            else:
+                Delay(config=config, session=session)
                 original_url = url
-                url = r.url
+                r = session.head(url=url, allow_redirects=True)
+                original_url_redirected = len(r.history) > 0
 
-            r = session.get(url=url, allow_redirects=False)
+                if original_url_redirected:
+                    # print 'Site is redirecting us to: ', r.url
+                    original_url = url
+                    url = r.url
 
-            # Try to fix a broken HTTP to HTTPS redirect
-            if r.status_code == 404 and original_url_redirected:
-                if (
-                    original_url.split("://")[0] == "http"
-                    and url.split("://")[0] == "https"
-                ):
-                    url = "https://" + original_url.split("://")[1]
-                    # print 'Maybe a broken http to https redirect, trying ', url
-                    r = session.get(url=url, allow_redirects=False)
+                r = session.get(url=url, allow_redirects=False)
 
-            if r.status_code == 200:
+                # Try to fix a broken HTTP to HTTPS redirect
+                if r.status_code == 404 and original_url_redirected:
+                    if (
+                        original_url.split("://")[0] == "http"
+                        and url.split("://")[0] == "https"
+                    ):
+                        url = "https://" + original_url.split("://")[1]
+                        # print 'Maybe a broken http to https redirect, trying ', url
+                        r = session.get(url=url, allow_redirects=False)
+
+                if r.status_code == 200:
+                    try:
+                        if len(r.content) == int(size):
+                            with open(filename3, "wb") as imagefile:
+                                imagefile.write(r.content)
+                            c_savedImageFiles += 1
+                        else:
+                            raise FileSizeError(file=filename3, size=size)
+                    except OSError:
+                        logerror(
+                            config=config, to_stdout=True,
+                            text=f"File '{filename3}' could not be created by OS",
+                        )
+                    except FileSizeError as e:
+                        logerror(
+                            config=config, to_stdout=True,
+                            text=f"File '{e.file}' size is not match '{e.size}', skipping",
+                        )
+                else:
+                    logerror(
+                        config=config, to_stdout=True,
+                        text=f"Failled to donwload '{filename2}' with URL '{url}' due to HTTP '{r.status_code}', skipping"
+                    )
+
+            if os.path.isfile(filename3+".desc"):
+                toContinue += 1
+            else:
+                Delay(config=config, session=session)
+                # saving description if any
+                title = "Image:%s" % (filename)
                 try:
-                    if len(r.content) == int(size):
-                        with open(filename3, "wb") as imagefile:
-                            imagefile.write(r.content)
-                        c_savedImageFiles += 1
+                    if (
+                        config.xmlrevisions
+                        and config.api
+                        and config.api.endswith("api.php")
+                    ):
+                        r = session.get(
+                            config.api
+                            + "?action=query&export&exportnowrap&titles="
+                            + urllib.parse.quote(title)
+                        )
+                        xmlfiledesc = r.text
                     else:
-                        raise FileSizeError(file=filename3, size=size)
+                        xmlfiledesc = Image.getXMLFileDesc(
+                            config=config, title=title, session=session
+                        )  # use Image: for backwards compatibility
+                except PageMissingError:
+                    xmlfiledesc = ""
+                    logerror(
+                        config=config, to_stdout=True,
+                        text='The image description page "%s" was missing in the wiki (probably deleted)'
+                        % (str(title)),
+                    )
+
+                try:
+                    # <text xml:space="preserve" bytes="36">Banner featuring SG1, SGA, SGU teams</text>
+                    if not re.search(r"</page>", xmlfiledesc):
+                        # failure when retrieving desc? then save it as empty .desc
+                        xmlfiledesc = ""
+
+                    # Fixup the XML
+                    if xmlfiledesc != "" and not re.search(r"</mediawiki>", xmlfiledesc):
+                        xmlfiledesc += "</mediawiki>"
+
+                    with open(f"{imagepath}/{filename2}.desc", "w", encoding="utf-8") as f:
+                        f.write(xmlfiledesc)
+                    c_savedImageDescs += 1
+
+                    if xmlfiledesc == "":
+                        logerror(
+                            config=config, to_stdout=True,
+                            text=f"Created empty .desc file: '{imagepath}/{filename2}.desc'",
+                        )
+
                 except OSError:
                     logerror(
                         config=config, to_stdout=True,
-                        text=f"File '{filename3}' could not be created by OS",
-                    )
-                except FileSizeError as e:
-                    logerror(
-                        config=config, to_stdout=True,
-                        text=f"File '{e.file}' size is not match '{e.size}', skipping",
-                    )
-            else:
-                logerror(
-                    config=config, to_stdout=True,
-                    text=f"Failled to donwload '{filename2}' with URL '{url}' due to HTTP '{r.status_code}', skipping"
-                )
-
-            Delay(config=config, session=session)
-            # saving description if any
-            title = "Image:%s" % (filename)
-            try:
-                if (
-                    config.xmlrevisions
-                    and config.api
-                    and config.api.endswith("api.php")
-                ):
-                    r = session.get(
-                        config.api
-                        + "?action=query&export&exportnowrap&titles="
-                        + urllib.parse.quote(title)
-                    )
-                    xmlfiledesc = r.text
-                else:
-                    xmlfiledesc = Image.getXMLFileDesc(
-                        config=config, title=title, session=session
-                    )  # use Image: for backwards compatibility
-            except PageMissingError:
-                xmlfiledesc = ""
-                logerror(
-                    config=config, to_stdout=True,
-                    text='The image description page "%s" was missing in the wiki (probably deleted)'
-                    % (str(title)),
-                )
-
-            try:
-                # <text xml:space="preserve" bytes="36">Banner featuring SG1, SGA, SGU teams</text>
-                if not re.search(r"</page>", xmlfiledesc):
-                    # failure when retrieving desc? then save it as empty .desc
-                    xmlfiledesc = ""
-
-                # Fixup the XML
-                if xmlfiledesc != "" and not re.search(r"</mediawiki>", xmlfiledesc):
-                    xmlfiledesc += "</mediawiki>"
-
-                with open(f"{imagepath}/{filename2}.desc", "w", encoding="utf-8") as f:
-                    f.write(xmlfiledesc)
-                c_savedImageDescs += 1
-
-                if xmlfiledesc == "":
-                    logerror(
-                        config=config, to_stdout=True,
-                        text=f"Created empty .desc file: '{imagepath}/{filename2}.desc'",
+                        text=f"File {imagepath}/{filename2}.desc could not be created by OS",
                     )
 
-            except OSError:
-                logerror(
-                    config=config, to_stdout=True,
-                    text=f"File {imagepath}/{filename2}.desc could not be created by OS",
-                )
-
+            if toContinue == 2: # skip printing
+                continue
             print_msg = f"    {(len(images)-c_savedImageFiles)}: {filename2[0:30]}"
             print(print_msg, " "*(70 - len(print_msg)), end="\r")
 
