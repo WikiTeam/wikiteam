@@ -80,6 +80,11 @@ def getArgumentParser():
         "--curonly", action="store_true", help="store only the current version of pages"
     )
     groupDownload.add_argument(
+        "--xmlapiexport",
+        action="store_true",
+        help="Export xml using API:revisions instead of Special:Export, use this when Special:Export fails and xmlrevisions not supported",
+    )
+    groupDownload.add_argument(
         "--xmlrevisions",
         action="store_true",
         help="download all revisions from an API generator. MediaWiki 1.27+ only.",
@@ -191,7 +196,7 @@ def getParameters(params=None) -> Tuple[Config, Dict]:
                 Delay(config=None, session=session, msg=msg, delay=backoff)
 
         __retries__ = CustomRetry(
-            total=int(args.retries), backoff_factor=1.5,
+            total=int(args.retries), backoff_factor=0.3,
             status_forcelist=[500, 502, 503, 504, 429],
             allowed_methods=['DELETE', 'PUT', 'GET', 'OPTIONS', 'TRACE', 'HEAD', 'POST']
         )
@@ -346,6 +351,7 @@ def getParameters(params=None) -> Tuple[Config, Dict]:
         "images": args.images,
         "logs": False,
         "xml": args.xml,
+        "xmlapiexport": args.xmlapiexport,
         "xmlrevisions": args.xmlrevisions or args.xmlrevisions_page,
         "xmlrevisions_page": args.xmlrevisions_page,
         "namespaces": namespaces,

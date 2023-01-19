@@ -18,7 +18,8 @@ def getXMLHeader(config: Config=None, session=None) -> Tuple[str, Config]:
     randomtitle = "Main_Page"  # previously AMF5LKE43MNFGHKSDMRTJ
     print(config.api)
     xml = ""
-    if config.xmlrevisions and config.api and config.api.endswith("api.php"):
+    disableSpecialExport = config.xmlrevisions or config.xmlapiexport
+    if disableSpecialExport and config.api and config.api.endswith("api.php"):
         try:
             print("Getting the XML header from the API")
             # Export and exportnowrap exist from MediaWiki 1.15, allpages from 1.18

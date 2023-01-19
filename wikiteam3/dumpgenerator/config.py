@@ -52,6 +52,7 @@ class Config:
     # Download params
     xml: bool = False
     curonly: bool = False
+    xmlapiexport: bool = False
     xmlrevisions: bool = False
     xmlrevisions_page: bool = False
     images: bool = False
