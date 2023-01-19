@@ -228,9 +228,10 @@ class DumpGenerator:
                 listdir = os.listdir("%s/images" % (config.path))
             except OSError:
                 pass  # probably directory does not exist
-            listdir.sort()
+            listdir = set(listdir)
             c_desc = 0
             c_images = 0
+            c_checked = 0
             for filename, url, uploader, size, sha1 in images:
                 lastfilename = filename
                 if other["filenamelimit"] < len(filename.encode('utf-8')):
@@ -243,6 +244,9 @@ class DumpGenerator:
                     c_images += 1
                 if filename+".desc" in listdir:
                     c_desc += 1
+                c_checked += 1
+                if c_checked % 100000 == 0:
+                    print(f"checked {c_checked}/{len(images)} records", end="\r")
             print(f"{len(images)} records in images.txt, {c_images} images and {c_desc} .desc were saved in the previous session")
             if c_desc < len(images):
                 complete = False
