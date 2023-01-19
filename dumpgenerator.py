@@ -2250,7 +2250,7 @@ def resumePreviousDump(config={}, other={}):
             listdir = os.listdir('%s/images' % (config['path']))
         except:
             pass  # probably directory does not exist
-        listdir.sort()
+        listdir = set(listdir)
         complete = True
         lastfilename = ''
         lastfilename2 = ''
