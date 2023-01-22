@@ -15,21 +15,29 @@ from wikiteam3.dumpgenerator.api.page_titles import readTitles
 from wikiteam3.dumpgenerator.dump.page.xmlrev.xml_revisions_page import makeXmlFromPage, makeXmlPageFromRaw
 from wikiteam3.dumpgenerator.config import Config
 
+ALL_NAMESPACE = -1
+
 def getXMLRevisionsByAllRevisions(config: Config=None, session=None, site: mwclient.Site=None, nscontinue=None, arvcontinue=None):
     if "all" not in config.namespaces:
         namespaces = config.namespaces
     else:
-        namespaces, namespacenames = getNamespacesAPI(config=config, session=session)
-
+        # namespaces, namespacenames = getNamespacesAPI(config=config, session=session)
+        namespaces = [ALL_NAMESPACE] # magic number refers to "all"
     _nscontinue = nscontinue
     _arvcontinue = arvcontinue
 
     for namespace in namespaces:
-        if _nscontinue is not None:
-            if namespace != _nscontinue:
-                print("Skipping already exported namespace: %d" % namespace)
-                continue
+        # Skip retrived namespace
+        if namespace == ALL_NAMESPACE:
+            assert len(namespaces) == 1, \
+                "Only one item shoule be there when 'all' namespace are specified"
             _nscontinue = None
+        else:
+            if _nscontinue is not None:
+                if namespace != _nscontinue:
+                    print("Skipping already exported namespace: %d" % namespace)
+                    continue
+                _nscontinue = None
 
         print("Trying to export all revisions from namespace %s" % namespace)
         # arvgeneratexml exists but was deprecated in 1.26 (while arv is from 1.27?!)
@@ -37,11 +45,13 @@ def getXMLRevisionsByAllRevisions(config: Config=None, session=None, site: mwcli
             "action": "query",
             "list": "allrevisions",
             "arvlimit": config.api_chunksize,
-            "arvnamespace": namespace,
             "arvdir": "newer",
         }
+        if namespace != ALL_NAMESPACE:
+            arvparams['arvnamespace'] = namespace
         if _arvcontinue is not None:
             arvparams['arvcontinue'] = _arvcontinue
+
         if not config.curonly:
             # We have to build the XML manually...
             # Skip flags, presumably needed to add <minor/> which is in the schema.
