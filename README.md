@@ -1,6 +1,6 @@
 # `wikiteam3`
 
-***We archive wikis, from Wikipedia to the tiniest wikis***
+***We archive wikis, from the largest to the tiniest wikis***
 
 `wikiteam3` is an ongoing project to port the legacy [`wikiteam`](https://github.com/WikiTeam/wikiteam) toolset to Python 3 and PyPI to make it more accessible for today's archivers.
 
@@ -95,7 +95,7 @@ The main general-purpose module of `wikiteam3` is `dumpgenerator`, which can dow
 
   </details>
 
-## Using `dumpgenerator`
+## Downloading and installing dumpgenerator
 
 The Python 3 port of the `dumpgenerator` module of `wikiteam3` is largely functional and can be installed from a downloaded or cloned copy of this repository.
 
@@ -110,9 +110,7 @@ There are two versions of these instructions:
 > 2. What command you ran that didn't work
 > 3. What output was printed to your terminal
 
-### If you just want to use a version that mostly works
-
-#### 1. Downloading and installing `wikiteam3`
+### 1. Downloading and installing `wikiteam3`
 
 In whatever folder you use for cloned repositories:
 
@@ -121,7 +119,7 @@ git clone https://github.com/elsiehupp/wikiteam3.git
 ```
 
 ```bash
-cd wikiteam3
+cd mediawiki-scraper
 ```
 
 ```bash
@@ -132,13 +130,13 @@ git checkout --track origin/python3
 pip install --force-reinstall dist/*.whl
 ```
 
-#### 2. Running `dumpgenerator` for whatever purpose you need
+### 2. Running `dumpgenerator` for whatever purpose you need
 
 ```bash
 dumpgenerator [args]
 ```
 
-#### 3. Uninstalling the package and deleting the cloned repository when you're done
+### 3. Uninstalling the package and deleting the cloned repository when you're done
 
 ```shell
 pip uninstall wikiteam3
@@ -147,6 +145,24 @@ pip uninstall wikiteam3
 ```bash
 rm -r [cloned_wikiteam3_folder]
 ```
+
+### 4. Updating MediaWiki Scraper
+
+> **Note:** Re-run the following steps each time to reinstall each time the MediaWiki Scraper branch is updated.
+
+```bash
+git pull
+```
+
+```bash
+poetry update && poetry install && poetry build
+```
+
+```bash
+pip install --force-reinstall dist/*.whl
+```
+
+### 5. Manually build and install wikiteam3
 
 If you'd like to manually build and install `wikiteam3` from a cloned or downloaded copy of this repository, run the following commands from the downloaded base directory:
 
@@ -166,95 +182,15 @@ poetry build
 pip install --force-reinstall dist/*.whl
 ```
 
-In either case, to uninstall `wikiteam3` run this command (from any local directory):
+### 6. To run the test suite
+
+To run the test suite, run:
 
 ```bash
-pip uninstall wikiteam3
+test-dumpgenerator
 ```
 
-### If you want to follow my progress and help me test my latest commit
-
-> **Note:** this branch may not actually work at any given time!
-
-#### 1. Install [Python Poetry](https://python-poetry.org/)
-
-```bash
-curl -sSL https://install.python-poetry.org | python3 -
-```
-
-> **Note:** if you get an SSL error, you may need to follow the instructions [here](https://github.com/python-poetry/poetry/issues/5117).
-
-#### 2. Cloning the repository and switching to the `prepare-for-publication` branch
-
-```bash
-git clone git@github.com:elsiehupp/wikiteam3.git
-```
-
-or
-
-```bash
-git clone https://github.com/elsiehupp/wikiteam3.git
-```
-
-then:
-
-```bash
-cd wikiteam3
-```
-
-```bash
-git checkout --track origin/prepare-for-publication
-```
-
-#### 3. Downloading and installing `wikiteam3`
-
-> **Note:** Re-run the following steps each time to reinstall each time the `wikiteam3` branch is updated.
-
-```shell
-git pull
-```
-
-```bash
-poetry update && poetry install && poetry build
-```
-
-```bash
-pip install --force-reinstall dist/*.whl
-```
-
-#### 4. Then, from anywhere, you should be able to run
-
-```shell
-dumpgenerator [args]
-```
-
-> To run the test suite, run:
->
-> ```bash
-> test-dumpgenerator
-> ```
-
-#### 5. Uninstalling the package and deleting the cloned repository when you're done
-
-```shell
-pip uninstall wikiteam3
-```
-
-```bash
-rm -r [cloned_wikiteam3_folder]
-```
-
-### Switching between branches
-
-```bash
-git checkout python3
-```
-or
-```bash
-git checkout prepare-for-publication
-```
-
-### Using `dumpgenerator` (once installed)
+## Using `dumpgenerator` (once installed)
 
 After installing `wikiteam3` using `pip` you should be able to use the `dumpgenerator` command from any local directory.
 
@@ -270,7 +206,7 @@ Several examples follow.
 
 > **Note:** the `\` and line breaks in the examples below are for legibility in this documentation. `dumpgenerator` can also be run with the arguments in a single line and separated by a single space each.
 
-#### Downloading a wiki with complete XML history and images
+### Downloading a wiki with complete XML history and images
 
 ```bash
 dumpgenerator \
@@ -279,7 +215,7 @@ dumpgenerator \
     --images
 ```
 
-#### Manually specifying `api.php` and/or `index.php`
+### Manually specifying `api.php` and/or `index.php`
 
 If the script can't find itself the `api.php` and/or `index.php` paths, then you can provide them:
 
@@ -300,7 +236,7 @@ dumpgenerator \
 
 If you only want the XML histories, just use `--xml`. For only the images, just `--images`. For only the current version of every page, `--xml --curonly`.
 
-#### Resuming an incomplete dump
+### Resuming an incomplete dump
 
 ```bash
 dumpgenerator \
@@ -315,7 +251,7 @@ In the above example, `--path` is only necessary if the download path is not the
 
 `dumpgenerator` will also ask you if you want to resume if it finds an incomplete dump in the path where it is downloading.
 
-### Using `launcher`
+## Using `launcher`
 
 `launcher` is a way to download a large list of wikis with a single invocation.
 
@@ -336,7 +272,7 @@ By default, a `7z` executable is found on `PATH`. The `--7z-path` argument can b
 
 The `--generator-arg` argument can be used to pass through arguments to the `generator` instances that are spawned. For example, one can use `--generator-arg=--xmlrevisions` to use the modern MediaWiki API for retrieving revisions or `--generator-arg=--delay=2` to use a delay of 2 seconds between requests.
 
-### Using `uploader`
+## Using `uploader`
 
 `uploader` is a way to upload a large set of already-generated wiki dumps to the Internet Archive with a single invocation.
 
@@ -369,11 +305,13 @@ grep -E '<title(.*?)>' *.xml -c;grep -E '<page(.*?)>' *.xml -c;grep "</page>" *.
   
 You should see something similar to this (not the actual numbers) - the first three numbers should be the same and the last two should be the same as each other:
 
-* 580
-* 580
-* 580
-* 5677
-* 5677
+```bash
+580
+580
+580
+5677
+5677
+```
 
 If your first three numbers or your last two numbers are different, then, your XML dump is corrupt (it contains one or more unfinished ```</page>``` or ```</revision>```). This is not common in small wikis, but large or very large wikis may fail at this due to truncated XML pages while exporting and merging. The solution is to remove the XML dump and re-download, a bit boring, and it can fail again...
 
