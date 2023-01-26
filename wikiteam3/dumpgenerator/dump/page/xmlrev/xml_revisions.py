@@ -86,6 +86,16 @@ def getXMLRevisionsByAllRevisions(config: Config=None, session=None, site: mwcli
                     print("Sleeping for 20 seconds")
                     time.sleep(20)
                     continue
+                except mwclient.errors.InvalidResponse as e:
+                    if (
+                        e.response_text.startswith("<!DOCTYPE html>")
+                        and config.http_method == "POST"
+                    ):
+                        print("POST request to the API failed (got HTML), retrying with GET")
+                        config.http_method = "GET"
+                        continue
+                    else:
+                        raise
 
                 for page in arvrequest["query"]["allrevisions"]:
                     yield makeXmlFromPage(page, arvparams.get("arvcontinue", ""))
