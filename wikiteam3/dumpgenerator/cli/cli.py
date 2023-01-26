@@ -19,6 +19,7 @@ from wikiteam3.utils import getUserAgent
 from wikiteam3.dumpgenerator.version import getVersion
 from wikiteam3.dumpgenerator.api import getWikiEngine
 from wikiteam3.dumpgenerator.config import Config, newConfig
+from wikiteam3.utils import mod_requests_text
 
 from typing import *
 
@@ -152,7 +153,7 @@ def getParameters(params=None) -> Tuple[Config, Dict]:
     if args.cookies:
         cj.load(args.cookies)
         print("Using cookies from %s" % args.cookies)
-
+    mod_requests_text(requests)
     session = requests.Session()
     try:
         from requests.adapters import HTTPAdapter
