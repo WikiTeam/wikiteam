@@ -306,7 +306,7 @@ class Image:
         return images
 
     def getImageNamesAPI(config: Config=None, session=None):
-        """Retrieve file list: filename, url, uploader"""
+        """Retrieve file list: filename, url, uploader, size, sha1"""
         oldAPI = False
         # # Commented by @yzqzss:
         # https://www.mediawiki.org/wiki/API:Allpages
@@ -389,7 +389,12 @@ class Image:
                         )
                     uploader = re.sub("_", " ", image["user"])
                     size = image["size"]
-                    sha1 = image["sha1"]
+                    
+                    # sha1 is not always available (e.g. https://wiki.mozilla.org/index.php?curid=20675)
+                    if "sha1" in image:
+                        sha1 = image["sha1"]
+                    else:
+                        sha1 = "False"
                     images.append([filename, url, uploader, size, sha1])
             else:
                 oldAPI = True
