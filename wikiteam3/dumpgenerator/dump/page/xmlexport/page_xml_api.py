@@ -9,7 +9,6 @@ from wikiteam3.dumpgenerator.api import handleStatusCode
 from wikiteam3.dumpgenerator.config import Config
 from wikiteam3.dumpgenerator.exceptions import PageMissingError, ExportAbortedError
 from wikiteam3.dumpgenerator.log import logerror
-from wikiteam3.utils import fixBOM
 
 try:
     import xml.etree.cElementTree as ET
@@ -109,7 +108,7 @@ def getXMLPageCoreWithApi(headers: Dict=None, params: Dict=None, config: Config=
         try:
             r = session.get(url=config.api, params=params, headers=headers)
             handleStatusCode(r)
-            xml = fixBOM(r)
+            xml = r.text
             # print xml
         except requests.exceptions.ConnectionError as e:
             print('    Connection error: %s' % (str(e.args[0])))

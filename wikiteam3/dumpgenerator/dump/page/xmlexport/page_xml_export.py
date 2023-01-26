@@ -8,7 +8,7 @@ import requests
 from wikiteam3.dumpgenerator.exceptions import ExportAbortedError, PageMissingError
 from wikiteam3.dumpgenerator.api import handleStatusCode
 from wikiteam3.dumpgenerator.log import logerror
-from wikiteam3.utils import uprint, fixBOM
+from wikiteam3.utils import uprint
 from wikiteam3.dumpgenerator.config import Config
 
 
@@ -77,7 +77,7 @@ def getXMLPageCore(headers: Dict=None, params: Dict=None, config: Config=None, s
                 url=config.index, params=params, headers=headers, timeout=10
             )
             handleStatusCode(r)
-            xml = fixBOM(r)
+            xml = r.text
         except requests.exceptions.ConnectionError as e:
             print("    Connection error: %s" % (str(e.args[0])))
             xml = ""
