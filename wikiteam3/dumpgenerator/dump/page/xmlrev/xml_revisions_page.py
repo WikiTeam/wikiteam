@@ -42,9 +42,8 @@ def makeXmlFromPage(page: dict, arvcontinue) -> str:
                 E.timestamp(rev["timestamp"]),]
 
             # The text, user, comment, sha1 may be deleted/suppressed
-            if 'texthidden' or 'textmissing' in rev:
-                if 'textmissing' in rev:
-                    print("Warning: text missing in pageid %d revid %d" % (page['pageid'], rev['revid']))
+            if (('texthidden' in rev) or ('textmissing' in rev)):
+                print("Warning: text missing/hidden in pageid %d revid %d" % (page['pageid'], rev['revid']))
                 revision.append(E.text(**{
                     'bytes': str(size),
                     'deleted': 'deleted',
