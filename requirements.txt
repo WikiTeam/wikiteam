@@ -100,9 +100,9 @@ lxml==4.9.1 \
 mwclient==0.10.1 \
     --hash=sha256:7aad000c4c7f239c7c92c43e2d5fbdaf8573262accd6070524ff42e46950306e \
     --hash=sha256:79363dd8d12f5e3b91b92b63152bf9dfef27da786c076a244e1f148c8dd67139
-oauthlib==3.2.0 ; python_version >= "3.6" \
-    --hash=sha256:6db33440354787f9b7f3a6dbd4febf5d0f93758354060e802f6c06cb493022fe \
-    --hash=sha256:23a8208d75b902797ea29fd31fa80a15ed9dc2c6c16fe73f5d346f83f6fa27a2
+oauthlib==3.2.2 ; python_version >= "3.6" \
+    --hash=sha256:8139f29aac13e25d502680e9e19963e83f16838d48a0d71c287fe40e7067fbca \
+    --hash=sha256:9859c40929662bec5d64f34d01c99e093149682a3f38915dc0655d5a633dd918
 poster3==0.8.1 ; python_version >= "3.8" and python_version < "4.0" \
     --hash=sha256:1b27d7d63e3191e5d7238631fc828e4493590e94dcea034e386c079d853cce14
 pre-commit-poetry-export==0.1.2 \
