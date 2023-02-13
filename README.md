@@ -1,22 +1,20 @@
-# `wikiteam3`
+# `MediaWiki Scraper`
 
-***We archive wikis, from the largest to the tiniest wikis***
+**MediaWiki Scraper can archive wikis from the largest to the tiniest.**
 
 `wikiteam3` is an ongoing project to port the legacy [`wikiteam`](https://github.com/WikiTeam/wikiteam) toolset to Python 3 and PyPI to make it more accessible for today's archivers.
 
 Most of the focus has been on the core `dumpgenerator` tool, but Python 3 versions of the other `wikiteam` tools may be added over time.
 
-## `wikiteam3` Toolset
+## MediaWiki Scraper Toolset
 
-`wikiteam3` is a set of tools for archiving wikis. The tools work on MediaWiki wikis, but the team hopes to expand to other wiki engines. As of 2020, WikiTeam has preserved more than [250,000 wikis](https://github.com/WikiTeam/wikiteam/wiki/Available-Backups), several wikifarms, regular Wikipedia dumps and [34 TB of Wikimedia Commons images](https://archive.org/details/wikimediacommons).
-
-The main general-purpose module of `wikiteam3` is `dumpgenerator`, which can download XML dumps of MediaWiki sites that can then be parsed or redeployed elsewhere.
+MediaWiki Scraper is a set of tools for archiving wikis. The main general-purpose module of MediaWiki Scraper is dumpgenerator, which can download XML dumps of MediaWiki sites that can then be parsed or redeployed elsewhere.
 
 ## Python Environment
 
-`wikiteam3` requires [Python 3.8](https://www.python.org/downloads/release/python-380/) or later (less than 4.0), but you may be able to get it run with earlier versions of Python 3. On recent versions of Linux and macOS Python 3.8 should come preinstalled, but on Windows you will need to install it from [python.org](https://www.python.org/downloads/release/python-380/).
+`MediaWiki Scraper` requires [Python 3.8](https://www.python.org/downloads/release/python-380/) or later (less than 4.0), but you may be able to get it run with earlier versions of Python 3. On recent versions of Linux and macOS Python 3.8 should come preinstalled, but on Windows you will need to install it from [python.org](https://www.python.org/downloads/release/python-380/).
 
-`wikiteam3` has been tested on Linux, macOS, Windows and Android. If you are connecting to Linux or macOS via `ssh`, you can continue using the `bash` or `zsh` command prompt in the same terminal, but if you are starting in a desktop environment and don't already have a preferred Terminal environment you can try one of the following.
+`MediaWiki Scraper` has been tested on Linux, macOS, Windows and Android. If you are connecting to Linux or macOS via `ssh`, you can continue using the `bash` or `zsh` command prompt in the same terminal, but if you are starting in a desktop environment and don't already have a preferred Terminal environment you can try one of the following.
 
 > **NOTE:** You may need to update and pre-install dependencies in order for `wikiteam3` to work properly. Shell commands for these dependencies appear below each item in the list. (Also note that while installing and running `wikiteam3` itself should not require administrative priviliges, installing dependencies usually will.)
 
@@ -59,7 +57,7 @@ The main general-purpose module of `wikiteam3` is `dumpgenerator`, which can dow
   <details>
   <summary>Windows Dependencies</summary>
   
-  A simple installation of Python suitable for running scripts and packages is available from the Microsoft Store. Python will then be available from any Command Prompt or PowerShell session. Adding `C:\Program Files\Git\usr\bin` to the `PATH` environment variable will add some some useful Linux commands and utilities to Command Prompt.
+  The latest version of Python is available from [python.org](https://www.python.org/downloads/). Python will then be available from any Command Prompt or PowerShell session. Optionally, adding C:\Program Files\Git\usr\bin to the PATH environment variable will add some some useful Linux commands and utilities to Command Prompt.
   
   If you are already using the [Windows Subsystem for Linux](https://learn.microsoft.com/en-us/windows/wsl/about), you can follow the Linux instructions above. If you don't want to install a full WSL distribution, [Git for Windows](https://gitforwindows.org/) provides Bash emulation, so you can use it as a more lightweight option instead. Git Bash also provides some useful Linux commands and utilities.
 
@@ -126,11 +124,6 @@ cd mediawiki-scraper
 poetry update && poetry install && poetry build
 ```
 
-If you're switching branches:
-```bash
-git checkout --track origin/python3
-```
-
 ```bash
 pip install --force-reinstall dist/*.whl
 ```
@@ -189,6 +182,11 @@ To run the test suite, run:
 
 ```bash
 test-dumpgenerator
+```
+
+### 7. Switching branches
+```bash
+git checkout --track origin/python3
 ```
 
 ## Using `dumpgenerator` (once installed)
