@@ -174,8 +174,8 @@ class Image:
 
             if toContinue == 2: # skip printing
                 continue
-            print_msg = f"    {(len(images)-c_savedImageFiles)}: {filename2[0:30]}"
-            print(print_msg, " "*(70 - len(print_msg)), end="\r")
+            print_msg = f"              | {(len(images)-c_savedImageFiles)}=>{filename2[0:50]}"
+            print(print_msg, " "*(73 - len(print_msg)), end="\r")
 
         print(f"Downloaded {c_savedImageFiles} images and {c_savedImageDescs} .desc files.")
 
