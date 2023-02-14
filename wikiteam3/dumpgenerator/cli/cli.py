@@ -59,13 +59,13 @@ def getArgumentParser():
     # URL params
     groupWikiOrAPIOrIndex = parser.add_argument_group()
     groupWikiOrAPIOrIndex.add_argument(
-        "wiki", default="", nargs="?", help="URL to wiki (e.g. http://wiki.domain.org)"
+        "wiki", default="", nargs="?", help="URL to wiki (e.g. http://wiki.domain.org), auto detects API and index.php"
     )
     groupWikiOrAPIOrIndex.add_argument(
         "--api", help="URL to API (e.g. http://wiki.domain.org/w/api.php)"
     )
     groupWikiOrAPIOrIndex.add_argument(
-        "--index", help="URL to index.php (e.g. http://wiki.domain.org/w/index.php)"
+        "--index", help="URL to index.php (e.g. http://wiki.domain.org/w/index.php), (not supported with --images on newer(?) MediaWiki without --api)"
     )
 
     # Download params
@@ -75,28 +75,28 @@ def getArgumentParser():
     groupDownload.add_argument(
         "--xml",
         action="store_true",
-        help="generates a full history XML dump (--xml --curonly for current revisions only)",
+        help="Export XML dump using Special:Export (index.php). (supported with --curonly)",
     )
     groupDownload.add_argument(
-        "--curonly", action="store_true", help="store only the current version of pages"
+        "--curonly", action="store_true", help="store only the lastest revision of pages"
     )
     groupDownload.add_argument(
         "--xmlapiexport",
         action="store_true",
-        help="Export xml using API:revisions instead of Special:Export, use this when Special:Export fails and xmlrevisions not supported",
+        help="Export XML dump using API:revisions instead of Special:Export, use this when Special:Export fails and xmlrevisions not supported. (supported with --curonly)",
     )
     groupDownload.add_argument(
         "--xmlrevisions",
         action="store_true",
-        help="download all revisions from an API generator. MediaWiki 1.27+ only.",
+        help="Export all revisions from an API generator (API:Allrevisions). MediaWiki 1.27+ only. (not supported with --curonly)",
     )
     groupDownload.add_argument(
         "--xmlrevisions_page",
         action="store_true",
-        help="download all revisions from an API generator, but query page by page MediaWiki 1.27+ only.",
+        help="[[! Development only !]] Export all revisions from an API generator, but query page by page MediaWiki 1.27+ only. (default: --curonly)",
     )
     groupDownload.add_argument(
-        "--images", action="store_true", help="generates an image dump"
+        "--images", action="store_true", help="Generates an image dump"
     )
     groupDownload.add_argument(
         "--namespaces",
@@ -143,6 +143,12 @@ def getParameters(params=None) -> Tuple[Config, Dict]:
     # No download params and no meta info params? Exit
     if (not args.xml and not args.images) and (not args.get_wiki_engine):
         print("ERROR: Use at least one download param or meta info param")
+        parser.print_help()
+        sys.exit(1)
+
+    # --xmlrevisions not supported with --curonly
+    if args.xmlrevisions and args.curonly:
+        print("ERROR: --xmlrevisions not supported with --curonly")
         parser.print_help()
         sys.exit(1)
 
