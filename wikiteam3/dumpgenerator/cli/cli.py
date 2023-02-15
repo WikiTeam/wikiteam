@@ -12,6 +12,7 @@ import requests
 import urllib3
 
 from wikiteam3.dumpgenerator.api import checkRetryAPI, mwGetAPIAndIndex
+from wikiteam3.utils.login import uniLogin
 from .delay import Delay
 from wikiteam3.utils import domain2prefix
 from wikiteam3.dumpgenerator.api.index_check import checkIndex
@@ -215,6 +216,8 @@ def getParameters(params=None) -> Tuple[Config, Dict]:
     session.cookies = cj
     session.headers.update({"User-Agent": getUserAgent()})
     setupUserAgent(session)
+
+    # set HTTPBasicAuth
     if args.user and args.password:
         session.auth = (args.user, args.password)
 
@@ -268,7 +271,7 @@ def getParameters(params=None) -> Tuple[Config, Dict]:
         # Replace the index URL we got from the API check
         index2 = check[1]
         api = checkedapi
-        print("API is OK: " + checkedapi)
+        print("API is OK: ",  checkedapi)
     else:
         if index and not args.wiki:
             print("API not available. Trying with index.php only.")
@@ -277,6 +280,17 @@ def getParameters(params=None) -> Tuple[Config, Dict]:
             print("Error in API. Please, provide a correct path to API")
             sys.exit(1)
 
+    # login if needed
+    # TODO: Re-login after session regeneration.
+    if api and args.user and args.password:
+        _session = uniLogin(api=api, session=session, username=args.user, password=args.password)
+        if _session:
+            session = _session
+            print("-- Login OK --")
+        else:
+            print("-- Login failed --")
+
+    # check index
     if index and checkIndex(index=index, cookies=args.cookies, session=session):
         print("index.php is OK")
     else:
