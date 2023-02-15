@@ -162,6 +162,7 @@ def getParameters(params=None) -> Tuple[Config, Dict]:
         print("Using cookies from %s" % args.cookies)
     mod_requests_text(requests)
     session = requests.Session()
+
     try:
         from requests.adapters import HTTPAdapter
         from urllib3.util.retry import Retry
@@ -282,8 +283,8 @@ def getParameters(params=None) -> Tuple[Config, Dict]:
 
     # login if needed
     # TODO: Re-login after session regeneration.
-    if api and args.user and args.password:
-        _session = uniLogin(api=api, session=session, username=args.user, password=args.password)
+    if args.user and args.password:
+        _session = uniLogin(api=api, index=index, session=session, username=args.user, password=args.password)
         if _session:
             session = _session
             print("-- Login OK --")
