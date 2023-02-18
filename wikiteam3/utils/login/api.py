@@ -1,9 +1,11 @@
 """ Available since MediaWiki 1.27. login to a wiki using username and password (API) """
 
+from typing import *
+
 import requests
 
 
-def fetchLoginToken(session: requests.Session, api: str) -> str|None:
+def fetchLoginToken(session: requests.Session, api: str) -> Optional[str]:
     """ fetch login token by API .(MediaWiki 1.27+)"""
 
     response = session.get(
@@ -23,7 +25,7 @@ def fetchLoginToken(session: requests.Session, api: str) -> str|None:
         return None
 
 
-def clientLogin(api: str ,session: requests.Session, username: str, password: str):
+def clientLogin(api: str ,session: requests.Session, username: str, password: str) -> Optional[requests.Session]:
     """ login to a wiki using username and password. (MediaWiki 1.27+)"""
 
     login_token = fetchLoginToken(session=session, api=api)
@@ -52,7 +54,7 @@ def clientLogin(api: str ,session: requests.Session, username: str, password: st
     return session
 
 
-def botLogin(api:str ,session: requests.Session, username: str, password: str):
+def botLogin(api:str ,session: requests.Session, username: str, password: str) -> Optional[requests.Session]:
     """ login to a wiki using BOT's name and password. (MediaWiki 1.27+) """
 
     login_token = fetchLoginToken(session=session, api=api)
