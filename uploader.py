@@ -265,7 +265,7 @@ def upload(wikis, config={}, uploadeddumps=[]):
                         logoextension = 'unknown'
                     logoname = 'wiki-' + wikiname + '_logo.' + logoextension
                     item.upload({logoname: logo}, access_key=accesskey, secret_key=secretkey, verbose=True)
-            except requests.exceptions.ConnectionError:
+            except requests.exceptions.ConnectionError as e:
                 print(e)
 
             c += 1
