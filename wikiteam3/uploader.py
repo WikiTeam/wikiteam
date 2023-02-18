@@ -337,11 +337,12 @@ def upload(wikis, logfile, config={}, uploadeddumps=[]):
                     logoname = "wiki-" + wikiname + "_logo." + logoextension
                     item.upload(
                         {logoname: logo},
-                        access_key=accesskey,
-                        secret_key=secretkey,
+                        access_key=ia_keys["access"],
+                        secret_key=ia_keys["secret"],
                         verbose=True,
                     )
-            except requests.exceptions.ConnectionError:
+            except requests.exceptions.ConnectionError as e:
+                print(wiki, dump, "Error when uploading logo?")
                 print(e)
 
             c += 1
