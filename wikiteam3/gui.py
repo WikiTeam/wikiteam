@@ -51,7 +51,8 @@ from tkinter import (
     ttk,
 )
 
-import dumpgenerator
+from wikiteam3.dumpgenerator.api.api import checkAPI
+from wikiteam3.dumpgenerator.api.index_check import checkIndex
 
 wikifarms = {
     "gentoo_wikicom": "Gentoo Wiki",
@@ -344,7 +345,7 @@ class App:
                     self.msg("api.php is incorrect!", level="error")
             elif self.optionmenu11var.get() == "index.php":
                 self.msg("Please wait... Checking index.php...")
-                if checkIndexphp(self.entry11.get()):
+                if checkIndex(self.entry11.get()):
                     self.entry11.config(background="lightgreen")
                     self.msg("index.php is OK!", level="ok")
                 else:

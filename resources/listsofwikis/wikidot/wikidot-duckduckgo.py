@@ -40,12 +40,13 @@ def main():
             continue
         html = urllib.parse.unquote(html)
         m = re.findall(r"://([^/]+?\.wikidot\.com)", html)
+        wikis = []
         for wiki in m:
             wiki = "https://" + wiki
             if not wiki in wikis:
                 wikis.append(wiki)
-                wikis.sort()
                 print(wiki)
+        wikis.sort()
         with open("wikidot-duckduckgo.txt", "w") as f:
             wikis2 = []
             for wiki in wikis:
