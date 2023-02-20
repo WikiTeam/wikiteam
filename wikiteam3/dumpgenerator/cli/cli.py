@@ -48,9 +48,15 @@ def getArgumentParser():
         help="resumes previous incomplete dump (requires --path)",
     )
     parser.add_argument("--force", action="store_true", help="")
-    parser.add_argument("--user", help="Username if authentication is required.")
+    parser.add_argument("--user", help="Username if MedaiWiki authentication is required.")
     parser.add_argument(
-        "--pass", dest="password", help="Password if authentication is required."
+        "--pass", dest="password", help="Password if MediaWiki authentication is required."
+    )
+    parser.add_argument(
+        "--http-user", dest="http_user", help="Username if HTTP authentication is required."
+    )
+    parser.add_argument(
+        "--http-pass", dest="http_password", help="Password if HTTP authentication is required."
     )
 
     parser.add_argument(
@@ -218,8 +224,8 @@ def getParameters(params=None) -> Tuple[Config, Dict]:
     session.headers.update({"User-Agent": getUserAgent()})
     setupUserAgent(session)
 
-    # set HTTPBasicAuth
-    if args.user and args.password:
+    # Set HTTP Basic Auth
+    if args.http_user and args.http_password:
         session.auth = (args.user, args.password)
 
     # Execute meta info params
