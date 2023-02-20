@@ -136,40 +136,66 @@ def getArgumentParser():
     )
     return parser
 
+
+def checkParameters(args=argparse.Namespace()) -> bool:
+
+    passed = True
+
+    # Don't mix download params and meta info params
+    if (args.xml or args.images) and (args.get_wiki_engine):
+        print("ERROR: Don't mix download params and meta info params")
+        passed = False
+
+    # No download params and no meta info params? Exit
+    if (not args.xml and not args.images) and (not args.get_wiki_engine):
+        print("ERROR: Use at least one download param or meta info param")
+        passed = False
+
+    # Check user and pass (one requires both)
+    if (args.user and not args.password) or (args.password and not args.user):
+        print("ERROR: Both --user and --pass are required for authentication.")
+        passed = False
+
+    # Check http-user and http-pass (one requires both)
+    if (args.http_user and not args.http_password) or (args.http_password and not args.http_user):
+        print("ERROR: Both --http-user and --http-pass are required for authentication.")
+        passed = False
+
+    # --curonly requires --xml
+    if args.curonly and not args.xml:
+        print("ERROR: --curonly requires --xml")
+        passed = False
+    
+    # --xmlrevisions not supported with --curonly
+    if args.xmlrevisions and args.curonly:
+        print("ERROR: --xmlrevisions not supported with --curonly")
+        passed = False
+    
+    # Check URLs
+    for url in [args.api, args.index, args.wiki]:
+        if url and (not url.startswith("http://") and not url.startswith("https://")):
+            print(url)
+            print("ERROR: URLs must start with http:// or https://")
+            passed = False
+    
+    return passed
+
 def getParameters(params=None) -> Tuple[Config, Dict]:
     # if not params:
     #     params = sys.argv
 
     parser = getArgumentParser()
     args = parser.parse_args(params)
+    if checkParameters(args) is not True:
+        print("\n\n")
+        parser.print_help()
+        sys.exit(1)
     # print (args)
-
-    # Don't mix download params and meta info params
-    if (args.xml or args.images) and (args.get_wiki_engine):
-        print("ERROR: Don't mix download params and meta info params")
-        parser.print_help()
-        sys.exit(1)
-
-    # No download params and no meta info params? Exit
-    if (not args.xml and not args.images) and (not args.get_wiki_engine):
-        print("ERROR: Use at least one download param or meta info param")
-        parser.print_help()
-        sys.exit(1)
-
-    # --xmlrevisions not supported with --curonly
-    if args.xmlrevisions and args.curonly:
-        print("ERROR: --xmlrevisions not supported with --curonly")
-        parser.print_help()
-        sys.exit(1)
 
     ########################################
 
     # Create session
-    cj = http.cookiejar.MozillaCookieJar()
-    if args.cookies:
-        cj.load(args.cookies)
-        print("Using cookies from %s" % args.cookies)
-    mod_requests_text(requests)
+    mod_requests_text(requests) # monkey patch
     session = requests.Session()
 
     # Disable SSL verification
@@ -230,9 +256,17 @@ def getParameters(params=None) -> Tuple[Config, Dict]:
     except:
         # Our urllib3/requests is too old
         pass
+
+    # Set cookies
+    cj = http.cookiejar.MozillaCookieJar()
+    if args.cookies:
+        cj.load(args.cookies)
+        print("Using cookies from %s" % args.cookies)
     session.cookies = cj
+
+    # Setup user agent
     session.headers.update({"User-Agent": getUserAgent()})
-    setupUserAgent(session)
+    setupUserAgent(session) # monkey patch
 
     # Set HTTP Basic Auth
     if args.http_user and args.http_password:
@@ -242,15 +276,7 @@ def getParameters(params=None) -> Tuple[Config, Dict]:
     if args.wiki:
         if args.get_wiki_engine:
             print(getWikiEngine(url=args.wiki, session=session))
-            sys.exit()
-
-    # check URLs
-    for url in [args.api, args.index, args.wiki]:
-        if url and (not url.startswith("http://") and not url.startswith("https://")):
-            print(url)
-            print("ERROR: URLs must start with http:// or https://\n")
-            parser.print_help()
-            sys.exit(1)
+            sys.exit(0)
 
     # Get API and index and verify
     api = args.api if args.api else ""
@@ -298,7 +324,7 @@ def getParameters(params=None) -> Tuple[Config, Dict]:
             sys.exit(1)
 
     # login if needed
-    # TODO: Re-login after session regeneration.
+    # TODO: Re-login after session expires
     if args.user and args.password:
         _session = uniLogin(api=api, index=index, session=session, username=args.user, password=args.password)
         if _session:
@@ -331,11 +357,6 @@ def getParameters(params=None) -> Tuple[Config, Dict]:
                     )
                     sys.exit(1)
 
-    # check user and pass (one requires both)
-    if (args.user and not args.password) or (args.password and not args.user):
-        print("ERROR: Both --user and --pass are required for authentication.")
-        parser.print_help()
-        sys.exit(1)
 
     namespaces = ["all"]
     exnamespaces = []
@@ -372,11 +393,6 @@ def getParameters(params=None) -> Tuple[Config, Dict]:
             else:
                 exnamespaces = [int(i) for i in ns.split(",")]
 
-    # --curonly requires --xml
-    if args.curonly and not args.xml:
-        print("--curonly requires --xml\n")
-        parser.print_help()
-        sys.exit(1)
 
     config = newConfig({
         "curonly": args.curonly,
