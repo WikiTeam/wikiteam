@@ -58,6 +58,9 @@ def getArgumentParser():
     parser.add_argument(
         "--http-pass", dest="http_password", help="Password if HTTP authentication is required."
     )
+    parser.add_argument(
+        '--insecure', action='store_true', help='Disable SSL certificate verification'
+    )
 
     parser.add_argument(
         "--stdout-log-file", dest="stdout_log_path", default=None, help="Path to copy stdout to",
@@ -169,6 +172,13 @@ def getParameters(params=None) -> Tuple[Config, Dict]:
     mod_requests_text(requests)
     session = requests.Session()
 
+    # Disable SSL verification
+    if args.insecure:
+        session.verify = False
+        requests.packages.urllib3.disable_warnings()
+        print("WARNING: SSL certificate verification disabled")
+
+    # Custom session retry
     try:
         from requests.adapters import HTTPAdapter
         from urllib3.util.retry import Retry
