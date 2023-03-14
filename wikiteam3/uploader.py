@@ -109,7 +109,11 @@ def upload(wikis, logfile, config={}, uploadeddumps=[]):
         c = 0
         for dump in dumps:
             wikidate = dump.name.split("-")[1]
-            item = get_item("wiki-" + wikiname)
+            identifier = "wiki-" + wikiname
+            item = get_item(identifier)
+            if item.exists and config.append_date and not config.admin:
+                identifier += "-" + wikidate
+                item = get_item(identifier)
             if dump.name in uploadeddumps:
                 if config.prune_directories:
                     rmpath = dumpdir / f"{wikiname}-{wikidate}-wikidump"
@@ -317,8 +321,8 @@ def upload(wikis, logfile, config={}, uploadeddumps=[]):
                 )
                 item.modify_metadata(md)  # update
                 print(
-                    "You can find it in https://archive.org/details/wiki-%s"
-                    % (wikiname)
+                    "You can find it in https://archive.org/details/%s"
+                    % (identifier)
                 )
                 uploadeddumps.append(dump.name)
             except Exception as e:
@@ -370,6 +374,7 @@ Use --help to print this help."""
     parser.add_argument("-u", "--update", action="store_true")
     parser.add_argument("-kf", "--keysfile", default="keys.txt")
     parser.add_argument("-lf", "--logfile", default=None)
+    parser.add_argument("-d", "--append_date", action="store_true")
     parser.add_argument("listfile")
     config = parser.parse_args()
     if config.admin:
