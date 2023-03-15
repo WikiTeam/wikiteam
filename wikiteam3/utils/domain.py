@@ -14,6 +14,7 @@ def domain2prefix(config: Config=None, session=None):
 
     domain = domain.lower()
     domain = re.sub(r"(https?://|www\.|/index\.php.*|/api\.php.*)", "", domain)
+    domain = domain.rstrip("/")
     domain = re.sub(r"/", "_", domain)
     domain = re.sub(r"\.", "", domain)
     domain = re.sub(r"[^A-Za-z0-9]", "_", domain)
