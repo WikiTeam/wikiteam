@@ -62,10 +62,12 @@ class Tee(object):
         self.stdout.flush()
 
 class DumpGenerator:
+    configfilename = "config.json"
+
     @staticmethod
     def __init__(params=None):
         """Main function"""
-        configfilename = "config.json"
+        configfilename = DumpGenerator.configfilename
         config, other = getParameters(params=params)
         avoidWikimediaProjects(config=config, other=other)
 
@@ -192,22 +194,21 @@ class DumpGenerator:
         if config.images:
             # load images list
             lastimage = ""
-            try:
-                f = open(
-                    "%s/%s-%s-images.txt"
-                    % (config.path, domain2prefix(config=config), config.date),
-                    encoding="utf-8",
-                )
+            imagesFilePath = "%s/%s-%s-images.txt" % (config.path, domain2prefix(config=config), config.date)
+            if os.path.exists(imagesFilePath):
+                f = open(imagesFilePath)
                 lines = f.read().splitlines()
                 for l in lines:
                     if re.search(r"\t", l):
                         images.append(l.split("\t"))
-                lastimage = lines[-1].strip()
+                if len(lines) == 0: # empty file
+                    lastimage = "--EMPTY--"
+                if lastimage == "":
+                    lastimage = lines[-1].strip()
                 if lastimage == "":
                     lastimage = lines[-2].strip()
                 f.close()
-            except FileNotFoundError:
-                pass  # probably file does not exists
+
             if len(images)>0 and len(images[0]) < 5:
                 print(
                     "Warning: Detected old images list (images.txt) format.\n"+
