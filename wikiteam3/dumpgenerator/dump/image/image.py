@@ -56,7 +56,8 @@ class Image:
             filename3 = f"{imagepath}/{filename2}"
             
             # check if file already exists and has the same size and sha1
-            if ((os.path.isfile(filename3)
+            if ((size != 'False'
+                and os.path.isfile(filename3)
                 and os.path.getsize(filename3) == int(size)
                 and sha1File(filename3) == sha1)
             or (sha1 == 'False' and os.path.isfile(filename3))): 
@@ -68,7 +69,8 @@ class Image:
                 print(print_msg[0:70], end="\r")
                 if sha1 == 'False':
                     logerror(config=config, to_stdout=True,
-                    text=f"sha1 is 'False' for {filename2}, file may not in wiki site (probably deleted). we will try to download it...")
+                    text=f"sha1 is 'False' for {filename2}, file may not in wiki site (probably deleted). "
+                        +"we will not try to download it...")
             else:
                 Delay(config=config, session=session)
                 original_url = url
@@ -283,7 +285,10 @@ class Image:
                 uploader = re.sub("_", " ", i.group("uploader"))
                 uploader = undoHTMLEntities(text=uploader)
                 uploader = urllib.parse.unquote(uploader)
-                images.append([filename, url, uploader])
+                images.append([
+                    filename, url, uploader,
+                    'False', 'False' # size, sha1 not available
+                ])
                 # print (filename, url)
 
             if re.search(r_next, raw):
@@ -385,16 +390,13 @@ class Image:
                         raise NotImplementedError(
                             "Filename "
                             + filename
-                            + " contains unicode. Please file an issue with WikiTeam."
+                            + " contains unicode. Please file an issue with MediaWiki Scraper."
                         )
-                    uploader = re.sub("_", " ", image["user"])
-                    size = image["size"]
+                    uploader = re.sub("_", " ", image.get("user", "Unknown"))
+                    size = image.get("size", "False")
                     
-                    # sha1 is not always available (e.g. https://wiki.mozilla.org/index.php?curid=20675)
-                    if "sha1" in image:
-                        sha1 = image["sha1"]
-                    else:
-                        sha1 = "False"
+                    # size or sha1 is not always available (e.g. https://wiki.mozilla.org/index.php?curid=20675)
+                    sha1 = image.get("sha1", "False")
                     images.append([filename, url, uploader, size, sha1])
             else:
                 oldAPI = True
@@ -463,8 +465,8 @@ class Image:
 
                         filename = re.sub("_", " ", tmp_filename)
                         uploader = re.sub("_", " ", props["imageinfo"][0]["user"])
-                        size = props["imageinfo"][0]["size"]
-                        sha1 = props["imageinfo"][0]["sha1"]
+                        size = props.get("imageinfo")[0].get("size", "False")
+                        sha1 = props.get("imageinfo")[0].get("sha1", "False")
                         images.append([filename, url, uploader, size, sha1])
                 else:
                     # if the API doesn't return query data, then we're done
@@ -486,15 +488,18 @@ class Image:
         imagesfile = open(
             "{}/{}".format(config.path, imagesfilename), "w", encoding="utf-8"
         )
-        imagesfile.write(
-            "\n".join(
-                [
-                    filename + "\t" + url + "\t" + uploader + "\t" + str(size) + "\t" + str(sha1) # sha1 may be False if file is missing, so convert bool to str
-                    for filename, url, uploader, size, sha1 in images
-                ]
+        for line in images:
+            while 3 <= len(line) < 5:
+                line.append("False") # At this point, make sure all lines have 5 elements
+            filename, url, uploader, size, sha1 = line
+            print(line,end='\r')
+            imagesfile.write(
+                filename + "\t" + url + "\t" + uploader
+                + "\t" + str(size) + "\t" + str(sha1)
+                # sha1 or size may be `False` if file is missing, so convert bool to str
+                + "\n"
             )
-        )
-        imagesfile.write("\n--END--")
+        imagesfile.write("--END--")
         imagesfile.close()
 
         print("Image filenames and URLs saved at...", imagesfilename)
