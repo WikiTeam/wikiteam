@@ -9,19 +9,24 @@ from wikiteam3.dumpgenerator.cli import Delay
 from wikiteam3.dumpgenerator.api.namespaces import getNamespacesAPI, getNamespacesScraper
 from wikiteam3.utils import domain2prefix, cleanHTML, undoHTMLEntities
 from wikiteam3.dumpgenerator.config import Config
+from wikiteam3.utils.monkey_patch import DelaySession
 
 
 def getPageTitlesAPI(config: Config=None, session=None):
     """Uses the API to get the list of page titles"""
     titles = []
     namespaces, namespacenames = getNamespacesAPI(config=config, session=session)
+
+    # apply delay to the session for mwclient.Site.allpages()
+    delay_session = DelaySession(session=session, msg="Session delay: "+__name__, config=config)
+    delay_session.hijack()
     for namespace in namespaces:
         if namespace in config.exnamespaces:
             print("    Skipping namespace = %d" % (namespace))
             continue
 
         c = 0
-        sys.stdout.write("    Retrieving titles in the namespace %d" % (namespace))
+        print("    Retrieving titles in the namespace %d" % (namespace))
         apiurl = urlparse(config.api)
         site = mwclient.Site(
             apiurl.netloc, apiurl.path.replace("api.php", ""), scheme=apiurl.scheme, pool=session
@@ -36,11 +41,7 @@ def getPageTitlesAPI(config: Config=None, session=None):
             print("Probably a loop, switching to next namespace")
             titles = list(set(titles))
 
-        sys.stdout.write(
-            "\r    %d titles retrieved in the namespace %d\n" % (c, namespace)
-        )
-        sys.stdout.flush()
-        Delay(config=config, session=session)
+    delay_session.release()
 
 
 def getPageTitlesScraper(config: Config=None, session=None):
