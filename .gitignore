@@ -6,6 +6,7 @@ batchdownload/dumpgenerator.py
 batchdownload/uploader.py
 __pycache__
 tests/tmp
+dist/
 .DS_Store
 desktop.ini
 
