@@ -107,12 +107,13 @@ def upload(wikis, logfile, config={}, uploadeddumps=[]):
                 # break
 
         c = 0
+        identifier = "wiki-" + wikiname
+        item = get_item(identifier)
+        first_item_exists = item.exists
         for dump in dumps:
             wikidate = dump.name.split("-")[1]
-            identifier = "wiki-" + wikiname
-            item = get_item(identifier)
-            if item.exists and config.append_date and not config.admin:
-                identifier += "-" + wikidate
+            if first_item_exists and config.append_date and not config.admin:
+                identifier = "wiki-" + wikiname  + "-" + wikidate
                 item = get_item(identifier)
             if dump.name in uploadeddumps:
                 if config.prune_directories:
