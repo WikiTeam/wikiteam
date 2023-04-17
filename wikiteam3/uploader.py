@@ -323,6 +323,12 @@ def upload(wikis, logfile, config={}, uploadeddumps=[]):
                     verbose=True,
                     queue_derive=False,
                 )
+                retry = 20
+                while not item.exists and retry > 0:
+                    retry -= 1
+                    print('Waitting for item "%s" to be created... (%s)' % (identifier, retry))
+                    time.sleep(10)
+                    item = get_item(identifier)
                 item.modify_metadata(md)  # update
                 print(
                     "You can find it in https://archive.org/details/%s"
