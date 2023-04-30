@@ -329,7 +329,15 @@ def upload(wikis, logfile, config={}, uploadeddumps=[]):
                     print('Waitting for item "%s" to be created... (%s)' % (identifier, retry))
                     time.sleep(10)
                     item = get_item(identifier)
-                item.modify_metadata(md)  # update
+
+                # Update metadata
+                r = item.modify_metadata(md,
+                                    access_key=ia_keys["access"], secret_key=ia_keys["secret"])
+                if r.status_code != 200:
+                    print("Error when updating metadata")
+                    print(r.status_code)
+                    print(r.text)
+
                 print(
                     "You can find it in https://archive.org/details/%s"
                     % (identifier)
