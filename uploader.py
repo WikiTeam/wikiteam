@@ -256,7 +256,7 @@ def upload(wikis, config={}, uploadeddumps=[]):
                     time.sleep(10)
                     item = get_item(identifier)
 
-                item.modify_metadata(md) # update
+                item.modify_metadata(md, access_key=accesskey, secret_key=secretkey) # update
                 print 'You can find it in https://archive.org/details/%s' % (identifier)
                 uploadeddumps.append(dump)
             except Exception as e:
