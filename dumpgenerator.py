@@ -992,7 +992,7 @@ def getXMLRevisions(config={}, session=None, allpages=False, start=None):
                     if e.response.status_code == 405 and config['http_method'] == "POST":
                         print("POST request to the API failed, retrying with GET")
                         config['http_method'] = "GET"
-                        exportrequest = site.api(http_method=config['http_method'], **exportparams)
+                        prequest = site.api(http_method=config['http_method'], **exportparams)
                 except mwclient.errors.InvalidResponse:
                     logerror(
                                 config=config,
