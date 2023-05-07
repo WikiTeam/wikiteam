@@ -187,13 +187,27 @@ def getXMLPageWithApi(config: Config=None, title="", verbose=True, session=None)
             continueVal = None
             if root.find('continue') is not None:
                 # uses continue.rvcontinue
+                # MW 1.26+
                 continueKey = 'rvcontinue'
                 continueVal = root.find('continue').attrib['rvcontinue']
             elif root.find('query-continue') is not None:
-                continueKey = 'rvstartid'
                 revContinue = root.find('query-continue').find('revisions')
                 assert revContinue is not None, "Should only have revisions continue"
-                continueVal = revContinue.attrib['rvstartid']
+                if 'rvcontinue' in revContinue.attrib:
+                    # MW 1.21 ~ 1.25
+                    continueKey = 'rvcontinue'
+                    continueVal = revContinue.attrib['rvcontinue']
+                elif 'rvstartid' in revContinue.attrib:
+                    # TODO: MW ????
+                    continueKey = 'rvstartid'
+                    continueVal = revContinue.attrib['rvstartid']
+                else:
+                    # blindly assume the first attribute is the continue key
+                    # may never happen
+                    assert len(revContinue.attrib) > 0, "Should have at least one attribute"
+                    for continueKey in revContinue.attrib.keys():
+                        continueVal = revContinue.attrib[continueKey]
+                        break
             if continueVal is not None:
                 params[continueKey] = continueVal
             try:
