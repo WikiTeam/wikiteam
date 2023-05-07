@@ -983,7 +983,7 @@ def getXMLRevisions(config={}, session=None, allpages=False, start=None):
                     'action': 'query',
                     'titles': '|'.join(titlelist),
                     'prop': 'revisions',
-                    #'rvlimit': 50,
+                    'rvlimit': 50,
                     'rvprop': 'ids|timestamp|user|userid|size|sha1|contentmodel|comment|content',
                 }
                 try:
@@ -1028,8 +1028,8 @@ def getXMLRevisions(config={}, session=None, allpages=False, start=None):
                     # Get next batch of revisions if there's more.
                     if 'continue' in prequest.keys():
                         print("Getting more revisions for the page")
-                        for key, value in prequest['continue']:
-                            params[key] = value
+                        for key, value in prequest['continue'].iteritems():
+                            pparams[key] = value
                     elif 'query-continue' in prequest.keys():
                         rvstartid = prequest['query-continue']['revisions']['rvstartid']
                         pparams['rvstartid'] = rvstartid
