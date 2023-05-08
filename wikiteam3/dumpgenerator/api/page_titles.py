@@ -244,7 +244,7 @@ def readTitles(config: Config=None, session=None, start=None, batch=False):
 
     titlelist = []
     seeking = False
-    if start:
+    if start is not None:
         seeking = True
 
     with titlesfile as f:
