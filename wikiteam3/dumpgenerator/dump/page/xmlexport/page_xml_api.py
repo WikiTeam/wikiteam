@@ -40,6 +40,7 @@ def reconstructRevisions(root=None):
                 comment.set('deleted','deleted')
 
             # some revision does not return model and format, so just use hard-code
+            # TODO: not hard-code here
             ET.SubElement(rev_,'model').text = 'wikitext'
             ET.SubElement(rev_,'format').text = 'text/x-wiki'
             text = ET.SubElement(rev_,'text')
@@ -134,7 +135,14 @@ def getXMLPageWithApi(config: Config=None, title="", verbose=True, session=None)
     if not config.curonly:
         params = {'titles': title_, 'action': 'query', 'format': 'xml',
                   'prop': 'revisions',
-                  'rvprop': 'timestamp|user|comment|content|ids|userid|sha1|size|flags',
+                  'rvprop': # rvprop: <https://www.mediawiki.org/wiki/API:Revisions#Parameter_history>
+                            'timestamp|user|comment|content' # MW v????
+                            'ids|flags|size|' # MW v1.11
+                            'userid|' # MW v1.17
+                            'sha1|' # MW v1.19
+                            'contentmodel|' # MW v1.21
+                            ,
+
                   'rvcontinue': None,
                   'rvlimit': config.api_chunksize
                   }
