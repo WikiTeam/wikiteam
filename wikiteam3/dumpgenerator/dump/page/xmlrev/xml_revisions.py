@@ -271,7 +271,7 @@ def getXMLRevisionsByTitles(config: Config=None, session=None, site: mwclient.Si
                 "action": "query",
                 "titles": "|".join(titlelist),
                 "prop": "revisions",
-                # 'rvlimit': 50,
+                'rvlimit': config.api_chunksize,
                 "rvprop": "ids|timestamp|user|userid|size|sha1|contentmodel|comment|content",
             }
             try:
@@ -326,7 +326,7 @@ def getXMLRevisionsByTitles(config: Config=None, session=None, site: mwclient.Si
                 # Get next batch of revisions if there's more.
                 if "continue" in prequest.keys():
                     print("Getting more revisions for the page")
-                    for key, value in prequest["continue"]:
+                    for key, value in prequest["continue"].items():
                         pparams[key] = value
                 elif "query-continue" in prequest.keys():
                     rvstartid = prequest["query-continue"]["revisions"]["rvstartid"]
