@@ -22,7 +22,7 @@ def getXMLHeader(config: Config=None, session=None) -> Tuple[str, Config]:
     if disableSpecialExport and config.api and config.api.endswith("api.php"):
         try:
             print("Getting the XML header from the API")
-            # Export and exportnowrap exist from MediaWiki 1.15, allpages from 1.18
+            # Export and exportnowrap exist from MediaWiki 1.15, allpages from 1.8
             r = session.get(
                 config.api
                 + "?action=query&export=1&exportnowrap=1&list=allpages&aplimit=1",

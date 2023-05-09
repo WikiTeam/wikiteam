@@ -315,12 +315,12 @@ class Image:
         oldAPI = False
         # # Commented by @yzqzss:
         # https://www.mediawiki.org/wiki/API:Allpages
-        # API:Allpages requires MediaWiki >= 1.18
+        # API:Allpages requires MW >= 1.8 
+        # (Note: The documentation says that it requires MediaWiki >= 1.18, but that's not true.)
+        # (Read the revision history of [[API:Allpages]] and the source code of MediaWiki, you will
+        # know that it's existed since MW 1.8) (2023-05-09)
         # https://www.mediawiki.org/wiki/API:Allimages
-        # API:Allimages requires MediaWiki >= 1.13
-        # Why allpages is defined as oldAPI, I don't know.
-        # Allimages is faster than allpages?
-        # TODO: We need a test to check which is faster.
+        # API:Allimages requires MW >= 1.13
 
         aifrom = "!"
         images = []
