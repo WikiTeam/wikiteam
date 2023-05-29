@@ -54,6 +54,12 @@ def reconstructRevisions(root=None):
             # minor edit (optional)
             if 'minor' in rev.attrib:
                 ET.SubElement(rev_,'minor')
+            # model and format (optional, export-0.8+)
+            if 'contentmodel' in rev.attrib:
+                ET.SubElement(rev_,'model').text = rev.attrib['contentmodel'] # default: 'wikitext'
+            if 'contentformat' in rev.attrib:
+                ET.SubElement(rev_,'format').text = rev.attrib['contentformat'] # default: 'text/x-wiki'
+            # text
             text = ET.SubElement(rev_,'text')
             if 'texthidden' not in rev.attrib:
                 text.attrib['xml:space'] = "preserve"
