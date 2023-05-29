@@ -287,9 +287,9 @@ def getPageTitlesScraper(config={}, session=None):
 
         r_title = r'title="(?P<title>[^>]+)">'
         r_suballpages = ''
-        r_suballpages1 = r'&amp;from=(?P<from>[^>]+)&amp;to=(?P<to>[^>]+)">'
-        r_suballpages2 = r'Special:Allpages/(?P<from>[^>]+)">'
-        r_suballpages3 = r'&amp;from=(?P<from>[^>]+)" title="[^>]+">'
+        r_suballpages1 = r'&amp;from=(?P<from>[^>"]+)&amp;to=(?P<to>[^>"]+)">'
+        r_suballpages2 = r'Special:Allpages/(?P<from>[^>"]+)">'
+        r_suballpages3 = r'&amp;from=(?P<from>[^>"]+)" title="[^>]+">'
         if re.search(r_suballpages1, raw):
             r_suballpages = r_suballpages1
         elif re.search(r_suballpages2, raw):
@@ -299,7 +299,7 @@ def getPageTitlesScraper(config={}, session=None):
         else:
             pass  # perhaps no subpages
 
-        # Should be enought subpages on Special:Allpages
+        # Should be enough subpages on Special:Allpages
         deep = 50
         c = 0
         oldfr = ''
@@ -321,8 +321,8 @@ def getPageTitlesScraper(config={}, session=None):
                     name = '%s-%s' % (fr, to)
                     url = '%s?title=Special:Allpages&namespace=%s&from=%s&to=%s' % (
                         config['index'], namespace, fr, to)  # do not put urllib.quote in fr or to
-                # fix, esta regexp no carga bien todas? o falla el r_title en
-                # este tipo de subpag? (wikiindex)
+                # fix, this regexp doesn't properly save everything? or does r_title fail on this
+                # type of subpage? (wikiindex)
                 elif r_suballpages == r_suballpages2:
                     # clean &amp;namespace=\d, sometimes happens
                     fr = fr.split('&amp;namespace=')[0]
