@@ -1090,7 +1090,7 @@ def makeXmlFromPage(page):
                 ))
             else:
                 revision.append(E.contributor(deleted="deleted"))
-            if 'comment' in rev:
+            if 'comment' in rev and rev["comment"]:
                 revision.append(E.comment(to_unicode(rev['comment'])))
             if 'contentmodel' in rev:
                 revision.append(E.model(rev['contentmodel']))
