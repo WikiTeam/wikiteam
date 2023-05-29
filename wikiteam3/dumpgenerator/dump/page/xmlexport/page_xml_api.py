@@ -25,8 +25,14 @@ def reconstructRevisions(root=None):
     for rev in root.find('query').find('pages').find('page').find('revisions').findall('rev'):
         try:
             rev_ = ET.SubElement(page,'revision')
+            # id
             ET.SubElement(rev_,'id').text = rev.attrib['revid']
+            # parentid (optional, export-0.7+)
+            if 'parentid' in rev.attrib:
+                ET.SubElement(rev_,'parentid').text = rev.attrib['parentid']
+            # timestamp
             ET.SubElement(rev_,'timestamp').text = rev.attrib['timestamp']
+            # contributor
             contributor = ET.SubElement(rev_,'contributor')
             if 'userhidden' not in rev.attrib:
                 ET.SubElement(contributor,'username').text = rev.attrib['user']
