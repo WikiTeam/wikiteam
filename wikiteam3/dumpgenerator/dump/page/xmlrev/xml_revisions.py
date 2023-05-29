@@ -58,7 +58,7 @@ def getXMLRevisionsByAllRevisions(config: Config=None, session=None, site: mwcli
             # Also missing: parentid and contentformat.
             arvparams[
                 "arvprop"
-            ] = "ids|timestamp|user|userid|size|sha1|contentmodel|comment|content"
+            ] = "ids|timestamp|user|userid|size|sha1|contentmodel|comment|content|flags"
             print(
                 "Trying to get wikitext from the allrevisions API and to build the XML"
             )
@@ -272,7 +272,7 @@ def getXMLRevisionsByTitles(config: Config=None, session=None, site: mwclient.Si
                 "titles": "|".join(titlelist),
                 "prop": "revisions",
                 'rvlimit': config.api_chunksize,
-                "rvprop": "ids|timestamp|user|userid|size|sha1|contentmodel|comment|content",
+                "rvprop": "ids|timestamp|user|userid|size|sha1|contentmodel|comment|content|flags",
             }
             try:
                 prequest = site.api(http_method=config.http_method, **pparams)

@@ -84,12 +84,17 @@ def makeXmlFromPage(page: dict, arvcontinue) -> str:
 
             if "contentmodel" in rev:
                 revision.append(E.model(rev["contentmodel"]))
+            if "contentformat" in rev:
+                revision.append(E.format(rev["contentformat"]))
             # Sometimes a missing parentid is not replaced with a 0 as it should.
             if "parentid" in rev:
                 revision.append(E.parentid(str(rev["parentid"])))
 
+            if "minor" in rev:
+                revision.append(E.minor())
+
             # mwcli's dump.xml order
-            revisionTags = ['id', 'parentid', 'timestamp', 'contributor', 'comment', 'origin', 'model', 'format', 'text', 'sha1']
+            revisionTags = ['id', 'parentid', 'timestamp', 'contributor', 'minor', 'comment', 'origin', 'model', 'format', 'text', 'sha1']
             revisionElementsDict = {elem.tag: elem for elem in revision}
             _revision = E.revision()
             for tag in revisionTags:
