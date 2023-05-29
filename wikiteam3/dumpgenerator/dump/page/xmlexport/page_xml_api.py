@@ -39,11 +39,17 @@ def reconstructRevisions(root=None):
                 ET.SubElement(contributor,'id').text = rev.attrib['userid']
             else:
                 contributor.set('deleted','deleted')
-            comment = ET.SubElement(rev_,'comment')
-            if 'commenthidden' not in rev.attrib:
+            # comment (optional)
+            if 'commenthidden' in rev.attrib:
+                print('commenthidden')
+                comment = ET.SubElement(rev_,'comment')
+                comment.set('deleted','deleted')
+            elif 'comment' in rev.attrib and rev.attrib['comment']: # '' is empty
+                comment = ET.SubElement(rev_,'comment')
                 comment.text = rev.attrib['comment']
             else:
-                comment.set('deleted','deleted')
+                # no comment or empty comment, do not create comment element
+                pass
 
             # some revision does not return model and format, so just use hard-code
             # TODO: not hard-code here
