@@ -66,13 +66,19 @@ def reconstructRevisions(root=None):
                 text.attrib['bytes'] = rev.attrib['size']
                 text.text = rev.text
             else:
+                # NOTE: this is not the same as the text being empty
                 text.set('deleted','deleted')
-            # delete sha1 here :)
-            #sha1 = ET.SubElement(rev_,'sha1')
-            #if not rev.attrib.has_key('sha1missing'):
-                #sha1.text = rev.attrib['sha1']
-            if 'minor' in rev.attrib:
-                ET.SubElement(rev_,'minor')
+            # sha1
+            if not 'sha1' in rev.attrib:
+                if 'sha1hidden' in rev.attrib:
+                    ET.SubElement(rev_,'sha1') # stub
+                else:
+                    # The sha1 may not have been backfilled on older wikis or lack for other reasons (Wikia).
+                    pass
+            elif 'sha1' in rev.attrib:
+                sha1 = ET.SubElement(rev_,'sha1')
+                sha1.text = rev.attrib['sha1']
+            
             edits += 1
         except Exception as e:
             #logerror(config=config, text='Error reconstructing revision, xml:%s' % (ET.tostring(rev)))
