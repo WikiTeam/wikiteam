@@ -51,10 +51,9 @@ def reconstructRevisions(root=None):
                 # no comment or empty comment, do not create comment element
                 pass
 
-            # some revision does not return model and format, so just use hard-code
-            # TODO: not hard-code here
-            ET.SubElement(rev_,'model').text = 'wikitext'
-            ET.SubElement(rev_,'format').text = 'text/x-wiki'
+            # minor edit (optional)
+            if 'minor' in rev.attrib:
+                ET.SubElement(rev_,'minor')
             text = ET.SubElement(rev_,'text')
             if 'texthidden' not in rev.attrib:
                 text.attrib['xml:space'] = "preserve"
