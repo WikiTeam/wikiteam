@@ -136,7 +136,7 @@ def getXMLPageWithApi(config: Config=None, title="", verbose=True, session=None)
         params = {'titles': title_, 'action': 'query', 'format': 'xml',
                   'prop': 'revisions',
                   'rvprop': # rvprop: <https://www.mediawiki.org/wiki/API:Revisions#Parameter_history>
-                            'timestamp|user|comment|content' # MW v????
+                            'timestamp|user|comment|content|' # MW v????
                             'ids|flags|size|' # MW v1.11
                             'userid|' # MW v1.17
                             'sha1|' # MW v1.19
