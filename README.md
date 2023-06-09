@@ -97,11 +97,6 @@ MediaWiki Scraper is a set of tools for archiving wikis. The main general-purpos
 
 The Python 3 port of the `dumpgenerator` module of `wikiteam3` is largely functional and can be installed from a downloaded or cloned copy of this repository.
 
-There are two versions of these instructions:
-
-* If you just want to use a version that mostly works
-* If you want to follow my progress and help me test my latest commit
-
 > If you run into a problem with the version that mostly works, you can [open an Issue](https://github.com/mediawiki-client-tools/mediawiki-scraper/issues/new/choose). Be sure to include the following:
 >
 > 1. The operating system you're using
