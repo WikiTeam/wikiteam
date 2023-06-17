@@ -3,12 +3,14 @@
 # Name: checkalive.pl v2.01
 # Description: This script will go thru a list of URLs & determine if they are online & if they are Mediawiki wikis.
 # It should work with: "/index.php/Main_Page", "index.php", "api.php" and even pages such as: "/wiki/Pagina_principale".
-# If the URl is not "api.php", it will look for it, check it, and output it if found to be a valid api.php. If not found,
+# If the URL is not "api.php", it will look for it, check it, and output it if found to be a valid api.php. If not found,
 # it will output the URL with "index.php" if that's available.
+# The script handles HTTP 429 errors simply by skipping the URL. Increase the sleep time if you hit rate limits.
 #
-# Created: 12/14/2013
-# Most recently updated: 04/11/2014
+# Created: 2013-12-14
+# Most recent substantial update: 2014-04-11
 # Copyright (c) 2013-2014 by Scott D. Boyd - scottdb56@gmail.com
+# Copyright (c) 2023 by WikiTeam authors
 #
 # ===========================================================================================================================
 # This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
@@ -23,6 +25,12 @@
 #
 # NOTE: The following four Perl modules need to be installed on your computer.
 #       Search for them on cpan.org or use your Linux distro's package manager.
+#
+# In Debian 11, for example, that can be achieved with:
+#
+#   sudo apt install cpanminus libmojolicious-perl libcrypt-ssleay-perl libnet-ssleay-perl
+#   sudo cpanm LWP::Simple LWP::Protocol::https
+#
 use LWP::Simple;
 use LWP::UserAgent;
 use Crypt::SSLeay;
