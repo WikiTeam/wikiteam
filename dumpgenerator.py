@@ -1521,7 +1521,8 @@ def generateImageDump(config={}, other={}, images=[], start='', session=None):
         title = u'Image:%s' % (filename)
         try:
             if config['xmlrevisions'] and config['api'] and config['api'].endswith("api.php"):
-                r = session.get(config['api'] + u"?action=query&export&exportnowrap&titles=%s" % urllib.quote(title))
+                quoted_title = urllib.quote(title.encode('utf-8'))
+                r = session.get(config['api'] + "?action=query&export&exportnowrap&titles=%s" % quoted_title)
                 xmlfiledesc = r.text
             else:
                 xmlfiledesc = getXMLFileDesc(
