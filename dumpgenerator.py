@@ -820,7 +820,7 @@ def getXMLRevisions(config={}, session=None, allpages=False, start=None):
                 # We have to build the XML manually...
                 # Skip flags, presumably needed to add <minor/> which is in the schema.
                 # Also missing: parentid and contentformat.
-                arvparams['arvprop'] = 'ids|timestamp|user|userid|size|sha1|contentmodel|comment|content'
+                arvparams['arvprop'] = 'ids|timestamp|user|userid|size|sha1|contentmodel|comment|content|flags'
                 print("Trying to get wikitext from the allrevisions API and to build the XML")
                 while True:
                     try:
@@ -984,7 +984,7 @@ def getXMLRevisions(config={}, session=None, allpages=False, start=None):
                     'titles': '|'.join(titlelist),
                     'prop': 'revisions',
                     'rvlimit': 50,
-                    'rvprop': 'ids|timestamp|user|userid|size|sha1|contentmodel|comment|content',
+                    'rvprop': 'ids|timestamp|user|userid|size|sha1|contentmodel|comment|content|flags',
                 }
                 try:
                     prequest = site.api(http_method=config['http_method'], **pparams)
@@ -1094,13 +1094,29 @@ def makeXmlFromPage(page):
                 revision.append(E.comment(to_unicode(rev['comment'])))
             if 'contentmodel' in rev:
                 revision.append(E.model(rev['contentmodel']))
+            if "contentformat" in rev:
+                revision.append(E.format(rev["contentformat"]))
             # Sometimes a missing parentid is not replaced with a 0 as it should.
             if 'parentid' in rev:
                 revision.append(E.parentid(to_unicode(rev['parentid'])))
             # The sha1 may not have been backfilled on older wikis or lack for other reasons (Wikia).
             if 'sha1' in rev:
                 revision.append(E.sha1(rev['sha1']))
-            p.append(revision)
+            if "minor" in rev:
+                revision.append(E.minor())
+            
+            # Follow MediaWiki's page export format: <https://www.mediawiki.org/xml/export-0.11.xsd>
+            revisionTags = ['id', 'parentid', 'timestamp', 'contributor', 'minor', 'comment', 'origin', 'model', 'format', 'text', 'sha1']
+            revisionElementsDict = {elem.tag: elem for elem in revision}
+            _revision = E.revision()
+            for tag in revisionTags:
+                if tag in revisionElementsDict:
+                    _revision.append(revisionElementsDict.pop(tag))
+            for elem in revisionElementsDict.values():
+                _revision.append(elem)
+
+            p.append(_revision)
+
     except KeyError as e:
         print(e)
         raise PageMissingError(page['title'], e)
