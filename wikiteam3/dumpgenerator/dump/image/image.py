@@ -98,7 +98,8 @@ class Image:
 
                 if r.status_code == 200:
                     try:
-                        if len(r.content) == int(size):
+                        if size == 'False' or len(r.content) == int(size):
+                            # size == 'False' means size is unknown
                             with open(filename3, "wb") as imagefile:
                                 imagefile.write(r.content)
                             c_savedImageFiles += 1
