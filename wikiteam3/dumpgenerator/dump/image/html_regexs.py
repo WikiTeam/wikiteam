@@ -1,3 +1,5 @@
+R_NEXT = r"(?<!&amp;dir=prev)&amp;offset=(?P<offset>\d+)&amp;"
+
 REGEX_CANDIDATES = [
     # [0]
     # archiveteam 1.15.1 <td class="TablePager_col_img_name"><a href="/index.php?title=File:Yahoovideo.jpg" title="File:Yahoovideo.jpg">Yahoovideo.jpg</a> (<a href="/images/2/2b/Yahoovideo.jpg">file</a>)</td>

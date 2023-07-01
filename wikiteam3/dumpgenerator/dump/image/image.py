@@ -5,7 +5,7 @@ import urllib.parse
 from typing import Dict, Iterable, List
 
 from wikiteam3.dumpgenerator.cli import Delay
-from wikiteam3.dumpgenerator.dump.image.html_regexs import REGEX_CANDIDATES
+from wikiteam3.dumpgenerator.dump.image.html_regexs import R_NEXT, REGEX_CANDIDATES
 from wikiteam3.utils import domain2prefix
 from wikiteam3.dumpgenerator.exceptions import PageMissingError, FileSizeError
 from wikiteam3.dumpgenerator.api import getJSON
@@ -206,8 +206,6 @@ class Image:
     def getImageNamesScraper(config: Config=None, session=None):
         """Retrieve file list: filename, url, uploader"""
 
-        # (?<! http://docs.python.org/library/re.html
-        r_next = r"(?<!&amp;dir=prev)&amp;offset=(?P<offset>\d+)&amp;"
         images = []
         offset = "29990101000000"  # january 1, 2999
         limit = 5000
@@ -272,8 +270,8 @@ class Image:
                 ])
                 # print (filename, url)
 
-            if re.search(r_next, raw):
-                new_offset = re.findall(r_next, raw)[0]
+            if re.search(R_NEXT, raw):
+                new_offset = re.findall(R_NEXT, raw)[0]
                 # Avoid infinite loop
                 if new_offset != offset:
                     offset = new_offset
