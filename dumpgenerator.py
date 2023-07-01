@@ -1288,10 +1288,10 @@ def getImageNamesScraper(config={}, session=None):
         # (<a href="/en/Image:109_0923.JPG" title="Image:109 0923.JPG">desc</a>) <a href="/en/upload/c/cd/109_0923.JPG">109 0923.JPG</a> . . 885,713 bytes . . <a href="/en/User:Bfalconer" title="User:Bfalconer">Bfalconer</a> . . 18:44, 17 November 2005<br />
         r_images4 = r'(?im)<a href=[^>]+ title="[^:>]+:(?P<filename>[^>]+)">[^<]+</a>[^<]+<a href="(?P<url>[^>]+)">[^<]+</a>[^<]+<a[^>]+>(?P<uploader>[^<]+)</a>'
         r_images5 = (
-            r'(?im)<td class="TablePager_col_img_name">\s*<a href[^>]*?>(?P<filename>[^>]+)</a>\s*\(<a href="(?P<url>[^>]+)">[^<]*?</a>\s*\)\s*</td>\s*'
+            r'(?im)<td class="TablePager_col_img_name">\s*<a href[^>]*?>(?P<filename>[^>]+)</a>[^<]*?<a href="(?P<url>[^>]+)">[^<]*?</a>[^<]*?</td>\s*'
             '<td class="TablePager_col_thumb">[^\n\r]*?</td>\s*'
             '<td class="TablePager_col_img_size">[^<]*?</td>\s*'
-            '<td class="TablePager_col_img_user_text">\s*(<a href="[^>]*?" title="[^>]*?">)?(?P<uploader>[^<]+?)(</a>)?\s*</td>')
+            '<td class="(?:TablePager_col_img_user_text|TablePager_col_img_actor)">\s*(<a href="[^>]*?" title="[^>]*?">)?(?P<uploader>[^<]+?)(</a>)?\s*</td>')
 
         # Select the regexp that returns more results
         regexps = [r_images1, r_images2, r_images3, r_images4, r_images5]
