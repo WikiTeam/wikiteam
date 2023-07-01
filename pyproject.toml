@@ -42,6 +42,7 @@ classifiers = [
 packages = [
     { include = "wikiteam3/**/*"},
 ]
+exclude = ["wikiteam3/dumpgenerator/test/*"]
 
 [tool.poetry.scripts]
 dumpgenerator = "wikiteam3.dumpgenerator:main"
