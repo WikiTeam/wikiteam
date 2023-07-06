@@ -296,6 +296,18 @@ You should see something similar to this (not the actual numbers) - the first th
 ```
 
 If your first three numbers or your last two numbers are different, then, your XML dump is corrupt (it contains one or more unfinished ```</page>``` or ```</revision>```). This is not common in small wikis, but large or very large wikis may fail at this due to truncated XML pages while exporting and merging. The solution is to remove the XML dump and re-download, a bit boring, and it can fail again...
+## Reporting issues
+
+Please report any issues at [MediaWiki Scraper/issues](https://github.com/mediawiki-client-tools/mediawiki-scraper/issues)
+Include the following in your report:
+* The commandline you used, with full URL
+* Dumpgenerator version, -v option
+* Operating system version, e.g. Kubuntu 23.04 / Windows 10
+* File system, e.g. EXT4 / NTFS
+* Name of the terminal, e.g. Bash / CMD / Powershell
+* Python version, e.g. Python 3.11.4 / Python 3.10
+* The errors.log file, from the dump folder
+* Stdout, copy the text from the terminal window
 
 ## Contributors
 
