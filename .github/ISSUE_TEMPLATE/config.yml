@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Get any other help using MediaWiki Scraper
+    url: https://github.com/orgs/mediawiki-client-tools/discussions
+    about: If you need help (other than reporting a bug), you can reach out on GitHub Discussions.
