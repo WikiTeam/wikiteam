@@ -619,19 +619,31 @@ def getXMLPage(config={}, title='', verbose=True, session=None):
     if 'templates' in config and config['templates']:
         params['templates'] = 1
 
-    xml = getXMLPageCore(params=params, config=config, session=session)
-    if xml == "":
-        raise ExportAbortedError(config['index'])
-    if not "</page>" in xml:
-        raise PageMissingError(params['title'], xml)
-    else:
-        # strip these sha1s sums which keep showing up in the export and
-        # which are invalid for the XML schema (they only apply to
-        # revisions)
-        xml = re.sub(r'\n\s*<sha1>\w+</sha1>\s*\n', r'\n', xml)
-        xml = re.sub(r'\n\s*<sha1/>\s*\n', r'\n', xml)
+    while True:
+        try:
+            xml = getXMLPageCore(params=params, config=config, session=session)
+            if xml == "":
+                raise ExportAbortedError(config['index'])
+            if "</page>" not in xml:
+                raise PageMissingError(params['title'], xml)
+            else:
+                # do the split before the regexes because .split throws a
+                # MemoryError if it runs out of memory, regexes just kills the
+                # process outright, this lets us download larger pages
+                xml = xml.split("</page>")[0]
 
-    yield xml.split("</page>")[0]
+                # strip these sha1s sums which keep showing up in the export and
+                # which are invalid for the XML schema (they only apply to
+                # revisions)
+                xml = re.sub(r'\n\s*<sha1>\w+</sha1>\s*\n', r'\n', xml)
+                xml = re.sub(r'\n\s*<sha1/>\s*\n', r'\n', xml)
+            break
+        except MemoryError:
+            print "The page's history exceeds our memory, halving limit."
+            params['limit'] = params['limit'] / 2
+            continue
+
+    yield xml
 
     # if complete history, check if this page history has > limit edits, if so, retrieve all using offset if available
     # else, warning about Special:Export truncating large page histories
