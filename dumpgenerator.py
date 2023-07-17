@@ -492,7 +492,7 @@ def getXMLHeader(config={}, session=None):
             header, config = getXMLHeader(config=config, session=session)
         else:
             print 'XML export on this wiki is broken, quitting.'
-            logerror(u'XML export on this wiki is broken, quitting.')
+            logerror(config=config, text=u'XML export on this wiki is broken, quitting.')
             sys.exit()
     return header, config
 
@@ -1693,6 +1693,9 @@ def getParameters(params=[]):
         '--pass',
         dest='password',
         help='Password if authentication is required.')
+    parser.add_argument('--insecure',
+        action='store_true',
+        help='Ignore SSL certificate errors.')
 
     # URL params
     groupWikiOrAPIOrIndex = parser.add_argument_group()
@@ -1746,6 +1749,14 @@ def getParameters(params=[]):
 
     args = parser.parse_args()
     # print args
+
+    if args.insecure:
+        # https://stackoverflow.com/a/66207445
+        import ssl
+        ssl._create_default_https_context = ssl._create_unverified_context
+        ssl.SSLContext.verify_mode = property(lambda self: ssl.CERT_NONE, lambda self, newval: None)
+        requests.packages.urllib3.disable_warnings(category=requests.packages.urllib3.exceptions.InsecureRequestWarning)
+        print("WARNING: HTTPS certificate verification is disabled.")
 
     # Don't mix download params and meta info params
     if (args.xml or args.images) and \
@@ -1934,7 +1945,8 @@ def getParameters(params=[]):
         'resume': args.resume,
         'filenamelimit': 100,  # do not change
         'force': args.force,
-        'session': session
+        'session': session,
+        'insecure': args.insecure
     }
 
     # calculating path, if not defined by user with --path=
@@ -2557,6 +2569,9 @@ def main(params=[]):
     else:
         os.mkdir(config['path'])
         saveConfig(config=config, configfilename=configfilename)
+
+    if other['insecure']:
+        logerror(config=config, text=u'WARNING: HTTPS certificate verification is disabled.')
 
     if other['resume']:
         resumePreviousDump(config=config, other=other)
