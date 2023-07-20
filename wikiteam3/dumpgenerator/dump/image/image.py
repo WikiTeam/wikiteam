@@ -1,8 +1,12 @@
 import os
 import re
 import sys
+import time
+import random
 import urllib.parse
-from typing import Dict, Iterable, List
+from typing import Dict, List, Optional
+
+import requests
 
 from wikiteam3.dumpgenerator.cli import Delay
 from wikiteam3.dumpgenerator.dump.image.html_regexs import R_NEXT, REGEX_CANDIDATES
@@ -18,6 +22,7 @@ from wikiteam3.dumpgenerator.config import Config
 
 
 class Image:
+    @staticmethod
     def getXMLFileDesc(config: Config=None, title="", session=None):
         """Get XML for image description page"""
         config.curonly = 1  # tricky to get only the most recent desc
@@ -30,7 +35,8 @@ class Image:
             ]
         )
 
-    def generateImageDump(config: Config=None, other: Dict=None, images: Iterable[str]=None, session=None):
+    @staticmethod
+    def generateImageDump(config: Config=None, other: Dict=None, images: List[List]=None, session: requests.Session=None):
         """Save files and descriptions using a file list\n
         Deprecated: `start` is not used anymore."""
 
@@ -43,6 +49,23 @@ class Image:
 
         c_savedImageFiles = 0
         c_savedImageDescs = 0
+
+
+        bypass_cdn_image_compression: bool = other["bypass_cdn_image_compression"]
+        def modify_params(params: Optional[Dict] = None) -> Dict:
+            """ bypass Cloudflare Polish (image optimization) """
+            if params is None:
+                params = {}
+            if bypass_cdn_image_compression is True:
+                # bypass Cloudflare Polish (image optimization)
+                # <https://developers.cloudflare.com/images/polish/>
+                params["_wiki_t"] = int(time.time()*1000)
+                params[f"_wiki_{random.randint(10,99)}_"] = "random"
+
+            return params
+        def check_response(r: requests.Response) -> None:
+            assert not r.headers.get("cf-polished", ""), "Found cf-polished header in response, use --bypass-cdn-image-compression to bypass it"
+            
 
         for filename, url, uploader, size, sha1 in images:
             toContinue = 0
@@ -76,7 +99,8 @@ class Image:
             else:
                 Delay(config=config, session=session)
                 original_url = url
-                r = session.head(url=url, allow_redirects=True)
+                r = session.head(url=url, params=modify_params(), allow_redirects=True)
+                check_response(r)
                 original_url_redirected = len(r.history) > 0
 
                 if original_url_redirected:
@@ -84,7 +108,8 @@ class Image:
                     original_url = url
                     url = r.url
 
-                r = session.get(url=url, allow_redirects=False)
+                r = session.get(url=url, params=modify_params(), allow_redirects=False)
+                check_response(r)
 
                 # Try to fix a broken HTTP to HTTPS redirect
                 if r.status_code == 404 and original_url_redirected:
@@ -94,7 +119,8 @@ class Image:
                     ):
                         url = "https://" + original_url.split("://")[1]
                         # print 'Maybe a broken http to https redirect, trying ', url
-                        r = session.get(url=url, allow_redirects=False)
+                        r = session.get(url=url, params=modify_params(), allow_redirects=False)
+                        check_response(r)
 
                 if r.status_code == 200:
                     try:
@@ -111,6 +137,7 @@ class Image:
                             text=f"File '{filename3}' could not be created by OS",
                         )
                     except FileSizeError as e:
+                        # TODO: add a --force-download-image or --nocheck-image-size option to download anyway
                         logerror(
                             config=config, to_stdout=True,
                             text=f"File '{e.file}' size is not match '{e.size}', skipping",
@@ -184,7 +211,8 @@ class Image:
 
         print(f"Downloaded {c_savedImageFiles} images and {c_savedImageDescs} .desc files.")
 
-    def getImageNames(config: Config=None, session=None):
+    @staticmethod
+    def getImageNames(config: Config=None, session: requests.Session=None):
         """Get list of image names"""
 
         print(")Retrieving image filenames")
@@ -203,7 +231,8 @@ class Image:
         print("%d image names loaded" % (len(images)))
         return images
 
-    def getImageNamesScraper(config: Config=None, session=None):
+    @staticmethod
+    def getImageNamesScraper(config: Config=None, session: requests.Session=None):
         """Retrieve file list: filename, url, uploader"""
 
         images = []
@@ -289,7 +318,8 @@ class Image:
         images.sort()
         return images
 
-    def getImageNamesAPI(config: Config=None, session=None):
+    @staticmethod
+    def getImageNamesAPI(config: Config=None, session: requests.Session=None):
         """Retrieve file list: filename, url, uploader, size, sha1"""
         oldAPI = False
         # # Commented by @yzqzss:
@@ -305,8 +335,7 @@ class Image:
         images = []
         countImages = 0
         while aifrom:
-            print('Using API:Allimages to get the list of images')
-            sys.stderr.write(".")  # progress
+            print(f'Using API:Allimages to get the list of images, {len(images)} images found so far...', end='\r')
             params = {
                 "action": "query",
                 "list": "allimages",
@@ -458,7 +487,8 @@ class Image:
 
         return images
 
-    def saveImageNames(config: Config=None, images: Iterable[str]=None, session=None):
+    @staticmethod
+    def saveImageNames(config: Config=None, images: List[List]=None, session=None):
         """Save image list in a file, including filename, url, uploader, size and sha1"""
 
         imagesfilename = "{}-{}-images.txt".format(
@@ -483,6 +513,7 @@ class Image:
 
         print("Image filenames and URLs saved at...", imagesfilename)
 
+    @staticmethod
     def curateImageURL(config: Config=None, url=""):
         """Returns an absolute URL for an image, adding the domain if missing"""
 

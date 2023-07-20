@@ -109,6 +109,11 @@ def getArgumentParser():
         "--images", action="store_true", help="Generates an image dump"
     )
     groupDownload.add_argument(
+        "--bypass-cdn-image-compression",
+        action="store_true",
+        help="Bypass CDN image compression. (CloudFlare Polish, etc.)",
+    )
+    groupDownload.add_argument(
         "--namespaces",
         metavar="1,2,3",
         help="comma-separated value of namespaces to include (all by default)",
@@ -422,6 +427,7 @@ def getParameters(params=None) -> Tuple[Config, Dict]:
         "force": args.force,
         "session": session,
         "stdout_log_path": args.stdout_log_path,
+        "bypass_cdn_image_compression": args.bypass_cdn_image_compression,
     }
 
     # calculating path, if not defined by user with --path=
