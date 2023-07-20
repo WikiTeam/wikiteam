@@ -17,9 +17,8 @@ A clear and concise description of what you expected to happen.
 The commandline you used, with full URL.
 
 **Output**
-- The errors.log file, from the dump folder
 - Stdout: [copy the text from the terminal window]
-- If applicable, add screenshots to help explain your problem.
+- The errors.log file, from the dump folder
 
 **Desktop (please complete as much of the following as you're able to):**
  - OS and version: [e.g. Kubuntu 23.04, Windows 10, macOS 14]
