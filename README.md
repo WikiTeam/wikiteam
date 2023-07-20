@@ -299,7 +299,12 @@ You should see something similar to this (not the actual numbers) - the first th
 5677
 ```
 
-If your first three numbers or your last two numbers are different, then, your XML dump is corrupt (it contains one or more unfinished ```</page>``` or ```</revision>```). This is not common in small wikis, but large or very large wikis may fail at this due to truncated XML pages while exporting and merging. The solution is to remove the XML dump and re-download, a bit boring, and it can fail again...
+If your first three numbers or your last two numbers are different, then, your XML dump is corrupt (it contains one or more unfinished ```</page>``` or ```</revision>```). This is not common in small wikis, but large or very large wikis may fail at this due to truncated XML pages while exporting and merging. The solution is to remove the XML dump and re-download, a bit boring, and it can fail again.
+
+## Getting help
+* You can read and post in MediaWiki Client Tools' [GitHub Discussions.]( https://github.com/orgs/mediawiki-client-tools/discussions)
+* If you need help (other than reporting a bug), you can reach out on MediaWiki Client Tools' [Discussions/Q&A.](https://github.com/orgs/mediawiki-client-tools/discussions/categories/q-a)
+
 ## Reporting issues
 
 Please report any issues at [MediaWiki Scraper/issues](https://github.com/mediawiki-client-tools/mediawiki-scraper/issues)
