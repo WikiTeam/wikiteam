@@ -18,7 +18,7 @@ The commandline you used, with full URL.
 
 **Output**
 - Stdout: [copy the text from the terminal window]
-- The errors.log file, from the dump folder
+- The errors.log file, from the dump folder, if there is one.
 
 **Desktop (please complete as much of the following as you're able to):**
  - OS and version: [e.g. Kubuntu 23.04, Windows 10, macOS 14]
