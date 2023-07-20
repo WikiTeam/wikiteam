@@ -10,6 +10,10 @@ Most of the focus has been on the core `dumpgenerator` tool, but Python 3 versio
 
 MediaWiki Scraper is a set of tools for archiving wikis. The main general-purpose module of MediaWiki Scraper is dumpgenerator, which can download XML dumps of MediaWiki sites that can then be parsed or redeployed elsewhere.
 
+### Viewing MediaWiki XML Dumps
+* [XML namespaces](https://www.mediawiki.org/xml/)
+* [XML export format](https://www.mediawiki.org/wiki/Help:Export#Export_format)
+
 ## Python Environment
 
 `MediaWiki Scraper` requires [Python 3.8](https://www.python.org/downloads/release/python-380/) or later (less than 4.0), but you may be able to get it run with earlier versions of Python 3. On recent versions of Linux and macOS Python 3.8 should come preinstalled, but on Windows you will need to install it from [python.org](https://www.python.org/downloads/release/python-380/).
