@@ -318,6 +318,9 @@ Include the following in your report:
 * The errors.log file, from the dump folder
 * Stdout, copy the text from the terminal window
 
+## Publishing the dump
+Please consider publishing your wiki dump(s). You can do it yourself as explained at WikiTeam's [Publishing the dump](https://github.com/WikiTeam/wikiteam/wiki/Tutorial#Publishing_the_dump) tutorial.
+
 ## Contributors
 
 **WikiTeam** is the [Archive Team](http://www.archiveteam.org) [[GitHub](https://github.com/ArchiveTeam)] subcommittee on wikis.
