@@ -11,6 +11,7 @@ Most of the focus has been on the core `dumpgenerator` tool, but Python 3 versio
 MediaWiki Scraper is a set of tools for archiving wikis. The main general-purpose module of MediaWiki Scraper is dumpgenerator, which can download XML dumps of MediaWiki sites that can then be parsed or redeployed elsewhere.
 
 ### Viewing MediaWiki XML Dumps
+
 * [XML namespaces](https://www.mediawiki.org/xml/)
 * [XML export format](https://www.mediawiki.org/wiki/Help:Export#Export_format)
 
@@ -302,6 +303,7 @@ You should see something similar to this (not the actual numbers) - the first th
 If your first three numbers or your last two numbers are different, then, your XML dump is corrupt (it contains one or more unfinished ```</page>``` or ```</revision>```). This is not common in small wikis, but large or very large wikis may fail at this due to truncated XML pages while exporting and merging. The solution is to remove the XML dump and re-download, a bit boring, and it can fail again.
 
 ## Getting help
+
 * You can read and post in MediaWiki Client Tools' [GitHub Discussions.]( https://github.com/orgs/mediawiki-client-tools/discussions)
 * If you need help (other than reporting a bug), you can reach out on MediaWiki Client Tools' [Discussions/Q&A.](https://github.com/orgs/mediawiki-client-tools/discussions/categories/q-a)
 
@@ -319,6 +321,7 @@ Include the following in your report:
 * Stdout, copy the text from the terminal window
 
 ## Publishing the dump
+
 Please consider publishing your wiki dump(s). You can do it yourself as explained at WikiTeam's [Publishing the dump](https://github.com/WikiTeam/wikiteam/wiki/Tutorial#Publishing_the_dump) tutorial.
 
 ## Contributors
