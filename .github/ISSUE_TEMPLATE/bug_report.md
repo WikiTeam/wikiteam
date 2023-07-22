@@ -7,31 +7,79 @@ assignees: ''
 
 ---
 
-**Describe the bug**
-A clear and concise description of what the bug is.
+<!-- Thank you for helping to improve MediaWiki Scraper! -->
 
-**Expected behavior**
-A clear and concise description of what you expected to happen.
+<!-- So that we can better address your issue,
+please fill out as much of the following as possible. -->
 
-**Steps to reproduce the bug**
-The commandline you used, with full URL.
+## Describe the Bug
 
-**Output**
-- Stdout: [copy the text from the terminal window]
-- The errors.log file, from the dump folder, if there is one.
+<!-- A brief but clear summary -->
 
-**Desktop (please complete as much of the following as you're able to):**
- - OS and version: [e.g. Kubuntu 23.04, Windows 10, macOS 14]
- - File system: [e.g. EXT4, NTFS, APFS]
- - Python version: [e.g. Python 3.11.4, Python 3.10]
- - Name of the terminal: [e.g. Bash, CMD, Powershell]
- - Dumpgenerator version: [-v option]
+### Expected Behavior
+
+<!-- What did you expect to happen? -->
+
+### Actual Behavior
+
+<!-- What happened instead? -->
+
+## Command for Reproducing the Bug
+
+<!-- The command string you used, with full URL
+(Please copy and paste within the code block below.) -->
+
+```bash
+$ 
+```
+
+## Output
+
+<details>
+<summary><code>stdout</code></summary>
+
+<!-- stdout (the text from the terminal window)
+(Please copy and paste within the code block below.) -->
+
+```bash
+
+```
+ 
+</details>
+
+<details>
+<summary><code>errors.log</code></summary>
+
+<!-- The errors.log file from the dump folder, if there is one
+(Please copy and paste within the code block below.) -->
+
+```
+
+```
+ 
+</details>
+
+## Platform Details
+
+<!-- Please complete as much of the following as you're
+able to and remove whichever section is inapplicable -->
+
+### Desktop
+
+ - OS and version: <!-- e.g. Kubuntu 23.04, Windows 10, macOS 14.2 -->
+ - File system: <!-- e.g. EXT4, NTFS, APFS -->
+ - Python version: <!-- `$ python --version` -->
+ - Command line shell: <!-- `$ $SHELL --version` -->
+ - `dumpgenerator` version: <!-- `$ dumpgenerator -v` -->
    
-**Smartphone (please complete as much of the following as you're able to):**
- - OS: [e.g. iOS8.1, Android]
- - Python version: [e.g. Python 3.11.4, Python 3.10] 
- - Name of the terminal: [e.g. Termux, Termius]
- - Dumpgenerator version: [-v option]
+### Smartphone or Tablet
 
-**Additional context**
-Add any other context about the problem here.
+ - OS: <!-- e.g. iOS 16.1, Android 11 -->
+ - Python version: <!-- `$ python --version` -->
+ - Command line shell: <!-- `$ $SHELL --version` -->
+ - Terminal application used: <!-- e.g. Termux, Termius -->
+ - `dumpgenerator` version: <!-- `$ dumpgenerator -v` -->
+
+## Additional Context
+
+<!-- Add any other context about the problem here. -->
