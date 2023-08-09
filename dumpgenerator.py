@@ -2250,6 +2250,8 @@ def resumePreviousDump(config={}, other={}):
         listdir = []
         try:
             listdir = os.listdir('%s/images' % (config['path']))
+            listdir2 = [x.encode('utf-8') for x in listdir]
+            listdir = listdir2
         except:
             pass  # probably directory does not exist
         listdir = set(listdir)
@@ -2264,7 +2266,7 @@ def resumePreviousDump(config={}, other={}):
             filename2 = filename
             if len(filename2) > other['filenamelimit']:
                 filename2 = truncateFilename(other=other, filename=filename2)
-            if filename2 not in listdir:
+            if filename2.encode('utf-8') not in listdir:
                 complete = False
                 break
             c += 1
