@@ -21,7 +21,7 @@ class FileSizeError(Exception):
         self.size = size
 
     def __str__(self):
-        return "File '%s' size is not match '%s'." % (self.file, self.size)
+        return f"File '{self.file}' size is not match '{self.size}'."
 
 
 class FileSha1Error(Exception):
@@ -30,4 +30,4 @@ class FileSha1Error(Exception):
         self.sha1 = sha1
 
     def __str__(self):
-        return "File '%s' sha1 is not match '%s'." % (self.file, self.sha1)
+        return f"File '{self.file}' sha1 is not match '{self.sha1}'."

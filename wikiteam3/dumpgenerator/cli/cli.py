@@ -1,4 +1,3 @@
-
 import argparse
 import datetime
 import http
@@ -7,24 +6,20 @@ import os
 import queue
 import re
 import sys
+from typing import *
 
 import requests
 import urllib3
 
-from wikiteam3.dumpgenerator.api import checkRetryAPI, mwGetAPIAndIndex
-from wikiteam3.utils.login import uniLogin
-from .delay import Delay
-from wikiteam3.utils import domain2prefix
+from wikiteam3.dumpgenerator.api import checkRetryAPI, getWikiEngine, mwGetAPIAndIndex
 from wikiteam3.dumpgenerator.api.index_check import checkIndex
-from wikiteam3.utils import getUserAgent
-from wikiteam3.dumpgenerator.version import getVersion
-from wikiteam3.dumpgenerator.api import getWikiEngine
 from wikiteam3.dumpgenerator.config import Config, newConfig
-from wikiteam3.utils import mod_requests_text
-
-from typing import *
+from wikiteam3.dumpgenerator.version import getVersion
+from wikiteam3.utils import domain2prefix, getUserAgent, mod_requests_text
+from wikiteam3.utils.login import uniLogin
 
 from ...utils.user_agent import setupUserAgent
+from .delay import Delay
 
 
 def getArgumentParser():
@@ -36,7 +31,11 @@ def getArgumentParser():
         "--cookies", metavar="cookies.txt", help="path to a cookies.txt file"
     )
     parser.add_argument(
-        "--delay", metavar="5", default=0.5, type=float, help="adds a delay (in seconds)"
+        "--delay",
+        metavar="5",
+        default=0.5,
+        type=float,
+        help="adds a delay (in seconds)",
     )
     parser.add_argument(
         "--retries", metavar="5", default=5, help="Maximum number of retries for "
@@ -48,34 +47,49 @@ def getArgumentParser():
         help="resumes previous incomplete dump (requires --path)",
     )
     parser.add_argument("--force", action="store_true", help="")
-    parser.add_argument("--user", help="Username if MedaiWiki authentication is required.")
     parser.add_argument(
-        "--pass", dest="password", help="Password if MediaWiki authentication is required."
+        "--user", help="Username if MedaiWiki authentication is required."
     )
     parser.add_argument(
-        "--http-user", dest="http_user", help="Username if HTTP authentication is required."
+        "--pass",
+        dest="password",
+        help="Password if MediaWiki authentication is required.",
     )
     parser.add_argument(
-        "--http-pass", dest="http_password", help="Password if HTTP authentication is required."
+        "--http-user",
+        dest="http_user",
+        help="Username if HTTP authentication is required.",
     )
     parser.add_argument(
-        '--insecure', action='store_true', help='Disable SSL certificate verification'
+        "--http-pass",
+        dest="http_password",
+        help="Password if HTTP authentication is required.",
+    )
+    parser.add_argument(
+        "--insecure", action="store_true", help="Disable SSL certificate verification"
     )
 
     parser.add_argument(
-        "--stdout-log-file", dest="stdout_log_path", default=None, help="Path to copy stdout to",
+        "--stdout-log-file",
+        dest="stdout_log_path",
+        default=None,
+        help="Path to copy stdout to",
     )
 
     # URL params
     groupWikiOrAPIOrIndex = parser.add_argument_group()
     groupWikiOrAPIOrIndex.add_argument(
-        "wiki", default="", nargs="?", help="URL to wiki (e.g. http://wiki.domain.org), auto detects API and index.php"
+        "wiki",
+        default="",
+        nargs="?",
+        help="URL to wiki (e.g. http://wiki.domain.org), auto detects API and index.php",
     )
     groupWikiOrAPIOrIndex.add_argument(
         "--api", help="URL to API (e.g. http://wiki.domain.org/w/api.php)"
     )
     groupWikiOrAPIOrIndex.add_argument(
-        "--index", help="URL to index.php (e.g. http://wiki.domain.org/w/index.php), (not supported with --images on newer(?) MediaWiki without --api)"
+        "--index",
+        help="URL to index.php (e.g. http://wiki.domain.org/w/index.php), (not supported with --images on newer(?) MediaWiki without --api)",
     )
 
     # Download params
@@ -88,7 +102,9 @@ def getArgumentParser():
         help="Export XML dump using Special:Export (index.php). (supported with --curonly)",
     )
     groupDownload.add_argument(
-        "--curonly", action="store_true", help="store only the lastest revision of pages"
+        "--curonly",
+        action="store_true",
+        help="store only the lastest revision of pages",
     )
     groupDownload.add_argument(
         "--xmlapiexport",
@@ -124,7 +140,10 @@ def getArgumentParser():
         help="comma-separated value of namespaces to exclude",
     )
     parser.add_argument(
-        "--api_chunksize", metavar="50", default=50, help="Chunk size for MediaWiki API (arvlimit, ailimit, etc.)"
+        "--api_chunksize",
+        metavar="50",
+        default=50,
+        help="Chunk size for MediaWiki API (arvlimit, ailimit, etc.)",
     )
 
     # Meta info params
@@ -143,7 +162,6 @@ def getArgumentParser():
 
 
 def checkParameters(args=argparse.Namespace()) -> bool:
-
     passed = True
 
     # Don't mix download params and meta info params
@@ -162,28 +180,33 @@ def checkParameters(args=argparse.Namespace()) -> bool:
         passed = False
 
     # Check http-user and http-pass (one requires both)
-    if (args.http_user and not args.http_password) or (args.http_password and not args.http_user):
-        print("ERROR: Both --http-user and --http-pass are required for authentication.")
+    if (args.http_user and not args.http_password) or (
+        args.http_password and not args.http_user
+    ):
+        print(
+            "ERROR: Both --http-user and --http-pass are required for authentication."
+        )
         passed = False
 
     # --curonly requires --xml
     if args.curonly and not args.xml:
         print("ERROR: --curonly requires --xml")
         passed = False
-    
+
     # --xmlrevisions not supported with --curonly
     if args.xmlrevisions and args.curonly:
         print("ERROR: --xmlrevisions not supported with --curonly")
         passed = False
-    
+
     # Check URLs
     for url in [args.api, args.index, args.wiki]:
         if url and (not url.startswith("http://") and not url.startswith("https://")):
             print(url)
             print("ERROR: URLs must start with http:// or https://")
             passed = False
-    
+
     return passed
+
 
 def getParameters(params=None) -> Tuple[Config, Dict]:
     # if not params:
@@ -200,7 +223,7 @@ def getParameters(params=None) -> Tuple[Config, Dict]:
     ########################################
 
     # Create session
-    mod_requests_text(requests) # monkey patch
+    mod_requests_text(requests)  # monkey patch
     session = requests.Session()
 
     # Disable SSL verification
@@ -217,12 +240,14 @@ def getParameters(params=None) -> Tuple[Config, Dict]:
         # Courtesy datashaman https://stackoverflow.com/a/35504626
         class CustomRetry(Retry):
             def increment(self, method=None, url=None, *args, **kwargs):
-                if '_pool' in kwargs:
-                    conn = kwargs['_pool'] # type: urllib3.connectionpool.HTTPSConnectionPool
-                    if 'response' in kwargs:
+                if "_pool" in kwargs:
+                    conn = kwargs[
+                        "_pool"
+                    ]  # type: urllib3.connectionpool.HTTPSConnectionPool
+                    if "response" in kwargs:
                         try:
                             # drain conn in advance so that it won't be put back into conn.pool
-                            kwargs['response'].drain_conn()
+                            kwargs["response"].drain_conn()
                         except:
                             pass
                     # Useless, retry happens inside urllib3
@@ -231,7 +256,7 @@ def getParameters(params=None) -> Tuple[Config, Dict]:
                     #     adapters.poolmanager.clear()
 
                     # Close existing connection so that a new connection will be used
-                    if hasattr(conn, 'pool'):
+                    if hasattr(conn, "pool"):
                         pool = conn.pool  # type: queue.Queue
                         try:
                             # Don't directly use this, This closes connection pool by making conn.pool = None
@@ -239,22 +264,31 @@ def getParameters(params=None) -> Tuple[Config, Dict]:
                         except:
                             pass
                         conn.pool = pool
-                return super(CustomRetry, self).increment(method=method, url=url, *args, **kwargs)
+                return super().increment(method=method, url=url, *args, **kwargs)
 
             def sleep(self, response=None):
                 backoff = self.get_backoff_time()
                 if backoff <= 0:
                     return
                 if response is not None:
-                    msg = 'req retry (%s)' % response.status
+                    msg = "req retry (%s)" % response.status
                 else:
                     msg = None
                 Delay(config=None, session=session, msg=msg, delay=backoff)
 
         __retries__ = CustomRetry(
-            total=int(args.retries), backoff_factor=0.3,
+            total=int(args.retries),
+            backoff_factor=0.3,
             status_forcelist=[500, 502, 503, 504, 429],
-            allowed_methods=['DELETE', 'PUT', 'GET', 'OPTIONS', 'TRACE', 'HEAD', 'POST']
+            allowed_methods=[
+                "DELETE",
+                "PUT",
+                "GET",
+                "OPTIONS",
+                "TRACE",
+                "HEAD",
+                "POST",
+            ],
         )
         session.mount("https://", HTTPAdapter(max_retries=__retries__))
         session.mount("http://", HTTPAdapter(max_retries=__retries__))
@@ -271,7 +305,7 @@ def getParameters(params=None) -> Tuple[Config, Dict]:
 
     # Setup user agent
     session.headers.update({"User-Agent": getUserAgent()})
-    setupUserAgent(session) # monkey patch
+    setupUserAgent(session)  # monkey patch
 
     # Set HTTP Basic Auth
     if args.http_user and args.http_password:
@@ -319,7 +353,7 @@ def getParameters(params=None) -> Tuple[Config, Dict]:
         # Replace the index URL we got from the API check
         index2 = check[1]
         api = checkedapi
-        print("API is OK: ",  checkedapi)
+        print("API is OK: ", checkedapi)
     else:
         if index and not args.wiki:
             print("API not available. Trying with index.php only.")
@@ -331,7 +365,13 @@ def getParameters(params=None) -> Tuple[Config, Dict]:
     # login if needed
     # TODO: Re-login after session expires
     if args.user and args.password:
-        _session = uniLogin(api=api, index=index, session=session, username=args.user, password=args.password)
+        _session = uniLogin(
+            api=api,
+            index=index,
+            session=session,
+            username=args.user,
+            password=args.password,
+        )
         if _session:
             session = _session
             print("-- Login OK --")
@@ -361,7 +401,6 @@ def getParameters(params=None) -> Tuple[Config, Dict]:
                         "Please, provide a correct path to index.php or use --xmlrevisions. Terminating."
                     )
                     sys.exit(1)
-
 
     namespaces = ["all"]
     exnamespaces = []
@@ -398,28 +437,29 @@ def getParameters(params=None) -> Tuple[Config, Dict]:
             else:
                 exnamespaces = [int(i) for i in ns.split(",")]
 
-
-    config = newConfig({
-        "curonly": args.curonly,
-        "date": datetime.datetime.now().strftime("%Y%m%d"),
-        "api": api,
-        "failfast": args.failfast,
-        "http_method": "POST",
-        "api_chunksize": int(args.api_chunksize),
-        "index": index,
-        "images": args.images,
-        "logs": False,
-        "xml": args.xml,
-        "xmlapiexport": args.xmlapiexport,
-        "xmlrevisions": args.xmlrevisions or args.xmlrevisions_page,
-        "xmlrevisions_page": args.xmlrevisions_page,
-        "namespaces": namespaces,
-        "exnamespaces": exnamespaces,
-        "path": args.path and os.path.normpath(args.path) or "",
-        "cookies": args.cookies or "",
-        "delay": args.delay,
-        "retries": int(args.retries),
-    })
+    config = newConfig(
+        {
+            "curonly": args.curonly,
+            "date": datetime.datetime.now().strftime("%Y%m%d"),
+            "api": api,
+            "failfast": args.failfast,
+            "http_method": "POST",
+            "api_chunksize": int(args.api_chunksize),
+            "index": index,
+            "images": args.images,
+            "logs": False,
+            "xml": args.xml,
+            "xmlapiexport": args.xmlapiexport,
+            "xmlrevisions": args.xmlrevisions or args.xmlrevisions_page,
+            "xmlrevisions_page": args.xmlrevisions_page,
+            "namespaces": namespaces,
+            "exnamespaces": exnamespaces,
+            "path": args.path and os.path.normpath(args.path) or "",
+            "cookies": args.cookies or "",
+            "delay": args.delay,
+            "retries": int(args.retries),
+        }
+    )
 
     other = {
         "resume": args.resume,

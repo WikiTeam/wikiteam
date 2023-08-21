@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 
 # Copyright (C) 2014-2022 WikiTeam developers
 # This program is free software: you can redistribute it and/or modify
@@ -16,21 +15,25 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import re
+
 import requests
+
+
 def main():
     headers = {
-        'User-Agent': 'Mozilla/5.0 (X11; Linux i686; rv:24.0) Gecko/20100101 Firefox/24.0',
+        "User-Agent": "Mozilla/5.0 (X11; Linux i686; rv:24.0) Gecko/20100101 Firefox/24.0",
     }
 
-    url = 'https://neowiki.neoseeker.com/wiki/Special:WikiList'
+    url = "https://neowiki.neoseeker.com/wiki/Special:WikiList"
     r = requests.get(url, headers=headers)
     raw = r.text
-    m = re.findall(r'<li><a href=\'([^>]+?)/wiki/\'>', raw)
-    m = [w.replace('http://', 'https://') + '/w/api.php' for w in m]
+    m = re.findall(r"<li><a href=\'([^>]+?)/wiki/\'>", raw)
+    m = [w.replace("http://", "https://") + "/w/api.php" for w in m]
     m = list(set(m))
     m.sort()
-    with open('neoseeker.com', 'w') as f:
-        f.write('\n'.join(m))
+    with open("neoseeker.com", "w") as f:
+        f.write("\n".join(m))
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()

@@ -4,25 +4,39 @@ from typing import *
 
 import lxml.etree
 
+from wikiteam3.dumpgenerator.api.page_titles import readTitles
 from wikiteam3.dumpgenerator.cli import Delay
-from wikiteam3.utils import domain2prefix
+from wikiteam3.dumpgenerator.config import Config
+from wikiteam3.dumpgenerator.dump.page.xmlexport.page_xml import getXMLPage
+from wikiteam3.dumpgenerator.dump.page.xmlrev.xml_revisions import getXMLRevisions
+from wikiteam3.dumpgenerator.dump.xmldump.xml_header import getXMLHeader
+from wikiteam3.dumpgenerator.dump.xmldump.xml_truncate import (
+    parseLastPageChunk,
+    truncateXMLDump,
+)
 from wikiteam3.dumpgenerator.exceptions import PageMissingError
 from wikiteam3.dumpgenerator.log import logerror
-from wikiteam3.dumpgenerator.api.page_titles import readTitles
-from wikiteam3.dumpgenerator.dump.page.xmlexport.page_xml import getXMLPage
-from wikiteam3.dumpgenerator.config import Config
-from wikiteam3.utils import cleanXML, undoHTMLEntities
-from wikiteam3.dumpgenerator.dump.xmldump.xml_header import getXMLHeader
-from wikiteam3.dumpgenerator.dump.page.xmlrev.xml_revisions import getXMLRevisions
-from wikiteam3.dumpgenerator.dump.xmldump.xml_truncate import truncateXMLDump, parseLastPageChunk
+from wikiteam3.utils import cleanXML, domain2prefix, undoHTMLEntities
 
-def doXMLRevisionDump(config: Config=None, session=None, xmlfile=None, lastPage=None, useAllrevisions=False):
+
+def doXMLRevisionDump(
+    config: Config = None,
+    session=None,
+    xmlfile=None,
+    lastPage=None,
+    useAllrevisions=False,
+):
     try:
         r_timestamp = "<timestamp>([^<]+)</timestamp>"
         r_arvcontinue = '<page arvcontinue="(.*?)">'
 
         lastArvcontinue = None
-        for xml in getXMLRevisions(config=config, session=session, lastPage=lastPage, useAllrevision=useAllrevisions):
+        for xml in getXMLRevisions(
+            config=config,
+            session=session,
+            lastPage=lastPage,
+            useAllrevision=useAllrevisions,
+        ):
             numrevs = len(re.findall(r_timestamp, xml))
             arvcontinueRe = re.findall(r_arvcontinue, xml)
             if arvcontinueRe:
@@ -36,7 +50,7 @@ def doXMLRevisionDump(config: Config=None, session=None, xmlfile=None, lastPage=
 
             xmltitle = re.search(r"<title>([^<]+)</title>", xml)
             title = undoHTMLEntities(text=xmltitle.group(1))
-            print(f'{title}, {numrevs} edits (--xmlrevisions)')
+            print(f"{title}, {numrevs} edits (--xmlrevisions)")
             # Delay(config=config, session=session)
     except AttributeError as e:
         print(e)
@@ -45,18 +59,20 @@ def doXMLRevisionDump(config: Config=None, session=None, xmlfile=None, lastPage=
     except UnicodeEncodeError as e:
         print(e)
 
-def doXMLExportDump(config: Config=None, session=None, xmlfile=None, lastPage=None):
-    print(
-        '\nRetrieving the XML for every page\n'
-    )
+
+def doXMLExportDump(config: Config = None, session=None, xmlfile=None, lastPage=None):
+    print("\nRetrieving the XML for every page\n")
 
     lock = True
     start = None
     if lastPage is not None:
         try:
-            start = lastPage.find('title').text
+            start = lastPage.find("title").text
         except Exception:
-            print("Failed to find title in last trunk XML: %s" % (lxml.etree.tostring(lastPage)))
+            print(
+                "Failed to find title in last trunk XML: %s"
+                % (lxml.etree.tostring(lastPage))
+            )
             raise
     else:
         # requested complete xml dump
@@ -79,9 +95,9 @@ def doXMLExportDump(config: Config=None, session=None, xmlfile=None, lastPage=No
                 xmlfile.write(xml)
         except PageMissingError:
             logerror(
-                config=config, to_stdout=True,
-                text='The page "%s" was missing in the wiki (probably deleted)'
-                     % title,
+                config=config,
+                to_stdout=True,
+                text='The page "%s" was missing in the wiki (probably deleted)' % title,
             )
         # here, XML is a correct <page> </page> chunk or
         # an empty string due to a deleted page (logged in errors log) or
@@ -90,7 +106,7 @@ def doXMLExportDump(config: Config=None, session=None, xmlfile=None, lastPage=No
         c += 1
 
 
-def generateXMLDump(config: Config=None, resume=False, session=None):
+def generateXMLDump(config: Config = None, resume=False, session=None):
     """Generates a XML dump for a list of titles or from revision IDs"""
 
     header, config = getXMLHeader(config=config, session=session)
@@ -106,11 +122,9 @@ def generateXMLDump(config: Config=None, resume=False, session=None):
     lastPageChunk = None
     # start != None, means we are resuming a XML dump
     if resume:
-        print(
-            "Removing the last chunk of past XML dump: it is probably incomplete."
-        )
+        print("Removing the last chunk of past XML dump: it is probably incomplete.")
         # truncate XML dump if it already exists
-        lastPageChunk = truncateXMLDump("{}/{}".format(config.path, xmlfilename))
+        lastPageChunk = truncateXMLDump(f"{config.path}/{xmlfilename}")
         if not lastPageChunk.strip():
             print("Last page chunk is NULL, we'll directly start a new dump!")
             resume = False
@@ -123,14 +137,10 @@ def generateXMLDump(config: Config=None, resume=False, session=None):
                 sys.exit(1)
 
         print(f"WARNING: will try to start the download...")
-        xmlfile = open(
-            "{}/{}".format(config.path, xmlfilename), "a", encoding="utf-8"
-        )
+        xmlfile = open(f"{config.path}/{xmlfilename}", "a", encoding="utf-8")
     else:
         print("\nRetrieving the XML for every page from the beginning\n")
-        xmlfile = open(
-            "{}/{}".format(config.path, xmlfilename), "w", encoding="utf-8"
-        )
+        xmlfile = open(f"{config.path}/{xmlfilename}", "w", encoding="utf-8")
         xmlfile.write(header)
 
     if config.xmlrevisions and not config.xmlrevisions_page:

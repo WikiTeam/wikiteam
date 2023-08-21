@@ -1,23 +1,9 @@
-'''
+"""
 Extracts all titles from a XML dump file and writes them to `*-xml2titles.txt`.
 
 requirements:
     file_read_backwards
-'''
 
-import dataclasses
-import os
-import argparse
-import tqdm
-import sys
-# import re
-import xml.sax
-from xml.sax.saxutils import unescape
-
-from file_read_backwards import FileReadBackwards
-
-
-'''
   <page>
     <title>abcde</title>
     <ns>0</ns>
@@ -35,11 +21,26 @@ from file_read_backwards import FileReadBackwards
       <text xml:space="preserve" bytes="2326">text</text>
     </revision>
   </page>
-'''
+"""
+
+import argparse
+import dataclasses
+import os
+import sys
+
+# import re
+import xml.sax
+from xml.sax.saxutils import unescape
+
+import tqdm
+from file_read_backwards import FileReadBackwards
+
+
 class XMLBaseHandler(xml.sax.handler.ContentHandler):
-    '''only work on level <= 3 of the XML tree'''
+    """only work on level <= 3 of the XML tree"""
 
     fileSize = 0
+
     class page__:
         # TODO
         pass
@@ -47,7 +48,11 @@ class XMLBaseHandler(xml.sax.handler.ContentHandler):
     def __init__(self, fileSize=0):
         self.fileSize = fileSize
         self.tqdm_progress = tqdm.tqdm(
-            total=self.fileSize, unit="B", unit_scale=True, unit_divisor=1024, desc="Parsing XML"
+            total=self.fileSize,
+            unit="B",
+            unit_scale=True,
+            unit_divisor=1024,
+            desc="Parsing XML",
         )
         self.globalParsedBytes = 0
         self.debugCount = 0
@@ -82,7 +87,7 @@ class XMLBaseHandler(xml.sax.handler.ContentHandler):
 
     def close_tqdm(self):
         self.tqdm_progress.close()
-    
+
     def __debugCount(self):
         self.debugCount += 1
         print(self.debugCount)
@@ -93,11 +98,11 @@ class XMLBaseHandler(xml.sax.handler.ContentHandler):
         # print("resetPageTag")
 
     def startElement(self, name, attrs):
-        self.depth+=1
+        self.depth += 1
         if self.depth > 3:
             self.startElementOverDepth3(name, attrs)
             return
-        
+
         if name == "page":
             self.inPage = True
             self.pageTagsCount += 1
@@ -118,9 +123,9 @@ class XMLBaseHandler(xml.sax.handler.ContentHandler):
     def endElement(self, name):
         if self.depth > 3:
             self.endElementOverDepth3(name)
-            self.depth-=1
+            self.depth -= 1
             return
-        self.depth-=1
+        self.depth -= 1
         if name == "page":
             self.inPage = False
 
@@ -147,20 +152,21 @@ class XMLBaseHandler(xml.sax.handler.ContentHandler):
         bufferSize = len(content.encode("utf-8"))
         self.globalParsedBytes += bufferSize
         # print(bufferSize)
-        self.tqdm_progress.update(bufferSize) # NOTE: sum(bufferSize...) != fileSize
-
+        self.tqdm_progress.update(bufferSize)  # NOTE: sum(bufferSize...) != fileSize
 
         if self.inPage:
             pass
         if self.inTitle:
             # self.__debugCount()
-            self.cjoin("title", content) if 'title' not in not_parse_tags else None
+            self.cjoin("title", content) if "title" not in not_parse_tags else None
         if self.inNs:
-            self.cjoin("ns", content) if 'ns' not in not_parse_tags else None
+            self.cjoin("ns", content) if "ns" not in not_parse_tags else None
         if self.inId:
-            self.cjoin("id", content) if 'id' not in not_parse_tags else None
+            self.cjoin("id", content) if "id" not in not_parse_tags else None
         if self.inRevision:
-            self.cjoin("revision", content) if 'revision' not in not_parse_tags else None
+            self.cjoin(
+                "revision", content
+            ) if "revision" not in not_parse_tags else None
 
     def endDocument(self):
         if self.depth != 0:
@@ -171,18 +177,18 @@ class XMLBaseHandler(xml.sax.handler.ContentHandler):
 
     def endElementOverDepth3(self, name):
         pass
-    
+
     def cjoin(self, obj, content):
-        ''' self.obj = self.obj + content if self.obj is not None else content 
+        """self.obj = self.obj + content if self.obj is not None else content
 
         obj: str
-        '''
+        """
         if hasattr(self, obj):
             if getattr(self, obj) is None:
                 setattr(self, obj, content)
             else:
                 # assert ''.join((getattr(self, obj), content)) == content if getattr(self, obj) is None else getattr(self, obj) + content
-                setattr(self, obj, ''.join((getattr(self, obj), content)))
+                setattr(self, obj, "".join((getattr(self, obj), content)))
                 pass
         else:
             raise AttributeError("XMLBaseHandler has no attribute %s" % obj)
@@ -194,20 +200,25 @@ class TitlesHandler(XMLBaseHandler):
         super().__init__(*args, **kwargs)
         self.set_titles = set()
         self.list_titles = []
+
     def endElement(self, name):
         # print(self.revision) if name == "page" else None
         super().endElement(name)
         if name == "page":
-            if self.page['title'] is not None:
-                if self.page['title'] in self.set_titles:
-                    print("Duplicate title found: %s" % self.page['title']) if not self.silent else None
+            if self.page["title"] is not None:
+                if self.page["title"] in self.set_titles:
+                    print(
+                        "Duplicate title found: %s" % self.page["title"]
+                    ) if not self.silent else None
                 else:
-                    self.set_titles.add(self.page['title'])
-                    self.list_titles.append(self.page['title']) # unique
+                    self.set_titles.add(self.page["title"])
+                    self.list_titles.append(self.page["title"])  # unique
                     if not self.silent:
                         print(self.page)
+
     def characters(self, content):
         return super().characters(content, not_parse_tags=["revision"])
+
 
 class PagesHandler(XMLBaseHandler):
     def __init__(self, *args, **kwargs):
@@ -223,16 +234,16 @@ class PagesHandler(XMLBaseHandler):
     # TODO
     def startElementOverDepth3(self, name, attrs):
         super().startElementOverDepth3(name, attrs)
-        if name == 'text' and attrs:
+        if name == "text" and attrs:
             self.pageTextsAttrs.append(attrs.items())
-            self.page['textsAttrs'] = self.pageTextsAttrs
-        if name == 'text':
+            self.page["textsAttrs"] = self.pageTextsAttrs
+        if name == "text":
             self.inText = True
             self.textTagsCount += 1
-    
+
     def endElementOverDepth3(self, name):
         super().endElementOverDepth3(name)
-        if name == 'text':
+        if name == "text":
             self.inText = False
 
     def resetPageTag(self):
@@ -242,12 +253,14 @@ class PagesHandler(XMLBaseHandler):
         self.pageTexts: str = None
 
     def endElement(self, name):
-        self.pageTextsRealLength = len(self.pageTexts.encode('utf-8')) if self.pageTexts is not None else 0
-        self.page['textsRealLength'] = self.pageTextsRealLength
+        self.pageTextsRealLength = (
+            len(self.pageTexts.encode("utf-8")) if self.pageTexts is not None else 0
+        )
+        self.page["textsRealLength"] = self.pageTextsRealLength
         super().endElement(name)
         # if name == "page":
         #     print(self.page)
-    
+
     def characters(self, content, *args, **kwargs):
         super().characters(content, *args, **kwargs)
         if self.inText:
@@ -260,33 +273,36 @@ class MediaNsHandler(XMLBaseHandler):
         # self.mediaNsPages = []
         self.mediaNsPagesName_set = set()
         self.mediaNsPagesID_set = set()
+
     def endElement(self, name):
         super().endElement(name)
         if name == "page":
-            if self.page['ns'] == '6':
-                if self.page['title'] in self.mediaNsPagesName_set:
+            if self.page["ns"] == "6":
+                if self.page["title"] in self.mediaNsPagesName_set:
                     if not self.silent:
-                        print("Duplicate title found: %s" % self.page['title'])
+                        print("Duplicate title found: %s" % self.page["title"])
                 else:
-                    self.mediaNsPagesName_set.add(self.page['title'])
+                    self.mediaNsPagesName_set.add(self.page["title"])
                     # self.mediaNsPages.append(self.page)
                     # print(self.page)
-                if self.page['id'] in self.mediaNsPagesID_set:
+                if self.page["id"] in self.mediaNsPagesID_set:
                     if not self.silent:
-                        print("Duplicate id found: %s" % self.page['id'])
+                        print("Duplicate id found: %s" % self.page["id"])
                 else:
-                    self.mediaNsPagesID_set.add(self.page['id'])
+                    self.mediaNsPagesID_set.add(self.page["id"])
                     # self.mediaNsPages.append(self.page)
                     print(self.page)
+
     def characters(self, content):
         return super().characters(content, not_parse_tags=["revision"])
 
+
 def get_titles_from_xml(xmlfile, return_type="list", silent=False):
-    '''Return a list/set of titles from a XML dump file.\n
+    """Return a list/set of titles from a XML dump file.\n
     `xmlfile`: a system identifier or an InputSource.\n
     `return_type`:`"list"` or `"set"` (default: `"list"`).
     The `list` keeps the order of XML file, and is unique.
-    '''
+    """
     # xmlfile_size = os.path.getsize(xmlfile)
     parser = xml.sax.make_parser()
     handler = TitlesHandler(os.path.getsize(xmlfile))
@@ -296,12 +312,19 @@ def get_titles_from_xml(xmlfile, return_type="list", silent=False):
     parser.setContentHandler(handler)
     parser.parse(xmlfile)
     handler.close_tqdm()
-    print('',flush=True)
-    print('pageTagsCount:', handler.pageTagsCount,
-            'titleTagsCount:', handler.titleTagsCount,
-            'nsTagsCount:', handler.nsTagsCount,
-            'idTagsCount:', handler.idTagsCount,
-            'revisionTagsCount:', handler.revisionTagsCount)
+    print("", flush=True)
+    print(
+        "pageTagsCount:",
+        handler.pageTagsCount,
+        "titleTagsCount:",
+        handler.titleTagsCount,
+        "nsTagsCount:",
+        handler.nsTagsCount,
+        "idTagsCount:",
+        handler.idTagsCount,
+        "revisionTagsCount:",
+        handler.revisionTagsCount,
+    )
     # print('MediaNsPages (Name):', len(handler.mediaNsPagesName_set))
     # print('MediaNsPages (ID):', len(handler.mediaNsPagesID_set))
 
@@ -309,7 +332,7 @@ def get_titles_from_xml(xmlfile, return_type="list", silent=False):
         raise RuntimeError("len(set_titles) and (list_titles) are not equal!")
 
     titles = handler.set_titles if return_type == "set" else handler.list_titles
-    
+
     return titles
 
 
@@ -319,13 +342,14 @@ class Config:
     dry: bool
     verbose: bool
 
+
 def getArguments():
     parser = argparse.ArgumentParser()
 
     parser.description = "Extracts all titles from a XML dump file and writes them to `*-xml2titles.txt`."
     parser.add_argument("xmlfile", help="XML file of wiki dump")
-    parser.add_argument("--dry", help="Do not write to file",action="store_true")
-    parser.add_argument("--verbose", help="Verbose",action="store_true")
+    parser.add_argument("--dry", help="Do not write to file", action="store_true")
+    parser.add_argument("--verbose", help="Verbose", action="store_true")
 
     args = parser.parse_args()
     config = Config
@@ -339,7 +363,7 @@ def getArguments():
 if __name__ == "__main__":
     args = getArguments()
 
-    print('Parsing...')
+    print("Parsing...")
 
     xmlfile = args.xmlfile
     if not os.path.exists(xmlfile):
@@ -351,10 +375,12 @@ if __name__ == "__main__":
 
     assert xml_basename.endswith(".xml")
     "XML file name does not end with .xml!"
-    assert xml_basename.endswith("-current.xml") or xml_basename.endswith("-history.xml")
+    assert xml_basename.endswith("-current.xml") or xml_basename.endswith(
+        "-history.xml"
+    )
     "XML file name does not end with -current.xml or -history.xml!"
 
-    with FileReadBackwards(xmlfile, encoding='utf-8') as frb:
+    with FileReadBackwards(xmlfile, encoding="utf-8") as frb:
         seeked = 0
         for line in frb:
             seeked += 1
@@ -362,7 +388,7 @@ if __name__ == "__main__":
                 # xml dump is complete
                 break
             if seeked > 4:
-                raise Exception('xml dump is incomplete!')
+                raise Exception("xml dump is incomplete!")
 
     _silent = not args.verbose
 
@@ -372,7 +398,9 @@ if __name__ == "__main__":
         print("Dry run. No file will be written.")
         sys.exit(0)
 
-    titles_filename = xml_basename.replace("-current.xml", "-xml2titles.txt").replace("-history.xml", "-xml2titles.txt")
+    titles_filename = xml_basename.replace("-current.xml", "-xml2titles.txt").replace(
+        "-history.xml", "-xml2titles.txt"
+    )
     titles_filepath = os.path.join(xml_dir, titles_filename)
     with open(titles_filepath, "w") as f:
         f.write("\n".join(titles))

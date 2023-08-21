@@ -34,7 +34,7 @@ def main():
 
     parser.add_argument("wikispath")
     parser.add_argument("--7z-path", dest="path7z", metavar="path-to-7z")
-    parser.add_argument("--generator-arg", "-g", dest="generator_args", action='append')
+    parser.add_argument("--generator-arg", "-g", dest="generator_args", action="append")
 
     args = parser.parse_args()
 
@@ -42,7 +42,7 @@ def main():
 
     # None -> literal '7z', which will find the executable in PATH when running subprocesses
     # otherwise -> resolve as path relative to current dir, then make absolute because we will change working dir later
-    path7z = str(Path(".", args.path7z).absolute()) if args.path7z is not None else '7z'
+    path7z = str(Path(".", args.path7z).absolute()) if args.path7z is not None else "7z"
 
     generator_args = args.generator_args if args.generator_args is not None else []
 
@@ -77,7 +77,12 @@ def main():
             )
             # Get the archive's file list.
             if (sys.version_info[0] == 3) and (sys.version_info[1] > 0):
-                archivecontent = subprocess.check_output([path7z, "l", zipfilename, "-scsUTF-8"], text=True, encoding="UTF-8", errors="strict")
+                archivecontent = subprocess.check_output(
+                    [path7z, "l", zipfilename, "-scsUTF-8"],
+                    text=True,
+                    encoding="UTF-8",
+                    errors="strict",
+                )
                 if re.search(r"%s.+-history\.xml" % (prefix), archivecontent) is None:
                     # We should perhaps not create an archive in this case, but we continue anyway.
                     print("ERROR: The archive contains no history!")
@@ -86,9 +91,7 @@ def main():
                         "WARNING: The archive doesn't contain SpecialVersion.html, this may indicate that download didn't finish."
                     )
             else:
-                print(
-                    "WARNING: Content of the archive not checked, we need 3.1+."
-                )
+                print("WARNING: Content of the archive not checked, we need 3.1+.")
                 # TODO: Find a way like grep -q below without doing a 7z l multiple times?
             continue
 
@@ -121,7 +124,8 @@ def main():
                     "--images",
                     "--resume",
                     f"--path={wikidir}",
-                ] + generator_args,
+                ]
+                + generator_args,
                 shell=False,
                 env=subenv,
             )
@@ -134,7 +138,8 @@ def main():
                     f"--api={wiki}",
                     "--xml",
                     "--images",
-                ] + generator_args,
+                ]
+                + generator_args,
                 shell=False,
                 env=subenv,
             )

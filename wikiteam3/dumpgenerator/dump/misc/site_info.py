@@ -1,12 +1,12 @@
 import json
 import os
 
-from wikiteam3.dumpgenerator.cli import Delay
 from wikiteam3.dumpgenerator.api import getJSON
+from wikiteam3.dumpgenerator.cli import Delay
 from wikiteam3.dumpgenerator.config import Config
 
 
-def saveSiteInfo(config: Config=None, session=None):
+def saveSiteInfo(config: Config = None, session=None):
     """Save a file with site info"""
 
     if config.api:

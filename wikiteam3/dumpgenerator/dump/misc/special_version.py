@@ -1,11 +1,11 @@
 import os
 
 from wikiteam3.dumpgenerator.cli import Delay
-from wikiteam3.utils import removeIP
 from wikiteam3.dumpgenerator.config import Config
+from wikiteam3.utils import removeIP
 
 
-def saveSpecialVersion(config: Config=None, session=None):
+def saveSpecialVersion(config: Config = None, session=None):
     """Save Special:Version as .html, to preserve extensions details"""
 
     if os.path.exists("%s/SpecialVersion.html" % (config.path)):
@@ -22,4 +22,3 @@ def saveSpecialVersion(config: Config=None, session=None):
             "%s/SpecialVersion.html" % (config.path), "w", encoding="utf-8"
         ) as outfile:
             outfile.write(str(raw))
-

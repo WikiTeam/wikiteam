@@ -1,16 +1,17 @@
-from typing import *
 import re
 import time
-from urllib.parse import urlparse, urlunparse, urljoin
+from typing import *
+from urllib.parse import urljoin, urlparse, urlunparse
 
 import mwclient
 import requests
 
-from .get_json import getJSON
 from wikiteam3.utils import getUserAgent
 
+from .get_json import getJSON
 
-def checkAPI(api="", session: requests.Session=None):
+
+def checkAPI(api="", session: requests.Session = None):
     """Checking API availability"""
     global cj
     # handle redirects
@@ -55,7 +56,7 @@ def checkAPI(api="", session: requests.Session=None):
     return None
 
 
-def mwGetAPIAndIndex(url="", session: requests.Session=None):
+def mwGetAPIAndIndex(url="", session: requests.Session = None):
     """Returns the MediaWiki API and Index.php"""
 
     api = ""
@@ -114,7 +115,7 @@ def mwGetAPIAndIndex(url="", session: requests.Session=None):
     return api, index
 
 
-def checkRetryAPI(api="", apiclient=False, session: requests.Session=None):
+def checkRetryAPI(api="", apiclient=False, session: requests.Session = None):
     """Call checkAPI and mwclient if necessary"""
     check = None
     try:
@@ -126,7 +127,10 @@ def checkRetryAPI(api="", apiclient=False, session: requests.Session=None):
         apiurl = urlparse(api)
         try:
             site = mwclient.Site(
-                apiurl.netloc, apiurl.path.replace("api.php", ""), scheme=apiurl.scheme, pool=session
+                apiurl.netloc,
+                apiurl.path.replace("api.php", ""),
+                scheme=apiurl.scheme,
+                pool=session,
             )
         except KeyError:
             # Probably KeyError: 'query'
@@ -144,7 +148,10 @@ def checkRetryAPI(api="", apiclient=False, session: requests.Session=None):
 
             try:
                 site = mwclient.Site(
-                    apiurl.netloc, apiurl.path.replace("api.php", ""), scheme=newscheme, pool=session
+                    apiurl.netloc,
+                    apiurl.path.replace("api.php", ""),
+                    scheme=newscheme,
+                    pool=session,
                 )
             except KeyError:
                 check = False

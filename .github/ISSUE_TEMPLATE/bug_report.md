@@ -1,5 +1,5 @@
 ---
-name: Bug report
+name: Bug Report
 about: Create a report to help us improve
 title: ''
 labels: ''
@@ -30,7 +30,7 @@ please fill out as much of the following as possible. -->
 (Please copy and paste within the code block below.) -->
 
 ```bash
-$ 
+
 ```
 
 ## Output
@@ -44,7 +44,7 @@ $
 ```bash
 
 ```
- 
+
 </details>
 
 <details>
@@ -53,10 +53,10 @@ $
 <!-- The errors.log file from the dump folder, if there is one
 (Please copy and paste within the code block below.) -->
 
-```
+```text
 
 ```
- 
+
 </details>
 
 ## Platform Details
@@ -66,19 +66,19 @@ able to and remove whichever section is inapplicable -->
 
 ### Desktop
 
- - OS and version: <!-- e.g. Kubuntu 23.04, Windows 10, macOS 14.2 -->
- - File system: <!-- e.g. EXT4, NTFS, APFS -->
- - Python version: <!-- `$ python --version` -->
- - Command line shell: <!-- `$ $SHELL --version` -->
- - `dumpgenerator` version: <!-- `$ dumpgenerator -v` -->
-   
+- OS and version: <!-- e.g. Kubuntu 23.04, Windows 10, macOS 14.2 -->
+- File system: <!-- e.g. EXT4, NTFS, APFS -->
+- Python version: <!-- `$ python --version` -->
+- Command line shell: <!-- `$ $SHELL --version` -->
+- `dumpgenerator` version: <!-- `$ dumpgenerator -v` -->
+
 ### Smartphone or Tablet
 
- - OS: <!-- e.g. iOS 16.1, Android 11 -->
- - Python version: <!-- `$ python --version` -->
- - Command line shell: <!-- `$ $SHELL --version` -->
- - Terminal application used: <!-- e.g. Termux, Termius -->
- - `dumpgenerator` version: <!-- `$ dumpgenerator -v` -->
+- OS: <!-- e.g. iOS 16.1, Android 11 -->
+- Python version: <!-- `$ python --version` -->
+- Command line shell: <!-- `$ $SHELL --version` -->
+- Terminal application used: <!-- e.g. Termux, Termius -->
+- `dumpgenerator` version: <!-- `$ dumpgenerator -v` -->
 
 ## Additional Context
 

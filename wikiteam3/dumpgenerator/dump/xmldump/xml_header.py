@@ -5,12 +5,13 @@ from typing import *
 
 import requests
 
+from wikiteam3.dumpgenerator.config import Config
+from wikiteam3.dumpgenerator.dump.page.xmlexport.page_xml import getXMLPage
 from wikiteam3.dumpgenerator.exceptions import ExportAbortedError, PageMissingError
 from wikiteam3.dumpgenerator.log import logerror
-from wikiteam3.dumpgenerator.dump.page.xmlexport.page_xml import getXMLPage
-from wikiteam3.dumpgenerator.config import Config
 
-def getXMLHeader(config: Config=None, session=None) -> Tuple[str, Config]:
+
+def getXMLHeader(config: Config = None, session=None) -> Tuple[str, Config]:
     """Retrieve a random page to extract XML headers (namespace info, etc)"""
     # get the header of a random page, to attach it in the complete XML backup
     # similar to: <mediawiki xmlns="http://www.mediawiki.org/xml/export-0.3/"
@@ -125,6 +126,8 @@ def getXMLHeader(config: Config=None, session=None) -> Tuple[str, Config]:
         else:
             print(xml)
             print("XML export on this wiki is broken, quitting.")
-            logerror(to_stdout=True, text="XML export on this wiki is broken, quitting.")
+            logerror(
+                to_stdout=True, text="XML export on this wiki is broken, quitting."
+            )
             sys.exit()
     return header, config

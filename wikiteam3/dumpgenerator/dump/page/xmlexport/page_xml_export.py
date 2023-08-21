@@ -1,18 +1,20 @@
-from typing import *
 import re
 import sys
 import time
+from typing import *
 
 import requests
 
-from wikiteam3.dumpgenerator.exceptions import ExportAbortedError, PageMissingError
 from wikiteam3.dumpgenerator.api import handleStatusCode
+from wikiteam3.dumpgenerator.config import Config
+from wikiteam3.dumpgenerator.exceptions import ExportAbortedError, PageMissingError
 from wikiteam3.dumpgenerator.log import logerror
 from wikiteam3.utils import uprint
-from wikiteam3.dumpgenerator.config import Config
 
 
-def getXMLPageCore(headers: Dict=None, params: Dict=None, config: Config=None, session=None) -> str:
+def getXMLPageCore(
+    headers: Dict = None, params: Dict = None, config: Config = None, session=None
+) -> str:
     """"""
     # returns a XML containing params['limit'] revisions (or current only), ending in </mediawiki>
     # if retrieving params['limit'] revisions fails, returns a current only version
@@ -55,7 +57,8 @@ def getXMLPageCore(headers: Dict=None, params: Dict=None, config: Config=None, s
                 print("    Trying to save only the last revision for this page...")
                 params["curonly"] = 1
                 logerror(
-                    config=config, to_stdout=True,
+                    config=config,
+                    to_stdout=True,
                     text='Error while retrieving the full history of "%s". Trying to save only the last revision for this page'
                     % (params["pages"]),
                 )
@@ -65,7 +68,8 @@ def getXMLPageCore(headers: Dict=None, params: Dict=None, config: Config=None, s
             else:
                 print("    Saving in the errors log, and skipping...")
                 logerror(
-                    config=config, to_stdout=True,
+                    config=config,
+                    to_stdout=True,
                     text='Error while retrieving the last revision of "%s". Skipping.'
                     % (params["pages"]),
                 )
@@ -89,7 +93,7 @@ def getXMLPageCore(headers: Dict=None, params: Dict=None, config: Config=None, s
     return xml
 
 
-def getXMLPageWithExport(config: Config=None, title="", verbose=True, session=None):
+def getXMLPageWithExport(config: Config = None, title="", verbose=True, session=None):
     """Get the full history (or current only) of a page"""
 
     # if server errors occurs while retrieving the full page history, it may return [oldest OK versions] + last version, excluding middle revisions, so it would be partialy truncated

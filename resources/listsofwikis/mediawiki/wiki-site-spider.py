@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 
 # Copyright (C) 2014-2022 WikiTeam developers
 # This program is free software: you can redistribute it and/or modify
@@ -16,17 +15,19 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import re
-import requests
 from urllib import parse
+
+import requests
+
 
 def main():
     headers = {
-        'User-Agent': 'Mozilla/5.0 (X11; Linux i686; rv:24.0) Gecko/20100101 Firefox/24.0',
+        "User-Agent": "Mozilla/5.0 (X11; Linux i686; rv:24.0) Gecko/20100101 Firefox/24.0",
     }
 
     urls = [
-        'http://www.wiki.co.il/active-wiki-all.html',
-        'http://www.wiki.co.il/active-wiki-en.html',
+        "http://www.wiki.co.il/active-wiki-all.html",
+        "http://www.wiki.co.il/active-wiki-en.html",
     ]
     wikis = []
     for url in urls:
@@ -35,9 +36,10 @@ def main():
 
     wikis = list(set(wikis))
     wikis.sort()
-    with open('wiki-site.com', 'w') as f:
+    with open("wiki-site.com", "w") as f:
         for wiki in wikis:
-            f.write(parse.urljoin(wiki, 'api.php') + '\n')
+            f.write(parse.urljoin(wiki, "api.php") + "\n")
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()

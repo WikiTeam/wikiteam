@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 
 # Copyright (C) 2022 Simon Liu
 # This program is free software: you can redistribute it and/or modify
@@ -17,37 +16,53 @@
 
 import re
 import time
+from urllib.parse import urljoin
+
 import requests
 from bs4 import BeautifulSoup
-from urllib.parse import urljoin
+
 
 def nextpage(soup):
     try:
-        soup.find('span', text='Next page').parent['href']
+        soup.find("span", text="Next page").parent["href"]
         return True
     except:
         return False
 
+
 def main():
     headers = {
-        'User-Agent': 'Mozilla/5.0 (X11; Linux i686; rv:24.0) Gecko/20100101 Firefox/24.0',
+        "User-Agent": "Mozilla/5.0 (X11; Linux i686; rv:24.0) Gecko/20100101 Firefox/24.0",
     }
 
-    req = requests.get('https://meta.miraheze.org/wiki/Special:WikiDiscover')
-    soup = BeautifulSoup(req.content, features='lxml')
-    wikis = re.findall(r'<td class=\"TablePager_col_wiki_dbname\"><a href=\"([^>]+?)\">', req.text)
+    req = requests.get("https://meta.miraheze.org/wiki/Special:WikiDiscover")
+    soup = BeautifulSoup(req.content, features="lxml")
+    wikis = re.findall(
+        r"<td class=\"TablePager_col_wiki_dbname\"><a href=\"([^>]+?)\">", req.text
+    )
 
     while nextpage(soup):
         time.sleep(0.3)
-        req = requests.get(urljoin('https://meta.miraheze.org', soup.find('span', text='Next page').parent['href']))
-        soup = BeautifulSoup(req.content, features='lxml')
-        wikis.extend(re.findall(r'<td class=\"TablePager_col_wiki_dbname\"><a href=\"([^>]+?)\">', req.text))
+        req = requests.get(
+            urljoin(
+                "https://meta.miraheze.org",
+                soup.find("span", text="Next page").parent["href"],
+            )
+        )
+        soup = BeautifulSoup(req.content, features="lxml")
+        wikis.extend(
+            re.findall(
+                r"<td class=\"TablePager_col_wiki_dbname\"><a href=\"([^>]+?)\">",
+                req.text,
+            )
+        )
 
     wikis = list(set(wikis))
     wikis.sort()
-    with open('miraheze.org', 'w') as f:
+    with open("miraheze.org", "w") as f:
         for wiki in wikis:
-            f.write(urljoin(wiki, 'w/api.php') + '\n')
+            f.write(urljoin(wiki, "w/api.php") + "\n")
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()

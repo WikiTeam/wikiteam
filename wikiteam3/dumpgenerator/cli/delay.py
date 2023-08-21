@@ -1,9 +1,10 @@
 import itertools
+import sys
 import threading
 import time
-import sys
 
 from wikiteam3.dumpgenerator.config import Config
+
 
 class Delay:
     done: bool = False
@@ -20,7 +21,7 @@ class Delay:
 
             time.sleep(0.3)
 
-    def __init__(self, config: Config=None, session=None, msg=None, delay=None):
+    def __init__(self, config: Config = None, session=None, msg=None, delay=None):
         """Add a delay if configured for that"""
         self.ellipses: str = "."
 
@@ -30,7 +31,7 @@ class Delay:
             return
 
         if msg:
-            self.ellipses = ("Delay %.1fs: %s " % (delay, msg)) + self.ellipses
+            self.ellipses = (f"Delay {delay:.1f}s: {msg} ") + self.ellipses
         else:
             self.ellipses = ("Delay %.1fs " % (delay)) + self.ellipses
 
