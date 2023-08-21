@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 
 # Copyright (C) 2022 Simon Liu
 # This program is free software: you can redistribute it and/or modify
@@ -16,59 +15,67 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import time
+
 import requests
 from tqdm import tqdm
 
+
 def main():
     ids, wikis = [], []
-    gcont = 'tmp'
-    url = 'http://www.shoutwiki.com/w/api.php'
-    headers = {'User-Agent': 'Mozilla/5.0 (X11; Linux i686; rv:24.0) Gecko/20100101 Firefox/24.0'}
+    gcont = "tmp"
+    url = "http://www.shoutwiki.com/w/api.php"
+    headers = {
+        "User-Agent": "Mozilla/5.0 (X11; Linux i686; rv:24.0) Gecko/20100101 Firefox/24.0"
+    }
 
     # grab wiki pages
     params = {
-        'action': 'query',
-        'format': 'json',
-        'prop': 'info',
-        'generator': 'categorymembers',
-        'inprop': 'url',
-        'gcmtitle': 'Category:Flat_list_of_all_wikis',
-        'gcmlimit': 'max'
+        "action": "query",
+        "format": "json",
+        "prop": "info",
+        "generator": "categorymembers",
+        "inprop": "url",
+        "gcmtitle": "Category:Flat_list_of_all_wikis",
+        "gcmlimit": "max",
     }
     while gcont:
-        if gcont != 'tmp':
-            params['gcmcontinue'] = gcont
+        if gcont != "tmp":
+            params["gcmcontinue"] = gcont
         json = requests.get(url, params=params, headers=headers).json()
-        gcont = json['continue']['gcmcontinue'] if 'continue' in json else ''
-        query = json['query']['pages']
+        gcont = json["continue"]["gcmcontinue"] if "continue" in json else ""
+        query = json["query"]["pages"]
         for wiki in query:
             ids.append(wiki)
 
     # grab wiki API
     params = {
-        'action': 'query',
-        'format': 'json',
-        'prop': 'revisions',
-        'formatversion': '2',
-        'rvprop': 'content',
-        'rvslots': '*'
+        "action": "query",
+        "format": "json",
+        "prop": "revisions",
+        "formatversion": "2",
+        "rvprop": "content",
+        "rvslots": "*",
     }
     for n in tqdm(range(0, len(ids), 50)):
-        params['pageids'] = '|'.join(ids[n:n+50])
+        params["pageids"] = "|".join(ids[n : n + 50])
         json = requests.get(url, params=params, headers=headers).json()
 
-        for wiki in json['query']['pages']:
-            for val in wiki['revisions'][0]['slots']['main']['content'].split('\n|'):
-                if 'subdomain' in val:
-                    wikis.append('http://%s.shoutwiki.com/w/api.php' % val.split('subdomain =')[-1].strip())
+        for wiki in json["query"]["pages"]:
+            for val in wiki["revisions"][0]["slots"]["main"]["content"].split("\n|"):
+                if "subdomain" in val:
+                    wikis.append(
+                        "http://%s.shoutwiki.com/w/api.php"
+                        % val.split("subdomain =")[-1].strip()
+                    )
                     break
 
         time.sleep(0.3)
     wikis = list(set(wikis))
     wikis.sort()
 
-    with open('shoutwiki.com', 'w') as f:
-        f.write('\n'.join(wikis))
+    with open("shoutwiki.com", "w") as f:
+        f.write("\n".join(wikis))
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()

@@ -26,10 +26,11 @@ import urllib.parse
 from io import BytesIO
 from pathlib import Path
 
-from wikiteam3.dumpgenerator.config import Config
-from wikiteam3.utils import getUserAgent, domain2prefix
 import requests
 from internetarchive import get_item
+
+from wikiteam3.dumpgenerator.config import Config
+from wikiteam3.utils import domain2prefix, getUserAgent
 
 # Nothing to change below
 convertlang = {
@@ -50,6 +51,7 @@ convertlang = {
 def log(logfile, wiki, dump, msg):
     logfile.write(f"\n{wiki};{dump.name};{msg}")
 
+
 def read_ia_keys(config):
     with open(config.keysfile) as f:
         key_lines = f.readlines()
@@ -57,10 +59,8 @@ def read_ia_keys(config):
         accesskey = key_lines[0].strip()
         secretkey = key_lines[1].strip()
 
-        return {
-            "access": accesskey,
-            "secret": secretkey
-        }
+        return {"access": accesskey, "secret": secretkey}
+
 
 # We have to use md5 because the internet archive API doesn't provide
 # sha1 for all files.
@@ -79,6 +79,7 @@ def file_md5(path):
             digest.update(view[:n])
 
     return digest.hexdigest()
+
 
 def upload(wikis, logfile, config={}, uploadeddumps=[]):
     ia_keys = read_ia_keys(config)
@@ -99,7 +100,9 @@ def upload(wikis, logfile, config={}, uploadeddumps=[]):
         wikiname = prefix.split("-")[0]
         dumps = []
         for f in dumpdir.iterdir():
-            if f.name.startswith("%s-" % (wikiname)) and (f.name.endswith("-wikidump.7z") or f.name.endswith("-history.xml.7z")):
+            if f.name.startswith("%s-" % (wikiname)) and (
+                f.name.endswith("-wikidump.7z") or f.name.endswith("-history.xml.7z")
+            ):
                 print("%s found" % f)
                 dumps.append(f)
                 # Re-introduce the break here if you only need to upload one file
@@ -113,7 +116,7 @@ def upload(wikis, logfile, config={}, uploadeddumps=[]):
         for dump in dumps:
             wikidate = dump.name.split("-")[1]
             if first_item_exists and config.append_date and not config.admin:
-                identifier = "wiki-" + wikiname  + "-" + wikidate
+                identifier = "wiki-" + wikiname + "-" + wikidate
                 item = get_item(identifier)
             if dump.name in uploadeddumps:
                 if config.prune_directories:
@@ -187,7 +190,11 @@ def upload(wikis, logfile, config={}, uploadeddumps=[]):
                 # Convert protocol-relative URLs
                 baseurl = re.sub("^//", "https://", baseurl)
                 if lang:
-                    lang = (convertlang[lang.lower()] if (lang.lower() in convertlang) else lang.lower())
+                    lang = (
+                        convertlang[lang.lower()]
+                        if (lang.lower() in convertlang)
+                        else lang.lower()
+                    )
 
                 # now copyright info from API
                 params = {
@@ -326,21 +333,24 @@ def upload(wikis, logfile, config={}, uploadeddumps=[]):
                 retry = 20
                 while not item.exists and retry > 0:
                     retry -= 1
-                    print('Waitting for item "%s" to be created... (%s)' % (identifier, retry))
+                    print(
+                        'Waitting for item "%s" to be created... (%s)'
+                        % (identifier, retry)
+                    )
                     time.sleep(10)
                     item = get_item(identifier)
 
                 # Update metadata
-                r = item.modify_metadata(md,
-                                    access_key=ia_keys["access"], secret_key=ia_keys["secret"])
+                r = item.modify_metadata(
+                    md, access_key=ia_keys["access"], secret_key=ia_keys["secret"]
+                )
                 if r.status_code != 200:
                     print("Error when updating metadata")
                     print(r.status_code)
                     print(r.text)
 
                 print(
-                    "You can find it in https://archive.org/details/%s"
-                    % (identifier)
+                    "You can find it in https://archive.org/details/%s" % (identifier)
                 )
                 uploadeddumps.append(dump.name)
             except Exception as e:

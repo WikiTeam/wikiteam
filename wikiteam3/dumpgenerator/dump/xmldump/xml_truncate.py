@@ -1,6 +1,6 @@
+import os
 from io import StringIO
 from typing import *
-import os
 
 import lxml.etree
 from file_read_backwards import FileReadBackwards
@@ -56,10 +56,9 @@ def truncateXMLDump(filename: str) -> str:
     if endsWithNewlines(filename) == 0:
         addNewline(filename)
     elif endsWithNewlines(filename) > 1:
-        print(
-            f"WARNING: {filename} has {endsWithNewlines(filename)} newlines"
-        )
+        print(f"WARNING: {filename} has {endsWithNewlines(filename)} newlines")
     return incomplete_segment
+
 
 def parseLastPageChunk(chunk) -> Optional[lxml.etree._ElementTree]:
     try:

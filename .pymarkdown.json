@@ -1,0 +1,14 @@
+{
+    "plugins": {
+        "line-length": {
+            "enabled": false
+        },
+        "no-inline-html": {
+            "allowed_elements": "details,summary,code,!--"
+        },
+        "first-line-heading": {
+            "enabled": false,
+            "front_matter_title" : "name"
+        }
+    }
+}

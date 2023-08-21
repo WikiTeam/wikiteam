@@ -1,10 +1,11 @@
 import os
 
 from wikiteam3.dumpgenerator.cli import Delay
-from wikiteam3.utils import removeIP
 from wikiteam3.dumpgenerator.config import Config
+from wikiteam3.utils import removeIP
 
-def saveIndexPHP(config: Config=None, session=None):
+
+def saveIndexPHP(config: Config = None, session=None):
     """Save index.php as .html, to preserve license details available at the botom of the page"""
 
     if os.path.exists("%s/index.html" % (config.path)):

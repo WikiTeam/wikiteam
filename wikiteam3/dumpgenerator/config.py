@@ -1,19 +1,4 @@
-import dataclasses
-import json
-import sys
-from typing import *
-
-def _dataclass_from_dict(klass_or_obj, d):
-    if isinstance(klass_or_obj, type): # klass
-        ret = klass_or_obj()
-    else:
-        ret = klass_or_obj
-    for k,v in d.items():
-        if hasattr(ret, k):
-            setattr(ret, k, v)
-    return ret
-
-'''
+"""
 config = {
         "curonly": args.curonly,
         "date": datetime.datetime.now().strftime("%Y%m%d"),
@@ -32,7 +17,25 @@ config = {
         "delay": args.delay,
         "retries": int(args.retries),
     }
-'''
+"""
+
+import dataclasses
+import json
+import sys
+from typing import *
+
+
+def _dataclass_from_dict(klass_or_obj, d):
+    if isinstance(klass_or_obj, type):  # klass
+        ret = klass_or_obj()
+    else:
+        ret = klass_or_obj
+    for k, v in d.items():
+        if hasattr(ret, k):
+            setattr(ret, k, v)
+    return ret
+
+
 @dataclasses.dataclass
 class Config:
     def asdict(self):
@@ -41,13 +44,13 @@ class Config:
     # General params
     delay: float = 0.0
     retries: int = 0
-    path: str = ''
+    path: str = ""
     logs: bool = False
     date: str = False
 
     # URL params
-    index: str = ''
-    api: str = ''
+    index: str = ""
+    api: str = ""
 
     # Download params
     xml: bool = False
@@ -60,27 +63,27 @@ class Config:
     exnamespaces: List[int] = None
 
     api_chunksize: int = 0  # arvlimit, ailimit, etc
-    export: str = '' # Special:Export page name
-    http_method: str = ''
+    export: str = ""  # Special:Export page name
+    http_method: str = ""
 
     # Meta info params
     failfast: bool = False
 
     templates: bool = False
 
+
 def newConfig(configDict) -> Config:
     return _dataclass_from_dict(Config, configDict)
 
-def loadConfig(config: Config=None, configfilename=""):
+
+def loadConfig(config: Config = None, configfilename=""):
     """Load config file"""
 
     configDict = dataclasses.asdict(config)
 
     if config.path:
         try:
-            with open(
-                "{}/{}".format(config.path, configfilename), encoding="utf-8"
-            ) as infile:
+            with open(f"{config.path}/{configfilename}", encoding="utf-8") as infile:
                 configDict.update(json.load(infile))
             return newConfig(configDict)
         except:
@@ -89,10 +92,9 @@ def loadConfig(config: Config=None, configfilename=""):
     print("There is no config file. we can't resume. Start a new dump.")
     sys.exit()
 
-def saveConfig(config: Config=None, configfilename=""):
+
+def saveConfig(config: Config = None, configfilename=""):
     """Save config file"""
 
-    with open(
-        "{}/{}".format(config.path, configfilename), "w", encoding="utf-8"
-    ) as outfile:
+    with open(f"{config.path}/{configfilename}", "w", encoding="utf-8") as outfile:
         json.dump(dataclasses.asdict(config), outfile)

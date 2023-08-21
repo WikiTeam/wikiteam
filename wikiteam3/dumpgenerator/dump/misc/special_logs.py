@@ -1,7 +1,8 @@
-from wikiteam3.dumpgenerator.config import Config
 from wikiteam3.dumpgenerator.cli import Delay
+from wikiteam3.dumpgenerator.config import Config
 
-def saveLogs(config: Config=None, session=None):
+
+def saveLogs(config: Config = None, session=None):
     """Save Special:Log"""
     # get all logs from Special:Log
     """parse

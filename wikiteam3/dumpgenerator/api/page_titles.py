@@ -5,20 +5,25 @@ from urllib.parse import urlparse
 import mwclient
 from file_read_backwards import FileReadBackwards
 
+from wikiteam3.dumpgenerator.api.namespaces import (
+    getNamespacesAPI,
+    getNamespacesScraper,
+)
 from wikiteam3.dumpgenerator.cli import Delay
-from wikiteam3.dumpgenerator.api.namespaces import getNamespacesAPI, getNamespacesScraper
-from wikiteam3.utils import domain2prefix, cleanHTML, undoHTMLEntities
 from wikiteam3.dumpgenerator.config import Config
+from wikiteam3.utils import cleanHTML, domain2prefix, undoHTMLEntities
 from wikiteam3.utils.monkey_patch import DelaySession
 
 
-def getPageTitlesAPI(config: Config=None, session=None):
+def getPageTitlesAPI(config: Config = None, session=None):
     """Uses the API to get the list of page titles"""
     titles = []
     namespaces, namespacenames = getNamespacesAPI(config=config, session=session)
 
     # apply delay to the session for mwclient.Site.allpages()
-    delay_session = DelaySession(session=session, msg="Session delay: "+__name__, config=config)
+    delay_session = DelaySession(
+        session=session, msg="Session delay: " + __name__, config=config
+    )
     delay_session.hijack()
     for namespace in namespaces:
         if namespace in config.exnamespaces:
@@ -29,7 +34,10 @@ def getPageTitlesAPI(config: Config=None, session=None):
         print("    Retrieving titles in the namespace %d" % (namespace))
         apiurl = urlparse(config.api)
         site = mwclient.Site(
-            apiurl.netloc, apiurl.path.replace("api.php", ""), scheme=apiurl.scheme, pool=session
+            apiurl.netloc,
+            apiurl.path.replace("api.php", ""),
+            scheme=apiurl.scheme,
+            pool=session,
         )
         for page in site.allpages(namespace=namespace):
             title = page.name
@@ -44,15 +52,13 @@ def getPageTitlesAPI(config: Config=None, session=None):
     delay_session.release()
 
 
-def getPageTitlesScraper(config: Config=None, session=None):
+def getPageTitlesScraper(config: Config = None, session=None):
     """Scrape the list of page titles from Special:Allpages"""
     titles = []
     namespaces, namespacenames = getNamespacesScraper(config=config, session=session)
     for namespace in namespaces:
         print("    Retrieving titles in the namespace", namespace)
-        url = "{}?title=Special:Allpages&namespace={}".format(
-            config.index, namespace
-        )
+        url = f"{config.index}?title=Special:Allpages&namespace={namespace}"
         r = session.get(url=url, timeout=30)
         raw = r.text
         raw = cleanHTML(raw)
@@ -141,8 +147,10 @@ def getPageTitlesScraper(config: Config=None, session=None):
                     )
 
                 Delay(config=config, session=session)
-            
-            assert currfr is not None, "re.search found the pattern, but re.finditer fails, why?"
+
+            assert (
+                currfr is not None
+            ), "re.search found the pattern, but re.finditer fails, why?"
             oldfr = currfr
             c += 1
 
@@ -158,7 +166,7 @@ def getPageTitlesScraper(config: Config=None, session=None):
     return titles
 
 
-def getPageTitles(config: Config=None, session=None):
+def getPageTitles(config: Config = None, session=None):
     """Get list of page titles"""
     # http://en.wikipedia.org/wiki/Special:AllPages
     # http://wiki.archiveteam.org/index.php?title=Special:AllPages
@@ -193,9 +201,7 @@ def getPageTitles(config: Config=None, session=None):
     titlesfilename = "{}-{}-titles.txt".format(
         domain2prefix(config=config), config.date
     )
-    titlesfile = open(
-        "{}/{}".format(config.path, titlesfilename), "wt", encoding="utf-8"
-    )
+    titlesfile = open(f"{config.path}/{titlesfilename}", "w", encoding="utf-8")
     c = 0
     for title in titles:
         titlesfile.write(str(title) + "\n")
@@ -210,16 +216,19 @@ def getPageTitles(config: Config=None, session=None):
     print("%d page titles loaded" % (c))
     return titlesfilename
 
-def checkTitleOk(config: Config=None, ):
+
+def checkTitleOk(
+    config: Config = None,
+):
     try:
         with FileReadBackwards(
-                "%s/%s-%s-titles.txt"
-                % (
-                        config.path,
-                        domain2prefix(config=config),
-                        config.date,
-                ),
-                encoding="utf-8",
+            "%s/%s-%s-titles.txt"
+            % (
+                config.path,
+                domain2prefix(config=config),
+                config.date,
+            ),
+            encoding="utf-8",
         ) as frb:
             lasttitle = frb.readline().strip()
             if lasttitle == "":
@@ -232,7 +241,7 @@ def checkTitleOk(config: Config=None, ):
     return True
 
 
-def readTitles(config: Config=None, session=None, start=None, batch=False):
+def readTitles(config: Config = None, session=None, start=None, batch=False):
     """Read title list from a file, from the title "start" """
     if not checkTitleOk(config):
         getPageTitles(config=config, session=session)
@@ -240,7 +249,7 @@ def readTitles(config: Config=None, session=None, start=None, batch=False):
     titlesfilename = "{}-{}-titles.txt".format(
         domain2prefix(config=config), config.date
     )
-    titlesfile = open("{}/{}".format(config.path, titlesfilename), encoding="utf-8")
+    titlesfile = open(f"{config.path}/{titlesfilename}", encoding="utf-8")
 
     titlelist = []
     seeking = False

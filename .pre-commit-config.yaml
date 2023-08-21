@@ -6,14 +6,14 @@ default_language_version:
     python: python3.8
 repos:
 -   repo: https://github.com/python-poetry/poetry
-    rev: 1.2.0b1
+    rev: 1.6.0
     hooks:
     -   id: poetry-check
     # -   id: poetry-lock
     -   id: poetry-export
         args: ["-f", "requirements.txt", "-o", "requirements.txt"]
 -   repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.1.0
+    rev: v4.4.0
     hooks:
     -   id: check-ast
     -   id: fix-byte-order-marker
@@ -34,27 +34,32 @@ repos:
 #     -   id: mypy
 #         args: [--ignore-missing-imports]
 -   repo: https://github.com/PyCQA/isort
-    rev: 5.10.1
+    rev: 5.12.0
     hooks:
     -   id: isort
         args: ["--profile", "black", "--filter-files"]
 -   repo: https://github.com/psf/black
-    rev: 22.3.0
+    rev: 23.7.0
     hooks:
     -   id: black
 -   repo: https://github.com/asottile/pyupgrade
-    rev: v2.31.1
+    rev: v3.10.1
     hooks:
     -   id: pyupgrade
         args: [--py38-plus]
 -   repo: https://github.com/asottile/blacken-docs
-    rev: v1.12.1
+    rev: 1.16.0
     hooks:
     -   id: blacken-docs
-        additional_dependencies: [black==20.8b1]
+        # additional_dependencies: [black==20.8b1]
 ### Needs argument for diasabling line_length
 ### https://github.com/jackdewinter/pymarkdown/blob/main/docs/rules/rule_md013.md
-# -   repo: https://github.com/jackdewinter/pymarkdown
-#     rev: v0.9.5
-#     hooks:
-#     -   id: pymarkdown
+-   repo: https://github.com/jackdewinter/pymarkdown
+    rev: v0.9.12
+    hooks:
+    -   id: pymarkdown
+        args:
+        -   --config=.pymarkdown.json
+        # -   --disable-rules
+        # -   line-length,no-inline-html
+        -   scan

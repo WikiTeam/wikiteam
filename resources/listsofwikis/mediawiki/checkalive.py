@@ -38,7 +38,6 @@ def checkcore(api):
     try:
         raw = urllib.request.urlopenurlopen(req, None, delay).read()
     except URLError as reason:  # https://docs.python.org/3/library/urllib.error.html
-
         if reason.isinstance(HTTPError):
             print(api + "is dead or has errors because:")
             print(

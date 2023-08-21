@@ -22,26 +22,23 @@ except ImportError:
 
 from typing import *
 
-from wikiteam3.dumpgenerator.config import loadConfig, saveConfig
-from wikiteam3.dumpgenerator.config import Config
-from wikiteam3.dumpgenerator.cli import getParameters, bye, welcome
-from wikiteam3.dumpgenerator.log import logerror
-from wikiteam3.utils import domain2prefix
-from wikiteam3.utils import undoHTMLEntities
-from wikiteam3.utils import avoidWikimediaProjects
-
+from wikiteam3.dumpgenerator.cli import bye, getParameters, welcome
+from wikiteam3.dumpgenerator.config import Config, loadConfig, saveConfig
 from wikiteam3.dumpgenerator.dump.image.image import Image
 from wikiteam3.dumpgenerator.dump.misc.index_php import saveIndexPHP
+from wikiteam3.dumpgenerator.dump.misc.site_info import saveSiteInfo
 from wikiteam3.dumpgenerator.dump.misc.special_logs import saveLogs
 from wikiteam3.dumpgenerator.dump.misc.special_version import saveSpecialVersion
-from wikiteam3.dumpgenerator.dump.misc.site_info import saveSiteInfo
 from wikiteam3.dumpgenerator.dump.xmldump.xml_dump import generateXMLDump
 from wikiteam3.dumpgenerator.dump.xmldump.xml_integrity import checkXMLIntegrity
+from wikiteam3.dumpgenerator.log import logerror
+from wikiteam3.utils import avoidWikimediaProjects, domain2prefix, undoHTMLEntities
+
 
 # From https://stackoverflow.com/a/57008707
-class Tee(object):
+class Tee:
     def __init__(self, filename):
-        self.file = open(filename, 'w', encoding="utf-8")
+        self.file = open(filename, "w", encoding="utf-8")
         self.stdout = sys.stdout
 
     def __enter__(self):
@@ -61,6 +58,7 @@ class Tee(object):
         self.file.flush()
         self.stdout.flush()
 
+
 class DumpGenerator:
     configfilename = "config.json"
 
@@ -71,7 +69,11 @@ class DumpGenerator:
         config, other = getParameters(params=params)
         avoidWikimediaProjects(config=config, other=other)
 
-        with (Tee(other["stdout_log_path"]) if other["stdout_log_path"] is not None else contextlib.nullcontext()):
+        with (
+            Tee(other["stdout_log_path"])
+            if other["stdout_log_path"] is not None
+            else contextlib.nullcontext()
+        ):
             print(welcome())
             print("Analysing %s" % (config.api if config.api else config.index))
 
@@ -91,7 +93,7 @@ class DumpGenerator:
                         % (config.path, config.path, configfilename)
                     )
                 if reply.lower() in ["yes", "y"]:
-                    if not os.path.isfile("{}/{}".format(config.path, configfilename)):
+                    if not os.path.isfile(f"{config.path}/{configfilename}"):
                         print("No config file found. I can't resume. Aborting.")
                         sys.exit()
                     print("You have selected: YES")
@@ -122,7 +124,7 @@ class DumpGenerator:
             bye()
 
     @staticmethod
-    def createNewDump(config: Config=None, other: Dict=None):
+    def createNewDump(config: Config = None, other: Dict = None):
         # we do lazy title dumping here :)
         images = []
         print("Trying generating a new dump into a new directory...")
@@ -139,11 +141,10 @@ class DumpGenerator:
             saveLogs(config=config, session=other["session"])
 
     @staticmethod
-    def resumePreviousDump(config: Config=None, other: Dict=None):
+    def resumePreviousDump(config: Config = None, other: Dict = None):
         images = []
         print("Resuming previous dump process...")
         if config.xml:
-
             # checking xml dump
             xmliscomplete = False
             lastxmltitle = None
@@ -180,7 +181,10 @@ class DumpGenerator:
                 print("XML dump was completed in the previous session")
             elif lastxmltitle:
                 # resuming...
-                print('Resuming XML dump from "%s" (revision id %s)' % (lastxmltitle, lastxmlrevid))
+                print(
+                    'Resuming XML dump from "%s" (revision id %s)'
+                    % (lastxmltitle, lastxmlrevid)
+                )
                 generateXMLDump(
                     config=config,
                     session=other["session"],
@@ -194,14 +198,18 @@ class DumpGenerator:
         if config.images:
             # load images list
             lastimage = ""
-            imagesFilePath = "%s/%s-%s-images.txt" % (config.path, domain2prefix(config=config), config.date)
+            imagesFilePath = "{}/{}-{}-images.txt".format(
+                config.path,
+                domain2prefix(config=config),
+                config.date,
+            )
             if os.path.exists(imagesFilePath):
                 f = open(imagesFilePath)
                 lines = f.read().splitlines()
                 for l in lines:
                     if re.search(r"\t", l):
                         images.append(l.split("\t"))
-                if len(lines) == 0: # empty file
+                if len(lines) == 0:  # empty file
                     lastimage = "--EMPTY--"
                 if lastimage == "":
                     lastimage = lines[-1].strip()
@@ -209,10 +217,10 @@ class DumpGenerator:
                     lastimage = lines[-2].strip()
                 f.close()
 
-            if len(images)>0 and len(images[0]) < 5:
+            if len(images) > 0 and len(images[0]) < 5:
                 print(
-                    "Warning: Detected old images list (images.txt) format.\n"+
-                    "You can delete 'images.txt' manually and restart the script."
+                    "Warning: Detected old images list (images.txt) format.\n"
+                    + "You can delete 'images.txt' manually and restart the script."
                 )
                 sys.exit(1)
             if lastimage == "--END--":
@@ -235,31 +243,36 @@ class DumpGenerator:
             c_checked = 0
             for filename, url, uploader, size, sha1 in images:
                 lastfilename = filename
-                if other["filenamelimit"] < len(filename.encode('utf-8')):
+                if other["filenamelimit"] < len(filename.encode("utf-8")):
                     logerror(
-                        config=config, to_stdout=True,
+                        config=config,
+                        to_stdout=True,
                         text=f"Filename too long(>240 bytes), skipping: {filename}",
                     )
                     continue
                 if filename in listdir:
                     c_images += 1
-                if filename+".desc" in listdir:
+                if filename + ".desc" in listdir:
                     c_desc += 1
                 c_checked += 1
                 if c_checked % 100000 == 0:
                     print(f"checked {c_checked}/{len(images)} records", end="\r")
-            print(f"{len(images)} records in images.txt, {c_images} images and {c_desc} .desc were saved in the previous session")
+            print(
+                f"{len(images)} records in images.txt, {c_images} images and {c_desc} .desc were saved in the previous session"
+            )
             if c_desc < len(images):
                 complete = False
             elif c_images < len(images):
                 complete = False
-                print("WARNING: Some images were not saved. You may want to delete their \n"
-                    +".desc files and re-run the script to redownload the missing images.\n"
-                    +"(If images URL are unavailable, you can ignore this warning.)\n"
-                    +"(In most cases, if the number of .desc files equals the number of \n"
-                    + "images.txt records, you can ignore this warning, images dump was completed.)")
+                print(
+                    "WARNING: Some images were not saved. You may want to delete their \n"
+                    + ".desc files and re-run the script to redownload the missing images.\n"
+                    + "(If images URL are unavailable, you can ignore this warning.)\n"
+                    + "(In most cases, if the number of .desc files equals the number of \n"
+                    + "images.txt records, you can ignore this warning, images dump was completed.)"
+                )
                 sys.exit()
-            else: # c_desc == c_images == len(images)
+            else:  # c_desc == c_images == len(images)
                 complete = True
             if complete:
                 # image dump is complete

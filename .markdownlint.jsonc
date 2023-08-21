@@ -1,0 +1,16 @@
+// If you change any options here,
+// please change them in .pymarkdown.jsonc
+// as well!
+{
+    "line-length": false,
+    "no-inline-html": {
+        "allowed_elements": [
+            "details",
+            "summary",
+            "code"
+        ]
+    },
+    "first-line-heading": {
+        "front_matter_title" : "name"
+    }
+}

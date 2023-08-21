@@ -1,9 +1,10 @@
 import os
 import re
+from pathlib import Path
 from typing import Dict, List
+
 import pytest
 import requests
-from pathlib import Path
 
 from wikiteam3.dumpgenerator.dump.image.html_regexs import REGEX_CANDIDATES
 
@@ -11,6 +12,7 @@ ONLINE = True
 
 HTML_DIR = Path("test/data/html_regexs")
 os.makedirs(HTML_DIR, exist_ok=True)
+
 
 def prepare_raws_from_urls(urls: Dict[str, str]):
     sess = requests.Session()
@@ -28,9 +30,13 @@ def prepare_raws_from_urls(urls: Dict[str, str]):
                 with open(HTML_DIR / f"{site}.html", "w", encoding="utf-8") as f:
                     f.write(resp.text)
         else:
-            pytest.warns(UserWarning, match=f"Could not fetch {url}: status_code: {resp.status_code}")
+            pytest.warns(
+                UserWarning,
+                match=f"Could not fetch {url}: status_code: {resp.status_code}",
+            )
 
     return raws
+
 
 class TestRegexs:
     class TestRegexsOnline:
@@ -42,7 +48,6 @@ class TestRegexs:
             "wiki.othing.xyz-20230701": "https://wiki.othing.xyz/index.php?title=Special:ListFiles&sort=byname",
             "mediawiki.org-20230701": "https://www.mediawiki.org/w/index.php?title=Special:ListFiles&sort=byname&limit=7",
             "asoiaf.fandom.com-20230701": "https://asoiaf.fandom.com/zh/wiki/Special:文件列表?sort=byname&limit=7",
-            
             # only for local testing:
             # "commons.moegirl.org.cn-20230701": "https://commons.moegirl.org.cn/index.php?title=Special:ListFiles&sort=byname&limit=7",
             # # login required:
@@ -50,6 +55,7 @@ class TestRegexs:
             # "group1.mediawiki.demo.save-web.org_mediawiki-1.27.7-20230701": "http://group1.mediawiki.demo.save-web.org/mediawiki-1.27.7/index.php?title=Special:ListFiles&limit=2",
         }
         raws: Dict[str, str] = {}
+
         def test_online(self):
             if not ONLINE:
                 pytest.skip("Online test skipped")
@@ -65,18 +71,21 @@ class TestRegexs:
                         best_matched = _count
                         regexp_best = regexp
 
-                assert regexp_best is not None, f"Could not find a proper regexp to parse the HTML for {url} (online)"
+                assert (
+                    regexp_best is not None
+                ), f"Could not find a proper regexp to parse the HTML for {url} (online)"
 
                 if "limit=" in url:
                     limit = int(url.split("limit=")[-1])
-                    assert len(re.findall(regexp_best, raw)) == limit, f"Could not find {limit} matches for {url} (online)"
-
+                    assert (
+                        len(re.findall(regexp_best, raw)) == limit
+                    ), f"Could not find {limit} matches for {url} (online)"
 
     class TestRegexsOffline:
         html_files = os.listdir(HTML_DIR)
         raws: Dict[str, str] = {}
         for html_file in html_files:
-            with open(HTML_DIR / html_file, "r", encoding="utf-8") as f:
+            with open(HTML_DIR / html_file, encoding="utf-8") as f:
                 raws[html_file] = f.read()
         assert len(raws) != 0, f"Could not find any HTML files in {HTML_DIR}"
 
@@ -92,4 +101,6 @@ class TestRegexs:
                         best_matched = _count
                         regexp_best = regexp
 
-                assert regexp_best is not None, f"Could not find a proper regexp to parse the HTML for {site} (local)"
+                assert (
+                    regexp_best is not None
+                ), f"Could not find a proper regexp to parse the HTML for {site} (local)"

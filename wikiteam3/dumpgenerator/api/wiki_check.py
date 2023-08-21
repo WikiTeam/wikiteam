@@ -5,7 +5,7 @@ import requests
 from wikiteam3.utils import getUserAgent
 
 
-def getWikiEngine(url="", session: requests.Session=None) -> str:
+def getWikiEngine(url="", session: requests.Session = None) -> str:
     """Returns the wiki engine of a URL, if known"""
 
     if not session:
