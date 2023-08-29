@@ -356,28 +356,18 @@ You should see something similar to this (not the actual numbers) - the first th
 
 If your first three numbers or your last two numbers are different, then, your XML dump is corrupt (it contains one or more unfinished ```</page>``` or ```</revision>```). This is not common in small wikis, but large or very large wikis may fail at this due to truncated XML pages while exporting and merging. The solution is to remove the XML dump and re-download, a bit boring, and it can fail again.
 
-## Getting help
-
-* You can read and post in MediaWiki Client Tools' [GitHub Discussions.]( https://github.com/orgs/mediawiki-client-tools/discussions)
-* If you need help (other than reporting a bug), you can reach out on MediaWiki Client Tools' [Discussions/Q&A.](https://github.com/orgs/mediawiki-client-tools/discussions/categories/q-a)
-
-## Reporting issues
-
-Please report any issues at [MediaWiki Scraper/issues](https://github.com/mediawiki-client-tools/mediawiki-scraper/issues)
-Include the following in your report:
-
-* The commandline you used, with full URL
-* Dumpgenerator version, -v option
-* Operating system version, e.g. Kubuntu 23.04 / Windows 10
-* File system, e.g. EXT4 / NTFS
-* Name of the terminal, e.g. Bash / CMD / Powershell
-* Python version, e.g. Python 3.11.4 / Python 3.10
-* The errors.log file, from the dump folder
-* Stdout, copy the text from the terminal window
-
 ## Publishing the dump
 
 Please consider publishing your wiki dump(s). You can do it yourself as explained at WikiTeam's [Publishing the dump](https://github.com/WikiTeam/wikiteam/wiki/Tutorial#Publishing_the_dump) tutorial.
+
+## Getting help
+
+* You can read and post in MediaWiki Client Tools' [GitHub Discussions]( https://github.com/orgs/mediawiki-client-tools/discussions).
+* If you need help (other than reporting a bug), you can reach out on MediaWiki Client Tools' [Discussions/Q&A](https://github.com/orgs/mediawiki-client-tools/discussions/categories/q-a).
+
+## Contributing
+
+For information on reporting bugs and proposing changes, please see the [Contributing](./Contributing.md) guide.
 
 ## Contributors
 
