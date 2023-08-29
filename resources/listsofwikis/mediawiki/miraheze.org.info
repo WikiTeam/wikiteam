@@ -1,8 +1,0 @@
-Wikifarm: https://meta.miraheze.org/wiki/Miraheze
-Last update: 2017-06-30
-
-Details:
-
-There is a dynamic list at https://meta.miraheze.org/wiki/Special:SiteMatrix
-
-Run script: python miraheze-spider.py > newlist

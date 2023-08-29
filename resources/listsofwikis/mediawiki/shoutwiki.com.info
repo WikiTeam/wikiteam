@@ -1,8 +1,0 @@
-Wikifarm: http://www.shoutwiki.com/wiki/Main_Page
-Last update: 2014-06-27
-
-Details:
-
-There is a category of wikis http://www.shoutwiki.com/wiki/Category:Flat_list_of_all_wikis
-
-Run script: python shoutwiki-spider.py > newlist

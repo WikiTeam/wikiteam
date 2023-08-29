@@ -1,4 +1,0 @@
-https://de.battlestarwiki.org/w/api.php
-https://en.battlestarwiki.org/w/api.php
-https://fr.battlestarwiki.ddns.net/api.php
-https://media.battlestarwiki.org/w/api.php
