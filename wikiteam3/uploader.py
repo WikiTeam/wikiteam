@@ -71,12 +71,11 @@ def file_md5(path):
 
     with open(path, mode="rb") as f:
         while True:
-            n = f.readinto(buffer)
+            if n := f.readinto(buffer):
+                digest.update(view[:n])
 
-            if not n:
+            else:
                 break
-
-            digest.update(view[:n])
 
     return digest.hexdigest()
 

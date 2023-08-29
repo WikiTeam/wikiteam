@@ -49,10 +49,6 @@ def reconstructRevisions(root=None):
             elif "comment" in rev.attrib and rev.attrib["comment"]:  # '' is empty
                 comment = ET.SubElement(rev_, "comment")
                 comment.text = rev.attrib["comment"]
-            else:
-                # no comment or empty comment, do not create comment element
-                pass
-
             # minor edit (optional)
             if "minor" in rev.attrib:
                 ET.SubElement(rev_, "minor")
@@ -75,16 +71,12 @@ def reconstructRevisions(root=None):
                 # NOTE: this is not the same as the text being empty
                 text.set("deleted", "deleted")
             # sha1
-            if not "sha1" in rev.attrib:
-                if "sha1hidden" in rev.attrib:
-                    ET.SubElement(rev_, "sha1")  # stub
-                else:
-                    # The sha1 may not have been backfilled on older wikis or lack for other reasons (Wikia).
-                    pass
-            elif "sha1" in rev.attrib:
+            if "sha1" in rev.attrib:
                 sha1 = ET.SubElement(rev_, "sha1")
                 sha1.text = rev.attrib["sha1"]
 
+            elif "sha1hidden" in rev.attrib:
+                ET.SubElement(rev_, "sha1")  # stub
             edits += 1
         except Exception as e:
             # logerror(config=config, text='Error reconstructing revision, xml:%s' % (ET.tostring(rev)))
@@ -127,8 +119,7 @@ def getXMLPageCoreWithApi(
         if c >= maxretries:
             print("    We have retried %d times" % (c))
             print(
-                '    MediaWiki error for "%s", network error or whatever...'
-                % (params["titles" if config.xmlapiexport else "pages"])
+                f'    MediaWiki error for "{params["titles" if config.xmlapiexport else "pages"]}", network error or whatever...'
             )
             # If it's not already what we tried: our last chance, preserve only the last revision...
             # config.curonly means that the whole dump is configured to save only the last,
@@ -139,14 +130,9 @@ def getXMLPageCoreWithApi(
             print("    Saving in the errors log, and skipping...")
             logerror(
                 config=config,
-                text='Error while retrieving the last revision of "%s". Skipping.'
-                % (params["titles" if config.xmlapiexport else "pages"]).decode(
-                    "utf-8"
-                ),
+                text=f'Error while retrieving the last revision of "{params["titles" if config.xmlapiexport else "pages"].decode("utf-8")}". Skipping.',
             )
             raise ExportAbortedError(config.index)
-            return ""  # empty xml
-
         # FIXME HANDLE HTTP Errors HERE
         try:
             r = session.get(url=config.api, params=params, headers=headers)
@@ -154,10 +140,10 @@ def getXMLPageCoreWithApi(
             xml = r.text
             # print xml
         except requests.exceptions.ConnectionError as e:
-            print("    Connection error: %s" % (str(e.args[0])))
+            print(f"    Connection error: {str(e.args[0])}")
             xml = ""
         except requests.exceptions.ReadTimeout as e:
-            print("    Read timeout: %s" % (str(e.args[0])))
+            print(f"    Read timeout: {str(e.args[0])}")
             xml = ""
         c += 1
     return xml
@@ -170,10 +156,6 @@ def getXMLPageWithApi(config: Config = None, title="", verbose=True, session=Non
 
     title_ = title
     title_ = re.sub(" ", "_", title_)
-    # do not convert & into %26, title_ = re.sub('&', '%26', title_)
-    # action=query&rvlimit=50&format=xml&prop=revisions&titles=TITLE_HERE
-    # &rvprop=timestamp%7Cuser%7Ccomment%7Ccontent%7Cids%7Cuserid%7Csha1%7Csize
-    # print 'current:%s' % (title_)
     if not config.curonly:
         params = {
             "titles": title_,
@@ -188,16 +170,6 @@ def getXMLPageWithApi(config: Config = None, title="", verbose=True, session=Non
             "rvcontinue": None,
             "rvlimit": config.api_chunksize,
         }
-    else:
-        params = {
-            "titles": title_,
-            "action": "query",
-            "format": "xml",
-            "export": 1,
-            "exportnowrap": 1,
-        }
-    # print 'params:%s' % (params)
-    if not config.curonly:
         firstpartok = False
         lastcontinue = None
         numberofedits = 0
@@ -288,30 +260,34 @@ def getXMLPageWithApi(config: Config = None, title="", verbose=True, session=Non
                 ret = ""
         yield "  </page>\n"
     else:
+        params = {
+            "titles": title_,
+            "action": "query",
+            "format": "xml",
+            "export": 1,
+            "exportnowrap": 1,
+        }
         xml = getXMLPageCoreWithApi(params=params, config=config, session=session)
         if xml == "":
             raise ExportAbortedError(config.index)
-        if not "</page>" in xml:
+        if "</page>" not in xml:
             raise PageMissingError(params["titles"], xml)
-        else:
-            # strip these sha1s sums which keep showing up in the export and
-            # which are invalid for the XML schema (they only apply to
-            # revisions)
-            xml = re.sub(r"\n\s*<sha1>\w+</sha1>\s*\n", r"\n", xml)
-            xml = re.sub(r"\n\s*<sha1/>\s*\n", r"\n", xml)
+        # strip these sha1s sums which keep showing up in the export and
+        # which are invalid for the XML schema (they only apply to
+        # revisions)
+        xml = re.sub(r"\n\s*<sha1>\w+</sha1>\s*\n", r"\n", xml)
+        xml = re.sub(r"\n\s*<sha1/>\s*\n", r"\n", xml)
 
         yield xml.split("</page>")[0]
 
         # just for looking good :)
         r_timestamp = r"<timestamp>([^<]+)</timestamp>"
 
-        numberofedits = 0
-        numberofedits += len(re.findall(r_timestamp, xml))
-
+        numberofedits = 0 + len(re.findall(r_timestamp, xml))
         yield "</page>\n"
 
     if verbose:
         if numberofedits == 1:
-            print("    %s, 1 edit" % (title.strip()))
+            print(f"    {title.strip()}, 1 edit")
         else:
             print("    %s, %d edits" % (title.strip(), numberofedits))

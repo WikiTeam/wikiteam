@@ -85,7 +85,7 @@ def botLogin(
         if data["login"]["result"] == "Success":
             print("bot login: Success! Welcome, " + data["login"]["lgusername"] + "!")
     except KeyError:
-        print("bot login: Oops! Something went wrong -- " + data)
+        print(f"bot login: Oops! Something went wrong -- {data}")
         return None
 
     return session

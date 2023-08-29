@@ -11,7 +11,7 @@ def avoidWikimediaProjects(config: Config = None, other: Dict = None):
     # notice about wikipedia dumps
     url = ""
     if config.api:
-        url = url + config.api
+        url += config.api
     if config.index:
         url = url + config.index
     if re.findall(

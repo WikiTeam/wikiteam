@@ -8,9 +8,7 @@ def welcome():
     """Opening message"""
     message += "#" * 73
     message += "\n"
-    welcome_string = "# Welcome to DumpGenerator %s by WikiTeam (GPL v3)" % (
-        getVersion()
-    )
+    welcome_string = f"# Welcome to DumpGenerator {getVersion()} by WikiTeam (GPL v3)"
     welcome_string += " " * (73 - len(welcome_string) - 1) + "#"
     message += welcome_string
     message += "\n"

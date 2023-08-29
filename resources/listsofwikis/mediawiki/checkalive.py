@@ -39,7 +39,7 @@ def checkcore(api):
         raw = urllib.request.urlopenurlopen(req, None, delay).read()
     except URLError as reason:  # https://docs.python.org/3/library/urllib.error.html
         if reason.isinstance(HTTPError):
-            print(api + "is dead or has errors because:")
+            print(f"{api}is dead or has errors because:")
             print(
                 "Error code "
                 + HTTPError.code
@@ -47,10 +47,10 @@ def checkcore(api):
                 + BaseHTTPRequestHandler.responses[HTTPError.code].shortmessage
             )
             print(BaseHTTPRequestHandler.responses[HTTPError.code].longmessage)
-            print("Reason: " + HTTPError.reason)
+            print(f"Reason: {HTTPError.reason}")
             print("HTTP Headers:\n" + HTTPError.headers)
         else:
-            print(api + "is dead or has errors because:" + reason)
+            print(f"{api}is dead or has errors because:{reason}")
         return
     # RSD is available since 1.17, bug 25648
     rsd = re.search(
@@ -69,7 +69,7 @@ def checkcore(api):
     if "This is an auto-generated MediaWiki API documentation page" in raw:
         printapi(api)
     elif rsd and rsd.group(1):
-        api = "http:" + rsd.group(1)
+        api = f"http:{rsd.group(1)}"
         printapi(api)
     elif feed and feed.group(1) and domain and domain.group(1):
         index = domain.group(1) + feed.group(1)
@@ -90,7 +90,7 @@ def check(apis):
 
 apis = []
 for api in open("wikistocheck.txt").read().strip().splitlines():
-    if not api in apis:
+    if api not in apis:
         apis.append(api)
     if len(apis) >= limit:
         check(apis)

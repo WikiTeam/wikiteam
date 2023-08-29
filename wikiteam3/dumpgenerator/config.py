@@ -26,10 +26,7 @@ from typing import *
 
 
 def _dataclass_from_dict(klass_or_obj, d):
-    if isinstance(klass_or_obj, type):  # klass
-        ret = klass_or_obj()
-    else:
-        ret = klass_or_obj
+    ret = klass_or_obj() if isinstance(klass_or_obj, type) else klass_or_obj
     for k, v in d.items():
         if hasattr(ret, k):
             setattr(ret, k, v)

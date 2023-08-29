@@ -63,13 +63,13 @@ def saveURL(wikidomain="", url="", filename="", path="", overwrite=False, iterat
         maxsleep = 30
         while sleep <= maxsleep:
             try:
-                print("Error while retrieving: %s" % (url))
-                print("Retry in %s seconds..." % (sleep))
+                print(f"Error while retrieving: {url}")
+                print(f"Retry in {sleep} seconds...")
                 time.sleep(sleep)
                 urllib.request.urlretrieve(url, filename2)
                 return
             except:
-                sleep = sleep * 2
+                sleep *= 2
         print("Download failed")
 
     # sometimes wikispaces returns invalid data, redownload in that cases
@@ -126,10 +126,10 @@ def convertHTML2Wikitext(wikidomain="", filename="", path=""):
     with open(wikitextfile) as f:
         wikitext = f.read()
     with open(wikitextfile, "w") as f:
-        m = re.findall(
-            r'(?im)<div class="WikispacesContent WikispacesBs3">\s*<pre>', wikitext
-        )
-        if m:
+        if m := re.findall(
+            r'(?im)<div class="WikispacesContent WikispacesBs3">\s*<pre>',
+            wikitext,
+        ):
             try:
                 wikitext = wikitext.split(m[0])[1].split("</pre>")[0].strip()
                 wikitext = undoHTMLEntities(text=wikitext)
@@ -144,8 +144,8 @@ def downloadPage(wikidomain="", wikiurl="", pagename="", overwrite=False):
 
     # page current revision (html & wikitext)
     pageurl = f"{wikiurl}/{pagename_}"
-    filename = "%s.html" % (pagenameplus)
-    print("Downloading page: %s" % (filename))
+    filename = f"{pagenameplus}.html"
+    print(f"Downloading page: {filename}")
     saveURL(
         wikidomain=wikidomain,
         url=pageurl,
@@ -154,8 +154,8 @@ def downloadPage(wikidomain="", wikiurl="", pagename="", overwrite=False):
         overwrite=overwrite,
     )
     pageurl2 = f"{wikiurl}/page/code/{pagename_}"
-    filename2 = "%s.wikitext" % (pagenameplus)
-    print("Downloading page: %s" % (filename2))
+    filename2 = f"{pagenameplus}.wikitext"
+    print(f"Downloading page: {filename2}")
     saveURL(
         wikidomain=wikidomain,
         url=pageurl2,
@@ -166,12 +166,11 @@ def downloadPage(wikidomain="", wikiurl="", pagename="", overwrite=False):
     convertHTML2Wikitext(wikidomain=wikidomain, filename=filename2, path="pages")
 
     # csv with page history
-    csvurl = "{}/page/history/{}?utable=WikiTablePageHistoryList&ut_csv=1".format(
-        wikiurl,
-        pagename_,
+    csvurl = (
+        f"{wikiurl}/page/history/{pagename_}?utable=WikiTablePageHistoryList&ut_csv=1"
     )
-    csvfilename = "%s.history.csv" % (pagenameplus)
-    print("Downloading page: %s" % (csvfilename))
+    csvfilename = f"{pagenameplus}.history.csv"
+    print(f"Downloading page: {csvfilename}")
     saveURL(
         wikidomain=wikidomain,
         url=csvurl,
@@ -188,7 +187,7 @@ def downloadFile(wikidomain="", wikiurl="", filename="", overwrite=False):
     # file full resolution
     fileurl = f"{wikiurl}/file/view/{filename_}"
     filename = filenameplus
-    print("Downloading file: %s" % (filename))
+    print(f"Downloading file: {filename}")
     saveURL(
         wikidomain=wikidomain,
         url=fileurl,
@@ -198,12 +197,9 @@ def downloadFile(wikidomain="", wikiurl="", filename="", overwrite=False):
     )
 
     # csv with file history
-    csvurl = "{}/file/detail/{}?utable=WikiTablePageList&ut_csv=1".format(
-        wikiurl,
-        filename_,
-    )
-    csvfilename = "%s.history.csv" % (filenameplus)
-    print("Downloading file: %s" % (csvfilename))
+    csvurl = f"{wikiurl}/file/detail/{filename_}?utable=WikiTablePageList&ut_csv=1"
+    csvfilename = f"{filenameplus}.history.csv"
+    print(f"Downloading file: {csvfilename}")
     saveURL(
         wikidomain=wikidomain,
         url=csvurl,
@@ -214,15 +210,15 @@ def downloadFile(wikidomain="", wikiurl="", filename="", overwrite=False):
 
 
 def downloadPagesAndFiles(wikidomain="", wikiurl="", overwrite=False):
-    print("Downloading Pages and Files from %s" % (wikiurl))
+    print(f"Downloading Pages and Files from {wikiurl}")
     # csv all pages and files
-    csvurl = "%s/space/content?utable=WikiTablePageList&ut_csv=1" % (wikiurl)
+    csvurl = f"{wikiurl}/space/content?utable=WikiTablePageList&ut_csv=1"
     saveURL(wikidomain=wikidomain, url=csvurl, filename="pages-and-files.csv", path="")
     # download every page and file
     totallines = 0
-    with open("%s/pages-and-files.csv" % (wikidomain)) as f:
+    with open(f"{wikidomain}/pages-and-files.csv") as f:
         totallines = len(f.read().splitlines()) - 1
-    with open("%s/pages-and-files.csv" % (wikidomain)) as csvfile:
+    with open(f"{wikidomain}/pages-and-files.csv") as csvfile:
         filesc = 0
         pagesc = 0
         print("This wiki has %d pages and files" % (totallines))
@@ -276,7 +272,7 @@ def downloadMainPage(wikidomain="", wikiurl="", overwrite=False):
 
 
 def downloadLogo(wikidomain="", wikiurl="", overwrite=False):
-    index = "%s/index.html" % (wikidomain)
+    index = f"{wikidomain}/index.html"
     if os.path.exists(index):
         raw = ""
         try:
@@ -285,8 +281,7 @@ def downloadLogo(wikidomain="", wikiurl="", overwrite=False):
         except:
             with open(index, encoding="latin-1") as f:
                 raw = f.read()
-        m = re.findall(r'class="WikiLogo WikiElement"><img src="([^<> "]+?)"', raw)
-        if m:
+        if m := re.findall(r'class="WikiLogo WikiElement"><img src="([^<> "]+?)"', raw):
             logourl = m[0]
             logofilename = logourl.split("/")[-1]
             print("Downloading logo")
@@ -339,11 +334,8 @@ def duckduckgo():
         "https://wikispaces.net",
         "https://www.wikispaces.net",
     ]
-    for i in range(1, 100000):
-        url = "https://duckduckgo.com/html/?q={}%20{}%20site:wikispaces.com".format(
-            random.randint(100, 5000),
-            random.randint(1000, 9999),
-        )
+    for _ in range(1, 100000):
+        url = f"https://duckduckgo.com/html/?q={random.randint(100, 5000)}%20{random.randint(1000, 9999)}%20site:wikispaces.com"
         print("URL search", url)
         try:
             html = urllib.request.urlopen(url).read().decode("utf-8")
@@ -354,9 +346,9 @@ def duckduckgo():
         html = urllib.parse.unquote(html)
         m = re.findall(r"://([^/]+?\.wikispaces\.com)", html)
         for wiki in m:
-            wiki = "https://" + wiki
+            wiki = f"https://{wiki}"
             wiki = re.sub(r"https://www\.", "https://", wiki)
-            if not wiki in wikis and not wiki in ignorewikis:
+            if wiki not in wikis and wiki not in ignorewikis:
                 wikis.append(wiki)
                 yield wiki
         sleep = random.randint(5, 20)

@@ -23,13 +23,11 @@ import pymysql
 
 def main():
     year = int(sys.argv[1])
-    filename = "commonssql-%s.csv" % (year)
-    f = open(filename, "w")
-    f.write(
-        "img_name|img_timestamp|img_user|img_user_text|img_size|img_width|img_height\n"
-    )
-    f.close()
-
+    filename = f"commonssql-{year}.csv"
+    with open(filename, "w") as f:
+        f.write(
+            "img_name|img_timestamp|img_user|img_user_text|img_size|img_width|img_height\n"
+        )
     # http://www.mediawiki.org/wiki/Manual:Image_table
     # http://www.mediawiki.org/wiki/Manual:Oldimage_table
 

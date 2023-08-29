@@ -38,7 +38,7 @@ def main():
         wikis.sort()
     print("Loaded %d wikis from file" % (len(wikis)))
 
-    for i in range(1, 100):
+    for _ in range(1, 100):
         random.shuffle(words)
         for word in words:
             print("Word", word)
@@ -51,21 +51,10 @@ def main():
                 )
             elif r == 1:
                 url = "https://duckduckgo.com/html/?q=%s%%20wikispaces.com" % (word_)
-            elif r == 2:
-                url = "https://duckduckgo.com/html/?q={}%20{}%20wikispaces.com".format(
-                    word_,
-                    random.randint(100, 3000),
-                )
             elif r == 3:
-                url = "https://duckduckgo.com/html/?q={}%20{}%20wikispaces.com".format(
-                    random.randint(100, 3000),
-                    word_,
-                )
+                url = f"https://duckduckgo.com/html/?q={random.randint(100, 3000)}%20{word_}%20wikispaces.com"
             else:
-                url = "https://duckduckgo.com/html/?q={}%20{}%20wikispaces.com".format(
-                    word_,
-                    random.randint(100, 3000),
-                )
+                url = f"https://duckduckgo.com/html/?q={word_}%20{random.randint(100, 3000)}%20wikispaces.com"
             print("URL search", url)
             try:
                 html = urllib.request.urlopen(url).read().decode("utf-8")
@@ -75,8 +64,8 @@ def main():
             html = urllib.parse.unquote(html)
             m = re.findall(r"://([^/]+?\.wikispaces\.com)", html)
             for wiki in m:
-                wiki = "https://" + wiki
-                if not wiki in wikis:
+                wiki = f"https://{wiki}"
+                if wiki not in wikis:
                     wikis.append(wiki)
                     wikis.sort()
                     print(wiki)
@@ -84,7 +73,7 @@ def main():
                 wikis2 = []
                 for wiki in wikis:
                     wiki = re.sub(r"https://www\.", "https://", wiki)
-                    if not wiki in wikis2:
+                    if wiki not in wikis2:
                         wikis2.append(wiki)
                 wikis = wikis2
                 wikis.sort()

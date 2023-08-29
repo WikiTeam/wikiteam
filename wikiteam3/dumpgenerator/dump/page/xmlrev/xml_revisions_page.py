@@ -29,15 +29,8 @@ def makeXmlFromPage(page: dict, arvcontinue) -> str:
             p.attrib["arvcontinue"] = arvcontinue
         for rev in page["revisions"]:
             # Older releases like MediaWiki 1.16 do not return all fields.
-            if "userid" in rev:
-                userid = rev["userid"]
-            else:
-                userid = 0
-            if "size" in rev:
-                size = rev["size"]
-            else:
-                size = 0
-
+            userid = rev["userid"] if "userid" in rev else 0
+            size = rev["size"] if "size" in rev else 0
             # Create rev object
             revision = [
                 E.id(str(rev["revid"])),
@@ -70,8 +63,8 @@ def makeXmlFromPage(page: dict, arvcontinue) -> str:
                     )
                 )
 
-            if not "user" in rev:
-                if not "userhidden" in rev:
+            if "user" not in rev:
+                if "userhidden" not in rev:
                     print(
                         "Warning: user not hidden but missing user in pageid %d revid %d"
                         % (page["pageid"], rev["revid"])
@@ -85,15 +78,11 @@ def makeXmlFromPage(page: dict, arvcontinue) -> str:
                     )
                 )
 
-            if not "sha1" in rev:
-                if "sha1hidden" in rev:
-                    revision.append(E.sha1())  # stub
-                else:
-                    # The sha1 may not have been backfilled on older wikis or lack for other reasons (Wikia).
-                    pass
-            elif "sha1" in rev:
+            if "sha1" in rev:
                 revision.append(E.sha1(rev["sha1"]))
 
+            elif "sha1hidden" in rev:
+                revision.append(E.sha1())  # stub
             if "commenthidden" in rev:
                 revision.append(E.comment(deleted="deleted"))
             elif "comment" in rev and rev["comment"]:

@@ -12,7 +12,7 @@ def getWikiEngine(url="", session: requests.Session = None) -> str:
         session = requests.Session()  # Create a new session
         session.headers.update({"User-Agent": getUserAgent()})
     r = session.post(url=url, timeout=30)
-    if r.status_code == 405 or r.text == "":
+    if r.status_code == 405 or not r.text:
         r = session.get(url=url, timeout=120)
     result = r.text
 

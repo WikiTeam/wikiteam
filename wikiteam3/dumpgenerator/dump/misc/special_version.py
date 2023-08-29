@@ -8,7 +8,7 @@ from wikiteam3.utils import removeIP
 def saveSpecialVersion(config: Config = None, session=None):
     """Save Special:Version as .html, to preserve extensions details"""
 
-    if os.path.exists("%s/SpecialVersion.html" % (config.path)):
+    if os.path.exists(f"{config.path}/SpecialVersion.html"):
         print("SpecialVersion.html exists, do not overwrite")
     else:
         print("Downloading Special:Version with extensions and other related info")
@@ -19,6 +19,6 @@ def saveSpecialVersion(config: Config = None, session=None):
         Delay(config=config, session=session)
         raw = str(removeIP(raw=raw))
         with open(
-            "%s/SpecialVersion.html" % (config.path), "w", encoding="utf-8"
+            f"{config.path}/SpecialVersion.html", "w", encoding="utf-8"
         ) as outfile:
-            outfile.write(str(raw))
+            outfile.write(raw)

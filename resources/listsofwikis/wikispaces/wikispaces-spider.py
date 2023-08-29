@@ -23,74 +23,64 @@ import urllib
 
 def loadUsers():
     users = {}
-    f = open("users.txt")
-    for x in f.read().strip().splitlines():
-        username = x.split(",")[0]
-        numwikis = x.split(",")[1]
-        users[username] = numwikis
-    f.close()
+    with open("users.txt") as f:
+        for x in f.read().strip().splitlines():
+            username = x.split(",")[0]
+            numwikis = x.split(",")[1]
+            users[username] = numwikis
     return users
 
 
 def loadWikis():
     wikis = {}
-    f = open("wikis.txt")
-    for x in f.read().strip().splitlines():
-        wikiname = x.split(",")[0]
-        numusers = x.split(",")[1]
-        wikis[wikiname] = numusers
-    f.close()
+    with open("wikis.txt") as f:
+        for x in f.read().strip().splitlines():
+            wikiname = x.split(",")[0]
+            numusers = x.split(",")[1]
+            wikis[wikiname] = numusers
     return wikis
 
 
 def saveUsers(users):
-    f = open("users.txt", "w")
-    output = [f"{x},{y}" for x, y in users.items()]
-    output.sort()
-    output = "\n".join(output)
-    f.write(str(output))
-    f.close()
+    with open("users.txt", "w") as f:
+        output = [f"{x},{y}" for x, y in users.items()]
+        output.sort()
+        output = "\n".join(output)
+        f.write(output)
 
 
 def saveWikis(wikis):
-    f = open("wikis.txt", "w")
-    output = [f"{x},{y}" for x, y in wikis.items()]
-    output.sort()
-    output = "\n".join(output)
-    f.write(str(output))
-    f.close()
+    with open("wikis.txt", "w") as f:
+        output = [f"{x},{y}" for x, y in wikis.items()]
+        output.sort()
+        output = "\n".join(output)
+        f.write(output)
 
 
 def getUsers(wiki):
-    wikiurl = (
-        "https://%s.wikispaces.com/wiki/members?utable=WikiTableMemberList&ut_csv=1"
-        % (wiki)
-    )
+    wikiurl = f"https://{wiki}.wikispaces.com/wiki/members?utable=WikiTableMemberList&ut_csv=1"
     try:
         wikireq = urllib.Request(wikiurl, headers={"User-Agent": "Mozilla/5.0"})
         wikicsv = urllib.request.urlopen(wikireq)
         reader = csv.reader(wikicsv, delimiter=",", quotechar='"')
         headers = next(reader, None)
-        usersfound = {}
-        for row in reader:
-            usersfound[row[0]] = "?"
-        return usersfound
+        return {row[0]: "?" for row in reader}
     except:
         print("Error reading", wikiurl)
         return {}
 
 
 def getWikis(user):
-    wikiurl = "https://www.wikispaces.com/user/view/%s" % (user)
+    wikiurl = f"https://www.wikispaces.com/user/view/{user}"
     try:
         wikireq = urllib.Request(wikiurl, headers={"User-Agent": "Mozilla/5.0"})
         html = urllib.request.urlopen(wikireq).read()
         if "Wikis: " in html:
             html = html.split("Wikis: ")[1].split("</div>")[0]
-            wikisfound = {}
-            for x in re.findall(r'<a href="https://([^>]+).wikispaces.com/">', html):
-                wikisfound[x] = "?"
-            return wikisfound
+            return {
+                x: "?"
+                for x in re.findall(r'<a href="https://([^>]+).wikispaces.com/">', html)
+            }
         return {}
     except:
         print("Error reading", wikiurl)
@@ -114,7 +104,7 @@ def main():
     for wiki, numusers in wikis.items():
         if numusers != "?":  # we have scanned this wiki before, skiping
             continue
-        print("Scanning https://%s.wikispaces.com for users" % (wiki))
+        print(f"Scanning https://{wiki}.wikispaces.com for users")
         users2 = getUsers(wiki)
         wikis[wiki] = len(users2)
         c = 0
@@ -122,7 +112,7 @@ def main():
             if x2 not in users.keys():
                 users[x2] = "?"
                 c += 1
-        print("Found %s new users" % (c))
+        print(f"Found {c} new users")
         if c > 0:
             if random.randint(0, rand) == 0:
                 saveUsers(users)
@@ -140,7 +130,7 @@ def main():
     for user, numwikis in users.items():
         if numwikis != "?":  # we have scanned this user before, skiping
             continue
-        print("Scanning https://www.wikispaces.com/user/view/%s for wikis" % (user))
+        print(f"Scanning https://www.wikispaces.com/user/view/{user} for wikis")
         wikis2 = getWikis(user)
         users[user] = len(wikis2)
         c = 0
@@ -148,7 +138,7 @@ def main():
             if x2 not in wikis.keys():
                 wikis[x2] = "?"
                 c += 1
-        print("Found %s new wikis" % (c))
+        print(f"Found {c} new wikis")
         if c > 0:
             if random.randint(0, rand) == 0:
                 saveWikis(wikis)

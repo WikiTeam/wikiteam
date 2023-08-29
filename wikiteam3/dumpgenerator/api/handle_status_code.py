@@ -17,7 +17,7 @@ def handleStatusCode(response):
         print(response.url)
         sys.exit(1)
 
-    elif statuscode == 401 or statuscode == 403:
+    elif statuscode in [401, 403]:
         print("Authentication required.")
         print("Please use --user and --pass.")
         print(response.url)

@@ -75,7 +75,7 @@ class DumpGenerator:
             else contextlib.nullcontext()
         ):
             print(welcome())
-            print("Analysing %s" % (config.api if config.api else config.index))
+            print(f"Analysing {config.api if config.api else config.index}")
 
             # creating path or resuming if desired
             c = 2
@@ -103,7 +103,7 @@ class DumpGenerator:
                     print("You have selected: NO")
                     other["resume"] = False
                 config.path = "%s-%d" % (originalpath, c)
-                print('Trying to use path "%s"...' % (config.path))
+                print(f'Trying to use path "{config.path}"...')
                 c += 1
 
             if other["resume"]:
@@ -166,11 +166,9 @@ class DumpGenerator:
                             xmliscomplete = True
                             break
 
-                        xmlrevid = re.search(r"    <id>([^<]+)</id>", l)
-                        if xmlrevid:
+                        if xmlrevid := re.search(r"    <id>([^<]+)</id>", l):
                             lastxmlrevid = int(xmlrevid.group(1))
-                        xmltitle = re.search(r"<title>([^<]+)</title>", l)
-                        if xmltitle:
+                        if xmltitle := re.search(r"<title>([^<]+)</title>", l):
                             lastxmltitle = undoHTMLEntities(text=xmltitle.group(1))
                             break
 
@@ -182,8 +180,7 @@ class DumpGenerator:
             elif lastxmltitle:
                 # resuming...
                 print(
-                    'Resuming XML dump from "%s" (revision id %s)'
-                    % (lastxmltitle, lastxmlrevid)
+                    f'Resuming XML dump from "{lastxmltitle}" (revision id {lastxmlrevid})'
                 )
                 generateXMLDump(
                     config=config,
@@ -204,20 +201,16 @@ class DumpGenerator:
                 config.date,
             )
             if os.path.exists(imagesFilePath):
-                f = open(imagesFilePath)
-                lines = f.read().splitlines()
-                for l in lines:
-                    if re.search(r"\t", l):
-                        images.append(l.split("\t"))
-                if len(lines) == 0:  # empty file
-                    lastimage = "--EMPTY--"
-                if lastimage == "":
-                    lastimage = lines[-1].strip()
-                if lastimage == "":
-                    lastimage = lines[-2].strip()
-                f.close()
-
-            if len(images) > 0 and len(images[0]) < 5:
+                with open(imagesFilePath) as f:
+                    lines = f.read().splitlines()
+                    images.extend(l.split("\t") for l in lines if re.search(r"\t", l))
+                    if len(lines) == 0:  # empty file
+                        lastimage = "--EMPTY--"
+                    if not lastimage:
+                        lastimage = lines[-1].strip()
+                    if lastimage == "":
+                        lastimage = lines[-2].strip()
+            if images and len(images[0]) < 5:
                 print(
                     "Warning: Detected old images list (images.txt) format.\n"
                     + "You can delete 'images.txt' manually and restart the script."
@@ -234,7 +227,7 @@ class DumpGenerator:
             # checking images directory
             listdir = []
             try:
-                listdir = os.listdir("%s/images" % (config.path))
+                listdir = os.listdir(f"{config.path}/images")
             except OSError:
                 pass  # probably directory does not exist
             listdir = set(listdir)
@@ -252,7 +245,7 @@ class DumpGenerator:
                     continue
                 if filename in listdir:
                     c_images += 1
-                if filename + ".desc" in listdir:
+                if f"{filename}.desc" in listdir:
                     c_desc += 1
                 c_checked += 1
                 if c_checked % 100000 == 0:
@@ -286,7 +279,3 @@ class DumpGenerator:
                     images=images,
                     session=other["session"],
                 )
-
-        if config.logs:
-            # fix
-            pass

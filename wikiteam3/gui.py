@@ -22,6 +22,7 @@ TODO:
 * advanced: batch downloads, upload to Internet Archive or anywhere
 """
 
+
 import os
 import platform
 import random
@@ -71,8 +72,7 @@ NAME = "WikiTeam tools"
 VERSION = "0.1"
 HOMEPAGE = "https://code.google.com/p/wikiteam/"
 LINUX = platform.system().lower() == "linux"
-PATH = os.path.dirname(__file__)
-if PATH:
+if PATH := os.path.dirname(__file__):
     os.chdir(PATH)
 
 
@@ -367,14 +367,12 @@ class App:
                 total += float(size.split(" ")[0]) * 1024 * 1024
             elif size.endswith("TB"):
                 total += float(size.split(" ")[0]) * 1024 * 1024 * 1024
-            elif not size or size.lower() == "unknown":
-                pass
-            else:
+            elif size and size.lower() != "unknown":
                 total += size
         return total / 1024  # MB
 
     def run(self):
-        for i in range(10):
+        for _ in range(10):
             time.sleep(0.1)
             self.value += 10
 
@@ -416,13 +414,11 @@ class App:
             percent = downloaded / (total_mb / 100.0)
             if not random.randint(0, 10):
                 msg = "{:.1f} MB of {:.1f} MB downloaded ({:.1f}%)".format(
-                    downloaded,
-                    total_mb,
-                    percent if percent <= 100 else 100,
+                    downloaded, total_mb, min(percent, 100)
                 )
                 self.msg(msg, level="ok")
-            # sys.stdout.write("%.1f MB of %.1f MB downloaded (%.2f%%)" %(downloaded, total_mb, percent))
-            # sys.stdout.flush()
+                # sys.stdout.write("%.1f MB of %.1f MB downloaded (%.2f%%)" %(downloaded, total_mb, percent))
+                # sys.stdout.flush()
         except:
             pass
 
@@ -432,15 +428,14 @@ class App:
             return
         else:
             self.block = True
-        items = self.tree.selection()
-        if items:
+        if items := self.tree.selection():
             if not os.path.exists(self.downloadpath):
                 os.makedirs(self.downloadpath)
             c = 0
             d = 0
             for item in items:
                 filepath = (
-                    self.downloadpath + "/" + self.dumps[int(item)][0]
+                    f"{self.downloadpath}/{self.dumps[int(item)][0]}"
                     if self.downloadpath
                     else self.dumps[int(item)][0]
                 )
@@ -462,10 +457,7 @@ class App:
                         filepath,
                         reporthook=self.downloadProgress,
                     )
-                    msg = "{} size is {} bytes large. Download successful!".format(
-                        self.dumps[int(item)][0],
-                        os.path.getsize(filepath),
-                    )
+                    msg = f"{self.dumps[int(item)][0]} size is {os.path.getsize(filepath)} bytes large. Download successful!"
                     self.msg(msg=msg, level="ok")
                     c += 1
                 self.dumps[int(item)] = self.dumps[int(item)][:6] + ["True"]
@@ -503,8 +495,9 @@ class App:
             self.tree.delete(str(i))
 
     def showAvailableDumps(self):
-        c = 0
-        for filename, wikifarm, size, date, mirror, url, downloaded in self.dumps:
+        for c, (filename, wikifarm, size, date, mirror, url, downloaded) in enumerate(
+            self.dumps
+        ):
             self.tree.insert(
                 "",
                 "end",
@@ -520,7 +513,6 @@ class App:
                 ),
                 tags=("downloaded" if downloaded else "nodownloaded",),
             )
-            c += 1
 
     def filterAvailableDumps(self):
         self.clearAvailableDumps()
@@ -541,22 +533,13 @@ class App:
                 else:
                     nodownloadedsizes.append(self.dumps[i][2])
             elif (
-                (
-                    self.optionmenu21var.get() != "all"
-                    and not self.optionmenu21var.get() == self.dumps[i][1]
-                )
-                or (
-                    self.optionmenu22var.get() != "all"
-                    and not self.optionmenu22var.get() in self.dumps[i][2]
-                )
-                or (
-                    self.optionmenu23var.get() != "all"
-                    and not self.optionmenu23var.get() in self.dumps[i][3]
-                )
-                or (
-                    self.optionmenu24var.get() != "all"
-                    and not self.optionmenu24var.get() in self.dumps[i][4]
-                )
+                self.optionmenu21var.get() not in ["all", self.dumps[i][1]]
+                or self.optionmenu22var.get() != "all"
+                and self.optionmenu22var.get() not in self.dumps[i][2]
+                or self.optionmenu23var.get() != "all"
+                and self.optionmenu23var.get() not in self.dumps[i][3]
+                or self.optionmenu24var.get() != "all"
+                and self.optionmenu24var.get() not in self.dumps[i][4]
             ):
                 self.tree.detach(str(i))  # hide this item
                 sizes.append(self.dumps[i][2])
@@ -580,7 +563,7 @@ class App:
         # improve, size check or md5sum?
         if filename:
             filepath = (
-                self.downloadpath + "/" + filename if self.downloadpath else filename
+                f"{self.downloadpath}/{filename}" if self.downloadpath else filename
             )
             if os.path.exists(filepath):
                 return True
@@ -630,7 +613,7 @@ class App:
                 r'(?P<size>)<a href="(?P<filename>[^>]+)">[^>]+</a>: <span class=\'done\'>Dump complete</span></li>',
             ],
         ]
-        wikifarms_r = re.compile(r"(%s)" % ("|".join(wikifarms.keys())))
+        wikifarms_r = re.compile(f'({"|".join(wikifarms.keys())})')
         c = 0
         for mirror, url, regexp in self.urls:
             print("Loading data from", mirror, url)
@@ -640,9 +623,7 @@ class App:
             for i in m:
                 filename = i.group("filename")
                 if mirror == "Wikimedia":
-                    filename = "%s-pages-meta-history.xml.7z" % (
-                        re.sub("/", "-", filename)
-                    )
+                    filename = f'{re.sub("/", "-", filename)}-pages-meta-history.xml.7z'
                 wikifarm = "Unknown"
                 if re.search(wikifarms_r, filename):
                     wikifarm = re.findall(wikifarms_r, filename)[0]
@@ -658,13 +639,13 @@ class App:
                     date = re.findall(r"\-(\d{4}\-\d{2}\-\d{2})[\.-]", filename)[0]
                 downloadurl = ""
                 if mirror == "Google Code":
-                    downloadurl = "https://wikiteam.googlecode.com/files/" + filename
+                    downloadurl = f"https://wikiteam.googlecode.com/files/{filename}"
                 elif mirror == "Internet Archive":
                     downloadurl = (
                         re.sub(r"/details/", r"/download/", url) + "/" + filename
                     )
                 elif mirror == "ScottDB":
-                    downloadurl = url + "/" + filename
+                    downloadurl = f"{url}/{filename}"
                 elif mirror == "Wikimedia":
                     downloadurl = (
                         "http://dumps.wikimedia.org/"

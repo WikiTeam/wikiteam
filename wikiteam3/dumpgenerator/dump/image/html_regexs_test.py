@@ -65,7 +65,7 @@ class TestRegexs:
                 best_matched = 0
                 regexp_best = None
 
-                for index, regexp in enumerate(REGEX_CANDIDATES):
+                for regexp in REGEX_CANDIDATES:
                     _count = len(re.findall(regexp, raw))
                     if _count > best_matched:
                         best_matched = _count
@@ -95,7 +95,7 @@ class TestRegexs:
                 best_matched = 0
                 regexp_best = None
 
-                for index, regexp in enumerate(REGEX_CANDIDATES):
+                for regexp in REGEX_CANDIDATES:
                     _count = len(re.findall(regexp, raw))
                     if _count > best_matched:
                         best_matched = _count

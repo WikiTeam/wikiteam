@@ -67,47 +67,40 @@ def mwGetAPIAndIndex(url="", session: requests.Session = None):
     r = session.post(url=url, timeout=120)
     result = r.text
 
-    # API
-    m = re.findall(
+    if m := re.findall(
         r'(?im)<\s*link\s*rel="EditURI"\s*type="application/rsd\+xml"\s*href="([^>]+?)\?action=rsd"\s*/\s*>',
         result,
-    )
-    if m:
+    ):
         api = m[0]
         if api.startswith("//"):  # gentoo wiki
             api = url.split("//")[0] + api
-    else:
-        pass  # build API using index and check it
-
-    # Index.php
-    m = re.findall(
-        r'<li id="ca-viewsource"[^>]*?>\s*(?:<span>)?\s*<a href="([^\?]+?)\?', result
-    )
-    if m:
+    if m := re.findall(
+        r'<li id="ca-viewsource"[^>]*?>\s*(?:<span>)?\s*<a href="([^\?]+?)\?',
+        result,
+    ):
         index = m[0]
-    else:
-        m = re.findall(
-            r'<li id="ca-history"[^>]*?>\s*(?:<span>)?\s*<a href="([^\?]+?)\?', result
-        )
-        if m:
-            index = m[0]
+    elif m := re.findall(
+        r'<li id="ca-history"[^>]*?>\s*(?:<span>)?\s*<a href="([^\?]+?)\?',
+        result,
+    ):
+        index = m[0]
     if index:
         if index.startswith("/"):
-            if api:
-                index = urljoin(api, index.split("/")[-1])
-            else:
-                index = urljoin(url, index.split("/")[-1])
+            index = (
+                urljoin(api, index.split("/")[-1])
+                if api
+                else urljoin(url, index.split("/")[-1])
+            )
             #     api = index.split("/index.php")[0] + "/api.php"
             if index.endswith("/Main_Page"):
                 index = urljoin(index, "index.php")
-    else:
-        if api:
-            if len(re.findall(r"/index\.php5\?", result)) > len(
-                re.findall(r"/index\.php\?", result)
-            ):
-                index = "/".join(api.split("/")[:-1]) + "/index.php5"
-            else:
-                index = "/".join(api.split("/")[:-1]) + "/index.php"
+    elif api:
+        if len(re.findall(r"/index\.php5\?", result)) > len(
+            re.findall(r"/index\.php\?", result)
+        ):
+            index = "/".join(api.split("/")[:-1]) + "/index.php5"
+        else:
+            index = "/".join(api.split("/")[:-1]) + "/index.php"
 
     if not api and index:
         api = urljoin(index, "api.php")
@@ -121,7 +114,7 @@ def checkRetryAPI(api="", apiclient=False, session: requests.Session = None):
     try:
         check = checkAPI(api, session=session)
     except requests.exceptions.ConnectionError as e:
-        print("Connection error: %s" % (str(e)))
+        print(f"Connection error: {str(e)}")
 
     if check and apiclient:
         apiurl = urlparse(api)
@@ -141,9 +134,7 @@ def checkRetryAPI(api="", apiclient=False, session: requests.Session = None):
                 newscheme = "https"
                 api = api.replace("http://", "https://")
             print(
-                "WARNING: The provided API URL did not work with mwclient. Switched protocol to: {}".format(
-                    newscheme
-                )
+                f"WARNING: The provided API URL did not work with mwclient. Switched protocol to: {newscheme}"
             )
 
             try:

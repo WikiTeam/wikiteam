@@ -9,7 +9,7 @@ def checkIndex(index="", cookies="", session: requests.Session = None):
     if r.status_code >= 400:
         print(f"ERROR: The wiki returned status code HTTP {r.status_code}")
         return False
-    raw = str(r.text)
+    raw = r.text
     print("Checking index.php...", index)
     # Workaround for issue 71
     if (
@@ -27,9 +27,9 @@ def checkIndex(index="", cookies="", session: requests.Session = None):
     ):
         print("Looks like the page called Index.php, not index.php itself")
         return False
-    if re.search(
-        '(This wiki is powered by|<h2 id="mw-version-license">|meta name="generator" content="MediaWiki|class="mediawiki)',
-        raw,
-    ):
-        return True
-    return False
+    return bool(
+        re.search(
+            '(This wiki is powered by|<h2 id="mw-version-license">|meta name="generator" content="MediaWiki|class="mediawiki)',
+            raw,
+        )
+    )

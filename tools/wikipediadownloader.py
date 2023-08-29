@@ -44,16 +44,14 @@ def main():
         maxretries = int(args.maxretries)
 
     dumpsdomain = "http://dumps.wikimedia.org"
-    f = urllib.request.urlopen("%s/backup-index.html" % (dumpsdomain))
+    f = urllib.request.urlopen(f"{dumpsdomain}/backup-index.html")
     raw = f.read()
     f.close()
 
     m = re.compile(
         r'<a href="(?P<project>[^>]+)/(?P<date>\d+)">[^<]+</a>: <span class=\'done\'>Dump complete</span>'
     ).finditer(raw)
-    projects = []
-    for i in m:
-        projects.append([i.group("project"), i.group("date")])
+    projects = [[i.group("project"), i.group("date")] for i in m]
     projects.reverse()  # download oldest dumps first
     # projects = [['enwiki', '20130805']]
 
@@ -79,15 +77,9 @@ def main():
             while corrupted and maxretries2 > 0:
                 maxretries2 -= 1
                 m = re.compile(
-                    r'<a href="(?P<urldump>/%s/%s/%s-%s-%s)">'
-                    % (project, date, project, date, dumpclass)
+                    f'<a href="(?P<urldump>/{project}/{date}/{project}-{date}-{dumpclass})">'
                 ).finditer(htmlproj)
-                urldumps = []
-                # enwiki is splitted in several files, thats why we need a loop
-                # here
-                for i in m:
-                    urldumps.append("{}/{}".format(dumpsdomain, i.group("urldump")))
-
+                urldumps = [f'{dumpsdomain}/{i.group("urldump")}' for i in m]
                 # print (urldumps)
                 for urldump in urldumps:
                     dumpfilename = urldump.split("/")[-1]
@@ -98,23 +90,20 @@ def main():
 
                     # md5check
                     os.system(f"md5sum {path}/{dumpfilename} > md5")
-                    f = open("md5")
-                    raw = f.read()
-                    f.close()
+                    with open("md5") as f:
+                        raw = f.read()
                     md51 = re.findall(
                         rf"(?P<md5>[a-f0-9]{{32}})\s+{path}/{dumpfilename}", raw
                     )[0]
                     print(md51)
 
                     f = urllib.request.urlopen(
-                        "%s/%s/%s/%s-%s-md5sums.txt"
-                        % (dumpsdomain, project, date, project, date)
+                        f"{dumpsdomain}/{project}/{date}/{project}-{date}-md5sums.txt"
                     )
                     raw = f.read()
                     f.close()
-                    f = open(f"{path}/{project}-{date}-md5sums.txt", "w")
-                    f.write(raw)
-                    f.close()
+                    with open(f"{path}/{project}-{date}-md5sums.txt", "w") as f:
+                        f.write(raw)
                     md52 = re.findall(
                         r"(?P<md5>[a-f0-9]{32})\s+%s" % (dumpfilename), raw
                     )[0]

@@ -38,8 +38,7 @@ def doXMLRevisionDump(
             useAllrevision=useAllrevisions,
         ):
             numrevs = len(re.findall(r_timestamp, xml))
-            arvcontinueRe = re.findall(r_arvcontinue, xml)
-            if arvcontinueRe:
+            if arvcontinueRe := re.findall(r_arvcontinue, xml):
                 curArvcontinue = arvcontinueRe[0]
                 if lastArvcontinue != curArvcontinue:
                     Delay(config=config, session=session)
@@ -70,8 +69,7 @@ def doXMLExportDump(config: Config = None, session=None, xmlfile=None, lastPage=
             start = lastPage.find("title").text
         except Exception:
             print(
-                "Failed to find title in last trunk XML: %s"
-                % (lxml.etree.tostring(lastPage))
+                f"Failed to find title in last trunk XML: {lxml.etree.tostring(lastPage)}"
             )
             raise
     else:
@@ -97,7 +95,7 @@ def doXMLExportDump(config: Config = None, session=None, xmlfile=None, lastPage=
             logerror(
                 config=config,
                 to_stdout=True,
-                text='The page "%s" was missing in the wiki (probably deleted)' % title,
+                text=f'The page "{title}" was missing in the wiki (probably deleted)',
             )
         # here, XML is a correct <page> </page> chunk or
         # an empty string due to a deleted page (logged in errors log) or
@@ -136,7 +134,7 @@ def generateXMLDump(config: Config = None, resume=False, session=None):
                 print("Cannot resume, exiting now!")
                 sys.exit(1)
 
-        print(f"WARNING: will try to start the download...")
+        print("WARNING: will try to start the download...")
         xmlfile = open(f"{config.path}/{xmlfilename}", "a", encoding="utf-8")
     else:
         print("\nRetrieving the XML for every page from the beginning\n")
@@ -145,7 +143,7 @@ def generateXMLDump(config: Config = None, resume=False, session=None):
 
     if config.xmlrevisions and not config.xmlrevisions_page:
         doXMLRevisionDump(config, session, xmlfile, lastPage, useAllrevisions=True)
-    elif config.xmlrevisions and config.xmlrevisions_page:
+    elif config.xmlrevisions:
         doXMLRevisionDump(config, session, xmlfile, lastPage, useAllrevisions=False)
     else:  # --xml
         doXMLExportDump(config, session, xmlfile, lastPage)

@@ -39,9 +39,7 @@ from urllib.error import HTTPError
 
 
 def download(wiki):
-    f = urllib.request.urlopen(
-        "%s/wiki/Special:Statistics" % (wiki), context=ssl_context
-    )
+    f = urllib.request.urlopen(f"{wiki}/wiki/Special:Statistics", context=ssl_context)
     html = str(f.read())
     f.close()
 
@@ -52,7 +50,7 @@ def download(wiki):
     for i in m.finditer(html):
         urldump = i.group("urldump")
         dump = i.group("dump")
-        date = "{}-{}-{}".format(i.group("year"), i.group("month"), i.group("day"))
+        date = f'{i.group("year")}-{i.group("month")}-{i.group("day")}'
         compression = i.group("compression")
 
         sys.stderr.write("Downloading: ", wiki, dump.lower())
@@ -62,14 +60,7 @@ def download(wiki):
 
         # -q, turn off verbose
         os.system(
-            'wget -q -c "%s" -O %s-%s-pages-meta-%s.%s'
-            % (
-                urldump,
-                prefix,
-                date,
-                dump.lower() == "current" and "current" or "history",
-                compression,
-            )
+            f'wget -q -c "{urldump}" -O {prefix}-{date}-pages-meta-{dump.lower() == "current" and "current" or "history"}.{compression}'
         )
 
     if not m.search(html):
@@ -78,16 +69,11 @@ def download(wiki):
 
 ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS or ssl.VERIFY_X509_TRUSTED_FIRST)
 
-f = open("./wikiteam3/listsofwikis/mediawiki/wikia.com")
-wikia = f.read().strip().split("\n")
-f.close()
-
+with open("./wikiteam3/listsofwikis/mediawiki/wikia.com") as f:
+    wikia = f.read().strip().split("\n")
 print(len(wikia), "wikis in Wikia list")
 
-start = "!"
-if len(sys.argv) > 1:
-    start = sys.argv[1]
-
+start = sys.argv[1] if len(sys.argv) > 1 else "!"
 for wiki in wikia:
     wiki = wiki.lower()
     prefix = ""
@@ -95,15 +81,15 @@ for wiki in wikia:
         prefix = wiki.split("http://")[1]
     else:
         prefix = wiki.split(".")[0]
-        wiki = "https://" + wiki
+        wiki = f"https://{wiki}"
     if prefix < start:
         continue
     print("\n<" + prefix + ">")
     print(" starting...")
 
-    url = "%s/wiki/Special:Statistics" % (wiki)
+    url = f"{wiki}/wiki/Special:Statistics"
     try:
         download(wiki)
 
     except HTTPError as err:
-        print(" error: returned " + str(err))
+        print(f" error: returned {str(err)}")

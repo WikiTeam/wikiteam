@@ -4,7 +4,7 @@ class PageMissingError(Exception):
         self.xml = xml
 
     def __str__(self):
-        return "page '%s' not found" % self.title
+        return f"page '{self.title}' not found"
 
 
 class ExportAbortedError(Exception):
@@ -12,7 +12,7 @@ class ExportAbortedError(Exception):
         self.index = index
 
     def __str__(self):
-        return "Export from '%s' did not return anything." % self.index
+        return f"Export from '{self.index}' did not return anything."
 
 
 class FileSizeError(Exception):

@@ -38,17 +38,17 @@ def main():
                 elif len(t[0]) == 8:  # YYYYMMDD
                     identifiers[f"{t[0][:4]}-{t[0][4:6]}-{t[0][6:8]}"] = identifier
                 else:
-                    print("ERROR, dont understand date format in %s" % (identifier))
+                    print(f"ERROR, dont understand date format in {identifier}")
             elif len(t) == 2:
                 if len(t[0]) == 4 and len(t[1]) == 2:  # YYYY-MM
                     identifiers[f"{t[0]}-{t[1]}"] = identifier
                 else:
-                    print("ERROR, dont understand date format in %s" % (identifier))
+                    print(f"ERROR, dont understand date format in {identifier}")
             elif len(t) == 3:
                 if len(t[0]) == 4 and len(t[1]) == 2 and len(t[2]) == 2:  # YYYY-MM-DD
                     identifiers[f"{t[0]}-{t[1]}-{t[2]}"] = identifier
                 else:
-                    print("ERROR, dont understand date format in %s" % (identifier))
+                    print(f"ERROR, dont understand date format in {identifier}")
 
     identifiers_list = [[k, v] for k, v in identifiers.items()]
     identifiers_list.sort()

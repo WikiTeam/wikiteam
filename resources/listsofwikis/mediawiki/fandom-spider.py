@@ -37,10 +37,10 @@ def main():
     wikis = []
     for lvl3 in tqdm(map_lvl3):
         time.sleep(0.3)
-        req = requests.get("https://community.fandom.com%s" % lvl3)
+        req = requests.get(f"https://community.fandom.com{lvl3}")
         if req.status_code != 200:
             time.sleep(5)
-            req = requests.get("https://community.fandom.com%s" % lvl3)
+            req = requests.get(f"https://community.fandom.com{lvl3}")
         wikis.extend(
             [
                 wiki.replace("http://", "https://")
@@ -50,8 +50,7 @@ def main():
             ]
         )
 
-    wikis = list(set(wikis))
-    wikis.sort()
+    wikis = sorted(set(wikis))
     with open("fandom.com", "w") as f:
         for wiki in wikis:
             f.write(parse.urljoin(wiki, "api.php") + "\n")

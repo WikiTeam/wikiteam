@@ -29,7 +29,7 @@ def main():
     raw = r.text
     m = re.findall(r'<tr><td><a href="//([^>]+?)/">[^<]+</a></td></tr>', raw)
     for i in m:
-        print("http://" + i + "/w/api.php")
+        print(f"http://{i}/w/api.php")
 
 
 if __name__ == "__main__":

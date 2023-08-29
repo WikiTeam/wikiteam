@@ -34,8 +34,7 @@ def main():
         req = requests.get(url, headers=headers)
         wikis.extend(re.findall(r'<td><a href="([^>]+?)"', req.text))
 
-    wikis = list(set(wikis))
-    wikis.sort()
+    wikis = sorted(set(wikis))
     with open("wiki-site.com", "w") as f:
         for wiki in wikis:
             f.write(parse.urljoin(wiki, "api.php") + "\n")

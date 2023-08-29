@@ -85,11 +85,10 @@ def main():
         sys.exit()
 
     print(
-        "Downloading Wikimedia Commons files from %s to %s"
-        % (startdate.strftime("%Y-%m-%d"), enddate.strftime("%Y-%m-%d"))
+        f'Downloading Wikimedia Commons files from {startdate.strftime("%Y-%m-%d")} to {enddate.strftime("%Y-%m-%d")}'
     )
     while startdate <= enddate:
-        print("== %s ==" % (startdate.strftime("%Y-%m-%d")))
+        print(f'== {startdate.strftime("%Y-%m-%d")} ==')
         savepath = startdate.strftime("%Y/%m/%d")
         filenamecsv = startdate.strftime("%Y-%m-%d.csv")
         filenamezip = startdate.strftime("%Y-%m-%d.zip")
@@ -115,13 +114,10 @@ def main():
                         os.makedirs(savepath)
                     except:
                         pass
-                    # csv header
-                    h = open(filenamecsv, "w")
-                    h.write(
-                        "img_name|img_saved_as|img_timestamp|img_user|img_user_text|img_size|img_width|img_height\n"
-                    )
-                    h.close()
-
+                    with open(filenamecsv, "w") as h:
+                        h.write(
+                            "img_name|img_saved_as|img_timestamp|img_user|img_user_text|img_size|img_width|img_height\n"
+                        )
                 img_name = str(img_name, "utf-8")
                 img_user_text = str(img_user_text, "utf-8")
                 original_name = img_name
@@ -130,11 +126,9 @@ def main():
                 ):  # removing 20101005024534! (or similar) from name if present
                     original_name = original_name[15:]
                 # quote weird chars to avoid errors while wgetting
-                img_name_quoted = urllib.parse.quote(re.sub(r" ", r"_", str(img_name)))
+                img_name_quoted = urllib.parse.quote(re.sub(r" ", r"_", img_name))
                 # _ ending variables contains no spaces, and \" for command line
-                img_name_ = re.sub(
-                    r'"', r"\"", re.sub(r" ", r"_", str(img_name))
-                )  # do not use r'', it is encoded
+                img_name_ = re.sub(r'"', r"\"", re.sub(r" ", r"_", img_name))
                 original_name_ = re.sub(
                     r'"', r"\"", re.sub(r" ", r"_", str(original_name))
                 )  # do not use r'', it is encoded
@@ -145,11 +139,12 @@ def main():
                 img_saved_as_ = ""
                 if len(img_name) > filenamelimit:  # truncate filename if it is long
                     img_saved_as = (
-                        img_name[:filenamelimit]
-                        + md5(re.sub(" ", "_", str(img_name))).hexdigest()
+                        (
+                            img_name[:filenamelimit]
+                            + md5(re.sub(" ", "_", img_name)).hexdigest()
+                        )
                         + "."
-                        + img_name.split(".")[-1]
-                    )
+                    ) + img_name.split(".")[-1]
                     img_saved_as = re.sub(
                         r" ", r"_", img_saved_as
                     )  # do not use r'', it is encoded
@@ -170,14 +165,7 @@ def main():
                     original_name != img_name
                 ):  # the image is an old version, download using /archive/ path in server
                     os.system(
-                        'wget -c "https://upload.wikimedia.org/wikipedia/commons/archive/%s/%s/%s" -O "%s/%s"'
-                        % (
-                            md5hash[0],
-                            md5hash[0:2],
-                            img_name_quoted,
-                            savepath,
-                            img_saved_as_,
-                        )
+                        f'wget -c "https://upload.wikimedia.org/wikipedia/commons/archive/{md5hash[0]}/{md5hash[:2]}/{img_name_quoted}" -O "{savepath}/{img_saved_as_}"'
                     )
                     try:
                         if not os.path.getsize(
@@ -196,44 +184,22 @@ def main():
                             ).hexdigest()
                             # redownload, now without /archive/ subpath
                             os.system(
-                                'wget -c "https://upload.wikimedia.org/wikipedia/commons/%s/%s/%s" -O "%s/%s"'
-                                % (
-                                    md5hash[0],
-                                    md5hash[0:2],
-                                    img_name_quoted,
-                                    savepath,
-                                    img_saved_as_,
-                                )
+                                f'wget -c "https://upload.wikimedia.org/wikipedia/commons/{md5hash[0]}/{md5hash[:2]}/{img_name_quoted}" -O "{savepath}/{img_saved_as_}"'
                             )
                     except OSError:
                         pass
                 else:
                     # Issue #66 : try your.org first
                     os.system(
-                        'wget -c "http://ftpmirror.your.org/pub/wikimedia/images/wikipedia/commons/%s/%s/%s" -O "%s/%s"'
-                        % (
-                            md5hash[0],
-                            md5hash[0:2],
-                            img_name_quoted,
-                            savepath,
-                            img_saved_as_,
-                        )
+                        f'wget -c "http://ftpmirror.your.org/pub/wikimedia/images/wikipedia/commons/{md5hash[0]}/{md5hash[:2]}/{img_name_quoted}" -O "{savepath}/{img_saved_as_}"'
                     )
                     os.system(
-                        'wget -c "https://upload.wikimedia.org/wikipedia/commons/%s/%s/%s" -O "%s/%s"'
-                        % (
-                            md5hash[0],
-                            md5hash[0:2],
-                            img_name_quoted,
-                            savepath,
-                            img_saved_as_,
-                        )
+                        f'wget -c "https://upload.wikimedia.org/wikipedia/commons/{md5hash[0]}/{md5hash[:2]}/{img_name_quoted}" -O "{savepath}/{img_saved_as_}"'
                     )
 
                 # curl .xml description page with full history
                 os.system(
-                    'curl -d "&pages=File:%s&history=1&action=submit" https://commons.wikimedia.org/w/index.php?title=Special:Export -o "%s/%s.xml"'
-                    % (original_name_, savepath, img_saved_as_)
+                    f'curl -d "&pages=File:{original_name_}&history=1&action=submit" https://commons.wikimedia.org/w/index.php?title=Special:Export -o "{savepath}/{img_saved_as_}.xml"'
                 )
 
                 # save csv info

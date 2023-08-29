@@ -22,7 +22,7 @@ def getPageTitlesAPI(config: Config = None, session=None):
 
     # apply delay to the session for mwclient.Site.allpages()
     delay_session = DelaySession(
-        session=session, msg="Session delay: " + __name__, config=config
+        session=session, msg=f"Session delay: {__name__}", config=config
     )
     delay_session.hijack()
     for namespace in namespaces:
@@ -30,7 +30,6 @@ def getPageTitlesAPI(config: Config = None, session=None):
             print("    Skipping namespace = %d" % (namespace))
             continue
 
-        c = 0
         print("    Retrieving titles in the namespace %d" % (namespace))
         apiurl = urlparse(config.api)
         site = mwclient.Site(
@@ -42,7 +41,6 @@ def getPageTitlesAPI(config: Config = None, session=None):
         for page in site.allpages(namespace=namespace):
             title = page.name
             titles.append(title)
-            c += 1
             yield title
 
         if len(titles) != len(set(titles)):
@@ -56,6 +54,12 @@ def getPageTitlesScraper(config: Config = None, session=None):
     """Scrape the list of page titles from Special:Allpages"""
     titles = []
     namespaces, namespacenames = getNamespacesScraper(config=config, session=session)
+    r_title = r'title="(?P<title>[^>]+)">'
+    r_suballpages1 = r'&amp;from=(?P<from>[^>"]+)&amp;to=(?P<to>[^>"]+)">'
+    r_suballpages2 = r'Special:Allpages/(?P<from>[^>"]+)">'
+    r_suballpages3 = r'&amp;from=(?P<from>[^>"]+)" title="[^>]+">'
+    # Should be enough subpages on Special:Allpages
+    deep = 50
     for namespace in namespaces:
         print("    Retrieving titles in the namespace", namespace)
         url = f"{config.index}?title=Special:Allpages&namespace={namespace}"
@@ -63,22 +67,13 @@ def getPageTitlesScraper(config: Config = None, session=None):
         raw = r.text
         raw = cleanHTML(raw)
 
-        r_title = r'title="(?P<title>[^>]+)">'
         r_suballpages = ""
-        r_suballpages1 = r'&amp;from=(?P<from>[^>"]+)&amp;to=(?P<to>[^>"]+)">'
-        r_suballpages2 = r'Special:Allpages/(?P<from>[^>"]+)">'
-        r_suballpages3 = r'&amp;from=(?P<from>[^>"]+)" title="[^>]+">'
         if re.search(r_suballpages1, raw):
             r_suballpages = r_suballpages1
         elif re.search(r_suballpages2, raw):
             r_suballpages = r_suballpages2
         elif re.search(r_suballpages3, raw):
             r_suballpages = r_suballpages3
-        else:
-            pass  # perhaps no subpages
-
-        # Should be enough subpages on Special:Allpages
-        deep = 50
         c = 0
         oldfr = ""
         checked_suballpages = []
@@ -91,38 +86,19 @@ def getPageTitlesScraper(config: Config = None, session=None):
                 fr = i.group("from")
                 currfr = fr
 
-                if oldfr == currfr:
-                    # We are looping, exit the loop
-                    pass
-
                 if r_suballpages == r_suballpages1:
                     to = i.group("to")
                     name = f"{fr}-{to}"
-                    url = "{}?title=Special:Allpages&namespace={}&from={}&to={}".format(
-                        config.index,
-                        namespace,
-                        fr,
-                        to,
-                    )  # do not put urllib.parse.quote in fr or to
-                # fix, this regexp doesn't properly save everything? or does r_title fail on this
-                # type of subpage? (wikiindex)
+                    url = f"{config.index}?title=Special:Allpages&namespace={namespace}&from={fr}&to={to}"
                 elif r_suballpages == r_suballpages2:
                     # clean &amp;namespace=\d, sometimes happens
                     fr = fr.split("&amp;namespace=")[0]
                     name = fr
-                    url = "{}?title=Special:Allpages/{}&namespace={}".format(
-                        config.index,
-                        name,
-                        namespace,
-                    )
+                    url = f"{config.index}?title=Special:Allpages/{name}&namespace={namespace}"
                 elif r_suballpages == r_suballpages3:
                     fr = fr.split("&amp;namespace=")[0]
                     name = fr
-                    url = "{}?title=Special:Allpages&from={}&namespace={}".format(
-                        config.index,
-                        name,
-                        namespace,
-                    )
+                    url = f"{config.index}?title=Special:Allpages&from={name}&namespace={namespace}"
                 else:
                     assert False, "Unreachable"
 
@@ -201,16 +177,15 @@ def getPageTitles(config: Config = None, session=None):
     titlesfilename = "{}-{}-titles.txt".format(
         domain2prefix(config=config), config.date
     )
-    titlesfile = open(f"{config.path}/{titlesfilename}", "w", encoding="utf-8")
-    c = 0
-    for title in titles:
-        titlesfile.write(str(title) + "\n")
-        c += 1
-    # TODO: Sort to remove dupes? In CZ, Widget:AddThis appears two times:
-    # main namespace and widget namespace.
-    # We can use sort -u in UNIX, but is it worth it?
-    titlesfile.write("--END--\n")
-    titlesfile.close()
+    with open(f"{config.path}/{titlesfilename}", "w", encoding="utf-8") as titlesfile:
+        c = 0
+        for title in titles:
+            titlesfile.write(str(title) + "\n")
+            c += 1
+        # TODO: Sort to remove dupes? In CZ, Widget:AddThis appears two times:
+        # main namespace and widget namespace.
+        # We can use sort -u in UNIX, but is it worth it?
+        titlesfile.write("--END--\n")
     print("Titles saved at...", titlesfilename)
 
     print("%d page titles loaded" % (c))
@@ -236,9 +211,7 @@ def checkTitleOk(
     except:
         lasttitle = ""  # probably file does not exists
 
-    if lasttitle != "--END--":
-        return False
-    return True
+    return lasttitle == "--END--"
 
 
 def readTitles(config: Config = None, session=None, start=None, batch=False):
@@ -252,10 +225,7 @@ def readTitles(config: Config = None, session=None, start=None, batch=False):
     titlesfile = open(f"{config.path}/{titlesfilename}", encoding="utf-8")
 
     titlelist = []
-    seeking = False
-    if start is not None:
-        seeking = True
-
+    seeking = start is not None
     with titlesfile as f:
         for line in f:
             title = line.strip()
@@ -263,7 +233,7 @@ def readTitles(config: Config = None, session=None, start=None, batch=False):
                 break
             elif seeking and title != start:
                 continue
-            elif seeking and title == start:
+            elif seeking:
                 seeking = False
 
             if not batch:
@@ -272,6 +242,5 @@ def readTitles(config: Config = None, session=None, start=None, batch=False):
                 titlelist.append(title)
                 if len(titlelist) < batch:
                     continue
-                else:
-                    yield titlelist
-                    titlelist = []
+                yield titlelist
+                titlelist = []

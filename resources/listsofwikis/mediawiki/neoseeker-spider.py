@@ -29,8 +29,7 @@ def main():
     raw = r.text
     m = re.findall(r"<li><a href=\'([^>]+?)/wiki/\'>", raw)
     m = [w.replace("http://", "https://") + "/w/api.php" for w in m]
-    m = list(set(m))
-    m.sort()
+    m = sorted(set(m))
     with open("neoseeker.com", "w") as f:
         f.write("\n".join(m))
 

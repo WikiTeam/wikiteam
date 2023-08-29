@@ -12,6 +12,6 @@ def test_mediawiki_1_16():
     with get_config("1.16.5") as config:
         sess = requests.Session()
         saveSiteInfo(config, sess)
-        with open(config.path + "/siteinfo.json") as f:
+        with open(f"{config.path}/siteinfo.json") as f:
             siteInfoJson = json.load(f)
         assert siteInfoJson["query"]["general"]["generator"] == "MediaWiki 1.16.5"

@@ -57,8 +57,7 @@ def main():
             )
         )
 
-    wikis = list(set(wikis))
-    wikis.sort()
+    wikis = sorted(set(wikis))
     with open("miraheze.org", "w") as f:
         for wiki in wikis:
             f.write(urljoin(wiki, "w/api.php") + "\n")

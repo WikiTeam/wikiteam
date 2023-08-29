@@ -36,12 +36,9 @@ def main():
         # if not wtitle.startswith('5'):
         #    continue
 
-        if re.search("Internet Archive", wtext):
-            # print('It has IA parameter')
-            pass
-        else:
+        if not re.search("Internet Archive", wtext):
             print("\n", "#" * 50, "\n", wtitle, "\n", "#" * 50)
-            print("https://wikiapiary.com/wiki/%s" % (re.sub(" ", "_", wtitle)))
+            print(f'https://wikiapiary.com/wiki/{re.sub(" ", "_", wtitle)}')
             print("Missing IA parameter")
 
             if re.search(r"(?i)API URL=http", wtext):
@@ -52,10 +49,7 @@ def main():
                 continue
 
             indexurl = "index.php".join(apiurl.rsplit("api.php", 1))
-            urliasearch = (
-                'https://archive.org/search.php?query=originalurl:"%s" OR originalurl:"%s"'
-                % (apiurl, indexurl)
-            )
+            urliasearch = f'https://archive.org/search.php?query=originalurl:"{apiurl}" OR originalurl:"{indexurl}"'
             f = urllib.request.urlopen(urliasearch)
             raw = f.read().decode("utf-8")
             if re.search(r"(?i)Your search did not match any items", raw):
@@ -64,13 +58,10 @@ def main():
                 itemidentifier = re.findall(r'<a href="/details/([^ ]+?)" title=', raw)[
                     0
                 ]
-                itemurl = "https://archive.org/details/%s" % (itemidentifier)
+                itemurl = f"https://archive.org/details/{itemidentifier}"
                 print("Item found:", itemurl)
 
-                metaurl = "https://archive.org/download/{}/{}_files.xml".format(
-                    itemidentifier,
-                    itemidentifier,
-                )
+                metaurl = f"https://archive.org/download/{itemidentifier}/{itemidentifier}_files.xml"
                 g = urllib.request.urlopen(metaurl)
                 raw2 = g.read().decode("utf-8")
                 raw2 = raw2.split("</file>")
@@ -88,13 +79,7 @@ def main():
 
                 itemfiles.sort(reverse=True)
                 print(itemfiles)
-                itemdate = (
-                    str(itemfiles[0][0])[0:4]
-                    + "/"
-                    + str(itemfiles[0][0])[4:6]
-                    + "/"
-                    + str(itemfiles[0][0])[6:8]
-                )
+                itemdate = f"{str(itemfiles[0][0])[:4]}/{str(itemfiles[0][0])[4:6]}/{str(itemfiles[0][0])[6:8]}"
                 itemsize = itemfiles[0][1]
 
                 iaparams = """|Internet Archive identifier={}
@@ -113,8 +98,7 @@ def main():
                     pywikibot.showDiff(page.text, newtext)
                     page.text = newtext
                     page.save(
-                        "BOT - Adding dump details: %s, %s, %s bytes"
-                        % (itemidentifier, itemdate, itemsize),
+                        f"BOT - Adding dump details: {itemidentifier}, {itemdate}, {itemsize} bytes",
                         botflag=True,
                     )
 

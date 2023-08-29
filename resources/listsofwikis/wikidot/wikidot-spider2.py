@@ -27,14 +27,12 @@ def main():
     with open("wikidot-spider2.txt") as f:
         wikis = f.read().strip().splitlines()
 
-    for i in range(1, 1000000):
+    for _ in range(1, 1000000):
         url = random.choice(wikis)
         urlrandom = (
-            url.endswith("/")
-            and (url + "random-site.php")
-            or (url + "/" + "random-site.php")
+            url.endswith("/") and f"{url}random-site.php" or f"{url}/random-site.php"
         )
-        print("URL exploring %s" % urlrandom)
+        print(f"URL exploring {urlrandom}")
         try:
             r = requests.get(urlrandom)
         except:
@@ -51,7 +49,7 @@ def main():
             wikis2 = []
             for wiki in wikis:
                 wiki = re.sub(r"https?://www\.", "http://", wiki)
-                if not wiki in wikis2:
+                if wiki not in wikis2:
                     wikis2.append(wiki)
             wikis = wikis2
             wikis.sort()

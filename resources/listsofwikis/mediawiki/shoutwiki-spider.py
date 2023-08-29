@@ -44,9 +44,7 @@ def main():
         json = requests.get(url, params=params, headers=headers).json()
         gcont = json["continue"]["gcmcontinue"] if "continue" in json else ""
         query = json["query"]["pages"]
-        for wiki in query:
-            ids.append(wiki)
-
+        ids.extend(iter(query))
     # grab wiki API
     params = {
         "action": "query",
@@ -64,15 +62,12 @@ def main():
             for val in wiki["revisions"][0]["slots"]["main"]["content"].split("\n|"):
                 if "subdomain" in val:
                     wikis.append(
-                        "http://%s.shoutwiki.com/w/api.php"
-                        % val.split("subdomain =")[-1].strip()
+                        f'http://{val.split("subdomain =")[-1].strip()}.shoutwiki.com/w/api.php'
                     )
                     break
 
         time.sleep(0.3)
-    wikis = list(set(wikis))
-    wikis.sort()
-
+    wikis = sorted(set(wikis))
     with open("shoutwiki.com", "w") as f:
         f.write("\n".join(wikis))
 

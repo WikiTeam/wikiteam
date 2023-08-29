@@ -24,12 +24,7 @@ class Image:
         """Get XML for image description page"""
         config.curonly = 1  # tricky to get only the most recent desc
         return "".join(
-            [
-                x
-                for x in getXMLPage(
-                    config=config, title=title, verbose=False, session=session
-                )
-            ]
+            list(getXMLPage(config=config, title=title, verbose=False, session=session))
         )
 
     @staticmethod
@@ -44,9 +39,9 @@ class Image:
 
         # fix use subdirectories md5
         print("Retrieving images...")
-        imagepath = "%s/images" % (config.path)
+        imagepath = f"{config.path}/images"
         if not os.path.isdir(imagepath):
-            print('Creating "%s" directory' % (imagepath))
+            print(f'Creating "{imagepath}" directory')
             os.makedirs(imagepath)
 
         c_savedImageFiles = 0
@@ -58,7 +53,7 @@ class Image:
             """bypass Cloudflare Polish (image optimization)"""
             if params is None:
                 params = {}
-            if bypass_cdn_image_compression is True:
+            if bypass_cdn_image_compression:
                 # bypass Cloudflare Polish (image optimization)
                 # <https://developers.cloudflare.com/images/polish/>
                 params["_wiki_t"] = int(time.time() * 1000)
@@ -97,7 +92,7 @@ class Image:
                 c_savedImageFiles += 1
                 toContinue += 1
                 print_msg = f"    {c_savedImageFiles}|sha1 matched: {filename2}"
-                print(print_msg[0:70], end="\r")
+                print(print_msg[:70], end="\r")
                 if sha1 == "False":
                     logerror(
                         config=config,
@@ -162,12 +157,12 @@ class Image:
                         text=f"Failled to donwload '{filename2}' with URL '{url}' due to HTTP '{r.status_code}', skipping",
                     )
 
-            if os.path.isfile(filename3 + ".desc"):
+            if os.path.isfile(f"{filename3}.desc"):
                 toContinue += 1
             else:
                 Delay(config=config, session=session)
                 # saving description if any
-                title = "Image:%s" % (filename)
+                title = f"Image:{filename}"
                 try:
                     if (
                         config.xmlrevisions
@@ -189,8 +184,7 @@ class Image:
                     logerror(
                         config=config,
                         to_stdout=True,
-                        text='The image description page "%s" was missing in the wiki (probably deleted)'
-                        % (str(title)),
+                        text=f'The image description page "{str(title)}" was missing in the wiki (probably deleted)',
                     )
 
                 try:
@@ -211,7 +205,7 @@ class Image:
                         f.write(xmlfiledesc)
                     c_savedImageDescs += 1
 
-                    if xmlfiledesc == "":
+                    if not xmlfiledesc:
                         logerror(
                             config=config,
                             to_stdout=True,
@@ -228,7 +222,7 @@ class Image:
             if toContinue == 2:  # skip printing
                 continue
             print_msg = (
-                f"              | {(len(images)-c_savedImageFiles)}=>{filename2[0:50]}"
+                f"              | {len(images) - c_savedImageFiles}=>{filename2[:50]}"
             )
             print(print_msg, " " * (73 - len(print_msg)), end="\r")
 
@@ -273,7 +267,7 @@ class Image:
                 params={"title": "Special:Imagelist", "limit": limit, "offset": offset},
                 timeout=30,
             )
-            raw = str(r.text)
+            raw = r.text
             Delay(config=config, session=session)
             # delicate wiki
             if re.search(
@@ -353,7 +347,6 @@ class Image:
     @staticmethod
     def getImageNamesAPI(config: Config = None, session: requests.Session = None):
         """Retrieve file list: filename, url, uploader, size, sha1"""
-        oldAPI = False
         # # Commented by @yzqzss:
         # https://www.mediawiki.org/wiki/API:Allpages
         # API:Allpages requires MW >= 1.8
@@ -366,6 +359,7 @@ class Image:
         aifrom = "!"
         images = []
         countImages = 0
+        oldAPI = False
         while aifrom:
             print(
                 f"Using API:Allimages to get the list of images, {len(images)} images found so far...",
@@ -408,7 +402,7 @@ class Image:
                     elif "aifrom" in jsonimages["continue"]:
                         aifrom = jsonimages["continue"]["aifrom"]
                 print(
-                    countImages, aifrom[0:30] + " " * (60 - len(aifrom[0:30])), end="\r"
+                    countImages, aifrom[:30] + " " * (60 - len(aifrom[:30])), end="\r"
                 )
 
                 for image in jsonimages["query"]["allimages"]:
@@ -431,9 +425,7 @@ class Image:
                         )
                     if "%u" in filename:
                         raise NotImplementedError(
-                            "Filename "
-                            + filename
-                            + " contains unicode. Please file an issue with MediaWiki Scraper."
+                            f"Filename {filename} contains unicode. Please file an issue with MediaWiki Scraper."
                         )
                     uploader = re.sub("_", " ", image.get("user", "Unknown"))
                     size = image.get("size", "False")
@@ -475,51 +467,43 @@ class Image:
                 jsonimages = getJSON(r)
                 Delay(config=config, session=session)
 
-                if "query" in jsonimages:
-                    countImages += len(jsonimages["query"]["pages"])
-                    print(
-                        countImages,
-                        gapfrom[0:30] + " " * (60 - len(gapfrom[0:30])),
-                        end="\r",
-                    )
-
-                    gapfrom = ""
-
-                    # all moden(at 20221231) wikis return 'continue' instead of 'query-continue'
-                    if (
-                        "continue" in jsonimages
-                        and "gapcontinue" in jsonimages["continue"]
-                    ):
-                        gapfrom = jsonimages["continue"]["gapcontinue"]
-
-                    # legacy code, not sure if it's still needed by some old wikis
-                    elif (
-                        "query-continue" in jsonimages
-                        and "allpages" in jsonimages["query-continue"]
-                    ):
-                        if "gapfrom" in jsonimages["query-continue"]["allpages"]:
-                            gapfrom = jsonimages["query-continue"]["allpages"][
-                                "gapfrom"
-                            ]
-
-                    # print (gapfrom)
-                    # print (jsonimages['query'])
-
-                    for image, props in jsonimages["query"]["pages"].items():
-                        url = props["imageinfo"][0]["url"]
-                        url = Image.curateImageURL(config=config, url=url)
-
-                        tmp_filename = ":".join(props["title"].split(":")[1:])
-
-                        filename = re.sub("_", " ", tmp_filename)
-                        uploader = re.sub("_", " ", props["imageinfo"][0]["user"])
-                        size = props.get("imageinfo")[0].get("size", "False")
-                        sha1 = props.get("imageinfo")[0].get("sha1", "False")
-                        images.append([filename, url, uploader, size, sha1])
-                else:
+                if "query" not in jsonimages:
                     # if the API doesn't return query data, then we're done
                     break
 
+                countImages += len(jsonimages["query"]["pages"])
+                print(
+                    countImages, gapfrom[:30] + " " * (60 - len(gapfrom[:30])), end="\r"
+                )
+
+                gapfrom = ""
+
+                # all moden(at 20221231) wikis return 'continue' instead of 'query-continue'
+                if "continue" in jsonimages and "gapcontinue" in jsonimages["continue"]:
+                    gapfrom = jsonimages["continue"]["gapcontinue"]
+
+                # legacy code, not sure if it's still needed by some old wikis
+                elif (
+                    "query-continue" in jsonimages
+                    and "allpages" in jsonimages["query-continue"]
+                ):
+                    if "gapfrom" in jsonimages["query-continue"]["allpages"]:
+                        gapfrom = jsonimages["query-continue"]["allpages"]["gapfrom"]
+
+                # print (gapfrom)
+                # print (jsonimages['query'])
+
+                for image, props in jsonimages["query"]["pages"].items():
+                    url = props["imageinfo"][0]["url"]
+                    url = Image.curateImageURL(config=config, url=url)
+
+                    tmp_filename = ":".join(props["title"].split(":")[1:])
+
+                    filename = re.sub("_", " ", tmp_filename)
+                    uploader = re.sub("_", " ", props["imageinfo"][0]["user"])
+                    size = props.get("imageinfo")[0].get("size", "False")
+                    sha1 = props.get("imageinfo")[0].get("sha1", "False")
+                    images.append([filename, url, uploader, size, sha1])
         if len(images) == 1:
             print("    Found 1 image")
         else:
@@ -534,30 +518,30 @@ class Image:
         imagesfilename = "{}-{}-images.txt".format(
             domain2prefix(config=config), config.date
         )
-        imagesfile = open(f"{config.path}/{imagesfilename}", "w", encoding="utf-8")
-        for line in images:
-            while 3 <= len(line) < 5:
-                line.append(
-                    "False"
-                )  # At this point, make sure all lines have 5 elements
-            filename, url, uploader, size, sha1 = line
-            print(line, end="\r")
-            imagesfile.write(
-                filename
-                + "\t"
-                + url
-                + "\t"
-                + uploader
-                + "\t"
-                + str(size)
-                + "\t"
-                + str(sha1)
-                # sha1 or size may be `False` if file is missing, so convert bool to str
-                + "\n"
-            )
-        imagesfile.write("--END--")
-        imagesfile.close()
-
+        with open(
+            f"{config.path}/{imagesfilename}", "w", encoding="utf-8"
+        ) as imagesfile:
+            for line in images:
+                while 3 <= len(line) < 5:
+                    line.append(
+                        "False"
+                    )  # At this point, make sure all lines have 5 elements
+                filename, url, uploader, size, sha1 = line
+                print(line, end="\r")
+                imagesfile.write(
+                    filename
+                    + "\t"
+                    + url
+                    + "\t"
+                    + uploader
+                    + "\t"
+                    + str(size)
+                    + "\t"
+                    + str(sha1)
+                    # sha1 or size may be `False` if file is missing, so convert bool to str
+                    + "\n"
+                )
+            imagesfile.write("--END--")
         print("Image filenames and URLs saved at...", imagesfilename)
 
     @staticmethod
@@ -582,8 +566,7 @@ class Image:
             sys.exit()
 
         if url.startswith("//"):  # Orain wikifarm returns URLs starting with //
-            url = "{}:{}".format(domainalone.split("://")[0], url)
-        # is it a relative URL?
+            url = f'{domainalone.split("://")[0]}:{url}'
         elif url[0] == "/" or (
             not url.startswith("http://") and not url.startswith("https://")
         ):

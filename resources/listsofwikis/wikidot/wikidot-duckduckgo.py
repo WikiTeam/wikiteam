@@ -26,11 +26,8 @@ def main():
     opener.addheaders = [("User-agent", "Mozilla/5.1")]
     urllib.request.install_opener(opener)
 
-    for i in range(1, 100000):
-        url = "https://duckduckgo.com/html/?q={}%20{}%20site:wikidot.com".format(
-            random.randint(100, 5000),
-            random.randint(1000, 9999),
-        )
+    for _ in range(1, 100000):
+        url = f"https://duckduckgo.com/html/?q={random.randint(100, 5000)}%20{random.randint(1000, 9999)}%20site:wikidot.com"
         print("URL search", url)
         try:
             html = urllib.request.urlopen(url).read().decode("utf-8")
@@ -42,8 +39,8 @@ def main():
         m = re.findall(r"://([^/]+?\.wikidot\.com)", html)
         wikis = []
         for wiki in m:
-            wiki = "https://" + wiki
-            if not wiki in wikis:
+            wiki = f"https://{wiki}"
+            if wiki not in wikis:
                 wikis.append(wiki)
                 print(wiki)
         wikis.sort()
@@ -51,7 +48,7 @@ def main():
             wikis2 = []
             for wiki in wikis:
                 wiki = re.sub(r"https?://www\.", "http://", wiki)
-                if not wiki in wikis2:
+                if wiki not in wikis2:
                     wikis2.append(wiki)
             wikis = wikis2
             wikis.sort()

@@ -25,27 +25,24 @@ def uniLogin(
 
     if api:
         print("Trying to log in to the wiki using clientLogin... (MW 1.27+)")
-        _session = clientLogin(
+        if _session := clientLogin(
             api=api, session=session, username=username, password=password
-        )
-        if _session:
+        ):
             return _session
         time.sleep(5)
 
         print("Trying to log in to the wiki using botLogin... (MW 1.27+)")
-        _session = botLogin(
+        if _session := botLogin(
             api=api, session=session, username=username, password=password
-        )
-        if _session:
+        ):
             return _session
         time.sleep(5)
 
     if index:
         print("Trying to log in to the wiki using indexLogin... (generic)")
-        _session = indexLogin(
+        if _session := indexLogin(
             index=index, session=session, username=username, password=password
-        )
-        if _session:
+        ):
             return _session
 
     return None

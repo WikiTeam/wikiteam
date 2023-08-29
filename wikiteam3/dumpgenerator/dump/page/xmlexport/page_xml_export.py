@@ -42,8 +42,7 @@ def getXMLPageCore(
         if c >= maxretries:
             print("    We have retried %d times" % (c))
             print(
-                '    MediaWiki error for "%s", network error or whatever...'
-                % (params["pages"])
+                f'    MediaWiki error for "{params["pages"]}", network error or whatever...'
             )
             if config.failfast:
                 print("Exit, it will be for another time")
@@ -59,8 +58,7 @@ def getXMLPageCore(
                 logerror(
                     config=config,
                     to_stdout=True,
-                    text='Error while retrieving the full history of "%s". Trying to save only the last revision for this page'
-                    % (params["pages"]),
+                    text=f'Error while retrieving the full history of "{params["pages"]}". Trying to save only the last revision for this page',
                 )
                 return getXMLPageCore(
                     headers=headers, params=params, config=config, session=session
@@ -70,11 +68,9 @@ def getXMLPageCore(
                 logerror(
                     config=config,
                     to_stdout=True,
-                    text='Error while retrieving the last revision of "%s". Skipping.'
-                    % (params["pages"]),
+                    text=f'Error while retrieving the last revision of "{params["pages"]}". Skipping.',
                 )
                 raise ExportAbortedError(config.index)
-                return ""  # empty xml
         # FIXME HANDLE HTTP Errors HERE
         try:
             r = session.post(
@@ -83,10 +79,10 @@ def getXMLPageCore(
             handleStatusCode(r)
             xml = r.text
         except requests.exceptions.ConnectionError as e:
-            print("    Connection error: %s" % (str(e.args[0])))
+            print(f"    Connection error: {str(e.args[0])}")
             xml = ""
         except requests.exceptions.ReadTimeout as e:
-            print("    Read timeout: %s" % (str(e.args[0])))
+            print(f"    Read timeout: {str(e.args[0])}")
             xml = ""
         c += 1
 
@@ -96,10 +92,6 @@ def getXMLPageCore(
 def getXMLPageWithExport(config: Config = None, title="", verbose=True, session=None):
     """Get the full history (or current only) of a page"""
 
-    # if server errors occurs while retrieving the full page history, it may return [oldest OK versions] + last version, excluding middle revisions, so it would be partialy truncated
-    # http://www.mediawiki.org/wiki/Manual_talk:Parameters_to_Special:Export#Parameters_no_longer_in_use.3F
-
-    limit = 1000
     truncated = False
     title_ = title
     title_ = re.sub(" ", "_", title_)
@@ -113,6 +105,10 @@ def getXMLPageWithExport(config: Config = None, title="", verbose=True, session=
         params["limit"] = 1
     else:
         params["offset"] = "1"  # 1 always < 2000s
+        # if server errors occurs while retrieving the full page history, it may return [oldest OK versions] + last version, excluding middle revisions, so it would be partialy truncated
+        # http://www.mediawiki.org/wiki/Manual_talk:Parameters_to_Special:Export#Parameters_no_longer_in_use.3F
+
+        limit = 1000
         params["limit"] = limit
     # in other case, do not set params['templates']
     if config.templates:
@@ -123,12 +119,11 @@ def getXMLPageWithExport(config: Config = None, title="", verbose=True, session=
         raise ExportAbortedError(config.index)
     if "</page>" not in xml:
         raise PageMissingError(params["title"], xml)
-    else:
-        # strip these sha1s sums which keep showing up in the export and
-        # which are invalid for the XML schema (they only apply to
-        # revisions)
-        xml = re.sub(r"\n\s*<sha1>\w+</sha1>\s*\n", "\n", xml)
-        xml = re.sub(r"\n\s*<sha1/>\s*\n", "\n", xml)
+    # strip these sha1s sums which keep showing up in the export and
+    # which are invalid for the XML schema (they only apply to
+    # revisions)
+    xml = re.sub(r"\n\s*<sha1>\w+</sha1>\s*\n", "\n", xml)
+    xml = re.sub(r"\n\s*<sha1/>\s*\n", "\n", xml)
 
     yield xml.split("</page>")[0]
 
@@ -136,9 +131,7 @@ def getXMLPageWithExport(config: Config = None, title="", verbose=True, session=
     # else, warning about Special:Export truncating large page histories
     r_timestamp = "<timestamp>([^<]+)</timestamp>"
 
-    edit_count = 0
-    edit_count += len(re.findall(r_timestamp, xml))
-
+    edit_count = 0 + len(re.findall(r_timestamp, xml))
     # search for timestamps in xml to avoid analysing empty pages like
     # Special:Allpages and the random one
     if not config.curonly and re.search(r_timestamp, xml):
@@ -149,7 +142,7 @@ def getXMLPageWithExport(config: Config = None, title="", verbose=True, session=
                 xml2 = getXMLPageCore(params=params, config=config, session=session)
             except MemoryError:
                 print("The page's history exceeds our memory, halving limit.")
-                params["limit"] = params["limit"] / 2
+                params["limit"] /= 2
                 continue
 
             # are there more edits in this next XML chunk or no <page></page>?
@@ -184,7 +177,7 @@ def getXMLPageWithExport(config: Config = None, title="", verbose=True, session=
                         )
                     except MemoryError:
                         "The page's history exceeds our memory, halving limit."
-                        params["limit"] = params["limit"] / 2
+                        params["limit"] /= 2
                         continue
                     xml = xml2
                     edit_count += len(re.findall(r_timestamp, xml))
@@ -194,6 +187,6 @@ def getXMLPageWithExport(config: Config = None, title="", verbose=True, session=
 
     if verbose:
         if edit_count == 1:
-            uprint("    %s, 1 edit" % (title.strip()))
+            uprint(f"    {title.strip()}, 1 edit")
         else:
             uprint("    %s, %d edits" % (title.strip(), edit_count))

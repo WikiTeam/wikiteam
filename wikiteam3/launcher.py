@@ -63,14 +63,14 @@ def main():
         # Make the prefix in standard way; api and index must be defined, not important which is which
         prefix = domain2prefix(config=Config(api=wiki, index=wiki))
 
-        # check if compressed, in that case dump was finished previously
-        zipfilename = None
-        for f in os.listdir("."):
-            if f.endswith(".7z") and f.split("-")[0] == prefix:
-                zipfilename = f
-                break  # stop searching, dot not explore subdirectories
-
-        if zipfilename:
+        if zipfilename := next(
+            (
+                f
+                for f in os.listdir(".")
+                if f.endswith(".7z") and f.split("-")[0] == prefix
+            ),
+            None,
+        ):
             print(
                 "Skipping... This wiki was downloaded and compressed before in",
                 zipfilename,
@@ -156,10 +156,7 @@ def main():
         finished = False
         if started and wikidir and prefix:
             if subprocess.call(
-                [
-                    'tail -n 1 %s/%s-history.xml | grep -q "</mediawiki>"'
-                    % (wikidir, prefix)
-                ],
+                [f'tail -n 1 {wikidir}/{prefix}-history.xml | grep -q "</mediawiki>"'],
                 shell=True,
             ):
                 print(
@@ -181,10 +178,10 @@ def main():
                 shell=True,
             )
 
-            pathHistoryTmp = Path("..", prefix + "-history.xml.7z.tmp")
-            pathHistoryFinal = Path("..", prefix + "-history.xml.7z")
-            pathFullTmp = Path("..", prefix + "-wikidump.7z.tmp")
-            pathFullFinal = Path("..", prefix + "-wikidump.7z")
+            pathHistoryTmp = Path("..", f"{prefix}-history.xml.7z.tmp")
+            pathHistoryFinal = Path("..", f"{prefix}-history.xml.7z")
+            pathFullTmp = Path("..", f"{prefix}-wikidump.7z.tmp")
+            pathFullFinal = Path("..", f"{prefix}-wikidump.7z")
 
             # Make a non-solid archive with all the text and metadata at default compression. You can also add config.txt if you don't care about your computer and user names being published or you don't use full paths so that they're not stored in it.
             compressed = subprocess.call(

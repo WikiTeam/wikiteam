@@ -103,22 +103,22 @@ class XMLBaseHandler(xml.sax.handler.ContentHandler):
             self.startElementOverDepth3(name, attrs)
             return
 
-        if name == "page":
-            self.inPage = True
-            self.pageTagsCount += 1
-        if name == "title":
-            self.inTitle = True
-            self.titleTagsCount += 1
-        if name == "ns":
-            self.inNs = True
-            self.nsTagsCount += 1
         if name == "id":
             self.inId = True
             self.idTagsCount += 1
-        if name == "revision":
+        elif name == "ns":
+            self.inNs = True
+            self.nsTagsCount += 1
+        elif name == "page":
+            self.inPage = True
+            self.pageTagsCount += 1
+        elif name == "revision":
             self.inRevision = True
             self.pageRevisionsCount += 1
             self.revisionTagsCount += 1
+        elif name == "title":
+            self.inTitle = True
+            self.titleTagsCount += 1
 
     def endElement(self, name):
         if self.depth > 3:
@@ -139,14 +139,14 @@ class XMLBaseHandler(xml.sax.handler.ContentHandler):
                 self.page["revisionsCount"] = self.pageRevisionsCount
 
             self.resetPageTag()
-        if name == "title":
-            self.inTitle = False
-        if name == "ns":
-            self.inNs = False
         if name == "id":
             self.inId = False
-        if name == "revision":
+        elif name == "ns":
+            self.inNs = False
+        elif name == "revision":
             self.inRevision = False
+        elif name == "title":
+            self.inTitle = False
 
     def characters(self, content, not_parse_tags=["?"]):
         bufferSize = len(content.encode("utf-8"))
@@ -154,8 +154,6 @@ class XMLBaseHandler(xml.sax.handler.ContentHandler):
         # print(bufferSize)
         self.tqdm_progress.update(bufferSize)  # NOTE: sum(bufferSize...) != fileSize
 
-        if self.inPage:
-            pass
         if self.inTitle:
             # self.__debugCount()
             self.cjoin("title", content) if "title" not in not_parse_tags else None
@@ -189,10 +187,8 @@ class XMLBaseHandler(xml.sax.handler.ContentHandler):
             else:
                 # assert ''.join((getattr(self, obj), content)) == content if getattr(self, obj) is None else getattr(self, obj) + content
                 setattr(self, obj, "".join((getattr(self, obj), content)))
-                pass
         else:
-            raise AttributeError("XMLBaseHandler has no attribute %s" % obj)
-            setattr(self, obj, content)
+            raise AttributeError(f"XMLBaseHandler has no attribute {obj}")
 
 
 class TitlesHandler(XMLBaseHandler):
@@ -208,7 +204,7 @@ class TitlesHandler(XMLBaseHandler):
             if self.page["title"] is not None:
                 if self.page["title"] in self.set_titles:
                     print(
-                        "Duplicate title found: %s" % self.page["title"]
+                        f'Duplicate title found: {self.page["title"]}'
                     ) if not self.silent else None
                 else:
                     self.set_titles.add(self.page["title"])
@@ -280,14 +276,14 @@ class MediaNsHandler(XMLBaseHandler):
             if self.page["ns"] == "6":
                 if self.page["title"] in self.mediaNsPagesName_set:
                     if not self.silent:
-                        print("Duplicate title found: %s" % self.page["title"])
+                        print(f'Duplicate title found: {self.page["title"]}')
                 else:
                     self.mediaNsPagesName_set.add(self.page["title"])
                     # self.mediaNsPages.append(self.page)
                     # print(self.page)
                 if self.page["id"] in self.mediaNsPagesID_set:
                     if not self.silent:
-                        print("Duplicate id found: %s" % self.page["id"])
+                        print(f'Duplicate id found: {self.page["id"]}')
                 else:
                     self.mediaNsPagesID_set.add(self.page["id"])
                     # self.mediaNsPages.append(self.page)
@@ -331,9 +327,7 @@ def get_titles_from_xml(xmlfile, return_type="list", silent=False):
     if len(handler.set_titles) != len(handler.list_titles):
         raise RuntimeError("len(set_titles) and (list_titles) are not equal!")
 
-    titles = handler.set_titles if return_type == "set" else handler.list_titles
-
-    return titles
+    return handler.set_titles if return_type == "set" else handler.list_titles
 
 
 @dataclasses.dataclass

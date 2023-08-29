@@ -5,7 +5,7 @@ import requests
 
 def getUserAgents():
     """Return a cool user-agent to hide Python user-agent"""
-    useragents = [
+    return [
         # firefox
         # 'Mozilla/5.0 (X11; Linux x86_64; rv:72.0) Gecko/20100101 Firefox/72.0',
         # 'Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101 Firefox/68.0',
@@ -312,7 +312,6 @@ def getUserAgents():
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36",
         "Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36",
     ]
-    return useragents
 
 
 def getUserAgent():

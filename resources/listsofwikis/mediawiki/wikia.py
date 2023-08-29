@@ -45,8 +45,7 @@ def getall():
     # This API module has no query continuation facility
     print("Getting list of active domains...")
     while True:
-        list = getlist(wikia, offset, offset + limit)
-        if list:
+        if list := getlist(wikia, offset, offset + limit):
             print(offset)
             domains = dict(domains.items() + list.items())
             empty = 0
@@ -68,51 +67,6 @@ def main():
     # TODO: Remove the following code entirely. All Wikia wikis can now be
     # assumed to be undumped.
     return
-
-    undumped = []
-    # Or we could iterate over each sublist while we get it?
-    for i in domains:
-        dbname = re.sub("[-_.]", "", domains[i]["domain"].replace(".wikia.com", ""))
-        dbname = re.escape(dbname)
-        print(dbname)
-        first = dbname[0]
-        # There are one-letter dbnames; the second letter is replaced by an underscore
-        # http://s3.amazonaws.com/wikia_xml_dumps/n/n_/n_pages_full.xml.7z
-        try:
-            second = dbname[1]
-        except:
-            second = "_"
-        base = (
-            "http://s3.amazonaws.com/wikia_xml_dumps/"
-            + first
-            + "/"
-            + first
-            + second
-            + "/"
-            + dbname
-        )
-        full = base + "_pages_full.xml.7z"
-        print(full)
-        current = base + "_pages_current.xml.7z"
-        images = base + "_images.tar"
-        try:
-            # subprocess.check_call(['wget', '-e', 'robots=off', '--fail', '-nc', '-a', 'wikia.log', full])
-            # Use this instead, and comment out the next try, to only list.
-            subprocess.call(["curl", "-I", "--fail", full])
-        except subprocess.CalledProcessError as e:
-            # We added --fail for this https://superuser.com/a/854102/283120
-            if e.returncode == 22:
-                print("Missing: " + domains[i]["domain"])
-                undumped.append(domains[i]["domain"])
-
-        # try:
-        #    subprocess.check_call(['wget', '-e', 'robots=off', '-nc', '-a', 'wikia.log', current])
-        #    subprocess.check_call(['wget', '-e', 'robots=off', '-nc', '-a', 'wikia.log', images])
-        # except:
-        #    pass
-
-    with open("wikia.com-unarchived", "w+") as out:
-        out.write("\n".join(str(domain) for domain in undumped))
 
 
 if __name__ == "__main__":

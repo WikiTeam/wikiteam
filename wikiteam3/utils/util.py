@@ -83,8 +83,8 @@ def sha1File(filename: str = "") -> str:
     sha1 = hashlib.sha1()
     with open(filename, "rb") as f:
         while True:
-            data = f.read(65536)
-            if not data:
+            if data := f.read(65536):
+                sha1.update(data)
+            else:
                 break
-            sha1.update(data)
     return sha1.hexdigest()

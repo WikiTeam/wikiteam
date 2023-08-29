@@ -68,11 +68,10 @@ def main():
         sys.exit()
 
     print(
-        "Checking Wikimedia Commons files from %s to %s"
-        % (startdate.strftime("%Y-%m-%d"), enddate.strftime("%Y-%m-%d"))
+        f'Checking Wikimedia Commons files from {startdate.strftime("%Y-%m-%d")} to {enddate.strftime("%Y-%m-%d")}'
     )
     while startdate <= enddate:
-        print("== %s ==" % (startdate.strftime("%Y-%m-%d")))
+        print(f'== {startdate.strftime("%Y-%m-%d")} ==')
         filenamecsv = startdate.strftime("%Y-%m-%d.csv")
         filenamezip = startdate.strftime("%Y-%m-%d.zip")
         if os.path.exists(filenamecsv):
@@ -101,9 +100,7 @@ def main():
                 ) in f:
                     csv_data_dict[
                         str(
-                            "{}/{}".format(
-                                startdate.strftime("%Y/%m/%d"), img_saved_as
-                            ),
+                            f'{startdate.strftime("%Y/%m/%d")}/{img_saved_as}',
                             "utf-8",
                         )
                     ] = {
@@ -118,9 +115,7 @@ def main():
                     }
                     csv_file_list.append(
                         str(
-                            "{}/{}".format(
-                                startdate.strftime("%Y/%m/%d"), img_saved_as
-                            ),
+                            f'{startdate.strftime("%Y/%m/%d")}/{img_saved_as}',
                             "utf-8",
                         )
                     )
@@ -143,10 +138,7 @@ def main():
                         elif i.file_size == 0:
                             error = "empty"
                         else:
-                            error = "corrupt ({} of {} bytes)".format(
-                                i.file_size,
-                                csv_img["img_size"],
-                            )
+                            error = f'corrupt ({i.file_size} of {csv_img["img_size"]} bytes)'
                         if not ok:
                             print(csv_img["img_name"], csv_img["img_saved_as"], error)
                             errors.append([csv_img["img_saved_as"], error])
@@ -163,7 +155,7 @@ def main():
                 else:
                     print("No errors found")
             else:
-                print("Error, no %s available" % (filenamezip))
+                print(f"Error, no {filenamezip} available")
             startdate += delta
 
 

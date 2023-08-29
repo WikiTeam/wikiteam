@@ -31,7 +31,7 @@ class Delay:
             return
 
         if msg:
-            self.ellipses = (f"Delay {delay:.1f}s: {msg} ") + self.ellipses
+            self.ellipses = f"Delay {delay:.1f}s: {msg} {self.ellipses}"
         else:
             self.ellipses = ("Delay %.1fs " % (delay)) + self.ellipses
 
