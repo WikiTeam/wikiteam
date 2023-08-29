@@ -1,14 +1,14 @@
-# `MediaWiki Scraper`
+# `MediaWiki Dump Generator`
 
-**MediaWiki Scraper can archive wikis from the largest to the tiniest.**
+**MediaWiki Dump Generator can archive wikis from the largest to the tiniest.**
 
-`MediaWiki Scraper` is an ongoing project to port the legacy [`wikiteam`](https://github.com/WikiTeam/wikiteam) toolset to Python 3 and PyPI to make it more accessible for today's archivers.
+`MediaWiki Dump Generator` is an ongoing project to port the legacy [`wikiteam`](https://github.com/WikiTeam/wikiteam) toolset to Python 3 and PyPI to make it more accessible for today's archivers.
 
 Most of the focus has been on the core `dumpgenerator` tool, but Python 3 versions of the other `wikiteam` tools may be added over time.
 
-## MediaWiki Scraper Toolset
+## MediaWiki Dump Generator Toolset
 
-MediaWiki Scraper is a set of tools for archiving wikis. The main general-purpose module of MediaWiki Scraper is dumpgenerator, which can download XML dumps of MediaWiki sites that can then be parsed or redeployed elsewhere.
+MediaWiki Dump Generator is a set of tools for archiving wikis. The main general-purpose module of MediaWiki Dump Generator is dumpgenerator, which can download XML dumps of MediaWiki sites that can then be parsed or redeployed elsewhere.
 
 ### Viewing MediaWiki XML Dumps
 
@@ -17,18 +17,18 @@ MediaWiki Scraper is a set of tools for archiving wikis. The main general-purpos
 
 ## Python Environment
 
-`MediaWiki Scraper` requires [Python 3.8](https://www.python.org/downloads/release/python-380/) or later (less than 4.0), but you may be able to get it run with earlier versions of Python 3. On recent versions of Linux and macOS Python 3.8 should come preinstalled, but on Windows you will need to install it from [python.org](https://www.python.org/downloads/release/python-380/).
+`MediaWiki Dump Generator` requires [Python 3.8](https://www.python.org/downloads/release/python-380/) or later (less than 4.0), but you may be able to get it run with earlier versions of Python 3. On recent versions of Linux and macOS Python 3.8 should come preinstalled, but on Windows you will need to install it from [python.org](https://www.python.org/downloads/release/python-380/).
 
-`MediaWiki Scraper` has been tested on Linux, macOS, Windows and Android. If you are connecting to Linux or macOS via `ssh`, you can continue using the `bash` or `zsh` command prompt in the same terminal, but if you are starting in a desktop environment and don't already have a preferred Terminal environment you can try one of the following.
+`MediaWiki Dump Generator` has been tested on Linux, macOS, Windows and Android. If you are connecting to Linux or macOS via `ssh`, you can continue using the `bash` or `zsh` command prompt in the same terminal, but if you are starting in a desktop environment and don't already have a preferred Terminal environment you can try one of the following.
 
-> **NOTE:** You may need to update and pre-install dependencies in order for `MediaWiki Scraper` to work properly. Shell commands for these dependencies appear below each item in the list. (Also note that while installing and running `MediaWiki Scraper` itself should not require administrative priviliges, installing dependencies usually will.)
+> **NOTE:** You may need to update and pre-install dependencies in order for `MediaWiki Dump Generator` to work properly. Shell commands for these dependencies appear below each item in the list. (Also note that while installing and running `MediaWiki Dump Generator` itself should not require administrative priviliges, installing dependencies usually will.)
 
 * On desktop Linux you can use the default terminal application such as [Konsole](https://konsole.kde.org/) or [GNOME Terminal](https://help.gnome.org/users/gnome-terminal/stable/).
 
   <details>
   <summary>Linux Dependencies</summary>
 
-  While most Linux distributions will have Python 3 preinstalled, if you are cloning `MediaWiki Scraper` rather than downloading it directly you may need to install `git`.
+  While most Linux distributions will have Python 3 preinstalled, if you are cloning `MediaWiki Dump Generator` rather than downloading it directly you may need to install `git`.
 
   On Debian, Ubuntu, and the like:
 
@@ -45,7 +45,7 @@ MediaWiki Scraper is a set of tools for archiving wikis. The main general-purpos
   <details>
   <summary>macOS Dependencies</summary>
 
-  While macOS will have Python 3 preinstalled, if you are cloning `MediaWiki Scraper` rather than downloading it directly and you are using an older versions of macOS, you may need to install `git`.
+  While macOS will have Python 3 preinstalled, if you are cloning `MediaWiki Dump Generator` rather than downloading it directly and you are using an older versions of macOS, you may need to install `git`.
 
   If `git` is not preinstalled, however, macOS will prompt you to install it the first time you run the command. Therefore, to check whether you have `git` installed or to install `git`, simply run `git` (with no arguments) in Terminal:
 
@@ -68,9 +68,9 @@ MediaWiki Scraper is a set of tools for archiving wikis. The main general-purpos
 
   > When installing [Python 3.8](https://www.python.org/downloads/release/python-380/) (from python.org), be sure to check "Add Python to PATH" so that installed Python scripts are accessible from any location. If for some reason installed Python scripts, e.g. `pip`, are not available from any location, you can add Python to the `PATH` environment variable using the instructions [here](https://datatofish.com/add-python-to-windows-path/).
   >
-  > And while doing so should not be necessary if you follow the instructions further down and install `MediaWiki Scraper` using `pip`, if you'd prefer that Windows store installed Python scripts somewhere other than the default Python folder under `%appdata%`, you can also add your preferred alternative path such as `C:\Program Files\Python3\Scripts\` or a subfolder of `My Documents`. (You will need to restart any terminal sessions in order for this to take effect.)
+  > And while doing so should not be necessary if you follow the instructions further down and install `MediaWiki Dump Generator` using `pip`, if you'd prefer that Windows store installed Python scripts somewhere other than the default Python folder under `%appdata%`, you can also add your preferred alternative path such as `C:\Program Files\Python3\Scripts\` or a subfolder of `My Documents`. (You will need to restart any terminal sessions in order for this to take effect.)
 
-  Whenever you'd like to run a Bash session, you can open a Bash terminal prompt from any folder in Windows Explorer by right-clicking and choosing the option from the context menu. (For some purposes you may wish to run Bash as an administrator.) This way you can open a Bash prompt and clone the `MediaWiki Scraper` repository in one location, and subsequently or later open another Bash prompt and run `MediaWiki Scraper` to dump a wiki wherever else you'd like without having to browse to the directory manually using Bash.
+  Whenever you'd like to run a Bash session, you can open a Bash terminal prompt from any folder in Windows Explorer by right-clicking and choosing the option from the context menu. (For some purposes you may wish to run Bash as an administrator.) This way you can open a Bash prompt and clone the `MediaWiki Dump Generator` repository in one location, and subsequently or later open another Bash prompt and run `MediaWiki Dump Generator` to dump a wiki wherever else you'd like without having to browse to the directory manually using Bash.
 
   </details>
 
@@ -102,22 +102,22 @@ MediaWiki Scraper is a set of tools for archiving wikis. The main general-purpos
 
 The Python 3 port of the `dumpgenerator` module of `wikiteam3` is largely functional and can be installed from a downloaded or cloned copy of this repository.
 
-> If you run into a problem with the version that mostly works, you can [open an Issue](https://github.com/mediawiki-client-tools/mediawiki-scraper/issues/new/choose). Be sure to include the following:
+> If you run into a problem with the version that mostly works, you can [open an Issue](https://github.com/mediawiki-client-tools/mediawiki-dump-generator/issues/new/choose). Be sure to include the following:
 >
 > 1. The operating system you're using
 > 2. What command you ran that didn't work
 > 3. What output was printed to your terminal
 
-### 1. Downloading and installing `MediaWiki Scraper`
+### 1. Downloading and installing `MediaWiki Dump Generator`
 
 In whatever folder you use for cloned repositories:
 
 ```bash
-git clone https://github.com/mediawiki-client-tools/mediawiki-scraper
+git clone https://github.com/mediawiki-client-tools/mediawiki-dump-generator
 ```
 
 ```bash
-cd mediawiki-scraper
+cd mediawiki-dump-generator
 ```
 
 ```bash
@@ -158,12 +158,12 @@ pip uninstall wikiteam3
 ```
 
 ```bash
-rm -fr [cloned_MediaWiki Scraper_folder]
+rm -fr [cloned_mediawiki_scraper_folder]
 ```
 
-### 4. Updating MediaWiki Scraper
+### 4. Updating MediaWiki Dump Generator
 
-> **Note:** Re-run the following steps each time to reinstall each time the MediaWiki Scraper branch is updated.
+> **Note:** Re-run the following steps each time to reinstall each time the MediaWiki Dump Generator branch is updated.
 
 ```bash
 git pull
@@ -194,9 +194,9 @@ pip install --force-reinstall (Get-ChildItem .\dist\*.whl).FullName
 
 </details>
 
-### 5. Manually build and install `MediaWiki Scraper`
+### 5. Manually build and install `MediaWiki Dump Generator`
 
-If you'd like to manually build and install `MediaWiki Scraper` from a cloned or downloaded copy of this repository, run the following commands from the downloaded base directory:
+If you'd like to manually build and install `MediaWiki Dump Generator` from a cloned or downloaded copy of this repository, run the following commands from the downloaded base directory:
 
 ```bash
 curl -sSL https://install.python-poetry.org | python3 -
@@ -243,7 +243,7 @@ git checkout --track origin/python3
 
 ## Using `dumpgenerator` (once installed)
 
-After installing `MediaWiki Scraper` using `pip` you should be able to use the `dumpgenerator` command from any local directory.
+After installing `MediaWiki Dump Generator` using `pip` you should be able to use the `dumpgenerator` command from any local directory.
 
 For basic usage, you can run `dumpgenerator` in the directory where you'd like the download to be.
 
@@ -385,5 +385,5 @@ You can contact Elsie Hupp directly via email at [mediawiki-client-tools@elsiehu
 **WikiTeam** is the [Archive Team](http://www.archiveteam.org) [[GitHub](https://github.com/ArchiveTeam)] subcommittee on wikis.
 It was founded and originally developed by [Emilio J. Rodríguez-Posada](https://github.com/emijrp), a Wikipedia veteran editor and amateur archivist. Thanks to people who have helped, especially to: [Federico Leva](https://github.com/nemobis), [Alex Buie](https://github.com/ab2525), [Scott Boyd](http://www.sdboyd56.com), [Hydriz](https://github.com/Hydriz), Platonides, Ian McEwen, [Mike Dupont](https://github.com/h4ck3rm1k3), [balr0g](https://github.com/balr0g) and [PiRSquared17](https://github.com/PiRSquared17).
 
-**MediaWiki Scraper**
+**MediaWiki Dump Generator**
 The Python 3 initiative is currently being led by [Elsie Hupp](https://github.com/elsiehupp), with contributions from [Victor Gambier](https://github.com/vgambier), [Thomas Karcher](https://github.com/t-karcher), [Janet Cobb](https://github.com/randomnetcat), [yzqzss](https://github.com/yzqzss), [NyaMisty](https://github.com/NyaMisty) and [Rob Kam](https://github.com/robkam)

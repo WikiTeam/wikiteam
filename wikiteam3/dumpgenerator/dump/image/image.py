@@ -425,7 +425,7 @@ class Image:
                         )
                     if "%u" in filename:
                         raise NotImplementedError(
-                            f"Filename {filename} contains unicode. Please file an issue with MediaWiki Scraper."
+                            f"Filename {filename} contains unicode. Please file an issue with MediaWiki Dump Generator."
                         )
                     uploader = re.sub("_", " ", image.get("user", "Unknown"))
                     size = image.get("size", "False")

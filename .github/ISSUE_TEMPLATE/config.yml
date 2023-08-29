@@ -1,6 +1,6 @@
 blank_issues_enabled: false
 contact_links:
-  - name: Get help using MediaWiki Scraper
+  - name: Get help using MediaWiki Dump Generator
     url: https://github.com/orgs/mediawiki-client-tools/discussions/categories/q-a
     about: If you need help (other than reporting a bug), you can reach out on our Discussions Q&A.
   - name: Anything else

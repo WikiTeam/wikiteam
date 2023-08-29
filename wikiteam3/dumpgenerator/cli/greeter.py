@@ -53,7 +53,7 @@ def bye():
     print("---> Congratulations! Your dump is complete <---")
     print("")
     print("If you encountered a bug, you can report it on GitHub Issues:")
-    print("  https://github.com/mediawiki-client-tools/mediawiki-scraper/issues")
+    print("  https://github.com/mediawiki-client-tools/mediawiki-dump-generator/issues")
     print("")
     print("If you need any other help, you can reach out on GitHub Discussions:")
     print("  https://github.com/orgs/mediawiki-client-tools/discussions")

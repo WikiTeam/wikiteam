@@ -7,7 +7,7 @@ assignees: ''
 
 ---
 
-<!-- Thank you for helping to improve MediaWiki Scraper! -->
+<!-- Thank you for helping to improve MediaWiki Dump Generator! -->
 
 <!-- So that we can better address your issue,
 please fill out as much of the following as possible. -->

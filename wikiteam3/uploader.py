@@ -266,15 +266,15 @@ def upload(wikis, logfile, config={}, uploadeddumps=[]):
                 # retrieve some info from the wiki
                 wikititle = "Wiki - %s" % (sitename)  # Wiki - ECGpedia
                 wikidesc = (
-                    '<a href="%s">%s</a> dumped with <a href="https://github.com/mediawiki-client-tools/mediawiki-scraper/" rel="nofollow">MediaWiki-Scraper</a> (aka WikiTeam3) tools.'
+                    '<a href="%s">%s</a> dumped with <a href="https://github.com/mediawiki-client-tools/mediawiki-dump-generator/" rel="nofollow">MediaWiki Dump Generator</a> (aka WikiTeam3) tools.'
                     % (baseurl, sitename)
                 )  # "<a href=\"http://en.ecgpedia.org/\" rel=\"nofollow\">ECGpedia,</a>: a free electrocardiography (ECG) tutorial and textbook to which anyone can contribute, designed for medical professionals such as cardiac care nurses and physicians. Dumped with <a href=\"https://github.com/WikiTeam/wikiteam\" rel=\"nofollow\">WikiTeam</a> tools."
                 wikikeys = [
                     "wiki",
                     "wikiteam",
                     "wikiteam3",
-                    "mediawiki-scraper",
-                    "mediawikiScraper",
+                    "mediawiki-dump-generator",
+                    "MediaWikiDumpGenerator",
                     "MediaWiki",
                     sitename,
                     wikiname,

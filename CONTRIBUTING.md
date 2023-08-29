@@ -6,7 +6,7 @@ This document is an ongoing process for establishing and refining a set of best 
 
 ## Reporting Issues
 
-If you find anything amiss, you can report it using [GitHub Issues](https://github.com/mediawiki-client-tools/mediawiki-scraper/issues). The template is there to help you communicate clearly. It's okay if you change it to meet your needs, though, as it is merely a suggested baseline.
+If you find anything amiss, you can report it using [GitHub Issues](https://github.com/mediawiki-client-tools/mediawiki-dump-generator/issues). The template is there to help you communicate clearly. It's okay if you change it to meet your needs, though, as it is merely a suggested baseline.
 
 For anything that doesn't fit, you can open a less formal conversation in [GitHub Discussions](https://github.com/orgs/mediawiki-client-tools/discussions) and feel free to tag any of the members of our GitHub organization.
 
@@ -32,13 +32,13 @@ In addition to the tools listed in the basic installation instructions in the ma
 
 ### 1. Fork the repository if you don't have write access
 
-You can do so [here](https://github.com/mediawiki-client-tools/mediawiki-scraper/fork).
+You can do so [here](https://github.com/mediawiki-client-tools/mediawiki-dump-generator/fork).
 
 ### 2. Clone the repository (or your fork) if you'd like to work on it locally (such as in VS Code)
 
 This is particularly important if you are contributing executible code, so that you can use "code intelligence" and test your work. You can clone the repository using the big green **Code** button on the homepage of the repository (or your fork).
 
-Alternately, you can [create a codespace](https://github.com/mediawiki-client-tools/mediawiki-scraper/codespaces) (also from the big green **Code** button), though we have yet to set up a consistent development container.
+Alternately, you can [create a codespace](https://github.com/mediawiki-client-tools/mediawiki-dump-generator/codespaces) (also from the big green **Code** button), though we have yet to set up a consistent development container.
 
 ### 3. Create a new branch for the changes you'd like to make
 
