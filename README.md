@@ -369,6 +369,14 @@ Please consider publishing your wiki dump(s). You can do it yourself as explaine
 
 For information on reporting bugs and proposing changes, please see the [Contributing](./Contributing.md) guide.
 
+## Code of Conduct
+
+`mediawiki-client-tools` is currently working to implement the [Contributor Covenant](https://www.contributor-covenant.org), and you can read our [Code of Conduct](./CODE_OF_CONDUCT.md) based on this.
+
+At the moment the only person responsible for reviewing CoC reports is the repository administrator, Elsie Hupp, but we will work towards implementing a broader-based approach to reviews.
+
+You can contact Elsie Hupp directly via email at [mediawiki-client-tools@elsiehupp.com](mailto:mediawiki-client-tools@elsiehupp.com) or on Matrix at [@elsiehupp:beeper.com](https://matrix.to/#/@elsiehupp:beeper.com). (Please state up front if your message concerns the Code of Conduct, as these messages are confidential.)
+
 ## Contributors
 
 **WikiTeam** is the [Archive Team](http://www.archiveteam.org) [[GitHub](https://github.com/ArchiveTeam)] subcommittee on wikis.
