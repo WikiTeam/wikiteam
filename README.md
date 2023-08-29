@@ -184,6 +184,7 @@ pip install --force-reinstall dist/*.whl
 for %x in (dist\*.whl) do pip install --force-reinstall %x
 ```
 
+</details>
 <details>
 <summary>For Windows Powershell, enter this pip command instead.</summary>
 
@@ -264,7 +265,7 @@ dumpgenerator http://wiki.domain.org --xml --images
 
 ### Manually specifying `api.php` and/or `index.php`
 
-If the script can't find itself the `api.php` and/or `index.php` paths, then you can provide them:
+If the script itself can't find the `api.php` and/or `index.php` paths, then you can provide them. To find api.php on a particular wiki, see section "Entry point URLs" on the Special:Version page.
 
 ```bash
 dumpgenerator --api http://wiki.domain.org/w/api.php --xml --images
@@ -276,6 +277,8 @@ dumpgenerator --api http://wiki.domain.org/w/api.php --index http://wiki.domain.
 ```
 
 If you only want the XML histories, just use `--xml`. For only the images, just `--images`. For only the current version of every page, `--xml --curonly`.
+
+To dump a private wiki you will have to use a login which has at the least read permission on that wiki.
 
 ### Resuming an incomplete dump
 
