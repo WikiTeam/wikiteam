@@ -4,7 +4,7 @@ import re
 import sys
 import time
 import urllib.parse
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 import requests
 
@@ -20,19 +20,19 @@ from wikiteam3.utils import cleanHTML, domain2prefix, sha1File, undoHTMLEntities
 
 class Image:
     @staticmethod
-    def getXMLFileDesc(config: Config, title: str, session: requests.Session):
+    def getXMLFileDesc(config: Config = None, title="", session=None):
         """Get XML for image description page"""
-        config.curonly = True  # tricky to get only the most recent desc
+        config.curonly = 1  # tricky to get only the most recent desc
         return "".join(
             list(getXMLPage(config=config, title=title, verbose=False, session=session))
         )
 
-    # other: Dict = None,
-    # images: List[List] = None,
-    # session: requests.Session = None,
     @staticmethod
     def generateImageDump(
-        config: Config, other: Dict, images: List[List], session: requests.Session
+        config: Config = None,
+        other: Dict = None,
+        images: List[List] = None,
+        session: requests.Session = None,
     ):
         """Save files and descriptions using a file list\n
         Deprecated: `start` is not used anymore."""
@@ -49,9 +49,7 @@ class Image:
 
         bypass_cdn_image_compression: bool = other["bypass_cdn_image_compression"]
 
-        def modify_params(
-            params: Dict[str, (str | int)] = {}
-        ) -> Dict[str, (str | int)]:
+        def modify_params(params: Optional[Dict] = None) -> Dict:
             """bypass Cloudflare Polish (image optimization)"""
             if params is None:
                 params = {}
@@ -103,7 +101,7 @@ class Image:
                         + "we will not try to download it...",
                     )
             else:
-                Delay(config=config)
+                Delay(config=config, session=session)
                 original_url = url
                 r = session.head(url=url, params=modify_params(), allow_redirects=True)
                 check_response(r)
@@ -118,20 +116,17 @@ class Image:
                 check_response(r)
 
                 # Try to fix a broken HTTP to HTTPS redirect
-                if (
-                    r.status_code == 404
-                    and original_url_redirected
-                    and (
+                if r.status_code == 404 and original_url_redirected:
+                    if (
                         original_url.split("://")[0] == "http"
                         and url.split("://")[0] == "https"
-                    )
-                ):
-                    url = "https://" + original_url.split("://")[1]
-                    # print 'Maybe a broken http to https redirect, trying ', url
-                    r = session.get(
-                        url=url, params=modify_params(), allow_redirects=False
-                    )
-                    check_response(r)
+                    ):
+                        url = "https://" + original_url.split("://")[1]
+                        # print 'Maybe a broken http to https redirect, trying ', url
+                        r = session.get(
+                            url=url, params=modify_params(), allow_redirects=False
+                        )
+                        check_response(r)
 
                 if r.status_code == 200:
                     try:
@@ -165,7 +160,7 @@ class Image:
             if os.path.isfile(f"{filename3}.desc"):
                 toContinue += 1
             else:
-                Delay(config=config)
+                Delay(config=config, session=session)
                 # saving description if any
                 title = f"Image:{filename}"
                 try:
@@ -236,7 +231,7 @@ class Image:
         )
 
     @staticmethod
-    def getImageNames(config: Config, session: requests.Session):
+    def getImageNames(config: Config = None, session: requests.Session = None):
         """Get list of image names"""
 
         print(")Retrieving image filenames")
@@ -256,7 +251,7 @@ class Image:
         return images
 
     @staticmethod
-    def getImageNamesScraper(config: Config, session: requests.Session):
+    def getImageNamesScraper(config: Config = None, session: requests.Session = None):
         """Retrieve file list: filename, url, uploader"""
 
         images = []
@@ -273,7 +268,7 @@ class Image:
                 timeout=30,
             )
             raw = r.text
-            Delay(config=config)
+            Delay(config=config, session=session)
             # delicate wiki
             if re.search(
                 r"(?i)(allowed memory size of \d+ bytes exhausted|Call to a member function getURL)",
@@ -350,7 +345,7 @@ class Image:
         return images
 
     @staticmethod
-    def getImageNamesAPI(config: Config, session: requests.Session):
+    def getImageNamesAPI(config: Config = None, session: requests.Session = None):
         """Retrieve file list: filename, url, uploader, size, sha1"""
         # # Commented by @yzqzss:
         # https://www.mediawiki.org/wiki/API:Allpages
@@ -382,7 +377,7 @@ class Image:
             r = session.get(url=config.api, params=params, timeout=30)
             handleStatusCode(r)
             jsonimages = getJSON(r)
-            Delay(config=config)
+            Delay(config=config, session=session)
 
             if "query" in jsonimages:
                 countImages += len(jsonimages["query"]["allimages"])
@@ -470,7 +465,7 @@ class Image:
                 r = session.get(url=config.api, params=params, timeout=30)
                 handleStatusCode(r)
                 jsonimages = getJSON(r)
-                Delay(config=config)
+                Delay(config=config, session=session)
 
                 if "query" not in jsonimages:
                     # if the API doesn't return query data, then we're done
@@ -517,7 +512,7 @@ class Image:
         return images
 
     @staticmethod
-    def saveImageNames(config: Config, images: List[List]):
+    def saveImageNames(config: Config = None, images: List[List] = None, session=None):
         """Save image list in a file, including filename, url, uploader, size and sha1"""
 
         imagesfilename = "{}-{}-images.txt".format(
@@ -550,7 +545,7 @@ class Image:
         print("Image filenames and URLs saved at...", imagesfilename)
 
     @staticmethod
-    def curateImageURL(config: Config, url=""):
+    def curateImageURL(config: Config = None, url=""):
         """Returns an absolute URL for an image, adding the domain if missing"""
 
         if config.index:

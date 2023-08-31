@@ -1,10 +1,8 @@
-import requests
-
 from wikiteam3.dumpgenerator.cli import Delay
 from wikiteam3.dumpgenerator.config import Config
 
 
-def saveLogs(config: Config, session: requests.Session):
+def saveLogs(config: Config = None, session=None):
     """Save Special:Log"""
     # get all logs from Special:Log
     """parse
@@ -22,4 +20,4 @@ def saveLogs(config: Config, session: requests.Session):
     <option value="">Todos los registros</option>
     </select>
 """
-    Delay(config=config)
+    Delay(config=config, session=session)

@@ -6,7 +6,7 @@ import os
 import queue
 import re
 import sys
-from typing import Any, Dict, Literal, Tuple
+from typing import *
 
 import requests
 import urllib3
@@ -15,9 +15,10 @@ from wikiteam3.dumpgenerator.api import checkRetryAPI, getWikiEngine, mwGetAPIAn
 from wikiteam3.dumpgenerator.api.index_check import checkIndex
 from wikiteam3.dumpgenerator.config import Config, newConfig
 from wikiteam3.dumpgenerator.version import getVersion
-from wikiteam3.utils import domain2prefix, getUserAgent, mod_requests_text, uniLogin
-from wikiteam3.utils.user_agent import setupUserAgent
+from wikiteam3.utils import domain2prefix, getUserAgent, mod_requests_text
+from wikiteam3.utils.login import uniLogin
 
+from ...utils.user_agent import setupUserAgent
 from .delay import Delay
 
 
@@ -222,13 +223,13 @@ def getParameters(params=None) -> Tuple[Config, Dict]:
     ########################################
 
     # Create session
-    mod_requests_text(requests)  # type: ignore # monkey patch
+    mod_requests_text(requests)  # monkey patch
     session = requests.Session()
 
     # Disable SSL verification
     if args.insecure:
         session.verify = False
-        urllib3.disable_warnings()
+        requests.packages.urllib3.disable_warnings()
         print("WARNING: SSL certificate verification disabled")
 
     # Custom session retry
@@ -240,12 +241,14 @@ def getParameters(params=None) -> Tuple[Config, Dict]:
         class CustomRetry(Retry):
             def increment(self, method=None, url=None, *args, **kwargs):
                 if "_pool" in kwargs:
-                    conn: urllib3.connectionpool.HTTPSConnectionPool = kwargs["_pool"]
+                    conn = kwargs[
+                        "_pool"
+                    ]  # type: urllib3.connectionpool.HTTPSConnectionPool
                     if "response" in kwargs:
                         try:
                             # drain conn in advance so that it won't be put back into conn.pool
                             kwargs["response"].drain_conn()
-                        except Exception:
+                        except:
                             pass
                     # Useless, retry happens inside urllib3
                     # for adapters in session.adapters.values():
@@ -253,12 +256,12 @@ def getParameters(params=None) -> Tuple[Config, Dict]:
                     #     adapters.poolmanager.clear()
 
                     # Close existing connection so that a new connection will be used
-                    if hasattr(conn, "pool") and conn.pool is not None:
+                    if hasattr(conn, "pool"):
                         pool = conn.pool  # type: queue.Queue
                         try:
                             # Don't directly use this, This closes connection pool by making conn.pool = None
                             conn.close()
-                        except Exception:
+                        except:
                             pass
                         conn.pool = pool
                 return super().increment(method=method, url=url, *args, **kwargs)
@@ -271,8 +274,7 @@ def getParameters(params=None) -> Tuple[Config, Dict]:
                     msg = "req retry (%s)" % response.status
                 else:
                     msg = None
-                # config=None
-                Delay(config=config, msg=msg, delay=backoff)
+                Delay(config=None, session=session, msg=msg, delay=backoff)
 
         __retries__ = CustomRetry(
             total=int(args.retries),
@@ -290,7 +292,7 @@ def getParameters(params=None) -> Tuple[Config, Dict]:
         )
         session.mount("https://", HTTPAdapter(max_retries=__retries__))
         session.mount("http://", HTTPAdapter(max_retries=__retries__))
-    except Exception:
+    except:
         # Our urllib3/requests is too old
         pass
 
@@ -299,7 +301,7 @@ def getParameters(params=None) -> Tuple[Config, Dict]:
     if args.cookies:
         cj.load(args.cookies)
         print("Using cookies from %s" % args.cookies)
-    session.cookies = cj  # type: ignore
+    session.cookies = cj
 
     # Setup user agent
     session.headers.update({"User-Agent": getUserAgent()})
@@ -310,17 +312,17 @@ def getParameters(params=None) -> Tuple[Config, Dict]:
         session.auth = (args.user, args.password)
 
     # Execute meta info params
-    if args.wiki and args.get_wiki_engine:
-        print(getWikiEngine(url=args.wiki, session=session))
-        sys.exit(0)
+    if args.wiki:
+        if args.get_wiki_engine:
+            print(getWikiEngine(url=args.wiki, session=session))
+            sys.exit(0)
 
     # Get API and index and verify
-    api: str = args.api or ""
-    index: str = args.index or ""
+    api = args.api if args.api else ""
+    index = args.index if args.index else ""
     if api == "" or index == "":
         if args.wiki:
             if getWikiEngine(args.wiki, session=session) == "MediaWiki":
-                index2: str
                 api2, index2 = mwGetAPIAndIndex(args.wiki, session=session)
                 if not api:
                     api = api2
@@ -337,12 +339,9 @@ def getParameters(params=None) -> Tuple[Config, Dict]:
 
     # print (api)
     # print (index)
-    index2 = ""
+    index2 = None
 
-    check: (
-        tuple[Literal[True], Any, str] | tuple[Literal[True], None, str] | None
-    ) = False  # type: ignore
-    checkedapi = ""
+    check, checkedapi = False, None
     if api:
         check, checkedapi = checkRetryAPI(
             api=api,
@@ -350,9 +349,9 @@ def getParameters(params=None) -> Tuple[Config, Dict]:
             session=session,
         )
 
-    if api != "" and check:
+    if api and check:
         # Replace the index URL we got from the API check
-        index2 = str(check[1])
+        index2 = check[1]
         api = checkedapi
         print("API is OK: ", checkedapi)
     else:
@@ -392,10 +391,8 @@ def getParameters(params=None) -> Tuple[Config, Dict]:
             try:
                 index = "/".join(index.split("/")[:-1])
             except AttributeError:
-                index = ""
-            if index != "" and checkIndex(
-                index=index, cookies=args.cookies, session=session
-            ):
+                index = None
+            if index and checkIndex(index=index, cookies=args.cookies, session=session):
                 print("index.php is OK")
             else:
                 print("Error in index.php.")
@@ -476,7 +473,7 @@ def getParameters(params=None) -> Tuple[Config, Dict]:
     # calculating path, if not defined by user with --path=
     if not config.path:
         config.path = "./{}-{}-wikidump".format(
-            domain2prefix(config=config),
+            domain2prefix(config=config, session=session),
             config.date,
         )
         print("No --path argument provided. Defaulting to:")

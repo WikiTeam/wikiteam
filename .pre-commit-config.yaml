@@ -9,7 +9,7 @@ repos:
     rev: 1.6.0
     hooks:
     -   id: poetry-check
-    -   id: poetry-lock
+    # -   id: poetry-lock
     -   id: poetry-export
         args: ["-f", "requirements.txt", "-o", "requirements.txt"]
 -   repo: https://github.com/pre-commit/pre-commit-hooks

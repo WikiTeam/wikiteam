@@ -3,13 +3,13 @@ import requests
 from wikiteam3.dumpgenerator.cli.delay import Delay
 
 
-def mod_requests_text(requests: requests):  # type: ignore
+def mod_requests_text(requests: requests):
     """Monkey patch `requests.Response.text` to remove BOM"""
 
     def new_text(self):
         return self.content.lstrip(b"\xef\xbb\xbf").decode(self.encoding)
 
-    requests.Response.text = property(new_text)  # type: ignore
+    requests.Response.text = property(new_text)
 
 
 class DelaySession:
@@ -26,8 +26,8 @@ class DelaySession:
         """Don't forget to call `release()`"""
 
         def new_send(request, **kwargs):
-            Delay(msg=self.msg, delay=self.delay, config=self.config)  # type: ignore
-            return self.old_send(request, **kwargs)  # type: ignore
+            Delay(msg=self.msg, delay=self.delay, config=self.config)
+            return self.old_send(request, **kwargs)
 
         self.old_send = self.session.send
         self.session.send = new_send

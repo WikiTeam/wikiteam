@@ -1,9 +1,9 @@
 import os
 from io import StringIO
+from typing import *
 
 import lxml.etree
 from file_read_backwards import FileReadBackwards
-from lxml.etree import _ElementTree as ElementTree
 
 
 def endsWithNewlines(filename: str) -> int:
@@ -60,9 +60,10 @@ def truncateXMLDump(filename: str) -> str:
     return incomplete_segment
 
 
-def parseLastPageChunk(chunk) -> ElementTree:
-    parser = lxml.etree.XMLParser(recover=True)
-    tree = lxml.etree.parse(StringIO(chunk), parser)
-    return tree.getroot()
-    # except lxml.etree.LxmlError:
-    #     return None
+def parseLastPageChunk(chunk) -> Optional[lxml.etree._ElementTree]:
+    try:
+        parser = lxml.etree.XMLParser(recover=True)
+        tree = lxml.etree.parse(StringIO(chunk), parser)
+        return tree.getroot()
+    except lxml.etree.LxmlError:
+        return None

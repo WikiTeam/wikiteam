@@ -15,9 +15,12 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import argparse
+import getopt
 import hashlib
+import os
 import re
 import shutil
+import subprocess
 import time
 import urllib.parse
 from io import BytesIO
@@ -92,7 +95,6 @@ def upload(wikis, logfile, config={}, uploadeddumps=[]):
             prefix = domain2prefix(Config(api=wiki))
         except KeyError:
             print("ERROR: could not produce the prefix for %s" % wiki)
-            continue
 
         wikiname = prefix.split("-")[0]
         dumps = []
@@ -161,29 +163,29 @@ def upload(wikis, logfile, config={}, uploadeddumps=[]):
                     r = requests.get(url=wiki, params=params, headers=headers)
                     if r.status_code < 400:
                         xml = r.text
-                except requests.exceptions.ConnectionError:
+                except requests.exceptions.ConnectionError as e:
                     pass
 
                 sitename = ""
                 baseurl = ""
                 lang = ""
                 try:
-                    sitename = re.findall(r"sitename=\"([^\"]+)\"", xml)[0]  # type: ignore
-                except Exception:
+                    sitename = re.findall(r"sitename=\"([^\"]+)\"", xml)[0]
+                except:
                     pass
                 try:
-                    baseurl = re.findall(r"base=\"([^\"]+)\"", xml)[0]  # type: ignore
-                except Exception:
+                    baseurl = re.findall(r"base=\"([^\"]+)\"", xml)[0]
+                except:
                     pass
                 try:
-                    lang = re.findall(r"lang=\"([^\"]+)\"", xml)[0]  # type: ignore
-                except Exception:
+                    lang = re.findall(r"lang=\"([^\"]+)\"", xml)[0]
+                except:
                     pass
 
                 if not sitename:
                     sitename = wikiname
                 if not baseurl:
-                    baseurl = re.sub(r"(?im)/api\.php", r"", wiki)  # type: ignore
+                    baseurl = re.sub(r"(?im)/api\.php", r"", wiki)
                 # Convert protocol-relative URLs
                 baseurl = re.sub("^//", "https://", baseurl)
                 if lang:
@@ -205,7 +207,7 @@ def upload(wikis, logfile, config={}, uploadeddumps=[]):
                     r = requests.get(url=wiki, params=params, headers=headers)
                     if r.status_code < 400:
                         xml = r.text
-                except requests.exceptions.ConnectionError:
+                except requests.exceptions.ConnectionError as e:
                     pass
 
                 rightsinfourl = ""
@@ -213,7 +215,7 @@ def upload(wikis, logfile, config={}, uploadeddumps=[]):
                 try:
                     rightsinfourl = re.findall(r"rightsinfo url=\"([^\"]+)\"", xml)[0]
                     rightsinfotext = re.findall(r"text=\"([^\"]+)\"", xml)[0]
-                except Exception:
+                except:
                     pass
 
                 raw = ""
@@ -221,7 +223,7 @@ def upload(wikis, logfile, config={}, uploadeddumps=[]):
                     r = requests.get(url=baseurl, headers=headers)
                     if r.status_code < 400:
                         raw = r.text
-                except requests.exceptions.ConnectionError:
+                except requests.exceptions.ConnectionError as e:
                     pass
 
                 # or copyright info from #footer in mainpage
@@ -233,13 +235,13 @@ def upload(wikis, logfile, config={}, uploadeddumps=[]):
                         rightsinfourl = re.findall(
                             r"<link rel=\"copyright\" href=\"([^\"]+)\" />", raw
                         )[0]
-                    except Exception:
+                    except:
                         pass
                     try:
                         rightsinfotext = re.findall(
                             r"<li id=\"copyright\">([^\n\r]*?)</li>", raw
                         )[0]
-                    except Exception:
+                    except:
                         pass
                     if rightsinfotext and not rightsinfourl:
                         rightsinfourl = baseurl + "#footer"
@@ -258,7 +260,7 @@ def upload(wikis, logfile, config={}, uploadeddumps=[]):
                     if "http" not in logourl:
                         # Probably a relative path, construct the absolute path
                         logourl = urllib.parse.urljoin(wiki, logourl)
-                except Exception:
+                except:
                     pass
 
                 # retrieve some info from the wiki
@@ -321,7 +323,7 @@ def upload(wikis, logfile, config={}, uploadeddumps=[]):
             try:
                 item.upload(
                     str(dump),
-                    metadata=md,  # type: ignore
+                    metadata=md,
                     access_key=ia_keys["access"],
                     secret_key=ia_keys["secret"],
                     verbose=True,
@@ -339,14 +341,12 @@ def upload(wikis, logfile, config={}, uploadeddumps=[]):
 
                 # Update metadata
                 r = item.modify_metadata(
-                    md,  # type: ignore
-                    access_key=ia_keys["access"],
-                    secret_key=ia_keys["secret"],
+                    md, access_key=ia_keys["access"], secret_key=ia_keys["secret"]
                 )
-                if r.status_code != 200:  # type: ignore
+                if r.status_code != 200:
                     print("Error when updating metadata")
-                    print(r.status_code)  # type: ignore
-                    print(r.text)  # type: ignore
+                    print(r.status_code)
+                    print(r.text)
 
                 print(
                     "You can find it in https://archive.org/details/%s" % (identifier)
@@ -358,11 +358,11 @@ def upload(wikis, logfile, config={}, uploadeddumps=[]):
             try:
                 log(logfile, wiki, dump, "ok")
                 if logourl:
-                    logo = BytesIO(requests.get(logourl, timeout=10).content)  # type: ignore
+                    logo = BytesIO(requests.get(logourl, timeout=10).content)
                     if ".png" in logourl:
                         logoextension = "png"
-                    elif logourl.split("."):  # type: ignore
-                        logoextension = logourl.split(".")[-1]  # type: ignore
+                    elif logourl.split("."):
+                        logoextension = logourl.split(".")[-1]
                     else:
                         logoextension = "unknown"
                     logoname = "wiki-" + wikiname + "_logo." + logoextension
@@ -410,11 +410,11 @@ Use --help to print this help."""
     listfile = config.listfile
     try:
         uploadeddumps = [
-            line.split(";")[1]
-            for line in open("uploader-%s.log" % (listfile)).read().strip().splitlines()
-            if len(line.split(";")) > 1
+            l.split(";")[1]
+            for l in open("uploader-%s.log" % (listfile)).read().strip().splitlines()
+            if len(l.split(";")) > 1
         ]
-    except Exception:
+    except:
         pass
 
     if config.logfile is None:

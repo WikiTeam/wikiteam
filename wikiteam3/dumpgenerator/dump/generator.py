@@ -1,12 +1,10 @@
 try:
     import contextlib
-
-    # import http.cookiejar
+    import http.cookiejar
     import os
     import re
     import sys
     import traceback
-    from typing import List
 
     from file_read_backwards import FileReadBackwards
 
@@ -22,7 +20,7 @@ except ImportError:
     )
     sys.exit(1)
 
-from typing import Dict
+from typing import *
 
 from wikiteam3.dumpgenerator.cli import bye, getParameters, welcome
 from wikiteam3.dumpgenerator.config import Config, loadConfig, saveConfig
@@ -77,7 +75,7 @@ class DumpGenerator:
             else contextlib.nullcontext()
         ):
             print(welcome())
-            print(f"Analysing {config.api or config.index}")
+            print(f"Analysing {config.api if config.api else config.index}")
 
             # creating path or resuming if desired
             c = 2
@@ -126,57 +124,56 @@ class DumpGenerator:
             bye()
 
     @staticmethod
-    def createNewDump(config: Config, other: Dict):
-        # other: Dict = None
+    def createNewDump(config: Config = None, other: Dict = None):
         # we do lazy title dumping here :)
         images = []
         print("Trying generating a new dump into a new directory...")
         if config.xml:
-            generateXMLDump(config=config, resume=False, session=other["session"])
+            generateXMLDump(config=config, session=other["session"])
             checkXMLIntegrity(config=config, session=other["session"])
         if config.images:
             images += Image.getImageNames(config=config, session=other["session"])
-            Image.saveImageNames(config=config, images=images)
+            Image.saveImageNames(config=config, images=images, session=other["session"])
             Image.generateImageDump(
                 config=config, other=other, images=images, session=other["session"]
             )
         if config.logs:
             saveLogs(config=config, session=other["session"])
 
-    # other: Dict = None
     @staticmethod
-    def resumePreviousDump(config: Config, other: Dict):
-        images: List[str] = []
+    def resumePreviousDump(config: Config = None, other: Dict = None):
+        images = []
         print("Resuming previous dump process...")
         if config.xml:
             # checking xml dump
             xmliscomplete = False
             lastxmltitle = None
             lastxmlrevid = None
-
-            # Exception means probably file does not exist
-            with contextlib.suppress(Exception):
+            try:
                 with FileReadBackwards(
                     "%s/%s-%s-%s.xml"
                     % (
                         config.path,
-                        domain2prefix(config=config),
+                        domain2prefix(config=config, session=other["session"]),
                         config.date,
                         "current" if config.curonly else "history",
                     ),
                     encoding="utf-8",
                 ) as frb:
-                    for line in frb:
-                        if line.strip() == "</mediawiki>":
+                    for l in frb:
+                        if l.strip() == "</mediawiki>":
                             # xml dump is complete
                             xmliscomplete = True
                             break
 
-                        if xmlrevid := re.search(r"    <id>([^<]+)</id>", line):
+                        if xmlrevid := re.search(r"    <id>([^<]+)</id>", l):
                             lastxmlrevid = int(xmlrevid.group(1))
-                        if xmltitle := re.search(r"<title>([^<]+)</title>", line):
+                        if xmltitle := re.search(r"<title>([^<]+)</title>", l):
                             lastxmltitle = undoHTMLEntities(text=xmltitle.group(1))
                             break
+
+            except:
+                pass  # probably file does not exists
 
             if xmliscomplete:
                 print("XML dump was completed in the previous session")
@@ -193,7 +190,7 @@ class DumpGenerator:
             else:
                 # corrupt? only has XML header?
                 print("XML is corrupt? Regenerating...")
-                generateXMLDump(config=config, resume=False, session=other["session"])
+                generateXMLDump(config=config, session=other["session"])
 
         if config.images:
             # load images list
@@ -206,9 +203,7 @@ class DumpGenerator:
             if os.path.exists(imagesFilePath):
                 with open(imagesFilePath) as f:
                     lines = f.read().splitlines()
-                    images.extend(
-                        line.split("\t") for line in lines if re.search(r"\t", line)
-                    )
+                    images.extend(l.split("\t") for l in lines if re.search(r"\t", l))
                     if len(lines) == 0:  # empty file
                         lastimage = "--EMPTY--"
                     if not lastimage:
@@ -231,14 +226,16 @@ class DumpGenerator:
                 Image.saveImageNames(config=config, images=images)
             # checking images directory
             listdir = []
-            with contextlib.suppress(OSError):
+            try:
                 listdir = os.listdir(f"{config.path}/images")
+            except OSError:
+                pass  # probably directory does not exist
             listdir = set(listdir)
             c_desc = 0
             c_images = 0
             c_checked = 0
             for filename, url, uploader, size, sha1 in images:
-                # lastfilename = filename
+                lastfilename = filename
                 if other["filenamelimit"] < len(filename.encode("utf-8")):
                     logerror(
                         config=config,

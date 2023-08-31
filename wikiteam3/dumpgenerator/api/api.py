@@ -1,6 +1,7 @@
 import re
-from typing import Any, Literal, Optional
-from urllib.parse import urljoin, urlparse
+import time
+from typing import *
+from urllib.parse import urljoin, urlparse, urlunparse
 
 import mwclient
 import requests
@@ -10,8 +11,7 @@ from wikiteam3.utils import getUserAgent
 from .get_json import getJSON
 
 
-# api="", session: requests.Session = None
-def checkAPI(api: str, session: requests.Session):
+def checkAPI(api="", session: requests.Session = None):
     """Checking API availability"""
     global cj
     # handle redirects
@@ -34,31 +34,29 @@ def checkAPI(api: str, session: requests.Session):
                 "MediaWiki API URL not found or giving error: HTTP %d" % r.status_code
             )
             return None
-    if r is not None:
-        if "MediaWiki API is not enabled for this site." in r.text:
-            return None
-        try:
-            result = getJSON(r)
-            index = None
-            if result:
-                try:
-                    index = (
-                        result["query"]["general"]["server"]
-                        + result["query"]["general"]["script"]
-                    )
-                    return (True, index, api)
-                except KeyError:
-                    print("MediaWiki API seems to work but returned no index URL")
-                    return (True, None, api)
-        except ValueError:
-            print(repr(r.text))
-            print("MediaWiki API returned data we could not parse")
-            return None
+    if "MediaWiki API is not enabled for this site." in r.text:
+        return None
+    try:
+        result = getJSON(r)
+        index = None
+        if result:
+            try:
+                index = (
+                    result["query"]["general"]["server"]
+                    + result["query"]["general"]["script"]
+                )
+                return (True, index, api)
+            except KeyError:
+                print("MediaWiki API seems to work but returned no index URL")
+                return (True, None, api)
+    except ValueError:
+        print(repr(r.text))
+        print("MediaWiki API returned data we could not parse")
+        return None
     return None
 
 
-# url=""
-def mwGetAPIAndIndex(url: str, session: requests.Session):
+def mwGetAPIAndIndex(url="", session: requests.Session = None):
     """Returns the MediaWiki API and Index.php"""
 
     api = ""
@@ -110,21 +108,18 @@ def mwGetAPIAndIndex(url: str, session: requests.Session):
     return api, index
 
 
-# api="", apiclient=False
-def checkRetryAPI(api: str, apiclient: bool, session: requests.Session):
+def checkRetryAPI(api="", apiclient=False, session: requests.Session = None):
     """Call checkAPI and mwclient if necessary"""
-    check: (tuple[Literal[True], Any, str] | tuple[Literal[True], None, str] | None)
+    check = None
     try:
         check = checkAPI(api, session=session)
     except requests.exceptions.ConnectionError as e:
         print(f"Connection error: {str(e)}")
-        check = None
 
     if check and apiclient:
         apiurl = urlparse(api)
         try:
-            # Returns a value, but we're just checking for an error here
-            mwclient.Site(
+            site = mwclient.Site(
                 apiurl.netloc,
                 apiurl.path.replace("api.php", ""),
                 scheme=apiurl.scheme,
@@ -143,14 +138,13 @@ def checkRetryAPI(api: str, apiclient: bool, session: requests.Session):
             )
 
             try:
-                # Returns a value, but we're just checking for an error here
-                mwclient.Site(
+                site = mwclient.Site(
                     apiurl.netloc,
                     apiurl.path.replace("api.php", ""),
                     scheme=newscheme,
                     pool=session,
                 )
             except KeyError:
-                check = False  # type: ignore
+                check = False
 
-    return check, api  # type: ignore
+    return check, api
