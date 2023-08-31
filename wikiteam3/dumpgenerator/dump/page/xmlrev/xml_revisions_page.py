@@ -6,7 +6,7 @@ from wikiteam3.dumpgenerator.exceptions import PageMissingError
 
 def makeXmlPageFromRaw(xml, arvcontinue) -> str:
     """Discard the metadata around a <page> element in <mediawiki> string"""
-    root = etree.XML(xml)
+    root = etree.XML(text=xml, parser=None)
     find = etree.XPath("//*[local-name() = 'page']")
     page = find(root)[0]
     if arvcontinue is not None:
@@ -14,7 +14,7 @@ def makeXmlPageFromRaw(xml, arvcontinue) -> str:
     # The tag will inherit the namespace, like:
     # <page xmlns="http://www.mediawiki.org/xml/export-0.10/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     # FIXME: pretty_print doesn't seem to work, only adds a newline
-    return etree.tostring(page, pretty_print=True, encoding="unicode")
+    return etree.tostring(page, pretty_print=True, encoding="unicode")  # type: ignore
 
 
 def makeXmlFromPage(page: dict, arvcontinue) -> str:
@@ -124,4 +124,4 @@ def makeXmlFromPage(page: dict, arvcontinue) -> str:
     except KeyError as e:
         print(e)
         raise PageMissingError(page["title"], e)
-    return etree.tostring(p, pretty_print=True, encoding="unicode")
+    return etree.tostring(p, pretty_print=True, encoding="unicode")  # type: ignore

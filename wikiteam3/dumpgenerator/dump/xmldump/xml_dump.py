@@ -1,8 +1,12 @@
 import re
 import sys
-from typing import *
+from io import TextIOWrapper
 
 import lxml.etree
+import requests
+
+# from typing import *
+from lxml.etree import _ElementTree as ElementTree
 
 from wikiteam3.dumpgenerator.api.page_titles import readTitles
 from wikiteam3.dumpgenerator.cli import Delay
@@ -19,12 +23,14 @@ from wikiteam3.dumpgenerator.log import logerror
 from wikiteam3.utils import cleanXML, domain2prefix, undoHTMLEntities
 
 
+# lastPage=None,
+# useAllrevisions=False,
 def doXMLRevisionDump(
-    config: Config = None,
-    session=None,
-    xmlfile=None,
-    lastPage=None,
-    useAllrevisions=False,
+    config: Config,
+    session: requests.Session,
+    xmlfile: TextIOWrapper,
+    lastPage: (ElementTree | None),
+    useAllrevisions: bool,
 ):
     try:
         r_timestamp = "<timestamp>([^<]+)</timestamp>"
@@ -41,16 +47,17 @@ def doXMLRevisionDump(
             if arvcontinueRe := re.findall(r_arvcontinue, xml):
                 curArvcontinue = arvcontinueRe[0]
                 if lastArvcontinue != curArvcontinue:
-                    Delay(config=config, session=session)
+                    Delay(config=config)
                     lastArvcontinue = curArvcontinue
             # Due to how generators work, it's expected this may be less
             xml = cleanXML(xml=xml)
             xmlfile.write(xml)
 
             xmltitle = re.search(r"<title>([^<]+)</title>", xml)
-            title = undoHTMLEntities(text=xmltitle.group(1))
-            print(f"{title}, {numrevs} edits (--xmlrevisions)")
-            # Delay(config=config, session=session)
+            if xmltitle is not None:
+                title = undoHTMLEntities(text=xmltitle[1])
+                print(f"{title}, {numrevs} edits (--xmlrevisions)")
+                # Delay(config=config)
     except AttributeError as e:
         print(e)
         print("This API library version is not working")
@@ -59,11 +66,13 @@ def doXMLRevisionDump(
         print(e)
 
 
-def doXMLExportDump(config: Config = None, session=None, xmlfile=None, lastPage=None):
+def doXMLExportDump(
+    config: Config, session: requests.Session, xmlfile: TextIOWrapper, lastPage=None
+):
     print("\nRetrieving the XML for every page\n")
 
     lock = True
-    start = None
+    start: str = ""
     if lastPage is not None:
         try:
             start = lastPage.find("title").text
@@ -77,18 +86,20 @@ def doXMLExportDump(config: Config = None, session=None, xmlfile=None, lastPage=
         lock = False
 
     c = 1
-    for title in readTitles(config, session=session, start=start):
-        if not title:
+    for title in readTitles(config, session=session, start=start, batch=False):
+        if title is not str or title == "":
             continue
         if title == start:  # start downloading from start, included
             lock = False
         if lock:
             continue
-        Delay(config=config, session=session)
+        Delay(config=config)
         if c % 10 == 0:
             print(f"\n->  Downloaded {c} pages\n")
         try:
-            for xml in getXMLPage(config=config, title=title, session=session):
+            for xml in getXMLPage(
+                config=config, verbose=True, title=title, session=session
+            ):
                 xml = cleanXML(xml=xml)
                 xmlfile.write(xml)
         except PageMissingError:
@@ -104,7 +115,8 @@ def doXMLExportDump(config: Config = None, session=None, xmlfile=None, lastPage=
         c += 1
 
 
-def generateXMLDump(config: Config = None, resume=False, session=None):
+# resume=False
+def generateXMLDump(config: Config, resume: bool, session: requests.Session):
     """Generates a XML dump for a list of titles or from revision IDs"""
 
     header, config = getXMLHeader(config=config, session=session)
@@ -114,9 +126,9 @@ def generateXMLDump(config: Config = None, resume=False, session=None):
         config.date,
         "current" if config.curonly else "history",
     )
-    xmlfile = None
+    xmlfile: TextIOWrapper
 
-    lastPage = None
+    lastPage: (ElementTree | None) = None
     lastPageChunk = None
     # start != None, means we are resuming a XML dump
     if resume:
@@ -128,8 +140,9 @@ def generateXMLDump(config: Config = None, resume=False, session=None):
             resume = False
             lastPage = None
         else:
-            lastPage = parseLastPageChunk(lastPageChunk)
-            if lastPage is None:
+            try:
+                lastPage = parseLastPageChunk(lastPageChunk)
+            except lxml.etree.LxmlError:
                 print("Failed to parse last page chunk: \n%s" % lastPageChunk)
                 print("Cannot resume, exiting now!")
                 sys.exit(1)

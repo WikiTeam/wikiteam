@@ -319,10 +319,10 @@ def getUserAgent():
 
 
 def setupUserAgent(session: requests.Session):
-    session._orirequest = session.request
+    session._orirequest = session.request  # type: ignore
 
     def newrequest(*args, **kwargs):
         session.headers.update({"User-Agent": getUserAgent()})
-        return session._orirequest(*args, **kwargs)
+        return session._orirequest(*args, **kwargs)  # type: ignore
 
-    session.request = newrequest
+    session.request = newrequest  # type: ignore

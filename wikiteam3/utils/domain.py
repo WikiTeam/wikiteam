@@ -3,7 +3,7 @@ import re
 from wikiteam3.dumpgenerator.config import Config
 
 
-def domain2prefix(config: Config = None, session=None):
+def domain2prefix(config: Config):
     """Convert domain name to a valid prefix filename."""
 
     # At this point, both api and index are supposed to be defined

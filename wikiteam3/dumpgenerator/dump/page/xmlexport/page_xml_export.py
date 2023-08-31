@@ -1,7 +1,7 @@
 import re
 import sys
 import time
-from typing import *
+from typing import Dict
 
 import requests
 
@@ -12,8 +12,12 @@ from wikiteam3.dumpgenerator.log import logerror
 from wikiteam3.utils import uprint
 
 
+# headers: Dict = None, params: Dict = None
 def getXMLPageCore(
-    headers: Dict = None, params: Dict = None, config: Config = None, session=None
+    headers: Dict,
+    params: Dict[str, (str | int)],
+    config: Config,
+    session: requests.Session,
 ) -> str:
     """"""
     # returns a XML containing params['limit'] revisions (or current only), ending in </mediawiki>
@@ -37,8 +41,8 @@ def getXMLPageCore(
             time.sleep(wait)
             # reducing server load requesting smallest chunks (if curonly then
             # limit = 1 from mother function)
-            if params["limit"] > 1:
-                params["limit"] = params["limit"] / 2  # half
+            if int(params["limit"]) > 1:
+                params["limit"] = int(params["limit"]) // 2  # half
         if c >= maxretries:
             print("    We have retried %d times" % (c))
             print(
@@ -52,9 +56,9 @@ def getXMLPageCore(
             # params['curonly'] should mean that we've already tried this
             # fallback, because it's set by the following if and passed to
             # getXMLPageCore
-            if not config.curonly and "curonly" not in params:
+            if not config.curonly:  # and "curonly" not in params:
                 print("    Trying to save only the last revision for this page...")
-                params["curonly"] = 1
+                params["curonly"] = True
                 logerror(
                     config=config,
                     to_stdout=True,
@@ -75,7 +79,7 @@ def getXMLPageCore(
         try:
             r = session.post(
                 url=config.index, params=params, headers=headers, timeout=10
-            )
+            )  # type: ignore
             handleStatusCode(r)
             xml = r.text
         except requests.exceptions.ConnectionError as e:
@@ -89,7 +93,9 @@ def getXMLPageCore(
     return xml
 
 
-def getXMLPageWithExport(config: Config = None, title="", verbose=True, session=None):
+def getXMLPageWithExport(
+    config: Config, title: str, verbose: bool, session: requests.Session
+):
     """Get the full history (or current only) of a page"""
 
     truncated = False
@@ -97,9 +103,17 @@ def getXMLPageWithExport(config: Config = None, title="", verbose=True, session=
     title_ = re.sub(" ", "_", title_)
     # do not convert & into %26, title_ = re.sub('&', '%26', title_)
     if config.export:
-        params = {"title": config.export, "pages": title_, "action": "submit"}
+        params: Dict[str, (str | int)] = {
+            "title": config.export,
+            "pages": title_,
+            "action": "submit",
+        }
     else:
-        params = {"title": "Special:Export", "pages": title_, "action": "submit"}
+        params = {
+            "title": "Special:Export",
+            "pages": title_,
+            "action": "submit",
+        }
     if config.curonly:
         params["curonly"] = 1
         params["limit"] = 1
@@ -114,7 +128,7 @@ def getXMLPageWithExport(config: Config = None, title="", verbose=True, session=
     if config.templates:
         params["templates"] = 1
 
-    xml = getXMLPageCore(params=params, config=config, session=session)
+    xml = getXMLPageCore(headers={}, params=params, config=config, session=session)
     if xml == "":
         raise ExportAbortedError(config.index)
     if "</page>" not in xml:
@@ -139,10 +153,12 @@ def getXMLPageWithExport(config: Config = None, title="", verbose=True, session=
             # get the last timestamp from the acum XML
             params["offset"] = re.findall(r_timestamp, xml)[-1]
             try:
-                xml2 = getXMLPageCore(params=params, config=config, session=session)
+                xml2 = getXMLPageCore(
+                    headers={}, params=params, config=config, session=session
+                )
             except MemoryError:
                 print("The page's history exceeds our memory, halving limit.")
-                params["limit"] /= 2
+                params["limit"] = int(params["limit"]) // 2
                 continue
 
             # are there more edits in this next XML chunk or no <page></page>?
@@ -177,7 +193,7 @@ def getXMLPageWithExport(config: Config = None, title="", verbose=True, session=
                         )
                     except MemoryError:
                         "The page's history exceeds our memory, halving limit."
-                        params["limit"] /= 2
+                        params["limit"] = int(params["limit"]) // 2
                         continue
                     xml = xml2
                     edit_count += len(re.findall(r_timestamp, xml))

@@ -1,7 +1,7 @@
 """ Always available login methods.(mw 1.16-1.39)
     Even oler versions of MW may work, but not tested. """
 
-from typing import *
+from typing import Optional
 
 import lxml.html
 import requests
@@ -45,7 +45,7 @@ def indexLogin(
         "title": "Special:UserLogin",  # introduced before MW 1.39.
         "force": "",  # introduced before MW 1.39, empty string is OK.
     }
-    r = session.post(index, allow_redirects=False, params=params, data=data)
+    r = session.post(index, allow_redirects=False, params=params, data=data)  # type: ignore
     if r.status_code == 302:
         print("index login: Success! Welcome, ", username, "!")
         return session

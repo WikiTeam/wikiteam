@@ -25,7 +25,7 @@ def _new_config_from_parameter(params):
 
 
 def get_config(mediawiki_ver, api=True):
-    assert api == True
+    assert api == True  # type: ignore
     if mediawiki_ver == "1.16.5":
         return _new_config_from_parameter(
             [
@@ -33,3 +33,4 @@ def get_config(mediawiki_ver, api=True):
                 "http://group0.mediawiki.demo.save-web.org/mediawiki-1.16.5/api.php",
             ]
         )
+    raise ValueError(f"Expected mediawiki_ver '1.16.5'; got {mediawiki_ver}")

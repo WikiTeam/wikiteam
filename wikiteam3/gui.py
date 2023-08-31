@@ -22,7 +22,7 @@ TODO:
 * advanced: batch downloads, upload to Internet Archive or anywhere
 """
 
-
+import contextlib
 import os
 import platform
 import random
@@ -129,7 +129,7 @@ class App:
         self.button11 = Button(
             self.labelframe11,
             text="Check",
-            command=lambda: threading.start_new_threading(self.checkURL, ()),
+            command=lambda: threading.start_new_threading(self.checkURL, ()),  # type: ignore
             width=5,
         )
         self.button11.grid(row=0, column=3)
@@ -275,14 +275,14 @@ class App:
         self.button21 = Button(
             self.frame2,
             text="Load available dumps",
-            command=lambda: threading.start_new_threading(self.loadAvailableDumps, ()),
+            command=lambda: threading.start_new_threading(self.loadAvailableDumps, ()),  # type: ignore
             width=15,
         )
         self.button21.grid(row=3, column=0)
         self.button23 = Button(
             self.frame2,
             text="Download selection",
-            command=lambda: threading.start_new_threading(self.downloadDump, ()),
+            command=lambda: threading.start_new_threading(self.downloadDump, ()),  # type: ignore
             width=15,
         )
         self.button23.grid(row=3, column=4)
@@ -337,7 +337,7 @@ class App:
         ):  # well-constructed URL?, one dot at least, aaaaa.com, but bb.aaaaa.com is allowed too
             if self.optionmenu11var.get() == "api.php":
                 self.msg("Please wait... Checking api.php...")
-                if checkAPI(self.entry11.get()):
+                if checkAPI(self.entry11.get(), None):  # type: ignore
                     self.entry11.config(background="lightgreen")
                     self.msg("api.php is correct!", level="ok")
                 else:
@@ -345,7 +345,7 @@ class App:
                     self.msg("api.php is incorrect!", level="error")
             elif self.optionmenu11var.get() == "index.php":
                 self.msg("Please wait... Checking index.php...")
-                if checkIndex(self.entry11.get()):
+                if checkIndex(self.entry11.get(), None):  # type: ignore
                     self.entry11.config(background="lightgreen")
                     self.msg("index.php is OK!", level="ok")
                 else:
@@ -374,7 +374,7 @@ class App:
     def run(self):
         for _ in range(10):
             time.sleep(0.1)
-            self.value += 10
+            self.value += 10  # type: ignore
 
         """
         #get parameters selected
@@ -388,7 +388,7 @@ class App:
 
     def msg(self, msg="", level=""):
         levels = {"ok": "lightgreen", "warning": "yellow", "error": "red"}
-        if levels.has_key(level.lower()):
+        if level.lower() in levels:
             print(f"{level.upper()}: {msg}")
             self.status.config(
                 text=f"{level.upper()}: {msg}", background=levels[level.lower()]
@@ -398,9 +398,9 @@ class App:
             self.status.config(text=msg, background="grey")
 
     def treeSortColumn(self, column, reverse=False):
-        l = [(self.tree.set(i, column), i) for i in self.tree.get_children("")]
-        l.sort(reverse=reverse)
-        for index, (val, i) in enumerate(l):
+        line = [(self.tree.set(i, column), i) for i in self.tree.get_children("")]
+        line.sort(reverse=reverse)
+        for index, (val, i) in enumerate(line):
             self.tree.move(i, "", index)
         self.tree.heading(
             column,
@@ -408,7 +408,7 @@ class App:
         )
 
     def downloadProgress(self, block_count, block_size, total_size):
-        try:
+        with contextlib.suppress(Exception):
             total_mb = total_size / 1024 / 1024.0
             downloaded = block_count * (block_size / 1024 / 1024.0)
             percent = downloaded / (total_mb / 100.0)
@@ -419,8 +419,6 @@ class App:
                 self.msg(msg, level="ok")
                 # sys.stdout.write("%.1f MB of %.1f MB downloaded (%.2f%%)" %(downloaded, total_mb, percent))
                 # sys.stdout.flush()
-        except:
-            pass
 
     def downloadDump(self, event=None):
         if self.block:
@@ -452,7 +450,7 @@ class App:
                             self.dumps[int(item)][5],
                         )
                     )
-                    f = urllib.urlretrieve(
+                    urllib.urlretrieve(  # type: ignore
                         self.dumps[int(item)][5],
                         filepath,
                         reporthook=self.downloadProgress,
@@ -614,11 +612,11 @@ class App:
             ],
         ]
         wikifarms_r = re.compile(f'({"|".join(wikifarms.keys())})')
-        c = 0
+        # c = 0
         for mirror, url, regexp in self.urls:
             print("Loading data from", mirror, url)
             self.msg(msg=f"Please wait... Loading data from {mirror} {url}")
-            f = urllib.request.urlopen(url)
+            f = urllib.request.urlopen(url)  # type: ignore
             m = re.compile(regexp).finditer(f.read())
             for i in m:
                 filename = i.group("filename")
@@ -628,9 +626,7 @@ class App:
                 if re.search(wikifarms_r, filename):
                     wikifarm = re.findall(wikifarms_r, filename)[0]
                 wikifarm = wikifarms[wikifarm]
-                size = i.group("size")
-                if not size:
-                    size = "Unknown"
+                size = i.group("size") or "Unknown"
                 date = "Unknown"
                 if re.search(r"\-(\d{8})[\.-]", filename):
                     date = re.findall(r"\-(\d{4})(\d{2})(\d{2})[\.-]", filename)[0]

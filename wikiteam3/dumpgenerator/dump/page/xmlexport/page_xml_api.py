@@ -1,7 +1,7 @@
 import re
 import time
 import traceback
-from typing import *
+from typing import Dict
 
 import requests
 
@@ -11,58 +11,71 @@ from wikiteam3.dumpgenerator.exceptions import ExportAbortedError, PageMissingEr
 from wikiteam3.dumpgenerator.log import logerror
 
 try:
-    import xml.etree.ElementTree as ET
+    import xml.etree.ElementTree as ElementTree
 except ImportError:
-    import xml.etree.ElementTree as ET
+    import xml.etree.ElementTree as ElementTree
 
 import xml.dom.minidom as MD
 
 
-def reconstructRevisions(root=None):
-    # print ET.tostring(rev)
-    page = ET.Element("stub")
+def reconstructRevisions(root: ElementTree.Element):
+    # print ElementTree.tostring(rev)
+    page = ElementTree.Element("stub")
     edits = 0
-    for rev in (
-        root.find("query").find("pages").find("page").find("revisions").findall("rev")
-    ):
+
+    query: (ElementTree.Element | None) = root.find("query")
+    if query is None:
+        raise ValueError("query was none")
+    pages: (ElementTree.Element | None) = query.find("pages")
+    if pages is None:
+        raise ValueError("pages was none")
+    page_element: (ElementTree.Element | None) = query.find("page")
+    if page_element is None:
+        raise ValueError("page was none")
+    revisions: (ElementTree.Element | None) = page_element.find("revisions")
+    if revisions is None:
+        raise ValueError("revisions was none")
+    for rev in revisions.findall("rev"):
         try:
-            rev_ = ET.SubElement(page, "revision")
+            rev_ = ElementTree.SubElement(page, "revision")
             # id
-            ET.SubElement(rev_, "id").text = rev.attrib["revid"]
+            ElementTree.SubElement(rev_, "id").text = rev.attrib["revid"]
             # parentid (optional, export-0.7+)
             if "parentid" in rev.attrib:
-                ET.SubElement(rev_, "parentid").text = rev.attrib["parentid"]
+                ElementTree.SubElement(rev_, "parentid").text = rev.attrib["parentid"]
             # timestamp
-            ET.SubElement(rev_, "timestamp").text = rev.attrib["timestamp"]
+            ElementTree.SubElement(rev_, "timestamp").text = rev.attrib["timestamp"]
             # contributor
-            contributor = ET.SubElement(rev_, "contributor")
+            contributor = ElementTree.SubElement(rev_, "contributor")
             if "userhidden" not in rev.attrib:
-                ET.SubElement(contributor, "username").text = rev.attrib["user"]
-                ET.SubElement(contributor, "id").text = rev.attrib["userid"]
+                ElementTree.SubElement(contributor, "username").text = rev.attrib[
+                    "user"
+                ]
+                ElementTree.SubElement(contributor, "id").text = rev.attrib["userid"]
             else:
                 contributor.set("deleted", "deleted")
             # comment (optional)
             if "commenthidden" in rev.attrib:
                 print("commenthidden")
-                comment = ET.SubElement(rev_, "comment")
+                comment = ElementTree.SubElement(rev_, "comment")
                 comment.set("deleted", "deleted")
             elif "comment" in rev.attrib and rev.attrib["comment"]:  # '' is empty
-                comment = ET.SubElement(rev_, "comment")
+                comment = ElementTree.SubElement(rev_, "comment")
                 comment.text = rev.attrib["comment"]
             # minor edit (optional)
             if "minor" in rev.attrib:
-                ET.SubElement(rev_, "minor")
+                ElementTree.SubElement(rev_, "minor")
             # model and format (optional, export-0.8+)
             if "contentmodel" in rev.attrib:
-                ET.SubElement(rev_, "model").text = rev.attrib[
+                ElementTree.SubElement(rev_, "model").text = rev.attrib[
                     "contentmodel"
                 ]  # default: 'wikitext'
             if "contentformat" in rev.attrib:
-                ET.SubElement(rev_, "format").text = rev.attrib[
+                ElementTree.SubElement(rev_, "format").text = rev.attrib[
                     "contentformat"
                 ]  # default: 'text/x-wiki'
             # text
-            text = ET.SubElement(rev_, "text")
+            text = ElementTree.SubElement(rev_, "text")
             if "texthidden" not in rev.attrib:
                 text.attrib["xml:space"] = "preserve"
                 text.attrib["bytes"] = rev.attrib["size"]
@@ -72,24 +85,28 @@ def reconstructRevisions(root=None):
                 text.set("deleted", "deleted")
             # sha1
             if "sha1" in rev.attrib:
-                sha1 = ET.SubElement(rev_, "sha1")
+                sha1 = ElementTree.SubElement(rev_, "sha1")
                 sha1.text = rev.attrib["sha1"]
 
             elif "sha1hidden" in rev.attrib:
-                ET.SubElement(rev_, "sha1")  # stub
+                ElementTree.SubElement(rev_, "sha1")  # stub
             edits += 1
         except Exception as e:
-            # logerror(config=config, text='Error reconstructing revision, xml:%s' % (ET.tostring(rev)))
-            print(ET.tostring(rev))
+            # logerror(config=config, text='Error reconstructing revision, xml:%s' % (ElementTree.tostring(rev)))
+            print(ElementTree.tostring(rev))
             traceback.print_exc()
-            page = None
+            page = None  # type: ignore
             edits = 0
             raise e
     return page, edits
 
 
+# headers: Dict = None, params: Dict = None
 def getXMLPageCoreWithApi(
-    headers: Dict = None, params: Dict = None, config: Config = None, session=None
+    headers: Dict,
+    params: Dict[str, (str | int)],
+    config: Config,
+    session: requests.Session,
 ):
     """ """
     # just send the API request
@@ -101,7 +118,7 @@ def getXMLPageCoreWithApi(
     increment = 20  # increment every retry
 
     while not re.search(
-        r"</api>" if not config.curonly else r"</mediawiki>", xml
+        r"</mediawiki>" if config.curonly else r"</api>", xml
     ) or re.search(r"</error>", xml):
         if c > 0 and c < maxretries:
             wait = (
@@ -114,8 +131,8 @@ def getXMLPageCoreWithApi(
             time.sleep(wait)
             # reducing server load requesting smallest chunks (if curonly then
             # rvlimit = 1 from mother function)
-            if params["rvlimit"] > 1:
-                params["rvlimit"] = params["rvlimit"] / 2  # half
+            if int(params["rvlimit"]) > 1:
+                params["rvlimit"] = int(params["rvlimit"]) // 2  # half
         if c >= maxretries:
             print("    We have retried %d times" % (c))
             print(
@@ -130,7 +147,7 @@ def getXMLPageCoreWithApi(
             print("    Saving in the errors log, and skipping...")
             logerror(
                 config=config,
-                text=f'Error while retrieving the last revision of "{params["titles" if config.xmlapiexport else "pages"].decode("utf-8")}". Skipping.',
+                text=f'Error while retrieving the last revision of "{params["titles" if config.xmlapiexport else "pages"]}". Skipping.',  # .decode("utf-8")
             )
             raise ExportAbortedError(config.index)
         # FIXME HANDLE HTTP Errors HERE
@@ -149,7 +166,10 @@ def getXMLPageCoreWithApi(
     return xml
 
 
-def getXMLPageWithApi(config: Config = None, title="", verbose=True, session=None):
+# title="", verbose=True
+def getXMLPageWithApi(
+    config: Config, title: str, verbose: bool, session: requests.Session
+):
     """Get the full history (or current only) of a page using API:Query
     if params['curonly'] is set, then using export&exportwrap to export
     """
@@ -170,42 +190,52 @@ def getXMLPageWithApi(config: Config = None, title="", verbose=True, session=Non
             "rvcontinue": None,
             "rvlimit": config.api_chunksize,
         }
-        firstpartok = False
-        lastcontinue = None
+        firstpartok: bool = False
+        lastcontinue: str = ""
         numberofedits = 0
         ret = ""
-        continueKey: Optional[str] = None
+        continueKey: str = ""
         while True:
             # in case the last request is not right, saving last time's progress
             if not firstpartok:
                 try:
                     lastcontinue = params[continueKey]
-                except:
-                    lastcontinue = None
+                except Exception:
+                    lastcontinue = ""
 
-            xml = getXMLPageCoreWithApi(params=params, config=config, session=session)
+            xml = getXMLPageCoreWithApi(
+                headers={}, params=params, config=config, session=session
+            )
             if xml == "":
                 # just return so that we can continue, and getXMLPageCoreWithApi will log the error
                 return
             try:
-                root = ET.fromstring(xml.encode("utf-8"))
-            except:
+                root = ElementTree.fromstring(xml.encode("utf-8"))
+            except Exception:
                 continue
             try:
-                retpage = root.find("query").find("pages").find("page")
-            except:
+                ret_query: (ElementTree.Element | None) = root.find("query")
+                if ret_query is None:
+                    raise Exception("query was none")
+                ret_pages: (ElementTree.Element | None) = root.find("pages")
+                if ret_pages is None:
+                    raise Exception("pages was none")
+                ret_page = ret_pages.find("page")
+                if ret_page is None:
+                    continue
+            except Exception:
                 continue
-            if "missing" in retpage.attrib or "invalid" in retpage.attrib:
+            if "missing" in ret_page.attrib or "invalid" in ret_page.attrib:
                 print("Page not found")
                 raise PageMissingError(params["titles"], xml)
             if not firstpartok:
                 try:
                     # build the firstpart by ourselves to improve the memory usage
                     ret = "  <page>\n"
-                    ret += "    <title>%s</title>\n" % (retpage.attrib["title"])
-                    ret += "    <ns>%s</ns>\n" % (retpage.attrib["ns"])
-                    ret += "    <id>%s</id>\n" % (retpage.attrib["pageid"])
-                except:
+                    ret += "    <title>%s</title>\n" % (ret_page.attrib["title"])
+                    ret += "    <ns>%s</ns>\n" % (ret_page.attrib["ns"])
+                    ret += "    <id>%s</id>\n" % (ret_page.attrib["pageid"])
+                except Exception:
                     firstpartok = False
                     continue
                 else:
@@ -213,30 +243,34 @@ def getXMLPageWithApi(config: Config = None, title="", verbose=True, session=Non
                     yield ret
 
             continueVal = None
-            if root.find("continue") is not None:
+            continue_element: (ElementTree.Element | None) = root.find("continue")
+            query_continue_element: (ElementTree.Element | None) = root.find(
+                "query-continue"
+            )
+            if continue_element is not None:
                 # uses continue.rvcontinue
                 # MW 1.26+
                 continueKey = "rvcontinue"
-                continueVal = root.find("continue").attrib["rvcontinue"]
-            elif root.find("query-continue") is not None:
-                revContinue = root.find("query-continue").find("revisions")
-                assert revContinue is not None, "Should only have revisions continue"
-                if "rvcontinue" in revContinue.attrib:
+                continueVal = continue_element.attrib["rvcontinue"]
+            elif query_continue_element is not None:
+                rev_continue = query_continue_element.find("revisions")
+                assert rev_continue is not None, "Should only have revisions continue"
+                if "rvcontinue" in rev_continue.attrib:
                     # MW 1.21 ~ 1.25
                     continueKey = "rvcontinue"
-                    continueVal = revContinue.attrib["rvcontinue"]
-                elif "rvstartid" in revContinue.attrib:
+                    continueVal = rev_continue.attrib["rvcontinue"]
+                elif "rvstartid" in rev_continue.attrib:
                     # TODO: MW ????
                     continueKey = "rvstartid"
-                    continueVal = revContinue.attrib["rvstartid"]
+                    continueVal = rev_continue.attrib["rvstartid"]
                 else:
                     # blindly assume the first attribute is the continue key
                     # may never happen
                     assert (
-                        len(revContinue.attrib) > 0
+                        len(rev_continue.attrib) > 0
                     ), "Should have at least one attribute"
-                    for continueKey in revContinue.attrib.keys():
-                        continueVal = revContinue.attrib[continueKey]
+                    for continueKey in rev_continue.attrib.keys():
+                        continueVal = rev_continue.attrib[continueKey]
                         break
             if continueVal is not None:
                 params[continueKey] = continueVal
@@ -246,7 +280,9 @@ def getXMLPageWithApi(config: Config = None, title="", verbose=True, session=Non
 
                 # transform the revision
                 rev_, edits = reconstructRevisions(root=root)
-                xmldom = MD.parseString(b"<stub1>" + ET.tostring(rev_) + b"</stub1>")
+                xmldom = MD.parseString(
+                    b"<stub1>" + ElementTree.tostring(rev_) + b"</stub1>"
+                )
                 # convert it into text in case it throws MemoryError
                 # delete the first three line and last two line,which is for setting the indent
                 ret += "".join(xmldom.toprettyxml(indent="  ").splitlines(True)[3:-2])
@@ -254,7 +290,7 @@ def getXMLPageWithApi(config: Config = None, title="", verbose=True, session=Non
                 numberofedits += edits
                 if config.curonly or continueVal is None:  # no continue
                     break
-            except:
+            except Exception:
                 traceback.print_exc()
                 params["rvcontinue"] = lastcontinue
                 ret = ""
@@ -267,7 +303,9 @@ def getXMLPageWithApi(config: Config = None, title="", verbose=True, session=Non
             "export": 1,
             "exportnowrap": 1,
         }
-        xml = getXMLPageCoreWithApi(params=params, config=config, session=session)
+        xml = getXMLPageCoreWithApi(
+            headers={}, params=params, config=config, session=session
+        )
         if xml == "":
             raise ExportAbortedError(config.index)
         if "</page>" not in xml:

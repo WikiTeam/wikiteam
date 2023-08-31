@@ -1,6 +1,6 @@
 """ Available since MediaWiki 1.27. login to a wiki using username and password (API) """
 
-from typing import *
+from typing import Optional
 
 import requests
 
@@ -15,8 +15,7 @@ def fetchLoginToken(session: requests.Session, api: str) -> Optional[str]:
     data = response.json()
     try:
         token = data["query"]["tokens"]["logintoken"]
-        if type(token) is str:
-            return token
+        return token if type(token) is str else None
     except KeyError:
         print("fetch login token: Oops! Something went wrong -- ", data)
         return None

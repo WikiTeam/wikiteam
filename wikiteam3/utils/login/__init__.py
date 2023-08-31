@@ -4,7 +4,7 @@ import time
 
 import requests
 
-from wikiteam3.utils.login.api import botLogin, clientLogin, fetchLoginToken
+from wikiteam3.utils.login.api import botLogin, clientLogin
 from wikiteam3.utils.login.index import indexLogin
 
 

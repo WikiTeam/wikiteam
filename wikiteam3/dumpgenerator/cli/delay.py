@@ -1,5 +1,3 @@
-import itertools
-import sys
 import threading
 import time
 
@@ -21,7 +19,7 @@ class Delay:
 
             time.sleep(0.3)
 
-    def __init__(self, config: Config = None, session=None, msg=None, delay=None):
+    def __init__(self, config: Config, msg=None, delay=None):
         """Add a delay if configured for that"""
         self.ellipses: str = "."
 
