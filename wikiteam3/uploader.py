@@ -388,7 +388,6 @@ The list must be a text file with the wiki's api.php URLs, one per line.
 Dumps must be in the same directory and follow the -wikidump.7z/-history.xml.7z format
 as produced by launcher.py (explained in https://github.com/WikiTeam/wikiteam/wiki/Tutorial#Publishing_the_dump ).
 You need a file named keys.txt with access and secret keys, in two different lines
-You also need py in the same directory as this script.
 
 Use --help to print this help."""
     )
