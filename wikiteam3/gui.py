@@ -55,22 +55,25 @@ from tkinter import (
 from wikiteam3.dumpgenerator.api.api import checkAPI
 from wikiteam3.dumpgenerator.api.index_check import checkIndex
 
+# See https://www.mediawiki.org/wiki/Hosting_services
 wikifarms = {
-    "gentoo_wikicom": "Gentoo Wiki",
-    "opensuseorg": "OpenSuSE",
-    "referatacom": "Referata",
-    "shoutwikicom": "ShoutWiki",
-    "Unknown": "Unknown",
-    "wikanda": "Wikanda",
-    "wikifur": "WikiFur",
-    "wikimedia": "Wikimedia",
-    "wikitravelorg": "WikiTravel",
-    "wikkii": "Wikkii",
+    "fandom": "Fandom",
+    "miraheze": "Miraheze",
+    "mywikis": "MyWikis",
+    "neoseeker": "Neoseeker",
+    "prowiki": "ProWiki",
+    "shoutwiki": "ShoutWiki",
+    "telepedia wiki": "Telepedia Wiki",
+    "webmo": "WebMo",
+    "wiki.gg": "wiki.gg",
+    "wiki-site": "Wiki-Site",
+    "wikiforge": "WikiForge",
+    "wikitide": "WikiTide",
 }
 
-NAME = "WikiTeam tools"
+NAME = "MediaWiki Dump Generator"
 VERSION = "0.1"
-HOMEPAGE = "https://code.google.com/p/wikiteam/"
+HOMEPAGE = "https://github.com/mediawiki-client-tools/mediawiki-dump-generator"
 LINUX = platform.system().lower() == "linux"
 if PATH := os.path.dirname(__file__):
     os.chdir(PATH)
@@ -177,16 +180,18 @@ class App:
             self.frame2,
             self.optionmenu21var,
             self.optionmenu21var.get(),
-            "Gentoo Wiki",
-            "OpenSuSE",
-            "Referata",
+            "Fandom",
+            "Miraheze",
+            "MyWikis",
+            "Neoseeker",
+            "ProWiki",
             "ShoutWiki",
-            "Unknown",
-            "Wikanda",
-            "WikiFur",
-            "Wikimedia",
-            "WikiTravel",
-            "Wikkii",
+            "Telepedia Wiki",
+            "WebMo",
+            "wiki.gg",
+            "Wiki-Site",
+            "WikiForge",
+            "WikiTide",
         )
         self.optionmenu21.grid(row=1, column=1)
 
@@ -215,6 +220,18 @@ class App:
             self.optionmenu23var.get(),
             "2011",
             "2012",
+            "2013",
+            "2014",
+            "2015",
+            "2016",
+            "2017",
+            "2018",
+            "2019",
+            "2020",
+            "2021",
+            "2022",
+            "2023",
+            "2024",
         )
         self.optionmenu23.grid(row=1, column=5)
 
@@ -228,7 +245,6 @@ class App:
             self.optionmenu24var.get(),
             "Google Code",
             "Internet Archive",
-            "ScottDB",
         )
         self.optionmenu24.grid(row=1, column=7)
 
@@ -603,11 +619,6 @@ class App:
                 iaregexp,
             ],
             [
-                "ScottDB",
-                "http://mirrors.sdboyd56.com/WikiTeam/",
-                r'<a href="(?P<filename>[^>]+\.7z)">(?P<size>[\d\.]+ (?:KB|MB|GB|TB))</a>',
-            ],
-            [
                 "Wikimedia",
                 "http://dumps.wikimedia.org/backup-index.html",
                 r'(?P<size>)<a href="(?P<filename>[^>]+)">[^>]+</a>: <span class=\'done\'>Dump complete</span></li>',
@@ -644,8 +655,6 @@ class App:
                     downloadurl = (
                         re.sub(r"/details/", r"/download/", url) + "/" + filename
                     )
-                elif mirror == "ScottDB":
-                    downloadurl = f"{url}/{filename}"
                 elif mirror == "Wikimedia":
                     downloadurl = (
                         "http://dumps.wikimedia.org/"
