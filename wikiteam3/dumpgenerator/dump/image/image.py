@@ -154,7 +154,7 @@ class Image:
                     logerror(
                         config=config,
                         to_stdout=True,
-                        text=f"Failled to donwload '{filename2}' with URL '{url}' due to HTTP '{r.status_code}', skipping",
+                        text=f"Failed to download '{filename2}' with URL '{url}' due to HTTP '{r.status_code}', skipping",
                     )
 
             if os.path.isfile(f"{filename3}.desc"):
