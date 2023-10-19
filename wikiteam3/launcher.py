@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-# Instructions: https://github.com/WikiTeam/wikiteam/wiki/Tutorial#Download_a_list_of_wikis
+# Instructions: https://github.com/mediawiki-client-tools/mediawiki-dump-generator/blob/python3/USAGE.md
 
 import argparse
 import os
