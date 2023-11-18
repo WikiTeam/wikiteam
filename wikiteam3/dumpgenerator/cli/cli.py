@@ -230,6 +230,7 @@ def getParameters(params=None) -> Tuple[Config, Dict]:
     if args.insecure:
         session.verify = False
         requests.packages.urllib3.disable_warnings()
+        requests.packages.urllib3.util.ssl_.DEFAULT_CIPHERS = 'ALL:@SECLEVEL=1'
         print("WARNING: SSL certificate verification disabled")
 
     # Custom session retry
