@@ -31,7 +31,7 @@ Please consider publishing your wiki dump(s). You can do it yourself as explaine
 
 ## Contributing
 
-For information on reporting bugs and proposing changes, please see the [Contributing](./Contributing.md) guide.
+For information on reporting bugs and proposing changes, please see the [Contributing](./CONTRIBUTING.md) guide.
 
 ## Code of Conduct
 
