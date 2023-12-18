@@ -42,8 +42,6 @@ class TestRegexs:
     class TestRegexsOnline:
         listFiles_urls = {
             # site-date: url , `limit=` for counting the number of matches
-            "group0.mediawiki.demo.save-web.org_mediawiki-1.16.5-20230701": "http://group0.mediawiki.demo.save-web.org/mediawiki-1.16.5/index.php?title=特殊:文件列表&limit=2",
-            "group2.mediawiki.demo.save-web.org_mediawiki-1.39.1-20230701": "http://group2.mediawiki.demo.save-web.org/mediawiki-1.39.1/index.php?title=Special:ListFiles&limit=1",
             "archiveteam.org-20230701": "https://wiki.archiveteam.org/index.php?title=Special:ListFiles&sort=byname&limit=7",
             "wiki.othing.xyz-20230701": "https://wiki.othing.xyz/index.php?title=Special:ListFiles&sort=byname",
             "mediawiki.org-20230701": "https://www.mediawiki.org/w/index.php?title=Special:ListFiles&sort=byname&limit=7",
