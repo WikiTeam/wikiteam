@@ -48,6 +48,7 @@ class Image:
         c_savedImageDescs = 0
 
         bypass_cdn_image_compression: bool = other["bypass_cdn_image_compression"]
+        disable_image_verify: bool = other["disable_image_verify"]
 
         def modify_params(params: Optional[Dict] = None) -> Dict:
             """bypass Cloudflare Polish (image optimization)"""
@@ -130,7 +131,11 @@ class Image:
 
                 if r.status_code == 200:
                     try:
-                        if size == "False" or len(r.content) == int(size):
+                        if (
+                            size == "False"
+                            or len(r.content) == int(size)
+                            or disable_image_verify
+                        ):
                             # size == 'False' means size is unknown
                             with open(filename3, "wb") as imagefile:
                                 imagefile.write(r.content)
