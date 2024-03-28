@@ -105,9 +105,9 @@ Each wiki will be stored into files contiaining a stripped version of the url an
 By default, a `7z` executable is found on `PATH`. The `--7z-path` argument can be used to use a specific executable instead.
 
 The `--generator-arg` or `-g` argument can be used on the command line to pass through arguments to the `generator` instances that are spawned. For example:
-- `--generator-arg=--xmlrevisions` to use the modern MediaWiki API for retrieving revisions
-- `--generator-arg=--delay=2` to use a delay of 2 seconds between requests
-- `-g=--user -g=USER -g=--pass -g=PASSWORD` to dump a wiki that only logged in users can read
+* `--generator-arg=--xmlrevisions` to use the modern MediaWiki API for retrieving revisions
+* `--generator-arg=--delay=2` to use a delay of 2 seconds between requests
+* `-g=--user -g=USER -g=--pass -g=PASSWORD` to dump a wiki that only logged in users can read
 
 ## `Uploader`
 

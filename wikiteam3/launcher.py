@@ -170,7 +170,7 @@ def main():
         # compress
         if finished:
             time.sleep(1)
-            os.chdir(wikidir)
+            os.chdir(Path(wikidir))
             print("Changed directory to", os.getcwd())
             # Basic integrity check for the xml. The script doesn't actually do anything, so you should check if it's broken. Nothing can be done anyway, but redownloading.
             subprocess.call(
