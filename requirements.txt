@@ -204,9 +204,9 @@ poster3==0.8.1 ; python_version >= "3.8" and python_version < "4.0" \
 pre-commit-poetry-export==0.1.2 ; python_version >= "3.8" and python_version < "4.0" \
     --hash=sha256:4bdc5217f492083911fe6afe47a3532b2ab34108ed6cd7e159b603851f7b0357 \
     --hash=sha256:800d57df5ff96c6dcff1caf6f8f88bb08bd04f5017a125e94ce9e05ea27e60b8
-pymysql==1.1.0 ; python_version >= "3.8" and python_version < "4.0" \
-    --hash=sha256:4f13a7df8bf36a51e81dd9f3605fede45a4878fe02f9236349fd82a3f0612f96 \
-    --hash=sha256:8969ec6d763c856f7073c4c64662882675702efcb114b4bcbb955aea3a069fa7
+pymysql==1.1.1 ; python_version >= "3.8" and python_version < "4.0" \
+    --hash=sha256:4de15da4c61dc132f4fb9ab763063e693d521a80fd0e87943b9a453dd4c19d6c \
+    --hash=sha256:e127611aaf2b417403c60bf4dc570124aeb4a57f5f37b8e95ae399a42f904cd0
 pywikibot==6.6.5 ; python_version >= "3.8" and python_version < "4.0" \
     --hash=sha256:72c2fc4615de0b7b0a158ac5407317ed3dd9d1250d371281cc18672e9d0f384d
 requests-oauthlib==1.3.1 ; python_version >= "3.8" and python_version < "4.0" \
