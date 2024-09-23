@@ -110,7 +110,7 @@ poetry update && poetry install && poetry build
 ```
 
 ```bash
-pip3 install --force-reinstall dist/*.whl
+pip install --force-reinstall dist/*.whl
 ```
 
 <details>

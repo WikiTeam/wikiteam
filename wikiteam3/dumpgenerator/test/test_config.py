@@ -26,7 +26,7 @@ def _new_config_from_parameter(params):
 
 def get_config(mediawiki_ver, api=True):
     assert api == True
-    if mediawiki_ver == "1.39.6":
+    if mediawiki_ver == "1.39.7":
         return _new_config_from_parameter(
             [
                 "--api",

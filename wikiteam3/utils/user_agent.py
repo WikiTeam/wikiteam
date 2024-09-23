@@ -1,6 +1,6 @@
 import requests
 
-"""Return a cool user-agent to hide Python user-agent"""
+# Return a cool user-agent to hide Python user-agent
 
 
 def getUserAgent():
