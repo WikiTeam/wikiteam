@@ -29,6 +29,6 @@ REGEX_CANDIDATES = [
         r'(?im)<td class="TablePager_col_img_name">\s*<a href[^>]*?>(?P<filename>[^>]+)</a>[^<]*?<a href="(?P<url>[^>]+)">[^<]*?</a>[^<]*?</td>\s*'
         r'<td class="TablePager_col_thumb">[^\n\r]*?</td>\s*'
         r'<td class="TablePager_col_img_size">[^<]*?</td>\s*'
-        r'<td class="(?:TablePager_col_img_user_text|TablePager_col_img_actor)">\s*(<a href="[^>]*?" title="[^>]*?">)?(?P<uploader>[^<]+?)(</a>)?\s*</td>'
+        r'<td class="(?:TablePager_col_img_user_text|TablePager_col_img_actor)">\s*(?:<a href="[^>]*?" title="[^>]*?">)?(?:<bdi>)?(?P<uploader>[^<]+?)(?:</bdi>)?(?:</a>)?\s*(?:<span class="mw-usertoollinks">(?:(?!</span>)(?!</td>).)*?</span>)?</td>'
     ),
 ]
