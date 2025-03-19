@@ -23,6 +23,7 @@ def handle_StatusCode(response: requests.Response):
         print("Authentication required.")
         print("Please use --user and --pass.")
         print(response.url)
+        sys.exit(1)
 
     elif status_code == 404:
         print("Not found. Is Special:Export enabled for this wiki?")
