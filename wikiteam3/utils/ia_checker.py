@@ -1,6 +1,7 @@
 import datetime
 import logging
 from typing import List, Optional
+from urllib.parse import urlparse
 
 from internetarchive import ArchiveSession, Search
 
@@ -32,7 +33,13 @@ def search_ia(apiurl: Optional[str] = None, indexurl: Optional[str] = None, adde
 
     ia_session = ArchiveSession()
 
-    query = f'(originalurl:"{apiurl}" OR originalurl:"{indexurl}")'
+    urls_to_check: List[str] = [
+        urlparse(url)._replace(scheme=scheme).geturl()
+        for url in (apiurl, indexurl) if url
+        for scheme in ('http', 'https')
+    ]
+
+    query = '(' + ' OR '.join([f'originalurl:"{url}"' for url in urls_to_check]) + ')'
     if addeddate_intervals:
         query += f' AND addeddate:[{addeddate_intervals[0]} TO {addeddate_intervals[1]}]'
     search = Search(ia_session, query=query,
