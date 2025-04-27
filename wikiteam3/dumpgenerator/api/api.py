@@ -11,7 +11,6 @@ from wikiteam3.utils import get_random_UserAgent
 
 def check_API(api: str, session: requests.Session):
     """Checking API availability"""
-    global cj
     # handle redirects
     r: Optional[requests.Response] = None
     for i in range(4):
