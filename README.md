@@ -35,6 +35,7 @@ User-agent: wikiteam3
 Disallow: /
 ```
 
+Our bots are running on the following IPs: [wikiteam3.txt](https://static.saveweb.org/bots_ips/wikiteam3.txt) (ips+info) | [wikiteam3.ips.txt](https://static.saveweb.org/bots_ips/wikiteam3.ips.txt) (ips)
 
 ## Installation/Upgrade
 
