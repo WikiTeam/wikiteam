@@ -48,7 +48,7 @@ pip install wikiteam3 --upgrade
 >
 > Even more, we also accept DokuWiki and PukiWiki archive requests.
 > 
-> - wikiteam IRC (webirc): https://chat.hackint.org/?join=#wikiteam
+> - wikiteam IRC (webirc): <https://chat.hackint.org/?join=%23wikiteam>
 > - wikiteam IRC logs: https://irclogs.archivete.am/wikiteam
 
 ## Dumpgenerator usage
