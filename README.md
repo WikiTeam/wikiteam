@@ -2,9 +2,11 @@
 
 **MediaWiki Dump Generator can archive wikis from the largest to the tiniest.**
 
-`MediaWiki Dump Generator` is an ongoing project to port the legacy [`wikiteam`](https://github.com/WikiTeam/wikiteam) toolset to Python 3 and PyPI to make it more accessible for today's archivers.
+`MediaWiki Dump Generator` is a project to port the legacy [`wikiteam`](https://github.com/WikiTeam/wikiteam) toolset to Python 3 and PyPI to make it more accessible for today's archivers.
 
 Most of the focus has been on the core `dumpgenerator` tool. Python 3 versions of the other `wikiteam` tools may be added over time.
+
+The project is currently mostly in maintenance mode. We will do our best to prevent the project from breaking entirely. Issues and pull requests are welcomed but may not be reviewed promptly.
 
 ## MediaWiki Dump Generator Toolset
 
@@ -37,9 +39,9 @@ For information on reporting bugs and proposing changes, please see the [Contrib
 
 `mediawiki-client-tools` has a [Code of Conduct](./CODE_OF_CONDUCT.md).
 
-At the moment the only person responsible for reviewing CoC reports is the repository administrator, Elsie Hupp, but we will work towards implementing a broader-based approach to reviews.
+At the moment the only person responsible for reviewing CoC reports is the repository administrator, Janet Cobb, reachable at [git@randomcat.org](mailto:git@randomcat.org). Please state up front if your message concerns the Code of Conduct, as these messages are confidential.
 
-You can contact Elsie Hupp directly via email at [mediawiki-client-tools@elsiehupp.com](mailto:mediawiki-client-tools@elsiehupp.com) or on Matrix at [@elsiehupp:beeper.com](https://matrix.to/#/@elsiehupp:beeper.com). (Please state up front if your message concerns the Code of Conduct, as these messages are confidential.)
+In case of emergency (i.e. if Janet is not reachable or if such an issue involves her), you can contact Elsie Hupp, who also retains privileges over this repository, directly via email at [mediawiki-client-tools@elsiehupp.com](mailto:mediawiki-client-tools@elsiehupp.com) or on Matrix at [@elsiehupp:beeper.com](https://matrix.to/#/@elsiehupp:beeper.com). 
 
 ## Contributors
 
@@ -47,4 +49,4 @@ You can contact Elsie Hupp directly via email at [mediawiki-client-tools@elsiehu
 It was founded and originally developed by [Emilio J. Rodríguez-Posada](https://github.com/emijrp), a Wikipedia veteran editor and amateur archivist. Thanks to people who have helped, especially to: [Federico Leva](https://github.com/nemobis), [Alex Buie](https://github.com/ab2525), [Scott Boyd](http://www.sdboyd56.com), [Hydriz](https://github.com/Hydriz), Platonides, Ian McEwen, [Mike Dupont](https://github.com/h4ck3rm1k3), [balr0g](https://github.com/balr0g) and [PiRSquared17](https://github.com/PiRSquared17).
 
 **MediaWiki Dump Generator**
-The Python 3 initiative is currently being led by [Elsie Hupp](https://github.com/elsiehupp), with contributions from [Victor Gambier](https://github.com/vgambier), [Thomas Karcher](https://github.com/t-karcher), [Janet Cobb](https://github.com/randomnetcat), [yzqzss](https://github.com/yzqzss), [NyaMisty](https://github.com/NyaMisty) and [Rob Kam](https://github.com/robkam)
+The Python 3 initiative was started and originally maintained by [Elsie Hupp](https://github.com/elsiehupp); it is currently primarily maintained by [Janet Cobb](https://github.com/randomnetcat). We are also grateful to have contributions from [Victor Gambier](https://github.com/vgambier), [Thomas Karcher](https://github.com/t-karcher), [yzqzss](https://github.com/yzqzss), [NyaMisty](https://github.com/NyaMisty) and [Rob Kam](https://github.com/robkam).
