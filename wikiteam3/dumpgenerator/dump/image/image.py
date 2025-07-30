@@ -298,7 +298,7 @@ class Image:
                             delete_mismatch_image(filename_underscore) # delete previous mismatch image
                             c_savedImageFiles += 1
                         else:
-                            if len(r.content) != int(size):
+                            if size != NULL and len(r.content) != int(size):
                                 raise FileSizeError(file=filename_underscore,
                                                     got_size=len(r.content),
                                                     excpected_size=int(size),
