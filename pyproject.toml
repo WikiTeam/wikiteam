@@ -5,10 +5,10 @@ name = "wikiteam3"
 version = "4.4.2"
 description = "Tools for downloading and preserving MediaWikis. We archive MediaWikis, from Wikipedia to tiniest wikis."
 license = {text = "GPL-3.0-or-later"}
-requires-python = "<4.0.0,>=3.8.1"
+requires-python = "<4.0.0,>=3.9"
 dependencies = [
     "requests<3.0.0,>=2.32.3",
-    "internetarchive<5.0.0,>=4.1.0",
+    "internetarchive<5.5.0,>=4.1.0",
     "lxml<6.0.0,>=5.2.2",
     "mwclient<1.0.0,>=0.10.1",
     "file-read-backwards<4.0.0,>=3.1.0",
