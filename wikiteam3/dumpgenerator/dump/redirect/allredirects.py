@@ -7,6 +7,7 @@ from wikiteam3.dumpgenerator.config import Config
 from wikiteam3.utils.util import ALL_NAMESPACE_FLAG
 
 def get_redirects_by_allredirects(config: Config, session: requests.Session):
+    continueKey = 'arcontinue'
     assert config.api, "API URL is required"
 
     namespaces, namespacenames = getNamespacesAPI(config=config, session=session)
@@ -20,6 +21,8 @@ def get_redirects_by_allredirects(config: Config, session: requests.Session):
         "continue": "" # DEV.md#Continuation
     }
     for ns in namespaces:
+        if continueKey in ar_params:
+            del ar_params[continueKey] # reset continue parameter
         if ALL_NAMESPACE_FLAG not in config.namespaces: # user has specified namespaces
             if ns not in config.namespaces:
                 print(f"Skipping namespace {ns}")
@@ -37,10 +40,9 @@ def get_redirects_by_allredirects(config: Config, session: requests.Session):
                 yield redirect
 
             if "continue" in allredirects_response:
-                continueKey = 'arcontinue'
                 # update continue parameter
                 ar_params[continueKey] = allredirects_response["continue"][continueKey]
-                print(f"  arcontinue={ar_params[continueKey]}")
+                print(f"  {continueKey}={ar_params[continueKey]}")
             else:
                 # End of continuation. We are done with this namespace.
                 break
