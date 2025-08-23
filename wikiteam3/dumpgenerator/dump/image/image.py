@@ -116,10 +116,22 @@ class Image:
         skip_to_filename = underscore('') # TODO: use this
 
         while images:
-            filename_raw, url_raw, uploader_raw, size, sha1, timestamp \
-                = images.pop(0) # reduce memory usage by poping
+            filename_raw, url_raw, uploader_raw, size, sha1, timestamp = images.pop(0) # reduce memory usage by poping
             filename_underscore = underscore(filename_raw)
             # uploader_underscore = space(uploader_raw)
+
+            # https://github.com/saveweb/wikiteam3/issues/52
+            # --- Fandom PNG skip logic when resuming ---
+            is_fandom = (
+                "fandom.com" in (config.api or config.index) and
+                "static.wikia.nocookie.net" in url_raw
+            )
+            is_png = filename_underscore.lower().endswith('.png')
+            mismatch_file = (Path(config.path) / "images_mismatch" / filename_underscore)
+            if is_fandom and is_png and mismatch_file.is_file():
+                print(f"Skipping Fandom PNG (already in images_mismatch): {filename_underscore}")
+                continue
+            # --- end skip logic ---
 
             if skip_to_filename and skip_to_filename != filename_underscore:
                 print(f"    {filename_underscore}", end="\r")
