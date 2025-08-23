@@ -555,7 +555,6 @@ class Image:
                             filename = urllib.parse.unquote(
                                 url.split("/")[-1]
                             )
-                    assert " " not in filename, f'Filename "{filename}" contains space, please report this to the developer(s)'
 
                     if "%u" in filename:
                         warnings.warn(
