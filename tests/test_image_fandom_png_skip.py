@@ -47,6 +47,6 @@ def test_fandom_png_skip(monkeypatch, fandom_png_in_mismatch, capsys):
 		# Check that skip message was printed
 		found = False
 		for call in mock_print.call_args_list:
-			if f"Skipping Fandom PNG (already in images_mismatch): {png_name}" in str(call):
+			if f"Skipping Fandom PNG/JPG (already in images_mismatch): {png_name}" in str(call):
 				found = True
 		assert found, "Did not skip Fandom PNG in images_mismatch as expected"
