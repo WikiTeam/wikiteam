@@ -1,6 +1,6 @@
 import re
 import traceback
-from typing import Generator, Optional
+from typing import Generator, Iterator, Optional
 from urllib.parse import urlparse
 
 import mwclient
@@ -269,24 +269,33 @@ def read_titles(config: Config, session: requests.Session, start: Optional[str]=
         url2prefix_from_config(config=config), config.date
     )
 
+    with open(f"{config.path}/{titles_filename}", encoding="utf-8") as f:
+        yield from read_until_end(source=f, start=start)
+
+def read_until_end(source: Iterator[str], start: Optional[str]=None) -> Generator[str, None, None]:
     seeking = start is not None
     """ If True, we are looking for the `start` title to start reading from """
     end_reached = False
-    with open(f"{config.path}/{titles_filename}", encoding="utf-8") as f:
-        for line in f:
-            title = line.strip()
+    last_line = None
 
-            if title == "--END--":
-                end_reached = True
-            else:
-                end_reached = False
+    for line in source:
+        line = line.strip()
 
-            if seeking and title != start:
-                continue
-            else:
-                seeking = False
+        if line == "--END--":
+            end_reached = True
+        else:
+            end_reached = False
 
-            yield title
+        if seeking and last_line != start:
+            last_line = line
+            continue
+        else:
+            seeking = False
+
+        if last_line is not None:
+            yield last_line
+
+        last_line = line
 
     if not end_reached:
         raise EOFError("End of file flag `--END--` not found in the last line")
