@@ -1,4 +1,10 @@
-__VERSION__ = "4.4.5"
+__VERSION__ = "unknown"
+
+try:
+    import importlib.metadata
+    __VERSION__ = importlib.metadata.version("wikiteam3")
+except Exception:
+    pass
 
 
 def getVersion():
