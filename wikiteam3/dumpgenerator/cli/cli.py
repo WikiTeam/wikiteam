@@ -396,7 +396,7 @@ def get_parameters(params=None) -> Tuple[Config, OtherConfig]:
 
     # Set HTTP Basic Auth
     if args.http_user and args.http_password:
-        session.auth = (args.user, args.password)
+        session.auth = (args.http_user, args.http_password)
 
     # Execute meta info params
     if args.wiki:
