@@ -9,10 +9,10 @@ requires-python = "<4.0.0,>=3.9"
 dependencies = [
     "requests<3.0.0,>=2.32.3",
     "internetarchive<5.5.0,>=4.1.0",
-    "lxml<6.0.0,>=5.2.2",
     "mwclient<1.0.0,>=0.10.1",
     "file-read-backwards<4.0.0,>=3.1.0",
     "python-slugify<9.0.0,>=8.0.4",
+    "lxml>=6.0.2",
 ]
 readme = "README.md"
 keywords = ["archiveteam", "mediawiki", "wikiteam", "wikiteam3", "preservation", "wiki", "wikipedia"]

@@ -61,13 +61,13 @@ usage: wikiteam3dumpgenerator [-h] [-v] [--cookies cookies.txt] [--delay 1.5]
                               [--retries 5] [--hard-retries 3] [--path PATH]
                               [--resume] [--force] [--user USER]
                               [--pass PASSWORD] [--http-user HTTP_USER]
-                              [--http-pass HTTP_PASSWORD] [--insecure]
+                              [--http-pass HTTP_PASSWORD]
+                              [--http-method {GET,POST}] [--insecure]
                               [--verbose] [--api_chunksize 50] [--api API]
                               [--index INDEX] [--index-check-threshold 0.80]
                               [--xml] [--curonly] [--xmlapiexport]
                               [--xmlrevisions] [--xmlrevisions_page]
-                              [--redirects] [--namespaces 1,2,3]
-                              [--exnamespaces 1,2,3] [--images]
+                              [--redirects] [--namespaces 1,2,3] [--images]
                               [--bypass-cdn-image-compression]
                               [--image-timestamp-interval 2019-01-02T01:36:06Z/2023-08-12T10:36:06Z]
                               [--ia-wbm-booster {0,1,2,3}]
@@ -102,6 +102,9 @@ options:
                         Username if HTTP authentication is required.
   --http-pass HTTP_PASSWORD
                         Password if HTTP authentication is required.
+  --http-method {GET,POST}
+                        HTTP method to use when making API requests to the
+                        wiki (default: POST)
   --insecure            Disable SSL certificate verification
   --verbose
   --api_chunksize 50    Chunk size for MediaWiki API (arvlimit, ailimit, etc.)
@@ -134,8 +137,6 @@ Data to download:
   --redirects           Dump page redirects via API:Allredirects
   --namespaces 1,2,3    comma-separated value of namespaces to include (all by
                         default)
-  --exnamespaces 1,2,3  [lack maintenance] comma-separated value of namespaces
-                        to exclude
   --images              Generates an image dump
 
 Image dump options:
