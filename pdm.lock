@@ -5,7 +5,7 @@
 groups = ["default", "dev"]
 strategy = ["inherit_metadata"]
 lock_version = "4.5.0"
-content_hash = "sha256:ecb8bd0564de17364e48821bb938634678ee946e5a081a9ef7dfd3b8e9b546c0"
+content_hash = "sha256:dbd0bfa618fc3c0c5e55bea6940b69fe9cec8d8de4b4aaa15747f2e54924cecf"
 
 [[metadata.targets]]
 requires_python = "~=3.9"
@@ -154,18 +154,17 @@ files = [
 
 [[package]]
 name = "importlib-metadata"
-version = "7.2.0"
-requires_python = ">=3.8"
+version = "8.7.1"
+requires_python = ">=3.9"
 summary = "Read metadata from Python packages"
 groups = ["default"]
 marker = "python_version <= \"3.10\""
 dependencies = [
-    "typing-extensions>=3.6.4; python_version < \"3.8\"",
-    "zipp>=0.5",
+    "zipp>=3.20",
 ]
 files = [
-    {file = "importlib_metadata-7.2.0-py3-none-any.whl", hash = "sha256:04e4aad329b8b948a5711d394fa8759cb80f009225441b4f2a02bd4d8e5f426c"},
-    {file = "importlib_metadata-7.2.0.tar.gz", hash = "sha256:3ff4519071ed42740522d494d04819b666541b9752c43012f85afb2cc220fcc6"},
+    {file = "importlib_metadata-8.7.1-py3-none-any.whl", hash = "sha256:5a1f80bf1daa489495071efbb095d75a634cf28a8bc299581244063b53176151"},
+    {file = "importlib_metadata-8.7.1.tar.gz", hash = "sha256:49fef1ae6440c182052f407c8d34a68f72efc36db9ca90dc0113398f2fdde8bb"},
 ]
 
 [[package]]
@@ -181,7 +180,7 @@ files = [
 
 [[package]]
 name = "internetarchive"
-version = "5.4.1"
+version = "5.7.1"
 requires_python = ">=3.9"
 summary = "A Python interface to archive.org."
 groups = ["default"]
@@ -193,8 +192,8 @@ dependencies = [
     "urllib3>=1.26.0",
 ]
 files = [
-    {file = "internetarchive-5.4.1-py3-none-any.whl", hash = "sha256:e02fb1bc5abb7f562e12b87a8b14f95d3ad8c2dd957c0c1587972e0da85fc74d"},
-    {file = "internetarchive-5.4.1.tar.gz", hash = "sha256:d520184f0b1493fc98427e2e386685bf27a5a325c9e948892d0e53c585f1217c"},
+    {file = "internetarchive-5.7.1-py3-none-any.whl", hash = "sha256:fcfcb729f4d7ffdad42aaed22247ac42e21fe2d99c122646870844cbbd981559"},
+    {file = "internetarchive-5.7.1.tar.gz", hash = "sha256:f35e545c4925e1fc5f37bd83e59b8b72f79645129d0a32772a6d25fb5252d92a"},
 ]
 
 [[package]]
@@ -511,7 +510,7 @@ files = [
 
 [[package]]
 name = "tqdm"
-version = "4.66.4"
+version = "4.67.1"
 requires_python = ">=3.7"
 summary = "Fast, Extensible Progress Meter"
 groups = ["default"]
@@ -519,8 +518,8 @@ dependencies = [
     "colorama; platform_system == \"Windows\"",
 ]
 files = [
-    {file = "tqdm-4.66.4-py3-none-any.whl", hash = "sha256:b75ca56b413b030bc3f00af51fd2c1a1a5eac6a0c1cca83cbb37a5c52abce644"},
-    {file = "tqdm-4.66.4.tar.gz", hash = "sha256:e4d936c9de8727928f3be6079590e97d9abfe8d39a590be678eb5919ffc186bb"},
+    {file = "tqdm-4.67.1-py3-none-any.whl", hash = "sha256:26445eca388f82e72884e0d580d5464cd801a3ea01e63e5601bdff9ba6a48de2"},
+    {file = "tqdm-4.67.1.tar.gz", hash = "sha256:f8aef9c52c08c13a65f30ea34f4e5aac3fd1a34959879d7e59e63027286627f2"},
 ]
 
 [[package]]
@@ -536,12 +535,12 @@ files = [
 
 [[package]]
 name = "zipp"
-version = "3.19.2"
-requires_python = ">=3.8"
+version = "3.23.0"
+requires_python = ">=3.9"
 summary = "Backport of pathlib-compatible object wrapper for zip files"
 groups = ["default"]
 marker = "python_version <= \"3.10\""
 files = [
-    {file = "zipp-3.19.2-py3-none-any.whl", hash = "sha256:f091755f667055f2d02b32c53771a7a6c8b47e1fdbc4b72a8b9072b3eef8015c"},
-    {file = "zipp-3.19.2.tar.gz", hash = "sha256:bf1dcf6450f873a13e952a29504887c89e6de7506209e5b1bcc3460135d4de19"},
+    {file = "zipp-3.23.0-py3-none-any.whl", hash = "sha256:071652d6115ed432f5ce1d34c336c0adfd6a884660d1e9712a256d3d3bd4b14e"},
+    {file = "zipp-3.23.0.tar.gz", hash = "sha256:a07157588a12518c9d4034df3fbbee09c814741a33ff63c05fa29d26a2404166"},
 ]

@@ -8,8 +8,8 @@ license = {text = "GPL-3.0-or-later"}
 requires-python = "<4.0.0,>=3.9"
 dependencies = [
     "requests<3.0.0,>=2.32.3",
-    "internetarchive<5.5.0,>=4.1.0",
-    "mwclient<1.0.0,>=0.10.1",
+    "internetarchive>=5.7.1",
+    "mwclient<1.0.0,>=0.11.0",
     "file-read-backwards<4.0.0,>=3.1.0",
     "python-slugify<9.0.0,>=8.0.4",
     "lxml>=6.0.2",
