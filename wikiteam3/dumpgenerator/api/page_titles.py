@@ -31,10 +31,6 @@ def getPageTitlesAPI(config: Config, session: requests.Session):
         )
     delay_session.hijack()
     for namespace in namespaces:
-        if namespace in config.exnamespaces:
-            print("    Skipping namespace = %d" % (namespace))
-            continue
-
         c = 0
         print("    Retrieving titles in the namespace %d" % (namespace))
         apiurl = urlparse(config.api)
@@ -185,15 +181,6 @@ def getPageTitles(config: Config, session: requests.Session):
             else "None"
         )
     )
-    print(
-        "Excluding titles from namespaces = %s"
-        % (
-            ",".join([str(i) for i in config.exnamespaces])
-            if config.exnamespaces
-            else "None"
-        )
-    )
-
     titles = []
     if config.api:
         try:

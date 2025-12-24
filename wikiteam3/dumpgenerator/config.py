@@ -1,4 +1,5 @@
 import dataclasses
+from dataclasses import field
 import json
 from typing import List, Optional
 
@@ -51,10 +52,10 @@ class Config:
     xmlrevisions_page: bool = False
     images: bool = False
     redirects: bool = False
-    namespaces: List[int] = None
+    namespaces: List[int] = field(default_factory=list)
     """ [ALL_NAMESPACE_FLAG] or [int,...] """
-    exnamespaces: List[int] = None
-    """ save images """
+    exnamespaces: List[int] = field(default_factory=list)
+    """ [REMOVED FEATURE] keep for config backward compatibility. check wikiteam3#35 """
 
     api_chunksize: int = 0  # arvlimit, ailimit, etc
     export: str = ''

@@ -145,11 +145,6 @@ def getArgumentParser():
         help="comma-separated value of namespaces to include (all by default)",
     )
     group_download.add_argument(
-        "--exnamespaces",
-        metavar="1,2,3",
-        help="[lack maintenance] comma-separated value of namespaces to exclude",
-    )
-    group_download.add_argument(
         "--images", action="store_true", help="Generates an image dump"
     )
     group_image = parser.add_argument_group(
@@ -488,7 +483,6 @@ def get_parameters(params=None) -> Tuple[Config, OtherConfig]:
 
 
     namespaces = [ALL_NAMESPACE_FLAG]
-    exnamespaces = []
     # Process namespace inclusions
     if args.namespaces:
         # fix, why - ?  and... --namespaces= all with a space works?
@@ -507,17 +501,6 @@ def get_parameters(params=None) -> Tuple[Config, OtherConfig]:
             else:
                 namespaces = [int(i) for i in ns.split(",")]
 
-    # Process namespace exclusions
-    if args.exnamespaces:
-        try:
-            exnamespaces = [int(i) for i in ns.split(",")]
-        except ValueError:
-            print(
-                "Invalid namespace values.\nValid format is integer(s) separated by commas"
-            )
-            sys.exit(1)
-
-
     config = Config(
         curonly = args.curonly,
         date = datetime.datetime.now(datetime.timezone.utc).strftime("%Y%m%d"),
@@ -534,7 +517,6 @@ def get_parameters(params=None) -> Tuple[Config, OtherConfig]:
         xmlrevisions = args.xmlrevisions or args.xmlrevisions_page,
         xmlrevisions_page = args.xmlrevisions_page,
         namespaces = namespaces,
-        exnamespaces = exnamespaces,
         path = args.path and os.path.normpath(args.path) or "",
         delay = args.delay,
         retries = int(args.retries),
