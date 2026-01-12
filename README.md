@@ -27,7 +27,7 @@ This is a very quick guide for the most used features of WikiTeam tools. For fur
 
 ### Requirements
 
-Requires <a href="https://www.python.org/downloads/release/python-278/">Python 2.7</a>.
+Requires <a href="https://www.python.org/downloads/release/python-278/">Python 2.7</a>. If you want to use Python 3 instead, see <a href="https://github.com/saveweb/wikiteam3">this other repo</a>.
 
 Confirm you satisfy the requirements:
 
