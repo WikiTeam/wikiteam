@@ -27,6 +27,8 @@ import cookielib
 import cPickle
 import datetime
 import sys
+reload(sys)
+sys.setdefaultencoding('utf8')
 try:
     import argparse
 except ImportError:
