@@ -25,17 +25,63 @@ There are [thousands](http://wikiindex.org) of [wikis](https://wikiapiary.com) i
 
 This is a very quick guide for the most used features of WikiTeam tools. For further information, read the [tutorial](https://github.com/WikiTeam/wikiteam/wiki/Tutorial) and the rest of the [documentation](https://github.com/WikiTeam/wikiteam/wiki). You can also ask in the [mailing list](http://groups.google.com/group/wikiteam-discuss).
 
+### Python Environment
+
+WikiTeam requires [Python 2.7(https://www.python.org/downloads/release/python-278/). However, as Python 2.7 [reached the end of its official service life on January 1st, 2020](https://pip.pypa.io/en/latest/development/release-process/#python-2-support), modern operating systems no longer offer a working Python 2.7 environment by default. Therefore, most users will have to install a virtual environment such as `miniconda`.
+
+Per-platform instructions for `miniconda` can be found [here](https://docs.conda.io/en/latest/miniconda.html). Generic instructions for Linux x86-64 will continue below.
+
+### Generic `miniconda` Instructions for Linux x86-64
+
+1. Download and install `miniconda`:
+```bash
+$ curl -s https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh | bash
+```
+3. Restart `bash`:
+```bash
+$ exec bash
+```
+4. Update `conda`:
+```bash
+$ conda update -n base -c defaults conda
+```
+> You'll probably want to turn off `conda`'s autorun for your default shell environment:
+> ```bash
+> $ conda config --set auto_activate_base false
+> ```
+6. Create a new `conda` environment for `wikiteam` titled, e.g., 'wikiteam_env':
+```bash
+$ conda create -n wikiteam_env
+```
+7. Enter your new `conda` environemnt:
+```bash
+$ conda activate wikiteam_env
+```
+8. Install Python 2.7 in order to run `wikiteam`
+```bash
+conda install python=2.7
+```
+> This python version 2.7 is only accessible from within the conda environment 'wikiteam_env' and does not affect the system files. The binaries are stored in your home directory, and none of this requires root access as you are not changing system files.
+
+When you're done working in the `wikiteam` `conda` environment, you'll probably want to exit to the default environment, either by starting a new shell or with the following command:
+```bash
+$ conda deactivate
+```
+
 ### Requirements
 
-Requires <a href="https://www.python.org/downloads/release/python-278/">Python 2.7</a>.
-
-Confirm you satisfy the requirements:
-
-`pip install --upgrade -r requirements.txt`
-
-or, if you don't have enough permissions for the above,
-
-`pip install --user --upgrade -r requirements.txt`
+Once you have a working Python 2.7 environment set up and activate, check and install `wikiteam`'s Python dependencies:
+```bash
+$ pip install --upgrade -r requirements.txt
+```
+Or, if you don't have enough permissions for the above,
+```bash
+$ pip install --user --upgrade -r requirements.txt
+```
+To check to see if `wikiteam` is properly set up, try:
+```bash
+$ ./dumpgenerator.py --version
+```
 
 ### Download any wiki
 
