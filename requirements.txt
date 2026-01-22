@@ -1,5 +1,5 @@
 argparse>=1.2.1
 internetarchive
 kitchen
-mwclient
+mwclient==0.10
 requests>=2.3.0
