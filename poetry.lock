@@ -197,17 +197,6 @@ files = [
 ]
 
 [[package]]
-name = "docopt"
-version = "0.6.2"
-description = "Pythonic argument parser, that will make you smile"
-optional = false
-python-versions = "*"
-groups = ["main"]
-files = [
-    {file = "docopt-0.6.2.tar.gz", hash = "sha256:49b3a825280bd66b3aa83585ef59c4a8c82f2c8a522dbe754a8bc8d08c85c491"},
-]
-
-[[package]]
 name = "file-read-backwards"
 version = "2.0.0"
 description = "Memory efficient way of reading files line-by-line from the end of file"
@@ -317,31 +306,29 @@ files = [
 
 [[package]]
 name = "internetarchive"
-version = "3.7.0"
+version = "5.5.1"
 description = "A Python interface to archive.org."
 optional = false
-python-versions = ">=3.7"
+python-versions = ">=3.9"
 groups = ["main"]
 files = [
-    {file = "internetarchive-3.7.0-py3-none-any.whl", hash = "sha256:5855b818c1d24c6e49088e91db14ab4f974231cce14f4091dc0f5f72656022f5"},
-    {file = "internetarchive-3.7.0.tar.gz", hash = "sha256:fca52e6b28fb76c84c47e61f32794653dc2d2ae4cc2de90911cb967be221d70c"},
+    {file = "internetarchive-5.5.1-py3-none-any.whl", hash = "sha256:0564a82206ad8df78d00b30aa1477d5214c411e89280099cc6b24240fbe06894"},
+    {file = "internetarchive-5.5.1.tar.gz", hash = "sha256:e49b1681222ca9b4ff6db333b79c60ac3a1f16f0a87216431b4208adac8e5aaa"},
 ]
 
 [package.dependencies]
-docopt = ">=0.6.0,<0.7.0"
 importlib-metadata = {version = ">=3.6.0", markers = "python_version <= \"3.10\""}
 jsonpatch = ">=0.4"
 requests = ">=2.25.0,<3.0.0"
-schema = ">=0.4.0"
 tqdm = ">=4.0.0"
 urllib3 = ">=1.26.0"
 
 [package.extras]
-all = ["black", "mypy", "pre-commit", "pytest", "pytest (==7.1.2)", "responses (==0.20.0)", "ruff (==0.0.269)", "safety", "setuptools", "tqdm-stubs (>=0.2.0)", "types-colorama", "types-docopt (>=0.6.10,<0.7.0)", "types-jsonpatch (>=0.1.0a0)", "types-pygments", "types-requests (>=2.25.0,<3.0.0)", "types-setuptools", "types-ujson (>=4.2.0)", "types-urllib3 (>=1.26.0)"]
+all = ["black", "mypy", "pre-commit", "pytest", "pytest (==7.1.2)", "responses (==0.20.0)", "ruff (==0.8.5)", "safety", "setuptools", "tqdm-stubs (>=0.2.0)", "types-colorama", "types-jsonpatch (>=0.1.0a0)", "types-pygments", "types-requests (>=2.25.0,<3.0.0)", "types-setuptools", "types-ujson (>=4.2.0)", "types-urllib3 (>=1.26.0)"]
 dev = ["black", "mypy", "pre-commit", "pytest", "safety", "setuptools"]
 docs = ["alabaster (==0.7.12)", "docutils (<0.18)", "sphinx (==4.5.0)", "sphinx-autodoc-typehints (==1.18.1)"]
-test = ["pytest (==7.1.2)", "responses (==0.20.0)", "ruff (==0.0.269)"]
-types = ["tqdm-stubs (>=0.2.0)", "types-colorama", "types-docopt (>=0.6.10,<0.7.0)", "types-jsonpatch (>=0.1.0a0)", "types-pygments", "types-requests (>=2.25.0,<3.0.0)", "types-setuptools", "types-ujson (>=4.2.0)", "types-urllib3 (>=1.26.0)"]
+test = ["pytest (==7.1.2)", "responses (==0.20.0)", "ruff (==0.8.5)"]
+types = ["tqdm-stubs (>=0.2.0)", "types-colorama", "types-jsonpatch (>=0.1.0a0)", "types-pygments", "types-requests (>=2.25.0,<3.0.0)", "types-setuptools", "types-ujson (>=4.2.0)", "types-urllib3 (>=1.26.0)"]
 
 [[package]]
 name = "jsonpatch"
@@ -965,18 +952,6 @@ requests = ">=2.0.0"
 rsa = ["oauthlib[signedtoken] (>=3.0.0)"]
 
 [[package]]
-name = "schema"
-version = "0.7.8"
-description = "Simple data validation library"
-optional = false
-python-versions = "*"
-groups = ["main"]
-files = [
-    {file = "schema-0.7.8-py2.py3-none-any.whl", hash = "sha256:00bd977fadc7d9521bf289850cd8a8aa5f4948f575476b8daaa5c1b57af2dce1"},
-    {file = "schema-0.7.8.tar.gz", hash = "sha256:e86cc08edd6fe6e2522648f4e47e3a31920a76e82cce8937535422e310862ab5"},
-]
-
-[[package]]
 name = "setuptools"
 version = "82.0.0"
 description = "Easily download, build, install, upgrade, and uninstall Python packages"
@@ -1147,4 +1122,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.10"
-content-hash = "208b0e284c3c8e0f6da77f87dbecd43be65a893c82b88b6834a0bc19c1701b6b"
+content-hash = "6e2c1f3c48f07b110b8a629fd8416ab06c3b90f87235f552d74c610e8a012ba5"
