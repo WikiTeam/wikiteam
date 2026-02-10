@@ -10,14 +10,12 @@ try:
 
 
 except ImportError:
-    print(
-        """
+    print("""
         Please install poetry with:
             $ pip install poetry.
         Then rerun py with:
             $ poetry run python py
-    """
-    )
+    """)
     sys.exit(1)
 
 from typing import *

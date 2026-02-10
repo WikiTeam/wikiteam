@@ -66,9 +66,9 @@ def getXMLRevisionsByAllRevisions(
             # We have to build the XML manually...
             # Skip flags, presumably needed to add <minor/> which is in the schema.
             # Also missing: parentid and contentformat.
-            arvparams[
-                "arvprop"
-            ] = "ids|timestamp|user|userid|size|sha1|contentmodel|comment|content|flags"
+            arvparams["arvprop"] = (
+                "ids|timestamp|user|userid|size|sha1|contentmodel|comment|content|flags"
+            )
             print(
                 "Trying to get wikitext from the allrevisions API and to build the XML"
             )

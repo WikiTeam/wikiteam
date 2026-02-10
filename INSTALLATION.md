@@ -2,7 +2,7 @@
 
 ## Python Environment
 
-`MediaWiki Dump Generator` requires [Python 3.8](https://www.python.org/downloads/release/python-380/) or later (less than 4.0), but you may be able to get it run with earlier versions of Python 3. On recent versions of Linux and macOS Python 3.8 should come preinstalled, but on Windows you will need to install it from [python.org](https://www.python.org/downloads/release/python-380/).
+`MediaWiki Dump Generator` requires [Python 3.10](https://www.python.org/downloads/release/python-31012/) or later (less than 4.0), but you may be able to get it run with earlier versions of Python 3. On recent versions of Linux and macOS Python 3.10 should come preinstalled, but on Windows you will need to install it from [python.org](https://www.python.org/downloads/release/python-31012/).
 
 `MediaWiki Dump Generator` has been tested on Linux, macOS, Windows and Android. If you are connecting to Linux or macOS via `ssh`, you can continue using the `bash` or `zsh` command prompt in the same terminal, but if you are starting in a desktop environment and don't already have a preferred Terminal environment you can try one of the following.
 
@@ -51,7 +51,7 @@
 
   If you are already using the [Windows Subsystem for Linux](https://learn.microsoft.com/en-us/windows/wsl/about), you can follow the Linux instructions above. If you don't want to install a full WSL distribution, [Git for Windows](https://gitforwindows.org/) provides Bash emulation, so you can use it as a more lightweight option instead. Git Bash also provides some useful Linux commands and utilities.
 
-  > When installing [Python 3.8](https://www.python.org/downloads/release/python-380/) (from python.org), be sure to check "Add Python to PATH" so that installed Python scripts are accessible from any location. If for some reason installed Python scripts, e.g. `pip`, are not available from any location, you can add Python to the `PATH` environment variable using the instructions [here](https://datatofish.com/add-python-to-windows-path/).
+  > When installing [Python 3.10](https://www.python.org/downloads/release/python-31012/) (from python.org), be sure to check "Add Python to PATH" so that installed Python scripts are accessible from any location. If for some reason installed Python scripts, e.g. `pip`, are not available from any location, you can add Python to the `PATH` environment variable using the instructions [here](https://datatofish.com/add-python-to-windows-path/).
   >
   > And while doing so should not be necessary if you follow the instructions further down and install `MediaWiki Dump Generator` using `pip`, if you'd prefer that Windows store installed Python scripts somewhere other than the default Python folder under `%appdata%`, you can also add your preferred alternative path such as `C:\Program Files\Python3\Scripts\` or a subfolder of `My Documents`. (You will need to restart any terminal sessions in order for this to take effect.)
 

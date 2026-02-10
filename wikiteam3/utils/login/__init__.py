@@ -1,4 +1,4 @@
-""" Provide login functions """
+"""Provide login functions"""
 
 import time
 
