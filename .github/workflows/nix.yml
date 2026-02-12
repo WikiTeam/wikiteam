@@ -1,0 +1,34 @@
+name: Nix Build and Check
+
+on:
+  push:
+    branches: [ main, v4-main ]
+  pull_request:
+    branches: [ main, v4-main ]
+
+jobs:
+  nix-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install Nix
+        uses: cachix/install-nix-action@v27
+        with:
+          extra_nix_config: |
+            experimental-features = nix-command flakes
+      
+      - name: Check flake
+        run: nix flake check
+      
+      - name: Build package
+        run: nix build
+      
+      - name: Test wikiteam3dumpgenerator
+        run: |
+          nix run . -- --help
+      
+      - name: Verify reproducibility
+        run: |
+          nix build --rebuild
+          nix path-info --json | jq -r '.[].narHash'
