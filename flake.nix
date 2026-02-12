@@ -18,7 +18,7 @@
         
         src = ./.;
         
-        build-system = with pkgs.python3Packages; [
+        nativeBuildInputs = with pkgs.python3Packages; [
           pdm-backend
         ];
         
