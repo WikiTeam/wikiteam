@@ -19,7 +19,7 @@
         src = ./.;
         
         build-system = with pkgs.python3Packages; [
-          setuptools
+          pdm-backend
         ];
         
         propagatedBuildInputs = with pkgs.python3Packages; [
