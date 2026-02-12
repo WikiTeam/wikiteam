@@ -14,7 +14,13 @@
         pname = "wikiteam3";
         version = "3.11.0";
         
+        pyproject = true;
+        
         src = ./.;
+        
+        build-system = with pkgs.python3Packages; [
+          setuptools
+        ];
         
         propagatedBuildInputs = with pkgs.python3Packages; [
           requests
