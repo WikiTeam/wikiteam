@@ -28,6 +28,8 @@
           mwparserfromhell
           file-read-backwards
           python-slugify
+          internetarchive
+          lxml
         ];
         
         meta = with pkgs.lib; {
