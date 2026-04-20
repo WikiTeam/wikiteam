@@ -73,7 +73,7 @@ setuptools = "^82.0.0"
 profile = "black"
 
 [tool.poetry.group.dev.dependencies]
-pytest = "^6.2.5"
+pytest = "^9.0.3"
 requests = "^2.32.0"
 flake8 = "^3.9.2"
 pre-commit = "^2.17.0"
