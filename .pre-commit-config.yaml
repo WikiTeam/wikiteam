@@ -9,7 +9,7 @@ repos:
     rev: 2.3.2
     hooks:
     -   id: poetry-check
-    -   id: poetry-lock
+        args: ["--lock"]
 -   repo: https://github.com/python-poetry/poetry-plugin-export
     rev: 1.10.0
     hooks:
