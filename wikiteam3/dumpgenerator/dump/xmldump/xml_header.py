@@ -1,9 +1,9 @@
 import json
 import re
 import sys
-from typing import *
 
 import requests
+from typing import Tuple
 
 from wikiteam3.dumpgenerator.config import Config
 from wikiteam3.dumpgenerator.dump.page.xmlexport.page_xml import getXMLPage
@@ -11,7 +11,7 @@ from wikiteam3.dumpgenerator.exceptions import ExportAbortedError, PageMissingEr
 from wikiteam3.dumpgenerator.log import logerror
 
 
-def getXMLHeader(config: Config = None, session=None) -> Tuple[str, Config]:
+def getXMLHeader(config: Config, session: requests.Session) -> Tuple[str, Config]:
     """Retrieve a random page to extract XML headers (namespace info, etc)"""
     print(config.api)
     xml = ""
@@ -116,7 +116,9 @@ def getXMLHeader(config: Config = None, session=None) -> Tuple[str, Config]:
             print(xml)
             print("XML export on this wiki is broken, quitting.")
             logerror(
-                to_stdout=True, text="XML export on this wiki is broken, quitting."
+                config=config,
+                to_stdout=True,
+                text="XML export on this wiki is broken, quitting.",
             )
             sys.exit()
     return header, config

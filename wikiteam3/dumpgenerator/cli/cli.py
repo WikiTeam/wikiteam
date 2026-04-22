@@ -280,7 +280,7 @@ def getParameters(params=None) -> Tuple[Config, Dict]:
                     msg = "req retry (%s)" % response.status
                 else:
                     msg = None
-                Delay(config=None, session=session, msg=msg, delay=backoff)
+                Delay(config=config, msg=msg, delay=backoff)
 
         __retries__ = CustomRetry(
             total=int(args.retries),
@@ -372,7 +372,7 @@ def getParameters(params=None) -> Tuple[Config, Dict]:
     # TODO: Re-login after session expires
     if args.user and args.password:
         _session = uniLogin(
-            api=api,
+            api=api if api else "",
             index=index,
             session=session,
             username=args.user,
@@ -395,7 +395,8 @@ def getParameters(params=None) -> Tuple[Config, Dict]:
             print("index.php is OK")
         else:
             try:
-                index = "/".join(index.split("/")[:-1])
+                if index:
+                    index = "/".join(index.split("/")[:-1])
             except AttributeError:
                 index = None
             if index and checkIndex(index=index, cookies=args.cookies, session=session):

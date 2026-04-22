@@ -1,6 +1,7 @@
 import re
+from re import Match
 import sys
-from typing import *
+from io import TextIOWrapper
 
 import lxml.etree
 
@@ -18,13 +19,15 @@ from wikiteam3.dumpgenerator.exceptions import PageMissingError
 from wikiteam3.dumpgenerator.log import logerror
 from wikiteam3.utils import cleanXML, domain2prefix, undoHTMLEntities
 
+import requests
+
 
 def doXMLRevisionDump(
-    config: Config = None,
-    session=None,
-    xmlfile=None,
+    config: Config,
+    session: requests.Session,
+    xmlfile: TextIOWrapper,
     lastPage=None,
-    useAllrevisions=False,
+    useAllrevisions: bool = False,
 ):
     try:
         r_timestamp = "<timestamp>([^<]+)</timestamp>"
@@ -41,16 +44,16 @@ def doXMLRevisionDump(
             if arvcontinueRe := re.findall(r_arvcontinue, xml):
                 curArvcontinue = arvcontinueRe[0]
                 if lastArvcontinue != curArvcontinue:
-                    Delay(config=config, session=session)
+                    Delay(config=config)
                     lastArvcontinue = curArvcontinue
             # Due to how generators work, it's expected this may be less
             xml = cleanXML(xml=xml)
             xmlfile.write(xml)
 
-            xmltitle = re.search(r"<title>([^<]+)</title>", xml)
-            title = undoHTMLEntities(text=xmltitle.group(1))
+            xmltitle: Match[str] | None = re.search(r"<title>([^<]+)</title>", xml)
+            title = undoHTMLEntities(text=xmltitle.group(1) if xmltitle else "")
             print(f"{title}, {numrevs} edits (--xmlrevisions)")
-            # Delay(config=config, session=session)
+            # Delay(config=config)
     except AttributeError as e:
         print(e)
         print("This API library version is not working")
@@ -59,7 +62,9 @@ def doXMLRevisionDump(
         print(e)
 
 
-def doXMLExportDump(config: Config = None, session=None, xmlfile=None, lastPage=None):
+def doXMLExportDump(
+    config: Config, session: requests.Session, xmlfile: TextIOWrapper, lastPage=None
+):
     print("\nRetrieving the XML for every page\n")
 
     lock = True
@@ -84,13 +89,16 @@ def doXMLExportDump(config: Config = None, session=None, xmlfile=None, lastPage=
             lock = False
         if lock:
             continue
-        Delay(config=config, session=session)
+        Delay(config=config)
         if c % 10 == 0:
             print(f"\n->  Downloaded {c} pages\n")
         try:
-            for xml in getXMLPage(config=config, title=title, session=session):
-                xml = cleanXML(xml=xml)
-                xmlfile.write(xml)
+            if type(title) is str:
+                for xml in getXMLPage(
+                    config=config, title=title, verbose=True, session=session
+                ):
+                    xml = cleanXML(xml=xml)
+                    xmlfile.write(xml)
         except PageMissingError:
             logerror(
                 config=config,
@@ -104,17 +112,17 @@ def doXMLExportDump(config: Config = None, session=None, xmlfile=None, lastPage=
         c += 1
 
 
-def generateXMLDump(config: Config = None, resume=False, session=None):
+def generateXMLDump(config: Config, resume: bool, session: requests.Session):
     """Generates a XML dump for a list of titles or from revision IDs"""
 
     header, config = getXMLHeader(config=config, session=session)
     footer = "</mediawiki>\n"  # new line at the end
     xmlfilename = "{}-{}-{}.xml".format(
-        domain2prefix(config=config),
+        domain2prefix(config=config, session=session),
         config.date,
         "current" if config.curonly else "history",
     )
-    xmlfile = None
+    xmlfile: TextIOWrapper
 
     lastPage = None
     lastPageChunk = None

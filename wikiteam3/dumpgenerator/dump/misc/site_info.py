@@ -5,11 +5,13 @@ from wikiteam3.dumpgenerator.api import getJSON
 from wikiteam3.dumpgenerator.cli import Delay
 from wikiteam3.dumpgenerator.config import Config
 
+import requests
 
-def saveSiteInfo(config: Config = None, session=None):
+
+def saveSiteInfo(config: Config, session: requests.Session):
     """Save a file with site info"""
 
-    if not config.api:
+    if not config or (config and not config.api):
         return
     if os.path.exists(f"{config.path}/siteinfo.json"):
         print("siteinfo.json exists, do not overwrite")
@@ -53,6 +55,6 @@ def saveSiteInfo(config: Config = None, session=None):
                 timeout=10,
             )
         result = getJSON(r)
-        Delay(config=config, session=session)
+        Delay(config=config)
         with open(f"{config.path}/siteinfo.json", "w", encoding="utf-8") as outfile:
             outfile.write(json.dumps(result, indent=4, sort_keys=True))

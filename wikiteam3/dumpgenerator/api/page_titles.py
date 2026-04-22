@@ -1,5 +1,4 @@
 import re
-import sys
 from urllib.parse import urlparse
 
 import mwclient
@@ -14,15 +13,20 @@ from wikiteam3.dumpgenerator.config import Config
 from wikiteam3.utils import cleanHTML, domain2prefix, undoHTMLEntities
 from wikiteam3.utils.monkey_patch import DelaySession
 
+import requests
+from typing import List
 
-def getPageTitlesAPI(config: Config = None, session=None):
+
+def getPageTitlesAPI(config: Config, session: requests.Session):
     """Uses the API to get the list of page titles"""
     titles = []
+    namespaces: List[int]
+    namespacenames: dict[int, str]
     namespaces, namespacenames = getNamespacesAPI(config=config, session=session)
 
     # apply delay to the session for mwclient.Site.allpages()
     delay_session = DelaySession(
-        session=session, msg=f"Session delay: {__name__}", config=config
+        session=session, msg=f"Session delay: {__name__}", delay=0, config=config
     )
     delay_session.hijack()
     for namespace in namespaces:
@@ -38,10 +42,11 @@ def getPageTitlesAPI(config: Config = None, session=None):
             scheme=apiurl.scheme,
             pool=session,
         )
-        for page in site.allpages(namespace=namespace):
-            title = page.name
-            titles.append(title)
-            yield title
+        if type(namespace) is int:
+            for page in site.allpages(namespace="%d" % namespace):
+                title = page.name
+                titles.append(title)
+                yield title
 
         if len(titles) != len(set(titles)):
             print("Probably a loop, switching to next namespace")
@@ -50,7 +55,7 @@ def getPageTitlesAPI(config: Config = None, session=None):
     delay_session.release()
 
 
-def getPageTitlesScraper(config: Config = None, session=None):
+def getPageTitlesScraper(config: Config, session: requests.Session):
     """Scrape the list of page titles from Special:Allpages"""
     titles = []
     namespaces, namespacenames = getNamespacesScraper(config=config, session=session)
@@ -75,7 +80,7 @@ def getPageTitlesScraper(config: Config = None, session=None):
         elif re.search(r_suballpages3, raw):
             r_suballpages = r_suballpages3
         c = 0
-        oldfr = ""
+        # oldfr = ""
         checked_suballpages = []
         rawacum = raw
         while r_suballpages and re.search(r_suballpages, raw) and c < deep:
@@ -105,7 +110,7 @@ def getPageTitlesScraper(config: Config = None, session=None):
                 if name not in checked_suballpages:
                     # to avoid reload dupe subpages links
                     checked_suballpages.append(name)
-                    Delay(config=config, session=session)
+                    Delay(config=config)
                     # print ('Fetching URL: ', url)
                     r = session.get(url=url, timeout=10)
                     raw = str(r.text)
@@ -122,12 +127,12 @@ def getPageTitlesScraper(config: Config = None, session=None):
                         "pages",
                     )
 
-                Delay(config=config, session=session)
+                Delay(config=config)
 
             assert (
                 currfr is not None
             ), "re.search found the pattern, but re.finditer fails, why?"
-            oldfr = currfr
+            # oldfr = currfr
             c += 1
 
         c = 0
@@ -142,7 +147,7 @@ def getPageTitlesScraper(config: Config = None, session=None):
     return titles
 
 
-def getPageTitles(config: Config = None, session=None):
+def getPageTitles(config: Config, session: requests.Session):
     """Get list of page titles"""
     # http://en.wikipedia.org/wiki/Special:AllPages
     # http://wiki.archiveteam.org/index.php?title=Special:AllPages
@@ -166,41 +171,39 @@ def getPageTitles(config: Config = None, session=None):
 
     titles = []
     if config.api:
-        try:
-            titles = getPageTitlesAPI(config=config, session=session)
-        except:
-            print("Error: could not get page titles from the API")
-            titles = getPageTitlesScraper(config=config, session=session)
+        # try:
+        titles = getPageTitlesAPI(config=config, session=session)
+        # except:
+        #     print("Error: could not get page titles from the API")
+        #     titles = getPageTitlesScraper(config=config, session=session)
     elif config.index:
         titles = getPageTitlesScraper(config=config, session=session)
 
-    titlesfilename = "{}-{}-titles.txt".format(
-        domain2prefix(config=config), config.date
+    titles_filename = "{}-{}-titles.txt".format(
+        domain2prefix(config=config, session=session), config.date
     )
-    with open(f"{config.path}/{titlesfilename}", "w", encoding="utf-8") as titlesfile:
+    with open(f"{config.path}/{titles_filename}", "w", encoding="utf-8") as titles_file:
         c = 0
         for title in titles:
-            titlesfile.write(str(title) + "\n")
+            titles_file.write(str(title) + "\n")
             c += 1
         # TODO: Sort to remove dupes? In CZ, Widget:AddThis appears two times:
         # main namespace and widget namespace.
         # We can use sort -u in UNIX, but is it worth it?
-        titlesfile.write("--END--\n")
-    print("Titles saved at...", titlesfilename)
+        titles_file.write("--END--\n")
+    print("Titles saved at...", titles_filename)
 
     print("%d page titles loaded" % (c))
-    return titlesfilename
+    return titles_filename
 
 
-def checkTitleOk(
-    config: Config = None,
-):
+def checkTitleOk(config: Config, session: requests.Session):
     try:
         with FileReadBackwards(
             "%s/%s-%s-titles.txt"
             % (
                 config.path,
-                domain2prefix(config=config),
+                domain2prefix(config=config, session=session),
                 config.date,
             ),
             encoding="utf-8",
@@ -214,21 +217,21 @@ def checkTitleOk(
     return lasttitle == "--END--"
 
 
-def readTitles(config: Config = None, session=None, start=None, batch=False):
+def readTitles(config: Config, session: requests.Session, start=None, batch=False):
     """Read title list from a file, from the title "start" """
-    if not checkTitleOk(config):
+    if not checkTitleOk(config, session):
         getPageTitles(config=config, session=session)
 
-    titlesfilename = "{}-{}-titles.txt".format(
-        domain2prefix(config=config), config.date
+    titles_filename = "{}-{}-titles.txt".format(
+        domain2prefix(config=config, session=session), config.date
     )
-    titlesfile = open(f"{config.path}/{titlesfilename}", encoding="utf-8")
+    titles_file = open(f"{config.path}/{titles_filename}", encoding="utf-8")
 
-    titlelist = []
-    seeking = start is not None
-    with titlesfile as f:
+    title_list: List[str] = []
+    seeking: bool = start is not None
+    with titles_file as f:
         for line in f:
-            title = line.strip()
+            title: str = line.strip()
             if title == "--END--":
                 break
             elif seeking and title != start:
@@ -237,10 +240,10 @@ def readTitles(config: Config = None, session=None, start=None, batch=False):
                 seeking = False
 
             if not batch:
-                yield title
+                yield [title]
             else:
-                titlelist.append(title)
-                if len(titlelist) < batch:
+                title_list.append(title)
+                if len(title_list) < batch:
                     continue
-                yield titlelist
-                titlelist = []
+                yield title_list
+                title_list = []

@@ -1,9 +1,9 @@
-import itertools
-import sys
 import threading
 import time
 
 from wikiteam3.dumpgenerator.config import Config
+
+from typing import Optional
 
 
 class Delay:
@@ -21,7 +21,12 @@ class Delay:
 
             time.sleep(0.3)
 
-    def __init__(self, config: Config = None, session=None, msg=None, delay=None):
+    def __init__(
+        self,
+        config: Config,
+        msg: Optional[str] = None,
+        delay: Optional[float] = None,
+    ):
         """Add a delay if configured for that"""
         self.ellipses: str = "."
 
@@ -39,7 +44,7 @@ class Delay:
         ellipses_animation.daemon = True
         ellipses_animation.start()
 
-        time.sleep(delay)
+        time.sleep(delay or 0)
 
         with self.lock:
             self.done = True

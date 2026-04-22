@@ -1,7 +1,7 @@
 import re
 import time
 import traceback
-from typing import *
+from typing import Dict, Optional
 
 import requests
 
@@ -18,13 +18,20 @@ except ImportError:
 import xml.dom.minidom as MD
 
 
-def reconstructRevisions(root=None):
+def reconstructRevisions(root: ET.Element[str]):
     # print ET.tostring(rev)
     page = ET.Element("stub")
     edits = 0
-    for rev in (
-        root.find("query").find("pages").find("page").find("revisions").findall("rev")
-    ):
+    query = root.find("query")
+    if query:
+        pages = query.find("pages")
+    if pages:
+        page_find = pages.find("page")
+    if page_find:
+        revisions = page_find.find("revisions")
+    if revisions:
+        rev_findall = revisions.findall("rev")
+    for rev in rev_findall:
         try:
             rev_ = ET.SubElement(page, "revision")
             # id
@@ -88,9 +95,7 @@ def reconstructRevisions(root=None):
     return page, edits
 
 
-def getXMLPageCoreWithApi(
-    headers: Dict = None, params: Dict = None, config: Config = None, session=None
-):
+def getXMLPageCoreWithApi(params: Dict, config: Config, session: requests.Session):
     """ """
     # just send the API request
     # if it fails, it will reduce params['rvlimit']
@@ -135,7 +140,7 @@ def getXMLPageCoreWithApi(
             raise ExportAbortedError(config.index)
         # FIXME HANDLE HTTP Errors HERE
         try:
-            r = session.get(url=config.api, params=params, headers=headers)
+            r = session.get(url=config.api, params=params)
             handleStatusCode(r)
             xml = r.text
             # print xml
@@ -149,7 +154,9 @@ def getXMLPageCoreWithApi(
     return xml
 
 
-def getXMLPageWithApi(config: Config = None, title="", verbose=True, session=None):
+def getXMLPageWithApi(
+    config: Config, title: str, verbose: bool, session: requests.Session
+):
     """Get the full history (or current only) of a page using API:Query
     if params['curonly'] is set, then using export&exportwrap to export
     """
@@ -179,7 +186,10 @@ def getXMLPageWithApi(config: Config = None, title="", verbose=True, session=Non
             # in case the last request is not right, saving last time's progress
             if not firstpartok:
                 try:
-                    lastcontinue = params[continueKey]
+                    if continueKey is not None:
+                        lastcontinue = params[continueKey]
+                    else:
+                        lastcontinue = None
                 except:
                     lastcontinue = None
 
@@ -192,13 +202,17 @@ def getXMLPageWithApi(config: Config = None, title="", verbose=True, session=Non
             except:
                 continue
             try:
-                retpage = root.find("query").find("pages").find("page")
+                query = root.find("query")
+                if query:
+                    pages = query.find("pages")
+                if pages:
+                    retpage = pages.find("page")
             except:
                 continue
-            if "missing" in retpage.attrib or "invalid" in retpage.attrib:
+            if retpage and ("missing" in retpage.attrib or "invalid" in retpage.attrib):
                 print("Page not found")
                 raise PageMissingError(params["titles"], xml)
-            if not firstpartok:
+            if retpage and not firstpartok:
                 try:
                     # build the firstpart by ourselves to improve the memory usage
                     ret = "  <page>\n"
@@ -217,28 +231,34 @@ def getXMLPageWithApi(config: Config = None, title="", verbose=True, session=Non
                 # uses continue.rvcontinue
                 # MW 1.26+
                 continueKey = "rvcontinue"
-                continueVal = root.find("continue").attrib["rvcontinue"]
-            elif root.find("query-continue") is not None:
-                revContinue = root.find("query-continue").find("revisions")
-                assert revContinue is not None, "Should only have revisions continue"
-                if "rvcontinue" in revContinue.attrib:
-                    # MW 1.21 ~ 1.25
-                    continueKey = "rvcontinue"
-                    continueVal = revContinue.attrib["rvcontinue"]
-                elif "rvstartid" in revContinue.attrib:
-                    # TODO: MW ????
-                    continueKey = "rvstartid"
-                    continueVal = revContinue.attrib["rvstartid"]
-                else:
-                    # blindly assume the first attribute is the continue key
-                    # may never happen
+                continue_element = root.find("continue")
+                if continue_element:
+                    continueVal = continue_element.attrib["rvcontinue"]
+            else:
+                query_continue = root.find("query-continue")
+                if query_continue:
+                    revContinue = query_continue.find("revisions")
                     assert (
-                        len(revContinue.attrib) > 0
-                    ), "Should have at least one attribute"
-                    for continueKey in revContinue.attrib.keys():
-                        continueVal = revContinue.attrib[continueKey]
-                        break
-            if continueVal is not None:
+                        revContinue is not None
+                    ), "Should only have revisions continue"
+                    if "rvcontinue" in revContinue.attrib:
+                        # MW 1.21 ~ 1.25
+                        continueKey = "rvcontinue"
+                        continueVal = revContinue.attrib["rvcontinue"]
+                    elif "rvstartid" in revContinue.attrib:
+                        # TODO: MW ????
+                        continueKey = "rvstartid"
+                        continueVal = revContinue.attrib["rvstartid"]
+                    else:
+                        # blindly assume the first attribute is the continue key
+                        # may never happen
+                        assert (
+                            len(revContinue.attrib) > 0
+                        ), "Should have at least one attribute"
+                        for continueKey in revContinue.attrib.keys():
+                            continueVal = revContinue.attrib[continueKey]
+                            break
+            if continueVal is not None and continueKey is not None:
                 params[continueKey] = continueVal
             try:
                 ret = ""

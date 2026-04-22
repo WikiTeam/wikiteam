@@ -1,7 +1,7 @@
 """Always available login methods.(mw 1.16-1.39)
 Even oler versions of MW may work, but not tested."""
 
-from typing import *
+from typing import Optional
 
 import lxml.html
 import requests

@@ -1,6 +1,7 @@
 import requests
 
 from wikiteam3.dumpgenerator.cli.delay import Delay
+from wikiteam3.dumpgenerator.config import Config
 
 
 def mod_requests_text(requests: requests):
@@ -15,7 +16,7 @@ def mod_requests_text(requests: requests):
 class DelaySession:
     """Monkey patch `requests.Session.send` to add delay"""
 
-    def __init__(self, session, msg=None, delay=None, config=None):
+    def __init__(self, session, msg: str, delay: float, config: Config):
         self.session = session
         self.msg = msg
         self.delay = delay

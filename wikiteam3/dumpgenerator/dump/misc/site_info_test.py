@@ -1,6 +1,5 @@
 import json
 
-import pytest
 import requests
 
 from wikiteam3.dumpgenerator.test.test_config import get_config

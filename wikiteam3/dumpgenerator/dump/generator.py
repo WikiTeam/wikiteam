@@ -1,6 +1,5 @@
 try:
     import contextlib
-    import http.cookiejar
     import os
     import re
     import sys
@@ -18,7 +17,7 @@ except ImportError:
     """)
     sys.exit(1)
 
-from typing import *
+from typing import Dict
 
 from wikiteam3.dumpgenerator.cli import bye, getParameters, welcome
 from wikiteam3.dumpgenerator.config import Config, loadConfig, saveConfig
@@ -122,13 +121,13 @@ class DumpGenerator:
             bye()
 
     @staticmethod
-    def createNewDump(config: Config = None, other: Dict = None):
+    def createNewDump(config: Config, other: Dict):
         # we do lazy title dumping here :)
         images = []
         print("Trying generating a new dump into a new directory...")
         if config.xml:
-            generateXMLDump(config=config, session=other["session"])
-            checkXMLIntegrity(config=config, session=other["session"])
+            generateXMLDump(config=config, resume=False, session=other["session"])
+            # checkXMLIntegrity(config=config, titles=None, session=other["session"])
         if config.images:
             images += Image.getImageNames(config=config, session=other["session"])
             Image.saveImageNames(config=config, images=images, session=other["session"])
@@ -139,7 +138,7 @@ class DumpGenerator:
             saveLogs(config=config, session=other["session"])
 
     @staticmethod
-    def resumePreviousDump(config: Config = None, other: Dict = None):
+    def resumePreviousDump(config: Config, other: Dict):
         images = []
         print("Resuming previous dump process...")
         if config.xml:
@@ -147,35 +146,36 @@ class DumpGenerator:
             xmliscomplete = False
             lastxmltitle = None
             lastxmlrevid = None
-            try:
-                with FileReadBackwards(
-                    "%s/%s-%s-%s.xml"
-                    % (
-                        config.path,
-                        domain2prefix(config=config, session=other["session"]),
-                        config.date,
-                        "current" if config.curonly else "history",
-                    ),
-                    encoding="utf-8",
-                ) as frb:
-                    for l in frb:
-                        if l.strip() == "</mediawiki>":
-                            # xml dump is complete
-                            xmliscomplete = True
-                            break
 
-                        if xmlrevid := re.search(r"    <id>([^<]+)</id>", l):
-                            lastxmlrevid = int(xmlrevid.group(1))
-                        if xmltitle := re.search(r"<title>([^<]+)</title>", l):
-                            lastxmltitle = undoHTMLEntities(text=xmltitle.group(1))
-                            break
+            with FileReadBackwards(
+                "%s/%s-%s-%s.xml"
+                % (
+                    config.path,
+                    domain2prefix(config=config, session=other["session"]),
+                    config.date,
+                    "current" if config.curonly else "history",
+                ),
+                encoding="utf-8",
+            ) as file_read_backwards:
+                for current_line_from_file in file_read_backwards:
+                    if current_line_from_file.strip() == "</mediawiki>":
+                        # xml dump is complete
+                        xmliscomplete = True
+                        break
 
-            except:
-                pass  # probably file does not exists
+                    if xmlrevid := re.search(
+                        r"    <id>([^<]+)</id>", current_line_from_file
+                    ):
+                        lastxmlrevid = int(xmlrevid.group(1))
+                    if xmltitle := re.search(
+                        r"<title>([^<]+)</title>", current_line_from_file
+                    ):
+                        lastxmltitle = undoHTMLEntities(text=xmltitle.group(1))
+                        break
 
             if xmliscomplete:
                 print("XML dump was completed in the previous session")
-            elif lastxmltitle:
+            elif lastxmltitle and other:
                 # resuming...
                 print(
                     f'Resuming XML dump from "{lastxmltitle}" (revision id {lastxmlrevid})'
@@ -188,20 +188,24 @@ class DumpGenerator:
             else:
                 # corrupt? only has XML header?
                 print("XML is corrupt? Regenerating...")
-                generateXMLDump(config=config, session=other["session"])
+                generateXMLDump(config=config, resume=False, session=other["session"])
 
         if config.images:
             # load images list
             lastimage = ""
             imagesFilePath = "{}/{}-{}-images.txt".format(
                 config.path,
-                domain2prefix(config=config),
+                domain2prefix(config=config, session=other["session"]),
                 config.date,
             )
             if os.path.exists(imagesFilePath):
                 with open(imagesFilePath) as f:
                     lines = f.read().splitlines()
-                    images.extend(l.split("\t") for l in lines if re.search(r"\t", l))
+                    images.extend(
+                        current_line.split("\t")
+                        for current_line in lines
+                        if re.search(r"\t", current_line)
+                    )
                     if len(lines) == 0:  # empty file
                         lastimage = "--EMPTY--"
                     if not lastimage:
@@ -221,7 +225,9 @@ class DumpGenerator:
                 # do not resume, reload, to avoid inconsistences, deleted images or
                 # so
                 images = Image.getImageNames(config=config, session=other["session"])
-                Image.saveImageNames(config=config, images=images)
+                Image.saveImageNames(
+                    config=config, images=images, session=other["session"]
+                )
             # checking images directory
             listdir = []
             try:
@@ -234,7 +240,7 @@ class DumpGenerator:
             c_checked = 0
             for filename, url, uploader, size, sha1 in images:
                 lastfilename = filename
-                if other["filenamelimit"] < len(filename.encode("utf-8")):
+                if other and other["filenamelimit"] < len(filename.encode("utf-8")):
                     logerror(
                         config=config,
                         to_stdout=True,

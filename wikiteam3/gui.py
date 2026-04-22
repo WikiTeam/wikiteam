@@ -54,6 +54,8 @@ from tkinter import (
 from wikiteam3.dumpgenerator.api.api import checkAPI
 from wikiteam3.dumpgenerator.api.index_check import checkIndex
 
+from typing import Dict
+
 # See https://www.mediawiki.org/wiki/Hosting_services
 wikifarms = {
     "fandom": "Fandom",
@@ -131,7 +133,7 @@ class App:
         self.button11 = Button(
             self.labelframe11,
             text="Check",
-            command=lambda: threading.start_new_threading(self.checkURL, ()),
+            command=lambda: threading.Thread(target=self.checkURL, args=()),
             width=5,
         )
         self.button11.grid(row=0, column=3)
@@ -290,14 +292,14 @@ class App:
         self.button21 = Button(
             self.frame2,
             text="Load available dumps",
-            command=lambda: threading.start_new_threading(self.loadAvailableDumps, ()),
+            command=lambda: threading.Thread(target=self.loadAvailableDumps, args=()),
             width=15,
         )
         self.button21.grid(row=3, column=0)
         self.button23 = Button(
             self.frame2,
             text="Download selection",
-            command=lambda: threading.start_new_threading(self.downloadDump, ()),
+            command=lambda: threading.Thread(target=self.downloadDump, args=()),
             width=15,
         )
         self.button23.grid(row=3, column=4)
@@ -352,7 +354,7 @@ class App:
         ):  # well-constructed URL?, one dot at least, aaaaa.com, but bb.aaaaa.com is allowed too
             if self.optionmenu11var.get() == "api.php":
                 self.msg("Please wait... Checking api.php...")
-                if checkAPI(self.entry11.get()):
+                if checkAPI(self.entry11.get(), None):
                     self.entry11.config(background="lightgreen")
                     self.msg("api.php is correct!", level="ok")
                 else:
@@ -360,7 +362,7 @@ class App:
                     self.msg("api.php is incorrect!", level="error")
             elif self.optionmenu11var.get() == "index.php":
                 self.msg("Please wait... Checking index.php...")
-                if checkIndex(self.entry11.get()):
+                if checkIndex(self.entry11.get(), ""):
                     self.entry11.config(background="lightgreen")
                     self.msg("index.php is OK!", level="ok")
                 else:

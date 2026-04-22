@@ -22,7 +22,7 @@ config = {
 import dataclasses
 import json
 import sys
-from typing import *
+from typing import List
 
 
 def _dataclass_from_dict(klass_or_obj, d):
@@ -43,7 +43,7 @@ class Config:
     retries: int = 0
     path: str = ""
     logs: bool = False
-    date: str = False
+    date: str = ""
 
     # URL params
     index: str = ""
@@ -56,8 +56,8 @@ class Config:
     xmlrevisions: bool = False
     xmlrevisions_page: bool = False
     images: bool = False
-    namespaces: List[int] = None
-    exnamespaces: List[int] = None
+    namespaces: List[int] = []
+    exnamespaces: List[int] = []
 
     api_chunksize: int = 0  # arvlimit, ailimit, etc
     export: str = ""  # Special:Export page name
@@ -73,24 +73,21 @@ def newConfig(configDict) -> Config:
     return _dataclass_from_dict(Config, configDict)
 
 
-def loadConfig(config: Config = None, configfilename=""):
+def loadConfig(config: Config, configfilename=""):
     """Load config file"""
 
     configDict = dataclasses.asdict(config)
 
     if config.path:
-        try:
-            with open(f"{config.path}/{configfilename}", encoding="utf-8") as infile:
-                configDict.update(json.load(infile))
-            return newConfig(configDict)
-        except:
-            pass
+        with open(f"{config.path}/{configfilename}", encoding="utf-8") as infile:
+            configDict.update(json.load(infile))
+        return newConfig(configDict)
 
     print("There is no config file. we can't resume. Start a new dump.")
     sys.exit()
 
 
-def saveConfig(config: Config = None, configfilename=""):
+def saveConfig(config: Config, configfilename: str = ""):
     """Save config file"""
 
     with open(f"{config.path}/{configfilename}", "w", encoding="utf-8") as outfile:

@@ -20,13 +20,13 @@ def makeXmlPageFromRaw(xml, arvcontinue) -> str:
 def makeXmlFromPage(page: dict, arvcontinue) -> str:
     """Output an XML document as a string from a page as in the API JSON"""
     try:
-        p = E.page(
+        page_gotten = E.page(
             E.title(str(page["title"])),
             E.ns(str(page["ns"])),
             E.id(str(page["pageid"])),
         )
         if arvcontinue is not None:
-            p.attrib["arvcontinue"] = arvcontinue
+            page_gotten.attrib["arvcontinue"] = arvcontinue
         for rev in page["revisions"]:
             # Older releases like MediaWiki 1.16 do not return all fields.
             userid = rev["userid"] if "userid" in rev else 0
@@ -120,8 +120,8 @@ def makeXmlFromPage(page: dict, arvcontinue) -> str:
                     _revision.append(revisionElementsDict.pop(tag))
             for elem in revisionElementsDict.values():
                 _revision.append(elem)
-            p.append(_revision)
+            page_gotten.append(_revision)
     except KeyError as e:
         print(e)
         raise PageMissingError(page["title"], e)
-    return etree.tostring(p, pretty_print=True, encoding="unicode")
+    return etree.tostring(page_gotten, pretty_print=True, encoding="unicode")
