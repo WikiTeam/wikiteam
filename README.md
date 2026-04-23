@@ -2,11 +2,13 @@
 
 **MediaWiki Dump Generator can archive wikis from the largest to the tiniest.**
 
-`MediaWiki Dump Generator` is a project to port the legacy [`wikiteam`](https://github.com/WikiTeam/wikiteam) toolset to Python 3 and PyPI to make it more accessible for today's archivers.
+`MediaWiki Dump Generator` is an ongoing project to port the legacy [`wikiteam`](https://github.com/WikiTeam/wikiteam) toolset to Python 3 and PyPI to make it more accessible for today's archivers.
 
 Most of the focus has been on the core `dumpgenerator` tool. Python 3 versions of the other `wikiteam` tools may be added over time.
 
 The project is currently mostly in maintenance mode. We will do our best to prevent the project from breaking entirely. Issues and pull requests are welcomed but may not be reviewed promptly.
+
+While this project is [not dead, yet](https://www.youtube.com/watch?v=W4rR-OsTNCg)—in fact, it's starting to feel better—you may also wish to consider [the fork maintained by our former colleague over at Save the Web Project](https://github.com/saveweb/wikiteam3) if `MediaWiki Dump Generator` fails to meet your needs.
 
 ## MediaWiki Dump Generator Toolset
 
@@ -41,7 +43,7 @@ For information on reporting bugs and proposing changes, please see the [Contrib
 
 At the moment the only person responsible for reviewing CoC reports is the repository administrator, Janet Cobb, reachable at [git@randomcat.org](mailto:git@randomcat.org). Please state up front if your message concerns the Code of Conduct, as these messages are confidential.
 
-In case of emergency (i.e. if Janet is not reachable or if such an issue involves her), you can contact Elsie Hupp, who also retains privileges over this repository, directly via email at [mediawiki-client-tools@elsiehupp.com](mailto:mediawiki-client-tools@elsiehupp.com) or on Matrix at [@elsiehupp:beeper.com](https://matrix.to/#/@elsiehupp:beeper.com). 
+In case of emergency (i.e. if Janet is not reachable or if such an issue involves her), you can contact Elsie Hupp, who also retains privileges over this repository, directly via email at [mediawiki-client-tools@elsiehupp.com](mailto:mediawiki-client-tools@elsiehupp.com) or on Matrix at [@elsiehupp:beeper.com](https://matrix.to/#/@elsiehupp:beeper.com).
 
 ## Contributors
 
