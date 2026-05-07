@@ -6,7 +6,7 @@ import os
 import queue
 import re
 import sys
-from typing import *
+from typing import Dict, Tuple
 
 import requests
 import urllib3
@@ -254,7 +254,7 @@ def getParameters(params=None) -> Tuple[Config, Dict]:
                         try:
                             # drain conn in advance so that it won't be put back into conn.pool
                             kwargs["response"].drain_conn()
-                        except:
+                        except Exception as e:
                             pass
                     # Useless, retry happens inside urllib3
                     # for adapters in session.adapters.values():
@@ -267,7 +267,7 @@ def getParameters(params=None) -> Tuple[Config, Dict]:
                         try:
                             # Don't directly use this, This closes connection pool by making conn.pool = None
                             conn.close()
-                        except:
+                        except Exception as e:
                             pass
                         conn.pool = pool
                 return super().increment(method=method, url=url, *args, **kwargs)
@@ -280,7 +280,7 @@ def getParameters(params=None) -> Tuple[Config, Dict]:
                     msg = "req retry (%s)" % response.status
                 else:
                     msg = None
-                Delay(config=None, session=session, msg=msg, delay=backoff)
+                Delay(config=config, msg=msg, delay=backoff)
 
         __retries__ = CustomRetry(
             total=int(args.retries),
@@ -298,7 +298,7 @@ def getParameters(params=None) -> Tuple[Config, Dict]:
         )
         session.mount("https://", HTTPAdapter(max_retries=__retries__))
         session.mount("http://", HTTPAdapter(max_retries=__retries__))
-    except:
+    except Exception as e:
         # Our urllib3/requests is too old
         pass
 
@@ -372,7 +372,7 @@ def getParameters(params=None) -> Tuple[Config, Dict]:
     # TODO: Re-login after session expires
     if args.user and args.password:
         _session = uniLogin(
-            api=api,
+            api=api if api else "",
             index=index,
             session=session,
             username=args.user,
@@ -395,7 +395,8 @@ def getParameters(params=None) -> Tuple[Config, Dict]:
             print("index.php is OK")
         else:
             try:
-                index = "/".join(index.split("/")[:-1])
+                if index:
+                    index = "/".join(index.split("/")[:-1])
             except AttributeError:
                 index = None
             if index and checkIndex(index=index, cookies=args.cookies, session=session):

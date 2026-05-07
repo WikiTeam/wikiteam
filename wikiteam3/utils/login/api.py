@@ -1,6 +1,6 @@
 """Available since MediaWiki 1.27. login to a wiki using username and password (API)"""
 
-from typing import *
+from typing import Optional
 
 import requests
 

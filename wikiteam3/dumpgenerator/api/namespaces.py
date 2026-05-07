@@ -1,21 +1,29 @@
 import re
+from typing import List
+
+import requests
 
 from wikiteam3.dumpgenerator.api import getJSON
 from wikiteam3.dumpgenerator.cli import Delay
 from wikiteam3.dumpgenerator.config import Config
 
 
-def getNamespacesScraper(config: Config = None, session=None):
+class Namespace:
+    number: int
+    name: str
+
+
+def getNamespacesScraper(config: Config, session: requests.Session):
     """Hackishly gets the list of namespaces names and ids from the dropdown in the HTML of Special:AllPages"""
     """Function called if no API is available"""
-    namespaces = config.namespaces
+    namespaces: List[int] = config.namespaces
     namespacenames = {0: ""}  # main is 0, no prefix
     if namespaces:
         r = session.post(
             url=config.index, params={"title": "Special:Allpages"}, timeout=30
         )
         raw = r.text
-        Delay(config=config, session=session)
+        Delay(config=config)
 
         # [^>]*? to include selected="selected"
         m = re.compile(
@@ -44,7 +52,7 @@ def getNamespacesScraper(config: Config = None, session=None):
     return namespaces, namespacenames
 
 
-def getNamespacesAPI(config: Config = None, session=None):
+def getNamespacesAPI(config: Config, session: requests.Session):
     """Uses the API to get the list of namespaces names and ids"""
     namespaces = config.namespaces
     namespacenames = {0: ""}  # main is 0, no prefix
@@ -60,14 +68,15 @@ def getNamespacesAPI(config: Config = None, session=None):
             timeout=30,
         )
         result = getJSON(r)
-        Delay(config=config, session=session)
+        Delay(config=config)
         try:
             nsquery = result["query"]["namespaces"]
         except KeyError:
             print("Error: could not get namespaces from the API request.")
             print("HTTP %d" % r.status_code)
             print(r.text)
-            return None
+            namespaces = [0]
+            return namespaces, namespacenames
 
         if "all" in namespaces:
             namespaces = []

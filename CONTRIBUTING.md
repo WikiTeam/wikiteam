@@ -65,6 +65,19 @@ While we don't currently have a Pull Request template (as we do with Issues), it
 * It is helpful if you tick the box reading "allow maintainers to edit" so that we can collaborate directly on the code with you.
 * If you haven't previously contributed, please add your name to the "Contributors" section at the bottom of the main [README](./README.md).
 
+## Running Tests
+
+While tests will be run by a GitHub Action if or when you open a Pull Request, you can also run tests locally beforehand.
+
+To run the tests, in the cloned repository:
+
+```sh
+cd wikiteam3/dumpgenerator
+pytest
+```
+
+Note that you will need to `cd ../..` after running the tests in order to return to your previous working directory.
+
 ## Reviewing Code
 
 If you have made a helpful contribution in the past, we may invite you to become a member of the `mediawiki-client-tools` GitHub organization.

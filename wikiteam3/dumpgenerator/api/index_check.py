@@ -1,10 +1,13 @@
 import re
+from typing import Optional
 
 import requests
 
 
-def checkIndex(index="", cookies="", session: requests.Session = None):
+def checkIndex(index: str, cookies: str, session: Optional[requests.Session] = None):
     """Checking index.php availability"""
+    if not session:
+        return False
     r = session.post(url=index, data={"title": "Special:Version"}, timeout=30)
     if r.status_code >= 400:
         print(f"ERROR: The wiki returned status code HTTP {r.status_code}")

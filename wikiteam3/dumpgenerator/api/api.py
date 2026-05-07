@@ -1,7 +1,6 @@
 import re
-import time
-from typing import *
-from urllib.parse import urljoin, urlparse, urlunparse
+from typing import Optional
+from urllib.parse import urljoin, urlparse
 
 import mwclient
 import requests
@@ -11,52 +10,55 @@ from wikiteam3.utils import getUserAgent
 from .get_json import getJSON
 
 
-def checkAPI(api="", session: requests.Session = None):
+def checkAPI(api: str, session: Optional[requests.Session]):
     """Checking API availability"""
-    global cj
+    # global cj
     # handle redirects
     r: Optional[requests.Response] = None
     for i in range(4):
         print("Checking API...", api)
-        r = session.get(
-            url=api,
-            params={"action": "query", "meta": "siteinfo", "format": "json"},
-            timeout=30,
-        )
-        if i >= 4:
-            break
-        if r.status_code == 200:
-            break
-        elif r.status_code < 400:
-            api = r.url
-        elif r.status_code > 400:
-            print(
-                "MediaWiki API URL not found or giving error: HTTP %d" % r.status_code
+        if session:
+            r = session.get(
+                url=api,
+                params={"action": "query", "meta": "siteinfo", "format": "json"},
+                timeout=30,
             )
-            return None
-    if "MediaWiki API is not enabled for this site." in r.text:
-        return None
-    try:
-        result = getJSON(r)
-        index = None
-        if result:
-            try:
-                index = (
-                    result["query"]["general"]["server"]
-                    + result["query"]["general"]["script"]
+            if i >= 4:
+                break
+            if r.status_code == 200:
+                break
+            elif r.status_code < 400:
+                api = r.url
+            elif r.status_code > 400:
+                print(
+                    "MediaWiki API URL not found or giving error: HTTP %d"
+                    % r.status_code
                 )
-                return (True, index, api)
-            except KeyError:
-                print("MediaWiki API seems to work but returned no index URL")
-                return (True, None, api)
-    except ValueError:
-        print(repr(r.text))
-        print("MediaWiki API returned data we could not parse")
+                return None
+    if r and "MediaWiki API is not enabled for this site." in r.text:
         return None
+    if r:
+        try:
+            result = getJSON(r)
+            index = None
+            if result:
+                try:
+                    index = (
+                        result["query"]["general"]["server"]
+                        + result["query"]["general"]["script"]
+                    )
+                    return (True, index, api)
+                except KeyError:
+                    print("MediaWiki API seems to work but returned no index URL")
+                    return (True, None, api)
+        except ValueError:
+            print(repr(r.text))
+            print("MediaWiki API returned data we could not parse")
+            return None
     return None
 
 
-def mwGetAPIAndIndex(url="", session: requests.Session = None):
+def mwGetAPIAndIndex(url: str, session: requests.Session):
     """Returns the MediaWiki API and Index.php"""
 
     api = ""
@@ -108,7 +110,7 @@ def mwGetAPIAndIndex(url="", session: requests.Session = None):
     return api, index
 
 
-def checkRetryAPI(api="", apiclient=False, session: requests.Session = None):
+def checkRetryAPI(api: str, apiclient: bool, session: requests.Session):
     """Call checkAPI and mwclient if necessary"""
     check = None
     try:
@@ -119,7 +121,7 @@ def checkRetryAPI(api="", apiclient=False, session: requests.Session = None):
     if check and apiclient:
         apiurl = urlparse(api)
         try:
-            site = mwclient.Site(
+            mwclient.Site(
                 apiurl.netloc,
                 apiurl.path.replace("api.php", ""),
                 scheme=apiurl.scheme,
@@ -138,7 +140,7 @@ def checkRetryAPI(api="", apiclient=False, session: requests.Session = None):
             )
 
             try:
-                site = mwclient.Site(
+                mwclient.Site(
                     apiurl.netloc,
                     apiurl.path.replace("api.php", ""),
                     scheme=newscheme,

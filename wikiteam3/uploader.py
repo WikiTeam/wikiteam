@@ -171,15 +171,15 @@ def upload(wikis, logfile, config={}, uploadeddumps=[]):
                 lang = ""
                 try:
                     sitename = re.findall(r"sitename=\"([^\"]+)\"", xml)[0]
-                except:
+                except Exception as e:
                     pass
                 try:
                     baseurl = re.findall(r"base=\"([^\"]+)\"", xml)[0]
-                except:
+                except Exception as e:
                     pass
                 try:
                     lang = re.findall(r"lang=\"([^\"]+)\"", xml)[0]
-                except:
+                except Exception as e:
                     pass
 
                 if not sitename:
@@ -215,7 +215,7 @@ def upload(wikis, logfile, config={}, uploadeddumps=[]):
                 try:
                     rightsinfourl = re.findall(r"rightsinfo url=\"([^\"]+)\"", xml)[0]
                     rightsinfotext = re.findall(r"text=\"([^\"]+)\"", xml)[0]
-                except:
+                except Exception as e:
                     pass
 
                 raw = ""
@@ -235,13 +235,13 @@ def upload(wikis, logfile, config={}, uploadeddumps=[]):
                         rightsinfourl = re.findall(
                             r"<link rel=\"copyright\" href=\"([^\"]+)\" />", raw
                         )[0]
-                    except:
+                    except Exception as e:
                         pass
                     try:
                         rightsinfotext = re.findall(
                             r"<li id=\"copyright\">([^\n\r]*?)</li>", raw
                         )[0]
-                    except:
+                    except Exception as e:
                         pass
                     if rightsinfotext and not rightsinfourl:
                         rightsinfourl = baseurl + "#footer"
@@ -260,7 +260,7 @@ def upload(wikis, logfile, config={}, uploadeddumps=[]):
                     if "http" not in logourl:
                         # Probably a relative path, construct the absolute path
                         logourl = urllib.parse.urljoin(wiki, logourl)
-                except:
+                except Exception as e:
                     pass
 
                 # retrieve some info from the wiki
@@ -410,7 +410,7 @@ Use --help to print this help.""")
             for l in open("uploader-%s.log" % (listfile)).read().strip().splitlines()
             if len(l.split(";")) > 1
         ]
-    except:
+    except Exception as e:
         pass
 
     if config.logfile is None:

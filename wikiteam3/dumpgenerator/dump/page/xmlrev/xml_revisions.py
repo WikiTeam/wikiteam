@@ -1,14 +1,13 @@
 import sys
 import time
-from datetime import datetime
-from typing import *
+from typing import List
 from urllib.parse import urlparse
 
 import lxml.etree
 import mwclient
 import requests
+from mwclient.errors import InvalidResponse, MwClientError
 
-from wikiteam3.dumpgenerator.api.namespaces import getNamespacesAPI
 from wikiteam3.dumpgenerator.api.page_titles import readTitles
 from wikiteam3.dumpgenerator.config import Config
 from wikiteam3.dumpgenerator.dump.page.xmlrev.xml_revisions_page import (
@@ -22,9 +21,9 @@ ALL_NAMESPACE = -1
 
 
 def getXMLRevisionsByAllRevisions(
-    config: Config = None,
-    session=None,
-    site: mwclient.Site = None,
+    config: Config,
+    session: requests.Session,
+    site: mwclient.Site,
     nscontinue=None,
     arvcontinue=None,
 ):
@@ -90,9 +89,12 @@ def getXMLRevisionsByAllRevisions(
                     print("Sleeping for 20 seconds")
                     time.sleep(20)
                     continue
-                except mwclient.errors.InvalidResponse as e:
+                except InvalidResponse as e:
                     if (
-                        not e.response_text.startswith("<!DOCTYPE html>")
+                        not (
+                            type(e.response_text) is str
+                            and e.response_text.startswith("<!DOCTYPE html>")
+                        )
                         or config.http_method != "POST"
                     ):
                         raise
@@ -134,7 +136,7 @@ def getXMLRevisionsByAllRevisions(
             # Repeat the arvrequest with new arvparams until done
             while True:
                 # Reset revision IDs from the previous batch from arv
-                revids = []
+                revids: List[str] = []
                 for page in arvrequest["query"]["allrevisions"]:
                     revids.extend(
                         str(revision["revid"]) for revision in page["revisions"]
@@ -197,7 +199,7 @@ def getXMLRevisionsByAllRevisions(
 
 
 def getXMLRevisionsByTitles(
-    config: Config = None, session=None, site: mwclient.Site = None, start=None
+    config: Config, session: requests.Session, site: mwclient.Site, start=None
 ):
     c = 0
     if config.curonly:
@@ -238,19 +240,19 @@ def getXMLRevisionsByTitles(
         # The XML needs to be made manually because the export=1 option
         # refuses to return an arbitrary number of revisions (see above).
         print("Getting titles to export all the revisions of each")
-        titlelist = []
+        title_list = []
         # TODO: Decide a suitable number of a batched request. Careful:
         # batched responses may not return all revisions.
-        for titlelist in readTitles(config, session=session, start=start, batch=False):
-            if type(titlelist) is not list:
-                titlelist = [titlelist]
-            for title in titlelist:
+        for title_list in readTitles(config, session=session, start=start, batch=False):
+            # if type(title_list) is not list:
+            #     title_list = [title_list]
+            for title in title_list:
                 print(f"    {title}")
             # Try and ask everything. At least on MediaWiki 1.16, uknown props are discarded:
             # "warnings":{"revisions":{"*":"Unrecognized values for parameter 'rvprop': userid, sha1, contentmodel"}}}
             pparams = {
                 "action": "query",
-                "titles": "|".join(titlelist),
+                "titles": "|".join(title_list),
                 "prop": "revisions",
                 "rvlimit": config.api_chunksize,
                 "rvprop": "ids|timestamp|user|userid|size|sha1|contentmodel|comment|content|flags",
@@ -263,11 +265,11 @@ def getXMLRevisionsByTitles(
                 print("POST request to the API failed, retrying with GET")
                 config.http_method = "GET"
                 prequest = site.api(http_method=config.http_method, **pparams)
-            except mwclient.errors.InvalidResponse:
+            except InvalidResponse:
                 logerror(
                     config=config,
                     to_stdout=True,
-                    text=f'Error: page inaccessible? Could not export page: {"; ".join(titlelist)}',
+                    text=f'Error: page inaccessible? Could not export page: {"; ".join(title_list)}',
                 )
                 continue
 
@@ -282,7 +284,7 @@ def getXMLRevisionsByTitles(
                     logerror(
                         config=config,
                         to_stdout=True,
-                        text=f'Error: page inaccessible? Could not export page: {"; ".join(titlelist)}',
+                        text=f'Error: page inaccessible? Could not export page: {"; ".join(title_list)}',
                     )
                     break
                 # Go through the data we got to build the XML.
@@ -293,7 +295,7 @@ def getXMLRevisionsByTitles(
                         logerror(
                             config=config,
                             to_stdout=True,
-                            text=f'Error: empty revision from API. Could not export page: {"; ".join(titlelist)}',
+                            text=f'Error: empty revision from API. Could not export page: {"; ".join(title_list)}',
                         )
                         continue
 
@@ -317,15 +319,15 @@ def getXMLRevisionsByTitles(
                         prequest = site.api(http_method=config.http_method, **pparams)
 
             # We're done iterating for this title or titles.
-            c += len(titlelist)
+            c += len(title_list)
             # Reset for the next batch.
-            titlelist = []
+            title_list = []
             if c % 10 == 0:
                 print(f"\n->  Downloaded {c} pages\n")
 
 
 def getXMLRevisions(
-    config: Config = None, session=None, useAllrevision=True, lastPage=None
+    config: Config, session: requests.Session, useAllrevision=True, lastPage=None
 ):
     # FIXME: actually figure out the various strategies for each MediaWiki version
     apiurl = urlparse(config.api)
@@ -346,7 +348,7 @@ def getXMLRevisions(
                 lastArvcontinue = lastPage.attrib["arvcontinue"]
             except Exception:
                 print(
-                    f"Failed to find title in last trunk XML: {lxml.etree.tostring(lastPage)}"
+                    f"Failed to find title in last trunk XML: {lxml.etree.tostring(lastPage)!r}"
                 )
                 raise
             nscontinue = lastNs
@@ -361,7 +363,7 @@ def getXMLRevisions(
             return getXMLRevisionsByAllRevisions(
                 config, session, site, nscontinue, arvcontinue
             )
-        except (KeyError, mwclient.errors.InvalidResponse) as e:
+        except (KeyError, InvalidResponse) as e:
             print(e)
             # TODO: check whether the KeyError was really for a missing arv API
             print(
@@ -375,7 +377,7 @@ def getXMLRevisions(
                 start = lastPage.find("title")
             except Exception:
                 print(
-                    f"Failed to find title in last trunk XML: {lxml.etree.tostring(lastPage)}"
+                    f"Failed to find title in last trunk XML: {lxml.etree.tostring(lastPage)!r}"
                 )
                 raise
         else:
@@ -386,7 +388,7 @@ def getXMLRevisions(
             # raise KeyError(999999)
             # # DO NOT UNCOMMMENT IN RELEASE
             return getXMLRevisionsByTitles(config, session, site, start)
-        except mwclient.errors.MwClientError as e:
+        except MwClientError as e:
             print(e)
             print("This mwclient version seems not to work for us. Exiting.")
             sys.exit()

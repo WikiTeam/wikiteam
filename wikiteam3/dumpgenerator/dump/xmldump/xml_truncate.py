@@ -1,6 +1,6 @@
 import os
 from io import StringIO
-from typing import *
+from typing import Optional
 
 import lxml.etree
 from file_read_backwards import FileReadBackwards
@@ -60,7 +60,7 @@ def truncateXMLDump(filename: str) -> str:
     return incomplete_segment
 
 
-def parseLastPageChunk(chunk) -> Optional[lxml.etree._ElementTree]:
+def parseLastPageChunk(chunk) -> Optional[lxml.etree._Element]:
     try:
         parser = lxml.etree.XMLParser(recover=True)
         tree = lxml.etree.parse(StringIO(chunk), parser)
