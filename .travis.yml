@@ -1,5 +1,5 @@
 language: python
-python: 3.10
+python: 3.13
 install:
   - pip install poetry
   - poetry install

@@ -57,7 +57,7 @@ dependencies = [
     "pre-commit-poetry-export >= 0.1.2",
     "setuptools >= 82.0.0"
 ]
-requires-python = ">=3.10,<4"
+requires-python = ">=3.13,<4"
 
 [project.urls]
 # Homepage = "https://wiki.archiveteam.org/index.php/WikiTeam"

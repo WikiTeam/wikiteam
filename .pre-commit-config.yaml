@@ -3,10 +3,10 @@
 # Update this file:
 #   pre-commit autoupdate
 default_language_version:
-    python: python3.10
+    python: python3.13
 repos:
 -   repo: https://github.com/python-poetry/poetry
-    rev: 2.3.2
+    rev: 2.4.0
     hooks:
     -   id: poetry-check
         args: ["--lock"]
