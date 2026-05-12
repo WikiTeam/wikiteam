@@ -358,9 +358,9 @@ setuptools==82.0.1 ; python_version >= "3.13" and python_version < "4" \
 tqdm==4.67.3 ; python_version >= "3.13" and python_version < "4" \
     --hash=sha256:7d825f03f89244ef73f1d4ce193cb1774a8179fd96f31d7e1dcde62092b960bb \
     --hash=sha256:ee1e4c0e59148062281c49d80b25b67771a127c85fc9676d3be5f243206826bf
-urllib3==2.6.3 ; python_version >= "3.13" and python_version < "4" \
-    --hash=sha256:1b62b6884944a57dbe321509ab94fd4d3b307075e0c2eae991ac71ee15ad38ed \
-    --hash=sha256:bf272323e553dfb2e87d9bfd225ca7b0f467b919d7bbd355436d3fd37cb0acd4
+urllib3==2.7.0 ; python_version >= "3.13" and python_version < "4" \
+    --hash=sha256:231e0ec3b63ceb14667c67be60f2f2c40a518cb38b03af60abc813da26505f4c \
+    --hash=sha256:9fb4c81ebbb1ce9531cce37674bbc6f1360472bc18ca9a553ede278ef7276897
 wikitools3==3.0.1 ; python_version >= "3.13" and python_version < "4" \
     --hash=sha256:ab1a13d9be831eb1186cf0f2b8ac487dde0932dad82c6c6031f28fa415840fe4 \
     --hash=sha256:b493e6806fb1985ad1af294c56364aeba6ea67a366553bc11b65b7f5279d0012

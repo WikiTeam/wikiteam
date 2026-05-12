@@ -50,7 +50,7 @@ dependencies = [
     "mwclient >= 0.10.1",
     "PyMySQL >= 1.1.1",
     "pywikibot >= 11.0.0",
-    "urllib3 >= 2.6.3",
+    "urllib3 >= 2.7.0",
     "wikitools3 >= 3.0.0",
     "pymysql",
     "file_read_backwards >= 2.0.0",
